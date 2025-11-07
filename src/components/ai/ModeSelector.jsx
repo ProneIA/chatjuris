@@ -7,22 +7,22 @@ const modes = [
     id: "assistant",
     name: "Assistente",
     icon: MessageSquare,
-    description: "Chat geral e consultas",
+    description: "Chat geral e perguntas",
     color: "from-blue-500 to-cyan-500"
   },
   {
-    id: "legal_document",
-    name: "Docs Jurídicos",
+    id: "legal_document_generator",
+    name: "Gerar Documento",
     icon: Scale,
-    description: "Gerar documentos legais",
-    color: "from-indigo-500 to-purple-500"
+    description: "Documentos jurídicos",
+    color: "from-purple-500 to-pink-500"
   },
   {
     id: "image_generator",
     name: "Gerar Imagens",
     icon: Image,
     description: "Crie imagens com IA",
-    color: "from-pink-500 to-purple-500"
+    color: "from-pink-500 to-rose-500"
   },
   {
     id: "document_analyzer",
