@@ -1,30 +1,35 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Image, FileText, Zap, Brain, Lightbulb } from "lucide-react";
+import { Sparkles, MessageSquare, Image, FileText, Scale, Brain, Lightbulb, Zap } from "lucide-react";
 
 const features = [
   {
     icon: MessageSquare,
-    title: "Conversas Inteligentes",
-    description: "Pergunte qualquer coisa e obtenha respostas detalhadas"
+    title: "Assistente Jurídico",
+    description: "Consultas e orientações legais instantâneas"
+  },
+  {
+    icon: Scale,
+    title: "Geração de Documentos",
+    description: "Crie petições, contratos e documentos com IA"
   },
   {
     icon: Image,
     title: "Geração de Imagens",
-    description: "Crie imagens incríveis com descrições em texto"
+    description: "Crie imagens e ilustrações com IA"
   },
   {
     icon: FileText,
     title: "Análise de Documentos",
-    description: "Faça upload e extraia informações de documentos"
+    description: "Upload e extração de informações"
   }
 ];
 
 const examples = [
-  { icon: Brain, text: "Me explique física quântica" },
-  { icon: Lightbulb, text: "Dê ideias para um projeto" },
-  { icon: Zap, text: "Gere uma imagem de um pôr do sol" }
+  { icon: Scale, text: "Gerar uma petição inicial" },
+  { icon: Brain, text: "Analisar viabilidade de processo" },
+  { icon: Lightbulb, text: "Sugerir estratégias jurídicas" }
 ];
 
 export default function WelcomeScreen({ onNewConversation, selectedMode }) {
@@ -46,10 +51,10 @@ export default function WelcomeScreen({ onNewConversation, selectedMode }) {
           </div>
 
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            IA Inteligente
+            Assistente Jurídico IA
           </h1>
           <p className="text-xl text-slate-600 mb-8">
-            Seu assistente pessoal com inteligência artificial
+            Seu parceiro inteligente para documentação e consultoria legal
           </p>
 
           <Button
@@ -67,7 +72,7 @@ export default function WelcomeScreen({ onNewConversation, selectedMode }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid md:grid-cols-3 gap-6 mb-12"
+          className="grid md:grid-cols-2 gap-6 mb-12"
         >
           {features.map((feature, index) => {
             const Icon = feature.icon;
@@ -94,7 +99,7 @@ export default function WelcomeScreen({ onNewConversation, selectedMode }) {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center"
         >
-          <p className="text-sm text-slate-500 mb-4">Ou experimente algo como:</p>
+          <p className="text-sm text-slate-500 mb-4">Experimente algo como:</p>
           <div className="flex flex-wrap gap-3 justify-center">
             {examples.map((example, index) => {
               const Icon = example.icon;

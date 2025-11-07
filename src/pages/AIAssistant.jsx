@@ -21,6 +21,21 @@ export default function AIAssistant() {
     queryFn: () => base44.entities.Conversation.list('-last_message_at'),
   });
 
+  const { data: templates = [] } = useQuery({
+    queryKey: ['templates'],
+    queryFn: () => base44.entities.Template.list('name'),
+  });
+
+  const { data: cases = [] } = useQuery({
+    queryKey: ['cases'],
+    queryFn: () => base44.entities.Case.list('title'),
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('name'),
+  });
+
   const createConversationMutation = useMutation({
     mutationFn: (data) => base44.entities.Conversation.create(data),
     onSuccess: (newConversation) => {
@@ -33,7 +48,8 @@ export default function AIAssistant() {
     const modeNames = {
       assistant: "Nova Conversa",
       image_generator: "Gerar Imagens",
-      document_analyzer: "Analisar Documento"
+      document_analyzer: "Analisar Documento",
+      legal_document: "Gerar Documento Jurídico"
     };
 
     createConversationMutation.mutate({
@@ -78,9 +94,9 @@ export default function AIAssistant() {
                   </div>
                   <div>
                     <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      IA Inteligente
+                      IA Jurídica
                     </h1>
-                    <p className="text-xs text-slate-500">Seu assistente pessoal</p>
+                    <p className="text-xs text-slate-500">Assistente Legal Inteligente</p>
                   </div>
                 </div>
                 <Button
@@ -142,6 +158,7 @@ export default function AIAssistant() {
                   {selectedConversation.mode === 'assistant' && '💬 Assistente Geral'}
                   {selectedConversation.mode === 'image_generator' && '🎨 Gerador de Imagens'}
                   {selectedConversation.mode === 'document_analyzer' && '📄 Analisador de Documentos'}
+                  {selectedConversation.mode === 'legal_document' && '⚖️ Gerador de Documentos Jurídicos'}
                 </p>
               </div>
             ) : (
@@ -158,6 +175,9 @@ export default function AIAssistant() {
           {selectedConversation ? (
             <ChatInterface
               conversation={selectedConversation}
+              templates={templates}
+              cases={cases}
+              clients={clients}
               onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
             />
           ) : (

@@ -1,14 +1,21 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Image, FileText } from "lucide-react";
+import { MessageSquare, Image, FileText, Scale } from "lucide-react";
 
 const modes = [
   {
     id: "assistant",
     name: "Assistente",
     icon: MessageSquare,
-    description: "Chat geral e perguntas",
+    description: "Chat geral e consultas",
     color: "from-blue-500 to-cyan-500"
+  },
+  {
+    id: "legal_document",
+    name: "Docs Jurídicos",
+    icon: Scale,
+    description: "Gerar documentos legais",
+    color: "from-indigo-500 to-purple-500"
   },
   {
     id: "image_generator",
