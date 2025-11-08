@@ -3,12 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Folder as FolderIcon } from "lucide-react";
-import CaseList from "../components/cases/CaseList";
+import { Plus, Search } from "lucide-react";
+import CaseCard from "../components/cases/CaseCard";
 import CaseForm from "../components/cases/CaseForm";
 import CaseDetails from "../components/cases/CaseDetails";
 import FolderSidebar from "../components/cases/FolderSidebar";
-import CaseCard from "../components/cases/CaseCard";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Cases() {
@@ -17,7 +16,6 @@ export default function Cases() {
   const [selectedCase, setSelectedCase] = useState(null);
   const [editingCase, setEditingCase] = useState(null);
   const [selectedFolder, setSelectedFolder] = useState(null);
-  const [showFolderSidebar, setShowFolderSidebar] = useState(true);
   const queryClient = useQueryClient();
 
   const { data: cases = [], isLoading } = useQuery({
@@ -72,29 +70,48 @@ export default function Cases() {
     mutationFn: (id) => base44.entities.Folder.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['folders'] });
-      setSelectedFolder(null);
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      if (selectedFolder && typeof selectedFolder === 'string') {
+        setSelectedFolder(null);
+      }
     },
   });
 
+  const moveCaseToFolderMutation = useMutation({
+    mutationFn: ({ caseId, folderId }) => {
+      const caseData = cases.find(c => c.id === caseId);
+      return base44.entities.Case.update(caseId, { 
+        ...caseData, 
+        folder_id: folderId || undefined 
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+  });
+
+  // Filter cases by folder
   const filteredCases = cases.filter(caseItem => {
     const matchesSearch = 
       caseItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       caseItem.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       caseItem.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFolder = selectedFolder === null || caseItem.folder_id === selectedFolder;
+    let matchesFolder = true;
+    if (selectedFolder === 'unfiled') {
+      matchesFolder = !caseItem.folder_id;
+    } else if (selectedFolder) {
+      matchesFolder = caseItem.folder_id === selectedFolder;
+    }
 
     return matchesSearch && matchesFolder;
   });
 
   const handleSubmit = (data) => {
-    // Add folder_id if a folder is selected
-    const dataWithFolder = selectedFolder ? { ...data, folder_id: selectedFolder } : data;
-    
     if (editingCase) {
-      updateCaseMutation.mutate({ id: editingCase.id, data: dataWithFolder });
+      updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
-      createCaseMutation.mutate(dataWithFolder);
+      createCaseMutation.mutate(data);
     }
   };
 
@@ -104,12 +121,18 @@ export default function Cases() {
     setSelectedCase(null);
   };
 
-  const handleMoveToFolder = (caseItem, folderId) => {
-    updateCaseMutation.mutate({
-      id: caseItem.id,
-      data: { ...caseItem, folder_id: folderId }
-    });
+  const handleMoveToFolder = (caseId, folderId) => {
+    moveCaseToFolderMutation.mutate({ caseId, folderId });
   };
+
+  // Calculate counts for folders
+  const caseCounts = {
+    total: cases.length,
+    unfiled: cases.filter(c => !c.folder_id).length
+  };
+  folders.forEach(folder => {
+    caseCounts[folder.id] = cases.filter(c => c.folder_id === folder.id).length;
+  });
 
   const stats = {
     total: cases.length,
@@ -118,49 +141,35 @@ export default function Cases() {
     urgent: cases.filter(c => c.priority === 'urgent').length,
   };
 
-  const selectedFolderData = folders.find(f => f.id === selectedFolder);
-
   return (
     <div className="h-full flex">
       {/* Folder Sidebar */}
-      {showFolderSidebar && (
-        <FolderSidebar
-          folders={folders}
-          selectedFolder={selectedFolder}
-          onSelectFolder={setSelectedFolder}
-          onCreateFolder={(data) => createFolderMutation.mutate(data)}
-          onUpdateFolder={(id, data) => updateFolderMutation.mutate({ id, data })}
-          onDeleteFolder={(id) => {
-            if (confirm('Tem certeza que deseja excluir esta pasta? Os processos não serão excluídos.')) {
-              deleteFolderMutation.mutate(id);
-            }
-          }}
-          cases={cases}
-        />
-      )}
+      <FolderSidebar
+        folders={folders}
+        selectedFolder={selectedFolder}
+        onSelectFolder={setSelectedFolder}
+        onCreateFolder={(data) => createFolderMutation.mutate(data)}
+        onUpdateFolder={(id, data) => updateFolderMutation.mutate({ id, data })}
+        onDeleteFolder={(id) => deleteFolderMutation.mutate(id)}
+        caseCounts={caseCounts}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="bg-white border-b border-slate-200 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowFolderSidebar(!showFolderSidebar)}
-              >
-                <FolderIcon className="w-4 h-4" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">
-                  {selectedFolderData ? selectedFolderData.name : 'Todos os Processos'}
-                </h1>
-                <p className="text-slate-600 mt-1">
-                  {selectedFolderData 
-                    ? `${filteredCases.length} processos nesta pasta`
-                    : 'Gerencie seus processos jurídicos'}
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">
+                {selectedFolder === 'unfiled' 
+                  ? 'Processos sem Pasta'
+                  : selectedFolder
+                  ? folders.find(f => f.id === selectedFolder)?.name || 'Processos'
+                  : 'Todos os Processos'}
+              </h1>
+              <p className="text-slate-600 mt-1">
+                {filteredCases.length} {filteredCases.length === 1 ? 'processo' : 'processos'}
+                {selectedFolder && ' nesta pasta'}
+              </p>
             </div>
             <Button
               onClick={() => {
@@ -217,38 +226,41 @@ export default function Cases() {
               }}
               isLoading={createCaseMutation.isPending || updateCaseMutation.isPending}
             />
+          ) : isLoading ? (
+            <div className="grid gap-4">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-32 rounded-xl" />
+              ))}
+            </div>
+          ) : filteredCases.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                Nenhum processo encontrado
+              </h3>
+              <p className="text-slate-600">
+                {searchTerm 
+                  ? 'Tente ajustar os filtros de busca'
+                  : selectedFolder === 'unfiled'
+                  ? 'Não há processos sem pasta'
+                  : 'Crie um novo processo para começar'}
+              </p>
+            </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-48 rounded-xl" />
-                ))
-              ) : filteredCases.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <FolderIcon className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-                  <p className="text-slate-500 text-lg">
-                    {selectedFolder 
-                      ? 'Nenhum processo nesta pasta'
-                      : 'Nenhum processo encontrado'}
-                  </p>
-                  <p className="text-slate-400 text-sm mt-2">
-                    {selectedFolder 
-                      ? 'Mova processos para esta pasta ou crie um novo'
-                      : 'Crie seu primeiro processo para começar'}
-                  </p>
-                </div>
-              ) : (
-                filteredCases.map((caseItem) => (
-                  <CaseCard
-                    key={caseItem.id}
-                    caseData={caseItem}
-                    isSelected={selectedCase?.id === caseItem.id}
-                    onClick={() => setSelectedCase(caseItem)}
-                    folders={folders}
-                    onMoveToFolder={(folderId) => handleMoveToFolder(caseItem, folderId)}
-                  />
-                ))
-              )}
+            <div className="grid gap-4">
+              {filteredCases.map((caseItem) => (
+                <CaseCard
+                  key={caseItem.id}
+                  caseItem={caseItem}
+                  isSelected={selectedCase?.id === caseItem.id}
+                  onClick={() => setSelectedCase(caseItem)}
+                  folders={folders}
+                  currentFolderId={selectedFolder}
+                  onMoveToFolder={handleMoveToFolder}
+                />
+              ))}
             </div>
           )}
         </div>

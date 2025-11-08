@@ -1,43 +1,45 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, Calendar, AlertCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar, DollarSign, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const areaColors = {
   civil: "bg-blue-100 text-blue-800",
   criminal: "bg-red-100 text-red-800",
-  trabalhista: "bg-purple-100 text-purple-800",
+  trabalhista: "bg-green-100 text-green-800",
   tributario: "bg-yellow-100 text-yellow-800",
-  familia: "bg-pink-100 text-pink-800",
-  empresarial: "bg-green-100 text-green-800",
-  consumidor: "bg-orange-100 text-orange-800",
-  previdenciario: "bg-indigo-100 text-indigo-800",
+  familia: "bg-purple-100 text-purple-800",
+  empresarial: "bg-indigo-100 text-indigo-800",
+  consumidor: "bg-pink-100 text-pink-800",
+  previdenciario: "bg-orange-100 text-orange-800",
   outros: "bg-slate-100 text-slate-800"
 };
 
 const statusColors = {
-  new: "bg-blue-100 text-blue-800",
-  in_progress: "bg-purple-100 text-purple-800",
+  new: "bg-green-100 text-green-800",
+  in_progress: "bg-blue-100 text-blue-800",
   waiting: "bg-yellow-100 text-yellow-800",
-  closed: "bg-green-100 text-green-800",
-  archived: "bg-slate-100 text-slate-800"
+  closed: "bg-slate-100 text-slate-800",
+  archived: "bg-slate-100 text-slate-500"
 };
 
 const priorityColors = {
-  low: "bg-slate-100 text-slate-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  urgent: "bg-red-100 text-red-800"
+  low: "bg-slate-100 text-slate-600",
+  medium: "bg-blue-100 text-blue-700",
+  high: "bg-orange-100 text-orange-700",
+  urgent: "bg-red-100 text-red-700"
 };
 
-export default function CaseList({ cases, isLoading, onSelectCase, selectedCase }) {
+export default function CaseList({ cases, isLoading, onSelectCase, selectedCase, folders = [], onMoveToFolder }) {
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3, 4, 5].map(i => (
+      <div className="grid gap-4">
+        {[1, 2, 3, 4, 5].map((i) => (
           <Skeleton key={i} className="h-32 rounded-xl" />
         ))}
       </div>
@@ -47,81 +49,90 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase 
   if (cases.length === 0) {
     return (
       <div className="text-center py-12">
-        <FolderOpen className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-        <p className="text-slate-500">Nenhum processo encontrado</p>
+        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-8 h-8 text-slate-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhum processo encontrado</h3>
+        <p className="text-slate-600">Crie um novo processo para começar</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {cases.map(caseItem => (
-        <motion.div
-          key={caseItem.id}
-          whileHover={{ scale: 1.01, y: -2 }}
-          onClick={() => onSelectCase(caseItem)}
-          className={`bg-white rounded-xl p-6 border-2 cursor-pointer transition-all ${
-            selectedCase?.id === caseItem.id
-              ? 'border-blue-500 shadow-lg'
-              : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
-          }`}
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="font-semibold text-slate-900 text-lg">
-                  {caseItem.title}
-                </h3>
-                {caseItem.priority === 'urgent' && (
-                  <AlertCircle className="w-5 h-5 text-red-500" />
+    <div className="grid gap-4">
+      {cases.map((caseItem) => {
+        const isSelected = selectedCase?.id === caseItem.id;
+        return (
+          <motion.div
+            key={caseItem.id}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <Card
+              onClick={() => onSelectCase(caseItem)}
+              className={cn(
+                "p-4 cursor-pointer transition-all hover:shadow-md",
+                isSelected ? "ring-2 ring-blue-500 bg-blue-50" : "hover:bg-slate-50"
+              )}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 mb-1">
+                    {caseItem.title}
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    {caseItem.client_name}
+                  </p>
+                  {caseItem.case_number && (
+                    <p className="text-xs text-slate-500 mt-1 font-mono">
+                      {caseItem.case_number}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge className={statusColors[caseItem.status]}>
+                  {caseItem.status === 'new' && 'Novo'}
+                  {caseItem.status === 'in_progress' && 'Em Andamento'}
+                  {caseItem.status === 'waiting' && 'Aguardando'}
+                  {caseItem.status === 'closed' && 'Encerrado'}
+                  {caseItem.status === 'archived' && 'Arquivado'}
+                </Badge>
+                
+                <Badge className={priorityColors[caseItem.priority]}>
+                  {caseItem.priority === 'urgent' && '🔥 Urgente'}
+                  {caseItem.priority === 'high' && 'Alta'}
+                  {caseItem.priority === 'medium' && 'Média'}
+                  {caseItem.priority === 'low' && 'Baixa'}
+                </Badge>
+
+                <Badge variant="outline" className={areaColors[caseItem.area]}>
+                  {caseItem.area}
+                </Badge>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs text-slate-500">
+                {caseItem.deadline && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(caseItem.deadline), "dd/MM/yyyy", { locale: ptBR })}
+                  </div>
+                )}
+                {caseItem.value && (
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="w-3 h-3" />
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(caseItem.value)}
+                  </div>
                 )}
               </div>
-              {caseItem.case_number && (
-                <p className="text-sm text-slate-500 mb-2">
-                  Processo: {caseItem.case_number}
-                </p>
-              )}
-              <p className="text-sm text-slate-600">
-                Cliente: {caseItem.client_name}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <Badge className={statusColors[caseItem.status]}>
-                {caseItem.status === 'new' && 'Novo'}
-                {caseItem.status === 'in_progress' && 'Em Andamento'}
-                {caseItem.status === 'waiting' && 'Aguardando'}
-                {caseItem.status === 'closed' && 'Fechado'}
-                {caseItem.status === 'archived' && 'Arquivado'}
-              </Badge>
-              <Badge className={priorityColors[caseItem.priority]}>
-                {caseItem.priority === 'urgent' && 'Urgente'}
-                {caseItem.priority === 'high' && 'Alta'}
-                {caseItem.priority === 'medium' && 'Média'}
-                {caseItem.priority === 'low' && 'Baixa'}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6 text-sm">
-            <Badge className={areaColors[caseItem.area]}>
-              {caseItem.area?.charAt(0).toUpperCase() + caseItem.area?.slice(1)}
-            </Badge>
-            {caseItem.deadline && (
-              <div className="flex items-center gap-2 text-slate-600">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  Prazo: {format(new Date(caseItem.deadline), "dd/MM/yyyy", { locale: ptBR })}
-                </span>
-              </div>
-            )}
-            {caseItem.value && (
-              <div className="text-slate-600">
-                Valor: R$ {caseItem.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      ))}
+            </Card>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
