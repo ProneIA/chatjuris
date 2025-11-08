@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Image, FileText, Scale, Zap, Brain, Lightbulb } from "lucide-react";
+import { Sparkles, MessageSquare, Image, FileText, Scale, Zap, Brain, Lightbulb, Search } from "lucide-react";
 
 const features = [
   {
@@ -15,21 +15,21 @@ const features = [
     description: "Gere petições, contratos e outros documentos legais"
   },
   {
+    icon: FileText,
+    title: "Análise de Documentos",
+    description: "Upload de PDFs e análise jurídica completa com IA"
+  },
+  {
     icon: Image,
     title: "Geração de Imagens",
     description: "Crie imagens incríveis com descrições em texto"
-  },
-  {
-    icon: FileText,
-    title: "Análise de Documentos",
-    description: "Faça upload e extraia informações de documentos"
   }
 ];
 
 const examples = [
-  { icon: Brain, text: "Me explique física quântica" },
-  { icon: Scale, text: "Gere uma petição inicial" },
-  { icon: Lightbulb, text: "Dê ideias para um projeto" }
+  { icon: Brain, text: "Explicar um conceito jurídico" },
+  { icon: Scale, text: "Gerar uma petição inicial" },
+  { icon: Search, text: "Analisar contrato PDF" }
 ];
 
 export default function WelcomeScreen({ onNewConversation, selectedMode }) {

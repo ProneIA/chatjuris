@@ -3,11 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Paperclip, X, Sparkles, Scale } from "lucide-react";
+import { Send, Loader2, Paperclip, X, Sparkles, Scale, FileText, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 import MessageBubble from "./MessageBubble";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
 import CaseSummarizerDialog from "./CaseSummarizerDialog";
+import DocumentAnalysisPanel from "./DocumentAnalysisPanel";
 
 export default function ChatInterface({ conversation, onUpdate }) {
   const [input, setInput] = useState("");
@@ -15,6 +17,7 @@ export default function ChatInterface({ conversation, onUpdate }) {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showCaseSummarizer, setShowCaseSummarizer] = useState(false);
+  const [documentAnalysisMode, setDocumentAnalysisMode] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
@@ -47,11 +50,112 @@ export default function ChatInterface({ conversation, onUpdate }) {
     setUploadingFile(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setUploadedFile({ url: file_url, name: file.name });
+      setUploadedFile({ url: file_url, name: file.name, type: file.type });
+      
+      // For document analyzer mode, show analysis panel
+      if (conversation.mode === "document_analyzer") {
+        setDocumentAnalysisMode(true);
+      }
     } catch (error) {
       console.error("Erro ao fazer upload:", error);
+      alert("Erro ao fazer upload do arquivo. Tente novamente.");
     }
     setUploadingFile(false);
+  };
+
+  const handleQuickAnalysis = async (analysisType) => {
+    if (!uploadedFile) return;
+
+    const prompts = {
+      summary: "Faça um resumo executivo completo deste documento legal, destacando os pontos mais importantes e o contexto geral.",
+      key_clauses: "Identifique e liste todas as cláusulas principais deste documento, explicando o significado e implicações de cada uma.",
+      parties: "Identifique todas as partes envolvidas neste documento (pessoas, empresas, entidades), seus papéis e responsabilidades.",
+      obligations: "Liste todas as obrigações, direitos e deveres estabelecidos neste documento, organizados por parte.",
+      deadlines: "Identifique todos os prazos, datas importantes e períodos mencionados neste documento.",
+      risks: "Analise este documento do ponto de vista jurídico e identifique potenciais riscos, cláusulas problemáticas ou pontos de atenção.",
+      amendments: "Sugira melhorias ou alterações que poderiam fortalecer este documento do ponto de vista legal."
+    };
+
+    const titles = {
+      summary: "Resumo Executivo",
+      key_clauses: "Cláusulas Principais",
+      parties: "Partes Envolvidas",
+      obligations: "Obrigações e Direitos",
+      deadlines: "Prazos e Datas",
+      risks: "Análise de Riscos",
+      amendments: "Sugestões de Melhoria"
+    };
+
+    setInput(`📄 ${titles[analysisType]}: ${uploadedFile.name}`);
+    await handleSubmitWithPrompt(prompts[analysisType]);
+  };
+
+  const handleSubmitWithPrompt = async (customPrompt) => {
+    if (!uploadedFile) return;
+
+    const displayPrompt = input || customPrompt;
+    const userMessage = {
+      role: "user",
+      content: displayPrompt,
+      timestamp: new Date().toISOString()
+    };
+
+    const updatedMessages = [...conversation.messages, userMessage];
+    
+    await updateConversationMutation.mutateAsync({
+      id: conversation.id,
+      data: {
+        messages: updatedMessages,
+        last_message_at: new Date().toISOString()
+      }
+    });
+
+    setInput("");
+    setIsGenerating(true);
+    setDocumentAnalysisMode(false);
+
+    try {
+      const finalPrompt = `Você é um assistente jurídico especializado em análise de documentos legais brasileiros.
+
+DOCUMENTO: ${uploadedFile.name}
+
+TAREFA: ${customPrompt || input}
+
+INSTRUÇÕES:
+- Analise o documento de forma profissional e detalhada
+- Use linguagem técnica jurídica apropriada
+- Cite trechos específicos do documento quando relevante
+- Organize a resposta de forma clara e estruturada
+- Destaque informações críticas em negrito
+- Se houver cláusulas importantes, liste-as numeradas
+- Inclua observações e recomendações quando apropriado
+
+Forneça uma análise completa e profissional:`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: finalPrompt,
+        file_urls: [uploadedFile.url]
+      });
+
+      const assistantResponse = {
+        role: "assistant",
+        content: response,
+        timestamp: new Date().toISOString()
+      };
+
+      await updateConversationMutation.mutateAsync({
+        id: conversation.id,
+        data: {
+          messages: [...updatedMessages, assistantResponse],
+          last_message_at: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao analisar documento:", error);
+      alert("Erro ao analisar o documento. Tente novamente.");
+    }
+
+    setIsGenerating(false);
   };
 
   const handleSummarizeCase = async (caseData) => {
@@ -157,6 +261,12 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
     e.preventDefault();
     if (!input.trim() && !uploadedFile) return;
 
+    // For document analyzer with file, use the enhanced prompt
+    if (conversation.mode === "document_analyzer" && uploadedFile) {
+      await handleSubmitWithPrompt(input);
+      return;
+    }
+
     const userMessage = {
       role: "user",
       content: input,
@@ -190,18 +300,6 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
           image_url: url,
           timestamp: new Date().toISOString()
         };
-      } else if (conversation.mode === "document_analyzer" && uploadedFile) {
-        const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `Analise este documento e responda: ${input}`,
-          file_urls: [uploadedFile.url]
-        });
-        
-        assistantResponse = {
-          role: "assistant",
-          content: response,
-          timestamp: new Date().toISOString()
-        };
-        setUploadedFile(null);
       } else {
         const response = await base44.integrations.Core.InvokeLLM({
           prompt: input,
@@ -256,7 +354,11 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                 <span className="text-sm text-slate-600">
-                  {conversation.mode === 'assistant' ? 'Analisando e gerando resumo...' : 'Gerando resposta...'}
+                  {uploadedFile && conversation.mode === 'document_analyzer' 
+                    ? 'Analisando documento...' 
+                    : conversation.mode === 'assistant' 
+                    ? 'Analisando e gerando resumo...' 
+                    : 'Gerando resposta...'}
                 </span>
               </div>
             </div>
@@ -267,7 +369,8 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
       </div>
 
       <div className="border-t border-slate-200/50 bg-white/80 backdrop-blur-xl p-4">
-        {conversation.mode === 'assistant' && (
+        {/* Quick Actions for Assistant Mode */}
+        {conversation.mode === 'assistant' && !uploadedFile && (
           <Button
             onClick={() => setShowCaseSummarizer(true)}
             variant="outline"
@@ -278,19 +381,53 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
           </Button>
         )}
 
-        {uploadedFile && (
-          <div className="mb-3 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-            <Paperclip className="w-4 h-4 text-blue-600" />
-            <span className="text-sm text-blue-900 flex-1 truncate">{uploadedFile.name}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => setUploadedFile(null)}
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
+        {/* Document Analysis Panel */}
+        {conversation.mode === "document_analyzer" && uploadedFile && documentAnalysisMode && (
+          <DocumentAnalysisPanel
+            fileName={uploadedFile.name}
+            onQuickAnalysis={handleQuickAnalysis}
+            onClose={() => {
+              setUploadedFile(null);
+              setDocumentAnalysisMode(false);
+            }}
+          />
+        )}
+
+        {/* Uploaded File Display */}
+        {uploadedFile && !documentAnalysisMode && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-3 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium text-green-900 truncate">{uploadedFile.name}</p>
+                  <Badge className="bg-green-100 text-green-700">Carregado</Badge>
+                </div>
+                <p className="text-sm text-green-700">
+                  {conversation.mode === 'document_analyzer' 
+                    ? 'Documento pronto para análise. Faça perguntas específicas abaixo.'
+                    : 'Arquivo anexado à próxima mensagem'}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 hover:bg-green-100"
+                onClick={() => {
+                  setUploadedFile(null);
+                  setDocumentAnalysisMode(false);
+                }}
+              >
+                <X className="w-4 h-4 text-green-600" />
+              </Button>
+            </div>
+          </motion.div>
         )}
 
         <form onSubmit={handleSubmit} className="flex gap-2">
@@ -309,12 +446,12 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingFile}
-              className="shrink-0"
+              className="shrink-0 border-green-300 hover:bg-green-50"
             >
               {uploadingFile ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-green-600" />
               ) : (
-                <Paperclip className="w-4 h-4" />
+                <Paperclip className="w-4 h-4 text-green-600" />
               )}
             </Button>
           )}
@@ -326,7 +463,9 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
               conversation.mode === "image_generator"
                 ? "Descreva a imagem que deseja gerar..."
                 : conversation.mode === "document_analyzer"
-                ? "Faça uma pergunta sobre o documento..."
+                ? uploadedFile 
+                  ? "Faça uma pergunta sobre o documento (ex: Quais são as cláusulas principais?)"
+                  : "Faça upload de um documento para começar a análise..."
                 : "Digite sua mensagem..."
             }
             className="flex-1 min-h-[60px] max-h-[200px] resize-none rounded-2xl border-slate-200 focus:border-blue-400 focus:ring-blue-400"
@@ -352,7 +491,9 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
         </form>
 
         <p className="text-xs text-slate-400 text-center mt-2">
-          Pressione Enter para enviar, Shift+Enter para nova linha
+          {conversation.mode === "document_analyzer" && !uploadedFile
+            ? "Faça upload de PDF, DOCX ou imagem para análise jurídica"
+            : "Pressione Enter para enviar, Shift+Enter para nova linha"}
         </p>
       </div>
 
