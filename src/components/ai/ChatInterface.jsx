@@ -3,19 +3,26 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Paperclip, X, Sparkles } from "lucide-react";
+import { Send, Loader2, Paperclip, X, Sparkles, Scale } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageBubble from "./MessageBubble";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
+import CaseSummarizerDialog from "./CaseSummarizerDialog";
 
 export default function ChatInterface({ conversation, onUpdate }) {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [showCaseSummarizer, setShowCaseSummarizer] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const { data: cases = [] } = useQuery({
+    queryKey: ['cases'],
+    queryFn: () => base44.entities.Case.list('-created_date'),
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,6 +52,105 @@ export default function ChatInterface({ conversation, onUpdate }) {
       console.error("Erro ao fazer upload:", error);
     }
     setUploadingFile(false);
+  };
+
+  const handleSummarizeCase = async (caseData) => {
+    setShowCaseSummarizer(false);
+    setIsGenerating(true);
+
+    try {
+      const userMessage = {
+        role: "user",
+        content: `Analisar e resumir processo: ${caseData.title || caseData.case_number || 'Processo'}`,
+        timestamp: new Date().toISOString()
+      };
+
+      const updatedMessages = [...conversation.messages, userMessage];
+      
+      await updateConversationMutation.mutateAsync({
+        id: conversation.id,
+        data: {
+          messages: updatedMessages,
+          last_message_at: new Date().toISOString()
+        }
+      });
+
+      const prompt = `Você é um assistente jurídico especializado em análise de processos judiciais brasileiros.
+
+INFORMAÇÕES DO PROCESSO:
+${caseData.case_number ? `Número do Processo: ${caseData.case_number}` : ''}
+${caseData.title ? `Título: ${caseData.title}` : ''}
+${caseData.area ? `Área do Direito: ${caseData.area}` : ''}
+${caseData.court ? `Vara/Tribunal: ${caseData.court}` : ''}
+${caseData.client_name ? `Cliente: ${caseData.client_name}` : ''}
+${caseData.opposing_party ? `Parte Contrária: ${caseData.opposing_party}` : ''}
+${caseData.description ? `Descrição:\n${caseData.description}` : ''}
+${caseData.value ? `Valor da Causa: R$ ${caseData.value}` : ''}
+${caseData.status ? `Status: ${caseData.status}` : ''}
+${caseData.priority ? `Prioridade: ${caseData.priority}` : ''}
+${caseData.start_date ? `Data de Início: ${caseData.start_date}` : ''}
+${caseData.deadline ? `Prazo: ${caseData.deadline}` : ''}
+
+TAREFA:
+Analise este processo judicial e forneça um resumo estruturado e profissional contendo:
+
+**📋 RESUMO EXECUTIVO**
+- Breve descrição do caso em 2-3 frases
+
+**⚖️ PARTES ENVOLVIDAS**
+- Autor/Cliente
+- Réu/Parte Contrária
+- Representações legais (se mencionado)
+
+**🎯 OBJETO DA AÇÃO**
+- Principal pedido ou questão jurídica
+- Valor da causa (se aplicável)
+
+**📌 PONTOS-CHAVE**
+- Principais argumentos e fundamentos
+- Teses jurídicas relevantes
+- Questões fáticas importantes
+
+**⚡ ANÁLISE ESTRATÉGICA**
+- Pontos fortes do caso
+- Pontos de atenção ou riscos
+- Recomendações de estratégia processual
+
+**📅 CRONOLOGIA & PRÓXIMOS PASSOS**
+- Principais marcos processuais
+- Prazos importantes
+- Ações recomendadas
+
+**💡 OBSERVAÇÕES FINAIS**
+- Outras considerações relevantes
+- Sugestões para fortalecimento do caso
+
+Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade.`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        add_context_from_internet: false
+      });
+
+      const assistantResponse = {
+        role: "assistant",
+        content: response,
+        timestamp: new Date().toISOString()
+      };
+
+      await updateConversationMutation.mutateAsync({
+        id: conversation.id,
+        data: {
+          messages: [...updatedMessages, assistantResponse],
+          last_message_at: new Date().toISOString()
+        }
+      });
+
+    } catch (error) {
+      console.error("Erro ao resumir caso:", error);
+    }
+
+    setIsGenerating(false);
   };
 
   const handleSubmit = async (e) => {
@@ -149,7 +255,9 @@ export default function ChatInterface({ conversation, onUpdate }) {
             <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-200">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                <span className="text-sm text-slate-600">Gerando resposta...</span>
+                <span className="text-sm text-slate-600">
+                  {conversation.mode === 'assistant' ? 'Analisando e gerando resumo...' : 'Gerando resposta...'}
+                </span>
               </div>
             </div>
           </motion.div>
@@ -159,6 +267,17 @@ export default function ChatInterface({ conversation, onUpdate }) {
       </div>
 
       <div className="border-t border-slate-200/50 bg-white/80 backdrop-blur-xl p-4">
+        {conversation.mode === 'assistant' && (
+          <Button
+            onClick={() => setShowCaseSummarizer(true)}
+            variant="outline"
+            className="w-full mb-3 border-purple-200 hover:bg-purple-50 text-purple-700"
+          >
+            <Scale className="w-4 h-4 mr-2" />
+            Resumir Processo Judicial
+          </Button>
+        )}
+
         {uploadedFile && (
           <div className="mb-3 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
             <Paperclip className="w-4 h-4 text-blue-600" />
@@ -236,6 +355,13 @@ export default function ChatInterface({ conversation, onUpdate }) {
           Pressione Enter para enviar, Shift+Enter para nova linha
         </p>
       </div>
+
+      <CaseSummarizerDialog
+        open={showCaseSummarizer}
+        onClose={() => setShowCaseSummarizer(false)}
+        cases={cases}
+        onSummarize={handleSummarizeCase}
+      />
     </div>
   );
 }
