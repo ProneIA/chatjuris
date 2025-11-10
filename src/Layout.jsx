@@ -10,6 +10,7 @@ import {
   BookTemplate,
   CheckSquare,
   Sparkles,
+  CalendarDays,
   LogOut
 } from "lucide-react";
 import {
@@ -58,6 +59,11 @@ const navigationItems = [
     title: "Tarefas",
     url: createPageUrl("Tasks"),
     icon: CheckSquare,
+  },
+  {
+    title: "Calendário",
+    url: createPageUrl("Calendar"),
+    icon: CalendarDays,
   },
   {
     title: "Assistente IA",

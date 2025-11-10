@@ -5,6 +5,7 @@ import Cases from './pages/Cases';
 import Documents from './pages/Documents';
 import Templates from './pages/Templates';
 import Tasks from './pages/Tasks';
+import Calendar from './pages/Calendar';
 import Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Documents": Documents,
     "Templates": Templates,
     "Tasks": Tasks,
+    "Calendar": Calendar,
 }
 
 export const pagesConfig = {
