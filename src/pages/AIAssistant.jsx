@@ -9,6 +9,7 @@ import ChatInterface from "../components/ai/ChatInterface";
 import ConversationList from "../components/ai/ConversationList";
 import ModeSelector from "../components/ai/ModeSelector";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
+import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
 
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -33,7 +34,8 @@ export default function AIAssistant() {
     const modeNames = {
       assistant: "Nova Conversa",
       image_generator: "Gerar Imagens",
-      document_analyzer: "Analisar Documento"
+      document_analyzer: "Analisar Documento",
+      jurisprudence: "Pesquisa de Jurisprudência"
     };
 
     createConversationMutation.mutate({
@@ -53,6 +55,13 @@ export default function AIAssistant() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // When mode changes to jurisprudence, clear conversation
+  useEffect(() => {
+    if (selectedMode === 'jurisprudence') {
+      setSelectedConversation(null);
+    }
+  }, [selectedMode]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -93,14 +102,16 @@ export default function AIAssistant() {
                 </Button>
               </div>
 
-              <Button
-                onClick={handleNewConversation}
-                disabled={createConversationMutation.isPending}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <MessageSquarePlus className="w-4 h-4 mr-2" />
-                Nova Conversa
-              </Button>
+              {selectedMode !== 'jurisprudence' && (
+                <Button
+                  onClick={handleNewConversation}
+                  disabled={createConversationMutation.isPending}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <MessageSquarePlus className="w-4 h-4 mr-2" />
+                  Nova Conversa
+                </Button>
+              )}
             </div>
 
             {/* Mode Selector */}
@@ -109,14 +120,16 @@ export default function AIAssistant() {
             </div>
 
             {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto">
-              <ConversationList
-                conversations={conversations}
-                selectedConversation={selectedConversation}
-                setSelectedConversation={setSelectedConversation}
-                isLoading={isLoading}
-              />
-            </div>
+            {selectedMode !== 'jurisprudence' && (
+              <div className="flex-1 overflow-y-auto">
+                <ConversationList
+                  conversations={conversations}
+                  selectedConversation={selectedConversation}
+                  setSelectedConversation={setSelectedConversation}
+                  isLoading={isLoading}
+                />
+              </div>
+            )}
           </motion.aside>
         )}
       </AnimatePresence>
@@ -135,7 +148,12 @@ export default function AIAssistant() {
             </Button>
           )}
           <div className="flex-1">
-            {selectedConversation ? (
+            {selectedMode === 'jurisprudence' ? (
+              <div>
+                <h2 className="font-semibold text-slate-900">Pesquisa de Jurisprudência</h2>
+                <p className="text-xs text-slate-500">⚖️ STF, STJ, TRFs e outros tribunais</p>
+              </div>
+            ) : selectedConversation ? (
               <div>
                 <h2 className="font-semibold text-slate-900">{selectedConversation.title}</h2>
                 <p className="text-xs text-slate-500">
@@ -155,7 +173,9 @@ export default function AIAssistant() {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-hidden">
-          {selectedConversation ? (
+          {selectedMode === 'jurisprudence' ? (
+            <JurisprudenceSearch />
+          ) : selectedConversation ? (
             <ChatInterface
               conversation={selectedConversation}
               onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}

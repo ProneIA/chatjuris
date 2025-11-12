@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Image, FileText, Scale } from "lucide-react";
+import { MessageSquare, Image, FileText, Scale, Search } from "lucide-react";
 
 const modes = [
   {
@@ -9,6 +9,13 @@ const modes = [
     icon: MessageSquare,
     description: "Chat geral e perguntas",
     color: "from-blue-500 to-cyan-500"
+  },
+  {
+    id: "jurisprudence",
+    name: "Jurisprudência",
+    icon: Search,
+    description: "Pesquisar decisões",
+    color: "from-emerald-500 to-teal-500"
   },
   {
     id: "legal_document_generator",

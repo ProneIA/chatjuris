@@ -1,13 +1,18 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Image, FileText, Scale, Zap, Brain, Lightbulb, Search } from "lucide-react";
+import { Sparkles, MessageSquare, Image, FileText, Scale, Search, Brain, Lightbulb } from "lucide-react";
 
 const features = [
   {
     icon: MessageSquare,
     title: "Conversas Inteligentes",
     description: "Pergunte qualquer coisa e obtenha respostas detalhadas"
+  },
+  {
+    icon: Search,
+    title: "Pesquisa de Jurisprudência",
+    description: "Busque decisões do STF, STJ e outros tribunais"
   },
   {
     icon: Scale,
@@ -29,7 +34,7 @@ const features = [
 const examples = [
   { icon: Brain, text: "Explicar um conceito jurídico" },
   { icon: Scale, text: "Gerar uma petição inicial" },
-  { icon: Search, text: "Analisar contrato PDF" }
+  { icon: Search, text: "Buscar jurisprudência do STF" }
 ];
 
 export default function WelcomeScreen({ onNewConversation, selectedMode }) {
@@ -56,14 +61,16 @@ export default function WelcomeScreen({ onNewConversation, selectedMode }) {
             Seu assistente pessoal com inteligência artificial para advocacia
           </p>
 
-          <Button
-            onClick={onNewConversation}
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-2xl"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Começar Nova Conversa
-          </Button>
+          {selectedMode !== 'jurisprudence' && (
+            <Button
+              onClick={onNewConversation}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-2xl"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Começar Nova Conversa
+            </Button>
+          )}
         </motion.div>
 
         <motion.div
@@ -105,7 +112,7 @@ export default function WelcomeScreen({ onNewConversation, selectedMode }) {
                   key={index}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => onNewConversation()}
+                  onClick={() => selectedMode !== 'jurisprudence' && onNewConversation()}
                   className="flex items-center gap-2 bg-white border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <Icon className="w-4 h-4" />
