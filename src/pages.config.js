@@ -7,6 +7,7 @@ import Templates from './pages/Templates';
 import Tasks from './pages/Tasks';
 import Calendar from './pages/Calendar';
 import Jurisprudence from './pages/Jurisprudence';
+import Pricing from './pages/Pricing';
 import Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Tasks": Tasks,
     "Calendar": Calendar,
     "Jurisprudence": Jurisprudence,
+    "Pricing": Pricing,
 }
 
 export const pagesConfig = {
