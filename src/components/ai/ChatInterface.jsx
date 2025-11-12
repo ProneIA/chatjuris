@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -10,6 +11,8 @@ import MessageBubble from "./MessageBubble";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
 import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import DocumentAnalysisPanel from "./DocumentAnalysisPanel";
+import { usePlanAccess } from "../common/PlanGuard";
+import AIUsageIndicator from "./AIUsageIndicator";
 
 export default function ChatInterface({ conversation, onUpdate }) {
   const [input, setInput] = useState("");
@@ -21,6 +24,8 @@ export default function ChatInterface({ conversation, onUpdate }) {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const { canUseAI } = usePlanAccess();
 
   const { data: cases = [] } = useQuery({
     queryKey: ['cases'],
@@ -42,6 +47,18 @@ export default function ChatInterface({ conversation, onUpdate }) {
       onUpdate();
     },
   });
+
+  const incrementAIUsage = async () => {
+    try {
+      const user = await base44.auth.me();
+      await base44.auth.updateMe({
+        ai_requests_count: (user.ai_requests_count || 0) + 1
+      });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    } catch (error) {
+      console.error("Failed to update AI usage:", error);
+    }
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -92,6 +109,13 @@ export default function ChatInterface({ conversation, onUpdate }) {
 
   const handleSubmitWithPrompt = async (customPrompt) => {
     if (!uploadedFile) return;
+
+    // Check AI usage limits
+    const aiAccess = canUseAI();
+    if (!aiAccess.allowed) {
+      alert(`Você atingiu o limite de ${aiAccess.limit} requisições de IA este mês. Faça upgrade para o plano Pro!`);
+      return;
+    }
 
     const displayPrompt = input || customPrompt;
     const userMessage = {
@@ -150,6 +174,8 @@ Forneça uma análise completa e profissional:`;
           last_message_at: new Date().toISOString()
         }
       });
+
+      await incrementAIUsage();
     } catch (error) {
       console.error("Erro ao analisar documento:", error);
       alert("Erro ao analisar o documento. Tente novamente.");
@@ -159,6 +185,13 @@ Forneça uma análise completa e profissional:`;
   };
 
   const handleSummarizeCase = async (caseData) => {
+    // Check AI usage limits
+    const aiAccess = canUseAI();
+    if (!aiAccess.allowed) {
+      alert(`Você atingiu o limite de ${aiAccess.limit} requisições de IA este mês. Faça upgrade para o plano Pro!`);
+      return;
+    }
+
     setShowCaseSummarizer(false);
     setIsGenerating(true);
 
@@ -250,6 +283,7 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
         }
       });
 
+      await incrementAIUsage();
     } catch (error) {
       console.error("Erro ao resumir caso:", error);
     }
@@ -264,6 +298,13 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
     // For document analyzer with file, use the enhanced prompt
     if (conversation.mode === "document_analyzer" && uploadedFile) {
       await handleSubmitWithPrompt(input);
+      return;
+    }
+
+    // Check AI usage limits
+    const aiAccess = canUseAI();
+    if (!aiAccess.allowed) {
+      alert(`Você atingiu o limite de ${aiAccess.limit} requisições de IA este mês. Faça upgrade para o plano Pro!`);
       return;
     }
 
@@ -320,6 +361,8 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
           last_message_at: new Date().toISOString()
         }
       });
+
+      await incrementAIUsage();
     } catch (error) {
       console.error("Erro ao gerar resposta:", error);
     }
@@ -334,6 +377,11 @@ Use linguagem técnica jurídica apropriada, mas mantenha clareza e objetividade
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-transparent to-white/30">
+      {/* AI Usage Indicator */}
+      <div className="p-4 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl">
+        <AIUsageIndicator />
+      </div>
+
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         <AnimatePresence mode="popLayout">
           {conversation.messages.map((message, index) => (

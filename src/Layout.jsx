@@ -12,8 +12,7 @@ import {
   Sparkles,
   CalendarDays,
   BookOpen,
-  LogOut,
-  Crown
+  LogOut
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,11 +76,6 @@ const navigationItems = [
     url: createPageUrl("AIAssistant"),
     icon: Sparkles,
   },
-  {
-    title: "Planos",
-    url: createPageUrl("Pricing"),
-    icon: Crown,
-  },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -95,6 +89,9 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  const userPlan = user?.subscription_plan || "free";
+  const isPro = userPlan === "pro" || userPlan === "enterprise";
 
   return (
     <SidebarProvider>
@@ -140,6 +137,35 @@ export default function Layout({ children, currentPageName }) {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
+
+            {/* Plan Badge */}
+            <div className="mt-4 px-2">
+              <Link to={createPageUrl("Plans")}>
+                <div className={`p-3 rounded-xl cursor-pointer transition-all hover:scale-105 ${
+                  isPro 
+                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" 
+                    : "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300"
+                }`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    {isPro ? (
+                      <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center">
+                        <Scale className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                    <span className="text-xs font-semibold">
+                      {isPro ? "Plano Pro" : "Plano Gratuito"}
+                    </span>
+                  </div>
+                  {!isPro && (
+                    <p className="text-xs opacity-80">
+                      Fazer upgrade →
+                    </p>
+                  )}
+                </div>
+              </Link>
+            </div>
           </SidebarContent>
 
           <SidebarFooter className="border-t border-slate-200 p-4">
