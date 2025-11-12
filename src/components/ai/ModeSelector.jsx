@@ -1,15 +1,15 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { MessageSquare, Image, FileText, Scale, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageSquare, Image, FileText, Scale, Search, Sparkles, Check } from "lucide-react";
 
 const modes = [
   {
     id: "assistant",
     name: "Assistente Geral",
     icon: MessageSquare,
-    description: "Perguntas e conversas sobre qualquer tema jurídico",
+    description: "Conversas e perguntas jurídicas",
     color: "from-blue-500 via-blue-600 to-cyan-600",
-    bgColor: "from-blue-50 to-cyan-50",
+    lightBg: "from-blue-50 to-cyan-50",
     iconColor: "text-blue-600",
     emoji: "💬"
   },
@@ -17,39 +17,39 @@ const modes = [
     id: "jurisprudence",
     name: "Jurisprudência",
     icon: Search,
-    description: "Pesquise decisões do STF, STJ e outros tribunais",
-    color: "from-emerald-500 via-green-600 to-teal-600",
-    bgColor: "from-emerald-50 to-teal-50",
+    description: "STF, STJ e tribunais",
+    color: "from-emerald-500 via-teal-600 to-green-600",
+    lightBg: "from-emerald-50 to-teal-50",
     iconColor: "text-emerald-600",
     emoji: "⚖️"
   },
   {
     id: "legal_document_generator",
-    name: "Gerar Documento",
+    name: "Gerar Documentos",
     icon: Scale,
-    description: "Crie petições, contratos e peças processuais",
+    description: "Petições e contratos",
     color: "from-purple-500 via-purple-600 to-pink-600",
-    bgColor: "from-purple-50 to-pink-50",
+    lightBg: "from-purple-50 to-pink-50",
     iconColor: "text-purple-600",
-    emoji: "📋"
+    emoji: "📜"
   },
   {
     id: "document_analyzer",
-    name: "Analisar Documento",
+    name: "Analisar Documentos",
     icon: FileText,
-    description: "Upload e análise de PDFs e documentos legais",
-    color: "from-green-500 via-emerald-600 to-green-600",
-    bgColor: "from-green-50 to-emerald-50",
+    description: "Upload e análise de PDFs",
+    color: "from-green-500 via-emerald-600 to-teal-600",
+    lightBg: "from-green-50 to-emerald-50",
     iconColor: "text-green-600",
     emoji: "📄"
   },
   {
     id: "image_generator",
-    name: "Criar Imagens",
+    name: "Gerar Imagens",
     icon: Image,
-    description: "Gere imagens e ilustrações com IA",
+    description: "Crie imagens com IA",
     color: "from-pink-500 via-rose-600 to-red-600",
-    bgColor: "from-pink-50 to-rose-50",
+    lightBg: "from-pink-50 to-rose-50",
     iconColor: "text-pink-600",
     emoji: "🎨"
   }
@@ -58,97 +58,144 @@ const modes = [
 export default function ModeSelector({ selectedMode, setSelectedMode }) {
   return (
     <div>
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-900 mb-1">Escolha o Modo da IA</h3>
-        <p className="text-xs text-slate-500">Selecione como deseja usar o assistente</p>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-purple-600" />
+          <label className="text-sm font-semibold text-slate-900">
+            Escolha o Modo IA
+          </label>
+        </div>
       </div>
       
-      <div className="space-y-3">
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          const isSelected = selectedMode === mode.id;
+      <div className="space-y-2">
+        <AnimatePresence mode="popLayout">
+          {modes.map((mode, index) => {
+            const Icon = mode.icon;
+            const isSelected = selectedMode === mode.id;
 
-          return (
-            <motion.button
-              key={mode.id}
-              onClick={() => setSelectedMode(mode.id)}
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className={`w-full text-left rounded-2xl transition-all duration-300 overflow-hidden ${
-                isSelected
-                  ? "shadow-xl ring-2 ring-offset-2 ring-blue-400"
-                  : "shadow-sm hover:shadow-md"
-              }`}
-            >
-              <div className={`relative p-4 ${
-                isSelected
-                  ? `bg-gradient-to-br ${mode.color}`
-                  : `bg-gradient-to-br ${mode.bgColor} border-2 border-slate-200`
-              }`}>
-                {/* Floating emoji decoration */}
-                <div className={`absolute top-2 right-2 text-2xl transition-transform duration-300 ${
-                  isSelected ? "scale-125" : "scale-100 opacity-40"
-                }`}>
-                  {mode.emoji}
-                </div>
+            return (
+              <motion.button
+                key={mode.id}
+                onClick={() => setSelectedMode(mode.id)}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ 
+                  delay: index * 0.05,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 25
+                }}
+                whileHover={{ 
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                whileTap={{ scale: 0.98 }}
+                className={`
+                  w-full text-left p-4 rounded-xl transition-all duration-300 relative overflow-hidden
+                  ${isSelected
+                    ? `bg-gradient-to-r ${mode.color} shadow-xl ring-2 ring-offset-2 ring-purple-400`
+                    : `bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md`
+                  }
+                `}
+              >
+                {/* Background Pattern */}
+                {isSelected && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.1 }}
+                    className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"
+                  />
+                )}
 
-                {/* Icon and content */}
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                    isSelected 
-                      ? "bg-white/20 backdrop-blur-sm shadow-lg" 
-                      : "bg-white shadow-sm"
-                  }`}>
-                    <Icon className={`w-6 h-6 transition-colors duration-300 ${
-                      isSelected ? "text-white" : mode.iconColor
-                    }`} />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <h3 className={`text-base font-bold mb-1 transition-colors duration-300 ${
-                      isSelected ? "text-white" : "text-slate-900"
-                    }`}>
-                      {mode.name}
-                    </h3>
-                    <p className={`text-xs leading-relaxed transition-colors duration-300 ${
-                      isSelected ? "text-white/90" : "text-slate-600"
-                    }`}>
+                <div className="relative flex items-center gap-3">
+                  {/* Icon Container */}
+                  <motion.div 
+                    className={`
+                      shrink-0 w-12 h-12 rounded-xl flex items-center justify-center relative
+                      ${isSelected 
+                        ? "bg-white/20 backdrop-blur-sm" 
+                        : `bg-gradient-to-br ${mode.lightBg}`
+                      }
+                    `}
+                    whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <Icon className={`w-6 h-6 ${isSelected ? "text-white" : mode.iconColor}`} />
+                    
+                    {/* Emoji Badge */}
+                    <motion.span 
+                      className="absolute -top-1 -right-1 text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                    >
+                      {mode.emoji}
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className={`text-sm font-bold ${isSelected ? "text-white" : "text-slate-900"}`}>
+                        {mode.name}
+                      </h3>
+                      
+                      {/* Selected Check */}
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0, rotate: 180 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                          >
+                            <Check className="w-4 h-4 text-white" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    
+                    <p className={`text-xs ${isSelected ? "text-white/90" : "text-slate-600"}`}>
                       {mode.description}
                     </p>
                   </div>
+
+                  {/* Glow Effect on Hover */}
+                  {!isSelected && (
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-r ${mode.color} opacity-0 rounded-xl`}
+                      whileHover={{ opacity: 0.05 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  )}
                 </div>
 
-                {/* Selection indicator */}
+                {/* Bottom Accent Line */}
                 {isSelected && (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute bottom-3 right-3 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg"
-                  >
-                    <div className="w-3 h-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full" />
-                  </motion.div>
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-white/30"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.2 }}
+                  />
                 )}
-
-                {/* Shine effect on hover */}
-                {!isSelected && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                )}
-              </div>
-            </motion.button>
-          );
-        })}
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
-      {/* Info card */}
+      {/* Info Footer */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-100 rounded-xl p-3"
+        transition={{ delay: 0.5 }}
+        className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
       >
         <p className="text-xs text-slate-700 leading-relaxed">
-          <span className="font-semibold">💡 Dica:</span> Cada modo é otimizado para tarefas específicas. 
-          Escolha o mais adequado para suas necessidades!
+          <Sparkles className="w-3 h-3 inline mr-1 text-purple-600" />
+          <span className="font-semibold">Dica:</span> Escolha o modo ideal para sua tarefa. Você pode alternar entre modos a qualquer momento!
         </p>
       </motion.div>
     </div>
