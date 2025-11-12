@@ -12,7 +12,8 @@ import {
   Sparkles,
   CalendarDays,
   BookOpen,
-  LogOut
+  LogOut,
+  Crown
 } from "lucide-react";
 import {
   Sidebar,
@@ -75,6 +76,11 @@ const navigationItems = [
     title: "Assistente IA",
     url: createPageUrl("AIAssistant"),
     icon: Sparkles,
+  },
+  {
+    title: "Planos",
+    url: createPageUrl("Pricing"),
+    icon: Crown,
   },
 ];
 

@@ -2,24 +2,73 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus, Menu, X, Zap } from "lucide-react";
+import { Sparkles, MessageSquarePlus, Menu, X, Zap, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 import ChatInterface from "../components/ai/ChatInterface";
 import ConversationList from "../components/ai/ConversationList";
 import ModeSelector from "../components/ai/ModeSelector";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
 import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
+import UsageLimits from "../components/subscription/UsageLimits";
 
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedMode, setSelectedMode] = useState("assistant");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => base44.entities.Conversation.list('-last_message_at'),
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        // Create default free subscription
+        return await base44.entities.Subscription.create({
+          user_id: user.id,
+          plan: "free",
+          status: "active",
+          conversations_limit: 5,
+          conversations_used: 0,
+          documents_limit: 2,
+          documents_used: 0,
+          jurisprudence_searches_limit: 2,
+          jurisprudence_searches_used: 0,
+          start_date: new Date().toISOString().split('T')[0],
+          billing_cycle: "monthly",
+          price: 0
+        });
+      }
+      return subs[0];
+    },
+    enabled: !!user?.id
+  });
+
+  const updateUsageMutation = useMutation({
+    mutationFn: ({ field, increment = 1 }) => {
+      if (!subscription) return Promise.resolve();
+      const currentUsed = subscription[field] || 0;
+      return base44.entities.Subscription.update(subscription.id, {
+        [field]: currentUsed + increment
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    }
   });
 
   const createConversationMutation = useMutation({
@@ -27,10 +76,24 @@ export default function AIAssistant() {
     onSuccess: (newConversation) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(newConversation);
+      // Increment usage
+      updateUsageMutation.mutate({ field: 'conversations_used' });
     },
   });
 
   const handleNewConversation = () => {
+    // Check limits
+    if (subscription) {
+      const conversationsUsed = subscription.conversations_used || 0;
+      const conversationsLimit = subscription.conversations_limit || 5;
+      
+      if (conversationsUsed >= conversationsLimit && conversationsLimit < 999999) {
+        alert('🚫 Limite de conversas atingido! Faça upgrade para continuar.');
+        navigate(createPageUrl('Pricing'));
+        return;
+      }
+    }
+
     const modeNames = {
       assistant: "Nova Conversa",
       image_generator: "Gerar Imagens",
@@ -44,6 +107,19 @@ export default function AIAssistant() {
       messages: [],
       last_message_at: new Date().toISOString()
     });
+  };
+
+  const handleModeChange = (mode) => {
+    // Check if mode is available for current plan
+    if (subscription && subscription.plan === 'free') {
+      const restrictedModes = ['legal_document_generator', 'document_analyzer', 'image_generator'];
+      if (restrictedModes.includes(mode)) {
+        alert('🔒 Este modo é exclusivo para planos Premium! Faça upgrade para desbloquear.');
+        navigate(createPageUrl('Pricing'));
+        return;
+      }
+    }
+    setSelectedMode(mode);
   };
 
   useEffect(() => {
@@ -75,6 +151,13 @@ export default function AIAssistant() {
   };
 
   const currentMode = getModeInfo();
+
+  // Check if user has reached limits
+  const hasReachedLimit = subscription && (
+    (subscription.conversations_used >= subscription.conversations_limit && subscription.conversations_limit < 999999) ||
+    (subscription.documents_used >= subscription.documents_limit && subscription.documents_limit < 999999) ||
+    (subscription.jurisprudence_searches_used >= subscription.jurisprudence_searches_limit && subscription.jurisprudence_searches_limit < 999999)
+  );
 
   return (
     <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -140,19 +223,26 @@ export default function AIAssistant() {
                 >
                   <Button
                     onClick={handleNewConversation}
-                    disabled={createConversationMutation.isPending}
-                    className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
+                    disabled={createConversationMutation.isPending || hasReachedLimit}
+                    className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group disabled:opacity-50"
                   >
                     <MessageSquarePlus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    Nova Conversa
+                    {hasReachedLimit ? '🔒 Limite Atingido' : 'Nova Conversa'}
                   </Button>
                 </motion.div>
               )}
             </div>
 
+            {/* Usage Limits */}
+            {subscription && (
+              <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white/50 to-slate-50/50">
+                <UsageLimits subscription={subscription} />
+              </div>
+            )}
+
             {/* Mode Selector */}
             <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white/50 to-blue-50/50">
-              <ModeSelector selectedMode={selectedMode} setSelectedMode={setSelectedMode} />
+              <ModeSelector selectedMode={selectedMode} setSelectedMode={handleModeChange} />
             </div>
 
             {/* Conversations List */}
@@ -227,6 +317,17 @@ export default function AIAssistant() {
               )}
             </div>
           </div>
+          
+          {subscription && subscription.plan === 'free' && (
+            <Button
+              onClick={() => navigate(createPageUrl('Pricing'))}
+              size="sm"
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 text-white"
+            >
+              <Sparkles className="w-4 h-4 mr-1" />
+              Upgrade
+            </Button>
+          )}
         </motion.div>
 
         {/* Chat Area */}
@@ -240,7 +341,7 @@ export default function AIAssistant() {
                 exit={{ opacity: 0, y: -20 }}
                 className="h-full"
               >
-                <JurisprudenceSearch />
+                <JurisprudenceSearch subscription={subscription} updateUsage={updateUsageMutation.mutate} />
               </motion.div>
             ) : selectedConversation ? (
               <motion.div
@@ -253,6 +354,8 @@ export default function AIAssistant() {
                 <ChatInterface
                   conversation={selectedConversation}
                   onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
+                  subscription={subscription}
+                  updateUsage={updateUsageMutation.mutate}
                 />
               </motion.div>
             ) : (
