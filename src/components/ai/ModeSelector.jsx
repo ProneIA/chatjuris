@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Image, FileText, Scale, Search, Sparkles, Check } from "lucide-react";
+import { MessageSquare, FileText, Scale, Search, Sparkles, Check } from "lucide-react";
 
 const modes = [
   {
@@ -42,16 +42,6 @@ const modes = [
     lightBg: "from-green-50 to-emerald-50",
     iconColor: "text-green-600",
     emoji: "📄"
-  },
-  {
-    id: "image_generator",
-    name: "Gerar Imagens",
-    icon: Image,
-    description: "Crie imagens com IA",
-    color: "from-pink-500 via-rose-600 to-red-600",
-    lightBg: "from-pink-50 to-rose-50",
-    iconColor: "text-pink-600",
-    emoji: "🎨"
   }
 ];
 

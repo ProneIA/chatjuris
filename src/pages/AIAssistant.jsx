@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus, Menu, X, Zap, AlertTriangle } from "lucide-react";
+import { Sparkles, MessageSquarePlus, Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -117,7 +117,6 @@ export default function AIAssistant() {
 
     const modeNames = {
       assistant: "Nova Conversa",
-      image_generator: "Gerar Imagens",
       document_analyzer: "Analisar Documento",
       legal_document_generator: "Gerar Documento Legal",
       jurisprudence: "Pesquisa de Jurisprudência"
@@ -134,7 +133,7 @@ export default function AIAssistant() {
   const handleModeChange = (mode) => {
     // Free users can only access assistant and jurisprudence
     if (subscription && subscription.plan === "free") {
-      const restrictedModes = ['legal_document_generator', 'document_analyzer', 'image_generator'];
+      const restrictedModes = ['legal_document_generator', 'document_analyzer'];
       if (restrictedModes.includes(mode)) {
         alert('🔒 Este modo é exclusivo para o Plano Pro! Faça upgrade por apenas R$ 49,99/mês.');
         navigate(createPageUrl('Pricing'));
@@ -165,7 +164,6 @@ export default function AIAssistant() {
       assistant: { icon: "💬", name: "Assistente Geral", color: "from-blue-500 to-cyan-500" },
       jurisprudence: { icon: "⚖️", name: "Pesquisa de Jurisprudência", color: "from-emerald-500 to-teal-500" },
       legal_document_generator: { icon: "📜", name: "Gerador de Documentos", color: "from-purple-500 to-pink-500" },
-      image_generator: { icon: "🎨", name: "Gerador de Imagens", color: "from-pink-500 to-rose-500" },
       document_analyzer: { icon: "📄", name: "Analisador de Documentos", color: "from-green-500 to-emerald-500" }
     };
     return modes[selectedMode] || modes.assistant;
