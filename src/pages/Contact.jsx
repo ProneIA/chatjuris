@@ -2,26 +2,25 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { 
   Mail, 
-  Phone, 
-  MapPin, 
-  Send, 
   MessageSquare, 
-  CheckCircle2,
+  Send, 
+  MapPin, 
+  Phone, 
   Clock,
-  Headphones,
+  CheckCircle,
+  Loader2,
   Sparkles,
-  Loader2
+  HeadphonesIcon
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 export default function Contact() {
-  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,14 +29,15 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [user, setUser] = useState(null);
 
   React.useEffect(() => {
-    base44.auth.me().then(userData => {
-      setUser(userData);
+    base44.auth.me().then((u) => {
+      setUser(u);
       setFormData(prev => ({
         ...prev,
-        name: userData.full_name || "",
-        email: userData.email || ""
+        name: u.full_name || "",
+        email: u.email || ""
       }));
     }).catch(() => {});
   }, []);
@@ -51,19 +51,13 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-      toast.error("Por favor, preencha todos os campos!");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // Envia email para a equipe da plataforma
+      // Send email to support
       await base44.integrations.Core.SendEmail({
-        from_name: "LegalTech Pro - Contato",
-        to: "suporte@legaltech.com.br", // Substitua pelo email real
+        from_name: formData.name,
+        to: "suporte@legaltech.com.br", // Email da plataforma
         subject: `[Contato] ${formData.subject}`,
         body: `
           <h2>Nova mensagem de contato</h2>
@@ -73,22 +67,21 @@ export default function Contact() {
           <hr>
           <h3>Mensagem:</h3>
           <p>${formData.message.replace(/\n/g, '<br>')}</p>
-          <hr>
-          <p><small>Enviado via formulário de contato - LegalTech Pro</small></p>
         `
       });
 
-      // Envia email de confirmação para o usuário
+      // Send confirmation email to user
       await base44.integrations.Core.SendEmail({
         from_name: "LegalTech Pro",
         to: formData.email,
         subject: "Recebemos sua mensagem!",
         body: `
           <h2>Olá, ${formData.name}!</h2>
-          <p>Recebemos sua mensagem e nossa equipe entrará em contato em breve.</p>
+          <p>Recebemos sua mensagem e entraremos em contato em breve.</p>
           <p><strong>Assunto:</strong> ${formData.subject}</p>
-          <p>Normalmente respondemos em até 24 horas úteis.</p>
           <hr>
+          <p>Nossa equipe responde em até 24 horas úteis.</p>
+          <br>
           <p>Atenciosamente,<br><strong>Equipe LegalTech Pro</strong></p>
         `
       });
@@ -143,7 +136,7 @@ export default function Contact() {
             </span>
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Estamos aqui para ajudar! Envie sua mensagem e nossa equipe responderá em breve.
+            Estamos aqui para ajudar! Envie sua mensagem e responderemos em breve.
           </p>
         </motion.div>
 
@@ -155,7 +148,7 @@ export default function Contact() {
             transition={{ delay: 0.2 }}
             className="lg:col-span-2"
           >
-            <Card className="p-8 shadow-xl border-2 border-slate-200">
+            <Card className="p-8 bg-white shadow-xl border-2 border-slate-200 rounded-2xl">
               {submitted ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -163,118 +156,101 @@ export default function Contact() {
                   className="text-center py-12"
                 >
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 className="w-10 h-10 text-green-600" />
+                    <CheckCircle className="w-10 h-10 text-green-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-3">
                     Mensagem Enviada!
                   </h3>
                   <p className="text-slate-600 mb-4">
-                    Obrigado por entrar em contato. Responderemos em breve!
+                    Recebemos sua mensagem e responderemos em breve.
                   </p>
-                  <div className="inline-flex items-center gap-2 text-sm text-slate-500">
-                    <Clock className="w-4 h-4" />
-                    <span>Tempo de resposta: até 24 horas</span>
-                  </div>
+                  <p className="text-sm text-slate-500">
+                    Você receberá um email de confirmação em {formData.email}
+                  </p>
                 </motion.div>
               ) : (
-                <>
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                      Envie sua Mensagem
-                    </h2>
-                    <p className="text-slate-600">
-                      Preencha o formulário abaixo e entraremos em contato
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="name" className="text-slate-900 font-semibold">
-                          Nome Completo *
-                        </Label>
-                        <Input
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          placeholder="Seu nome"
-                          required
-                          className="mt-2"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="email" className="text-slate-900 font-semibold">
-                          Email *
-                        </Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          placeholder="seu@email.com"
-                          required
-                          className="mt-2"
-                        />
-                      </div>
-                    </div>
-
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="subject" className="text-slate-900 font-semibold">
-                        Assunto *
+                      <Label htmlFor="name" className="text-slate-900 font-semibold">
+                        Nome Completo
                       </Label>
                       <Input
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
+                        id="name"
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
-                        placeholder="Como podemos ajudar?"
+                        placeholder="Seu nome"
                         required
                         className="mt-2"
                       />
                     </div>
-
                     <div>
-                      <Label htmlFor="message" className="text-slate-900 font-semibold">
-                        Mensagem *
+                      <Label htmlFor="email" className="text-slate-900 font-semibold">
+                        Email
                       </Label>
-                      <Textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
                         onChange={handleChange}
-                        placeholder="Descreva sua dúvida, sugestão ou problema..."
+                        placeholder="seu@email.com"
                         required
-                        rows={6}
-                        className="mt-2 resize-none"
+                        className="mt-2"
                       />
                     </div>
+                  </div>
 
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-5 h-5 mr-2" />
-                          Enviar Mensagem
-                        </>
-                      )}
-                    </Button>
+                  <div>
+                    <Label htmlFor="subject" className="text-slate-900 font-semibold">
+                      Assunto
+                    </Label>
+                    <Input
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      placeholder="Sobre o que você quer falar?"
+                      required
+                      className="mt-2"
+                    />
+                  </div>
 
-                    <p className="text-xs text-slate-500 text-center">
-                      * Campos obrigatórios
-                    </p>
-                  </form>
-                </>
+                  <div>
+                    <Label htmlFor="message" className="text-slate-900 font-semibold">
+                      Mensagem
+                    </Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Escreva sua mensagem aqui..."
+                      required
+                      rows={8}
+                      className="mt-2 resize-none"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5 mr-2" />
+                        Enviar Mensagem
+                      </>
+                    )}
+                  </Button>
+                </form>
               )}
             </Card>
           </motion.div>
@@ -286,123 +262,145 @@ export default function Contact() {
             transition={{ delay: 0.3 }}
             className="space-y-6"
           >
-            {/* Contact Cards */}
-            <Card className="p-6 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
-                <Mail className="w-6 h-6 text-white" />
+            {/* Support Card */}
+            <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                <HeadphonesIcon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-bold text-slate-900 mb-2">Email</h3>
-              <p className="text-slate-700 text-sm mb-2">
-                Envie um email diretamente
+              <h3 className="font-bold text-slate-900 text-lg mb-2">
+                Suporte Prioritário
+              </h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Usuários Pro têm suporte prioritário com resposta em até 4 horas úteis.
               </p>
-              <a 
-                href="mailto:suporte@legaltech.com.br" 
-                className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-blue-300 hover:bg-blue-100"
+                onClick={() => window.location.href = '/pricing'}
               >
-                suporte@legaltech.com.br
-              </a>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Fazer Upgrade
+              </Button>
             </Card>
 
-            <Card className="p-6 border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100">
-              <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center mb-4">
-                <Phone className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">Telefone</h3>
-              <p className="text-slate-700 text-sm mb-2">
-                Seg - Sex: 9h às 18h
+            {/* Contact Methods */}
+            <div className="space-y-4">
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Email</h4>
+                    <a 
+                      href="mailto:suporte@legaltech.com.br"
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      suporte@legaltech.com.br
+                    </a>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Telefone</h4>
+                    <a 
+                      href="tel:+5511999999999"
+                      className="text-sm text-green-600 hover:underline"
+                    >
+                      (11) 99999-9999
+                    </a>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Segunda a Sexta, 9h às 18h
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Horário</h4>
+                    <p className="text-sm text-slate-600">
+                      Segunda a Sexta
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      09:00 - 18:00
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-1">Localização</h4>
+                    <p className="text-sm text-slate-600">
+                      São Paulo, SP
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      Brasil
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* FAQ Link */}
+            <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl text-center">
+              <h3 className="font-bold text-slate-900 mb-2">
+                Perguntas Frequentes
+              </h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Encontre respostas rápidas para dúvidas comuns
               </p>
-              <a 
-                href="tel:+551140028922" 
-                className="text-green-600 hover:text-green-700 font-semibold text-sm"
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-purple-300 hover:bg-purple-100"
+                onClick={() => window.location.href = '/pricing#faq'}
               >
-                (11) 4002-8922
-              </a>
-            </Card>
-
-            <Card className="p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
-              <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-4">
-                <Headphones className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">Suporte</h3>
-              <p className="text-slate-700 text-sm mb-2">
-                Respondemos em até 24h
-              </p>
-              <span className="text-purple-600 font-semibold text-sm">
-                Suporte Prioritário para Pro
-              </span>
-            </Card>
-
-            <Card className="p-6 border-2 border-pink-200 bg-gradient-to-br from-pink-50 to-pink-100">
-              <div className="w-12 h-12 bg-pink-600 rounded-xl flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 mb-2">Endereço</h3>
-              <p className="text-slate-700 text-sm">
-                Av. Paulista, 1000<br />
-                São Paulo - SP<br />
-                CEP: 01310-100
-              </p>
+                Ver FAQ
+              </Button>
             </Card>
           </motion.div>
         </div>
 
-        {/* FAQ Section */}
+        {/* Bottom Info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-16 max-w-4xl mx-auto"
+          transition={{ delay: 0.5 }}
+          className="mt-12 text-center"
         >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 mb-3">
-              Perguntas Frequentes
-            </h2>
-            <p className="text-slate-600">
-              Confira as dúvidas mais comuns antes de entrar em contato
+          <Card className="max-w-3xl mx-auto p-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white border-0">
+            <h3 className="text-2xl font-bold mb-3">
+              Resposta Rápida Garantida
+            </h3>
+            <p className="text-white/90 mb-4">
+              Nossa equipe responde todas as mensagens em até 24 horas úteis. 
+              Usuários Pro recebem resposta prioritária em até 4 horas.
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="p-6 border-2 border-slate-200 hover:border-blue-300 transition-colors">
-              <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
-                Como funciona o plano Pro?
-              </h3>
-              <p className="text-sm text-slate-600">
-                O plano Pro oferece uso ilimitado de todas as funcionalidades por R$ 49,99/mês. Você pode cancelar a qualquer momento.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 border-slate-200 hover:border-blue-300 transition-colors">
-              <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-green-600" />
-                Posso testar antes de assinar?
-              </h3>
-              <p className="text-sm text-slate-600">
-                Sim! O plano gratuito oferece 5 ações por dia para você testar todas as funcionalidades básicas.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 border-slate-200 hover:border-blue-300 transition-colors">
-              <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
-                Como cancelo minha assinatura?
-              </h3>
-              <p className="text-sm text-slate-600">
-                Entre em contato conosco e cancelamos imediatamente. Não há multas ou taxas de cancelamento.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 border-slate-200 hover:border-blue-300 transition-colors">
-              <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-orange-600" />
-                Meus dados estão seguros?
-              </h3>
-              <p className="text-sm text-slate-600">
-                Sim! Utilizamos criptografia SSL e seguimos todas as normas da LGPD para proteger seus dados.
-              </p>
-            </Card>
-          </div>
+            <div className="flex items-center justify-center gap-2 text-sm">
+              <CheckCircle className="w-5 h-5" />
+              <span>Suporte em Português</span>
+              <span className="text-white/50">•</span>
+              <CheckCircle className="w-5 h-5" />
+              <span>Equipe Especializada</span>
+            </div>
+          </Card>
         </motion.div>
       </div>
     </div>
