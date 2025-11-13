@@ -1,20 +1,20 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Image, FileText, Loader2 } from "lucide-react";
+import { MessageSquare, FileText, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const modeIcons = {
   assistant: MessageSquare,
-  image_generator: Image,
-  document_analyzer: FileText
+  document_analyzer: FileText,
+  legal_document_generator: FileText
 };
 
 const modeColors = {
   assistant: "text-blue-600 bg-blue-100",
-  image_generator: "text-pink-600 bg-pink-100",
-  document_analyzer: "text-green-600 bg-green-100"
+  document_analyzer: "text-green-600 bg-green-100",
+  legal_document_generator: "text-purple-600 bg-purple-100"
 };
 
 export default function ConversationList({ 
