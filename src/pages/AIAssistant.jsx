@@ -14,6 +14,14 @@ import WelcomeScreen from "../components/ai/WelcomeScreen";
 import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
 import UsageLimits from "../components/subscription/UsageLimits";
 
+// Check if need to reset daily counter
+const shouldResetDaily = (subscription) => {
+  if (!subscription || !subscription.last_reset_date) return true;
+  
+  const today = new Date().toISOString().split('T')[0];
+  return subscription.last_reset_date !== today;
+};
+
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedMode, setSelectedMode] = useState("assistant");
@@ -36,34 +44,47 @@ export default function AIAssistant() {
     queryFn: async () => {
       if (!user?.id) return null;
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      
       if (subs.length === 0) {
         // Create default free subscription
-        return await base44.entities.Subscription.create({
+        const newSub = await base44.entities.Subscription.create({
           user_id: user.id,
           plan: "free",
           status: "active",
-          conversations_limit: 5,
-          conversations_used: 0,
-          documents_limit: 2,
-          documents_used: 0,
-          jurisprudence_searches_limit: 2,
-          jurisprudence_searches_used: 0,
-          start_date: new Date().toISOString().split('T')[0],
-          billing_cycle: "monthly",
+          daily_actions_limit: 5,
+          daily_actions_used: 0,
+          last_reset_date: new Date().toISOString().split('T')[0],
           price: 0
         });
+        return newSub;
       }
-      return subs[0];
+      
+      const sub = subs[0];
+      
+      // Check if need to reset daily
+      if (shouldResetDaily(sub)) {
+        const resetSub = await base44.entities.Subscription.update(sub.id, {
+          daily_actions_used: 0,
+          last_reset_date: new Date().toISOString().split('T')[0]
+        });
+        return resetSub;
+      }
+      
+      return sub;
     },
     enabled: !!user?.id
   });
 
   const updateUsageMutation = useMutation({
-    mutationFn: ({ field, increment = 1 }) => {
+    mutationFn: ({ increment = 1 }) => {
       if (!subscription) return Promise.resolve();
-      const currentUsed = subscription[field] || 0;
+      
+      // Pro users don't have limits
+      if (subscription.plan === "pro") return Promise.resolve();
+      
+      const currentUsed = subscription.daily_actions_used || 0;
       return base44.entities.Subscription.update(subscription.id, {
-        [field]: currentUsed + increment
+        daily_actions_used: currentUsed + increment
       });
     },
     onSuccess: () => {
@@ -77,18 +98,18 @@ export default function AIAssistant() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(newConversation);
       // Increment usage
-      updateUsageMutation.mutate({ field: 'conversations_used' });
+      updateUsageMutation.mutate({ increment: 1 });
     },
   });
 
   const handleNewConversation = () => {
-    // Check limits
-    if (subscription) {
-      const conversationsUsed = subscription.conversations_used || 0;
-      const conversationsLimit = subscription.conversations_limit || 5;
+    // Check limits for free users
+    if (subscription && subscription.plan === "free") {
+      const used = subscription.daily_actions_used || 0;
+      const limit = subscription.daily_actions_limit || 5;
       
-      if (conversationsUsed >= conversationsLimit && conversationsLimit < 999999) {
-        alert('🚫 Limite de conversas atingido! Faça upgrade para continuar.');
+      if (used >= limit) {
+        alert('🚫 Você atingiu o limite de 5 ações diárias! Volte amanhã ou faça upgrade para o Plano Pro.');
         navigate(createPageUrl('Pricing'));
         return;
       }
@@ -98,6 +119,7 @@ export default function AIAssistant() {
       assistant: "Nova Conversa",
       image_generator: "Gerar Imagens",
       document_analyzer: "Analisar Documento",
+      legal_document_generator: "Gerar Documento Legal",
       jurisprudence: "Pesquisa de Jurisprudência"
     };
 
@@ -110,11 +132,11 @@ export default function AIAssistant() {
   };
 
   const handleModeChange = (mode) => {
-    // Check if mode is available for current plan
-    if (subscription && subscription.plan === 'free') {
+    // Free users can only access assistant and jurisprudence
+    if (subscription && subscription.plan === "free") {
       const restrictedModes = ['legal_document_generator', 'document_analyzer', 'image_generator'];
       if (restrictedModes.includes(mode)) {
-        alert('🔒 Este modo é exclusivo para planos Premium! Faça upgrade para desbloquear.');
+        alert('🔒 Este modo é exclusivo para o Plano Pro! Faça upgrade por apenas R$ 49,99/mês.');
         navigate(createPageUrl('Pricing'));
         return;
       }
@@ -132,7 +154,6 @@ export default function AIAssistant() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // When mode changes to jurisprudence, clear conversation
   useEffect(() => {
     if (selectedMode === 'jurisprudence') {
       setSelectedConversation(null);
@@ -152,12 +173,9 @@ export default function AIAssistant() {
 
   const currentMode = getModeInfo();
 
-  // Check if user has reached limits
-  const hasReachedLimit = subscription && (
-    (subscription.conversations_used >= subscription.conversations_limit && subscription.conversations_limit < 999999) ||
-    (subscription.documents_used >= subscription.documents_limit && subscription.documents_limit < 999999) ||
-    (subscription.jurisprudence_searches_used >= subscription.jurisprudence_searches_limit && subscription.jurisprudence_searches_limit < 999999)
-  );
+  // Check if user has reached daily limit
+  const hasReachedLimit = subscription && subscription.plan === "free" && 
+    (subscription.daily_actions_used >= subscription.daily_actions_limit);
 
   return (
     <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -227,7 +245,7 @@ export default function AIAssistant() {
                     className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group disabled:opacity-50"
                   >
                     <MessageSquarePlus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    {hasReachedLimit ? '🔒 Limite Atingido' : 'Nova Conversa'}
+                    {hasReachedLimit ? '🔒 Limite Diário Atingido' : 'Nova Conversa'}
                   </Button>
                 </motion.div>
               )}
@@ -235,7 +253,7 @@ export default function AIAssistant() {
 
             {/* Usage Limits */}
             {subscription && (
-              <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white/50 to-slate-50/50">
+              <div className="p-6 border-b border-slate-200/50">
                 <UsageLimits subscription={subscription} />
               </div>
             )}
