@@ -12,7 +12,9 @@ import {
   Sparkles,
   CalendarDays,
   BookOpen,
-  LogOut
+  LogOut,
+  MessageSquare,
+  Crown
 } from "lucide-react";
 import {
   Sidebar,
@@ -78,6 +80,19 @@ const navigationItems = [
   },
 ];
 
+const secondaryItems = [
+  {
+    title: "Planos",
+    url: createPageUrl("Pricing"),
+    icon: Crown,
+  },
+  {
+    title: "Contato",
+    url: createPageUrl("Contact"),
+    icon: MessageSquare,
+  },
+];
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
@@ -138,9 +153,35 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
 
+            {/* Secondary Menu */}
+            <SidebarGroup className="mt-4">
+              <SidebarGroupLabel className="text-xs font-medium text-slate-500 uppercase tracking-wider px-2 mb-2">
+                Suporte
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {secondaryItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-purple-50 hover:text-purple-700 transition-all duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-purple-50 text-purple-700 font-medium' : ''
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
             {/* Plan Badge */}
             <div className="mt-4 px-2">
-              <Link to={createPageUrl("Plans")}>
+              <Link to={createPageUrl("Pricing")}>
                 <div className={`p-3 rounded-xl cursor-pointer transition-all hover:scale-105 ${
                   isPro 
                     ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" 
@@ -149,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
                   <div className="flex items-center gap-2 mb-1">
                     {isPro ? (
                       <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center">
-                        <Scale className="w-3 h-3 text-white" />
+                        <Crown className="w-3 h-3 text-white" />
                       </div>
                     ) : (
                       <Sparkles className="w-4 h-4" />

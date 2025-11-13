@@ -9,6 +9,7 @@ import Calendar from './pages/Calendar';
 import Jurisprudence from './pages/Jurisprudence';
 import Plans from './pages/Plans';
 import Pricing from './pages/Pricing';
+import Contact from './pages/Contact';
 import Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "Jurisprudence": Jurisprudence,
     "Plans": Plans,
     "Pricing": Pricing,
+    "Contact": Contact,
 }
 
 export const pagesConfig = {
