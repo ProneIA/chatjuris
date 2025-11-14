@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus, Menu, X, Zap, AlertTriangle } from "lucide-react";
+import { Sparkles, MessageSquarePlus, Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -12,7 +12,9 @@ import ConversationList from "../components/ai/ConversationList";
 import ModeSelector from "../components/ai/ModeSelector";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
 import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
+import DocumentSummarizer from "../components/ai/DocumentSummarizer";
 import UsageLimits from "../components/subscription/UsageLimits";
+import ThemeToggle from "../components/common/ThemeToggle";
 
 // Check if need to reset daily counter
 const shouldResetDaily = (subscription) => {
@@ -46,7 +48,6 @@ export default function AIAssistant() {
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
       
       if (subs.length === 0) {
-        // Create default free subscription
         const newSub = await base44.entities.Subscription.create({
           user_id: user.id,
           plan: "free",
@@ -61,7 +62,6 @@ export default function AIAssistant() {
       
       const sub = subs[0];
       
-      // Check if need to reset daily
       if (shouldResetDaily(sub)) {
         const resetSub = await base44.entities.Subscription.update(sub.id, {
           daily_actions_used: 0,
@@ -78,8 +78,6 @@ export default function AIAssistant() {
   const updateUsageMutation = useMutation({
     mutationFn: ({ increment = 1 }) => {
       if (!subscription) return Promise.resolve();
-      
-      // Pro users don't have limits
       if (subscription.plan === "pro") return Promise.resolve();
       
       const currentUsed = subscription.daily_actions_used || 0;
@@ -97,13 +95,11 @@ export default function AIAssistant() {
     onSuccess: (newConversation) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(newConversation);
-      // Increment usage
       updateUsageMutation.mutate({ increment: 1 });
     },
   });
 
   const handleNewConversation = () => {
-    // Check limits for free users
     if (subscription && subscription.plan === "free") {
       const used = subscription.daily_actions_used || 0;
       const limit = subscription.daily_actions_limit || 5;
@@ -119,7 +115,8 @@ export default function AIAssistant() {
       assistant: "Nova Conversa",
       document_analyzer: "Analisar Documento",
       legal_document_generator: "Gerar Documento Legal",
-      jurisprudence: "Pesquisa de Jurisprudência"
+      jurisprudence: "Pesquisa de Jurisprudência",
+      document_summarizer: "Resumo de Documento"
     };
 
     createConversationMutation.mutate({
@@ -131,7 +128,6 @@ export default function AIAssistant() {
   };
 
   const handleModeChange = (mode) => {
-    // Free users can only access assistant and jurisprudence
     if (subscription && subscription.plan === "free") {
       const restrictedModes = ['legal_document_generator', 'document_analyzer'];
       if (restrictedModes.includes(mode)) {
@@ -141,6 +137,9 @@ export default function AIAssistant() {
       }
     }
     setSelectedMode(mode);
+    if (mode === 'jurisprudence' || mode === 'document_summarizer') {
+      setSelectedConversation(null);
+    }
   };
 
   useEffect(() => {
@@ -153,16 +152,11 @@ export default function AIAssistant() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    if (selectedMode === 'jurisprudence') {
-      setSelectedConversation(null);
-    }
-  }, [selectedMode]);
-
   const getModeInfo = () => {
     const modes = {
       assistant: { icon: "💬", name: "Assistente Geral", color: "from-blue-500 to-cyan-500" },
       jurisprudence: { icon: "⚖️", name: "Pesquisa de Jurisprudência", color: "from-emerald-500 to-teal-500" },
+      document_summarizer: { icon: "📚", name: "Resumo de Documentos", color: "from-orange-500 to-amber-500" },
       legal_document_generator: { icon: "📜", name: "Gerador de Documentos", color: "from-purple-500 to-pink-500" },
       document_analyzer: { icon: "📄", name: "Analisador de Documentos", color: "from-green-500 to-emerald-500" }
     };
@@ -170,13 +164,13 @@ export default function AIAssistant() {
   };
 
   const currentMode = getModeInfo();
-
-  // Check if user has reached daily limit
   const hasReachedLimit = subscription && subscription.plan === "free" && 
     (subscription.daily_actions_used >= subscription.daily_actions_limit);
 
+  const showConversationsList = !['jurisprudence', 'document_summarizer'].includes(selectedMode);
+
   return (
-    <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -185,10 +179,10 @@ export default function AIAssistant() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 flex flex-col shadow-2xl lg:relative absolute inset-y-0 left-0 z-40"
+            className="w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 flex flex-col shadow-2xl lg:relative absolute inset-y-0 left-0 z-40"
           >
             {/* Sidebar Header */}
-            <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white to-purple-50/30">
+            <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-br from-white to-purple-50/30 dark:from-slate-900 dark:to-purple-900/10">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <motion.div 
@@ -216,23 +210,26 @@ export default function AIAssistant() {
                     <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                       IA Jurídica
                     </h1>
-                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <Zap className="w-3 h-3 text-purple-500" />
                       Powered by AI
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden hover:bg-purple-100"
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden hover:bg-purple-100 dark:hover:bg-purple-900"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
 
-              {selectedMode !== 'jurisprudence' && (
+              {showConversationsList && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -251,19 +248,19 @@ export default function AIAssistant() {
 
             {/* Usage Limits */}
             {subscription && (
-              <div className="p-6 border-b border-slate-200/50">
+              <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
                 <UsageLimits subscription={subscription} />
               </div>
             )}
 
             {/* Mode Selector */}
-            <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white/50 to-blue-50/50">
+            <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-br from-white/50 to-blue-50/50 dark:from-slate-900/50 dark:to-blue-900/20">
               <ModeSelector selectedMode={selectedMode} setSelectedMode={handleModeChange} />
             </div>
 
             {/* Conversations List */}
-            {selectedMode !== 'jurisprudence' && (
-              <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent to-slate-50/50">
+            {showConversationsList && (
+              <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent to-slate-50/50 dark:to-slate-900/50">
                 <ConversationList
                   conversations={conversations}
                   selectedConversation={selectedConversation}
@@ -275,12 +272,12 @@ export default function AIAssistant() {
 
             {/* Footer Info */}
             <motion.div 
-              className="p-4 border-t border-slate-200/50 bg-gradient-to-br from-purple-50/50 to-blue-50/50"
+              className="p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-900/20 dark:to-blue-900/20"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <div className="flex items-center gap-2 text-xs text-slate-600">
+              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <span>Sistema operacional</span>
               </div>
@@ -293,7 +290,7 @@ export default function AIAssistant() {
       <main className="flex-1 flex flex-col relative">
         {/* Top Bar */}
         <motion.div 
-          className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-6 py-4 flex items-center gap-4 shadow-sm"
+          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4 flex items-center gap-4 shadow-sm"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
@@ -302,7 +299,7 @@ export default function AIAssistant() {
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(true)}
-              className="hover:bg-purple-100"
+              className="hover:bg-purple-100 dark:hover:bg-purple-900"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -317,18 +314,23 @@ export default function AIAssistant() {
             <div>
               {selectedMode === 'jurisprudence' ? (
                 <>
-                  <h2 className="font-semibold text-slate-900">{currentMode.name}</h2>
-                  <p className="text-xs text-slate-500">STF, STJ, TRFs e outros tribunais</p>
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{currentMode.name}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">STF, STJ, TRFs e outros tribunais</p>
+                </>
+              ) : selectedMode === 'document_summarizer' ? (
+                <>
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{currentMode.name}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Análise detalhada de peças jurídicas</p>
                 </>
               ) : selectedConversation ? (
                 <>
-                  <h2 className="font-semibold text-slate-900">{selectedConversation.title}</h2>
-                  <p className="text-xs text-slate-500">{currentMode.icon} {currentMode.name}</p>
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">{selectedConversation.title}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{currentMode.icon} {currentMode.name}</p>
                 </>
               ) : (
                 <>
-                  <h2 className="font-semibold text-slate-900">Bem-vindo ao {currentMode.name}</h2>
-                  <p className="text-xs text-slate-500">Selecione ou crie uma conversa</p>
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">Bem-vindo ao {currentMode.name}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Selecione ou crie uma conversa</p>
                 </>
               )}
             </div>
@@ -358,6 +360,16 @@ export default function AIAssistant() {
                 className="h-full"
               >
                 <JurisprudenceSearch subscription={subscription} updateUsage={updateUsageMutation.mutate} />
+              </motion.div>
+            ) : selectedMode === 'document_summarizer' ? (
+              <motion.div
+                key="document_summarizer"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="h-full"
+              >
+                <DocumentSummarizer />
               </motion.div>
             ) : selectedConversation ? (
               <motion.div

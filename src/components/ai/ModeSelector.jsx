@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, FileText, Scale, Search, Sparkles, Check } from "lucide-react";
+import { MessageSquare, FileText, Scale, Search, Sparkles, Check, BookOpen } from "lucide-react";
 
 const modes = [
   {
@@ -22,6 +22,16 @@ const modes = [
     lightBg: "from-emerald-50 to-teal-50",
     iconColor: "text-emerald-600",
     emoji: "⚖️"
+  },
+  {
+    id: "document_summarizer",
+    name: "Resumo de Documentos",
+    icon: BookOpen,
+    description: "Análise detalhada de peças jurídicas",
+    color: "from-orange-500 via-amber-600 to-yellow-600",
+    lightBg: "from-orange-50 to-amber-50",
+    iconColor: "text-orange-600",
+    emoji: "📚"
   },
   {
     id: "legal_document_generator",
@@ -50,8 +60,8 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-purple-600" />
-          <label className="text-sm font-semibold text-slate-900">
+          <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Escolha o Modo IA
           </label>
         </div>
@@ -84,8 +94,8 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                 className={`
                   w-full text-left p-4 rounded-xl transition-all duration-300 relative overflow-hidden
                   ${isSelected
-                    ? `bg-gradient-to-r ${mode.color} shadow-xl ring-2 ring-offset-2 ring-purple-400`
-                    : `bg-white border-2 border-slate-200 hover:border-slate-300 hover:shadow-md`
+                    ? `bg-gradient-to-r ${mode.color} shadow-xl ring-2 ring-offset-2 ring-purple-400 dark:ring-purple-600`
+                    : `bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md`
                   }
                 `}
               >
@@ -105,17 +115,17 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                       shrink-0 w-12 h-12 rounded-xl flex items-center justify-center relative
                       ${isSelected 
                         ? "bg-white/20 backdrop-blur-sm" 
-                        : `bg-gradient-to-br ${mode.lightBg}`
+                        : `bg-gradient-to-br ${mode.lightBg} dark:bg-slate-700`
                       }
                     `}
                     whileHover={{ rotate: [0, -5, 5, -5, 0] }}
                     transition={{ duration: 0.5 }}
                   >
-                    <Icon className={`w-6 h-6 ${isSelected ? "text-white" : mode.iconColor}`} />
+                    <Icon className={`w-6 h-6 ${isSelected ? "text-white" : mode.iconColor + " dark:text-slate-300"}`} />
                     
                     {/* Emoji Badge */}
                     <motion.span 
-                      className="absolute -top-1 -right-1 text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
+                      className="absolute -top-1 -right-1 text-xs bg-white dark:bg-slate-800 rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: index * 0.1 + 0.2 }}
@@ -127,7 +137,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`text-sm font-bold ${isSelected ? "text-white" : "text-slate-900"}`}>
+                      <h3 className={`text-sm font-bold ${isSelected ? "text-white" : "text-slate-900 dark:text-slate-100"}`}>
                         {mode.name}
                       </h3>
                       
@@ -146,7 +156,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                       </AnimatePresence>
                     </div>
                     
-                    <p className={`text-xs ${isSelected ? "text-white/90" : "text-slate-600"}`}>
+                    <p className={`text-xs ${isSelected ? "text-white/90" : "text-slate-600 dark:text-slate-400"}`}>
                       {mode.description}
                     </p>
                   </div>
@@ -181,10 +191,10 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100"
+        className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-100 dark:border-purple-800"
       >
-        <p className="text-xs text-slate-700 leading-relaxed">
-          <Sparkles className="w-3 h-3 inline mr-1 text-purple-600" />
+        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+          <Sparkles className="w-3 h-3 inline mr-1 text-purple-600 dark:text-purple-400" />
           <span className="font-semibold">Dica:</span> Escolha o modo ideal para sua tarefa. Você pode alternar entre modos a qualquer momento!
         </p>
       </motion.div>
