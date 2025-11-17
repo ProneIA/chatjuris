@@ -1,91 +1,57 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, FileText, Loader2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Skeleton } from "@/components/ui/skeleton";
+import { MessageSquare, Loader2 } from "lucide-react";
 
-const modeIcons = {
-  assistant: MessageSquare,
-  document_analyzer: FileText,
-  legal_document_generator: FileText
+const modeConfig = {
+  assistant: { icon: "💬", color: "text-blue-500" },
+  document_analyzer: { icon: "📄", color: "text-green-500" },
+  legal_document_generator: { icon: "📜", color: "text-purple-500" },
+  jurisprudence: { icon: "⚖️", color: "text-emerald-500" },
+  document_summarizer: { icon: "📚", color: "text-orange-500" }
 };
 
-const modeColors = {
-  assistant: "text-blue-600 bg-blue-100",
-  document_analyzer: "text-green-600 bg-green-100",
-  legal_document_generator: "text-purple-600 bg-purple-100"
-};
-
-export default function ConversationList({ 
-  conversations, 
-  selectedConversation, 
-  setSelectedConversation,
-  isLoading 
-}) {
+export default function ConversationList({ conversations, selectedConversation, setSelectedConversation, isLoading }) {
   if (isLoading) {
     return (
-      <div className="p-4 space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="h-12 w-full rounded-lg" />
-          </div>
-        ))}
+      <div className="flex items-center justify-center h-32">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
       </div>
     );
   }
 
   if (conversations.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-          <MessageSquare className="w-8 h-8 text-slate-400" />
-        </div>
+      <div className="flex flex-col items-center justify-center h-32 px-4 text-center">
+        <MessageSquare className="w-8 h-8 text-slate-600 mb-2" />
         <p className="text-sm text-slate-500">Nenhuma conversa ainda</p>
-        <p className="text-xs text-slate-400 mt-1">Crie uma nova conversa para começar</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-2">
-      {conversations.map((conversation) => {
-        const Icon = modeIcons[conversation.mode] || MessageSquare;
-        const isSelected = selectedConversation?.id === conversation.id;
+    <div className="space-y-1 px-2">
+      {conversations.map((conv) => {
+        const mode = modeConfig[conv.mode] || modeConfig.assistant;
+        const isSelected = selectedConversation?.id === conv.id;
 
         return (
           <motion.button
-            key={conversation.id}
-            onClick={() => setSelectedConversation(conversation)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+            key={conv.id}
+            onClick={() => setSelectedConversation(conv)}
+            whileHover={{ x: 4 }}
+            className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
               isSelected
-                ? "bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-blue-300 shadow-md"
-                : "bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                ? 'bg-slate-700 text-white'
+                : 'text-slate-300 hover:bg-slate-800'
             }`}
           >
-            <div className="flex items-start gap-3">
-              <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${modeColors[conversation.mode]}`}>
-                <Icon className="w-4 h-4" />
-              </div>
+            <div className="flex items-start gap-2">
+              <span className="text-lg shrink-0 mt-0.5">{mode.icon}</span>
               <div className="flex-1 min-w-0">
-                <h3 className={`text-sm font-medium truncate ${
-                  isSelected ? "text-blue-900" : "text-slate-900"
-                }`}>
-                  {conversation.title}
-                </h3>
+                <p className="text-sm font-medium truncate">{conv.title}</p>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {conversation.messages?.length || 0} mensagens
+                  {conv.messages?.length || 0} mensagens
                 </p>
-                {conversation.last_message_at && (
-                  <p className="text-xs text-slate-400 mt-1">
-                    {formatDistanceToNow(new Date(conversation.last_message_at), {
-                      addSuffix: true,
-                      locale: ptBR
-                    })}
-                  </p>
-                )}
               </div>
             </div>
           </motion.button>
