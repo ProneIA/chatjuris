@@ -1,22 +1,17 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus, Menu, X, Zap, AlertTriangle } from "lucide-react";
+import { Sparkles, MessageSquarePlus, Menu, X, Plus, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Input } from "@/components/ui/input";
 
 import ChatInterface from "../components/ai/ChatInterface";
-import ConversationList from "../components/ai/ConversationList";
 import ModeSelector from "../components/ai/ModeSelector";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
 import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
-import UsageLimits from "../components/subscription/UsageLimits";
-import DocumentSummaryInterface from "../components/ai/DocumentSummaryInterface";
+import DocumentSummarizer from "../components/ai/DocumentSummarizer";
 
-// Check if need to reset daily counter
 const shouldResetDaily = (subscription) => {
   if (!subscription || !subscription.last_reset_date) return true;
   
@@ -27,13 +22,27 @@ const shouldResetDaily = (subscription) => {
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedMode, setSelectedMode] = useState("assistant");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
@@ -48,7 +57,6 @@ export default function AIAssistant() {
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
       
       if (subs.length === 0) {
-        // Create default free subscription
         const newSub = await base44.entities.Subscription.create({
           user_id: user.id,
           plan: "free",
@@ -63,7 +71,6 @@ export default function AIAssistant() {
       
       const sub = subs[0];
       
-      // Check if need to reset daily
       if (shouldResetDaily(sub)) {
         const resetSub = await base44.entities.Subscription.update(sub.id, {
           daily_actions_used: 0,
@@ -80,8 +87,6 @@ export default function AIAssistant() {
   const updateUsageMutation = useMutation({
     mutationFn: ({ increment = 1 }) => {
       if (!subscription) return Promise.resolve();
-      
-      // Pro users don't have limits
       if (subscription.plan === "pro") return Promise.resolve();
       
       const currentUsed = subscription.daily_actions_used || 0;
@@ -99,20 +104,20 @@ export default function AIAssistant() {
     onSuccess: (newConversation) => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(newConversation);
-      // Increment usage
       updateUsageMutation.mutate({ increment: 1 });
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
     },
   });
 
   const handleNewConversation = () => {
-    // Check limits for free users
     if (subscription && subscription.plan === "free") {
       const used = subscription.daily_actions_used || 0;
       const limit = subscription.daily_actions_limit || 5;
       
       if (used >= limit) {
         alert('🚫 Você atingiu o limite de 5 ações diárias! Volte amanhã ou faça upgrade para o Plano Pro.');
-        navigate(createPageUrl('Pricing'));
         return;
       }
     }
@@ -122,7 +127,7 @@ export default function AIAssistant() {
       document_analyzer: "Analisar Documento",
       legal_document_generator: "Gerar Documento Legal",
       jurisprudence: "Pesquisa de Jurisprudência",
-      document_summary: "Novo Resumo de Peça"
+      document_summarizer: "Resumo de Documento"
     };
 
     createConversationMutation.mutate({
@@ -134,226 +139,169 @@ export default function AIAssistant() {
   };
 
   const handleModeChange = (mode) => {
-    // Free users can only access assistant, jurisprudence, and document_summary
-    if (subscription && subscription.plan === "free") {
-      const restrictedModes = ['legal_document_generator', 'document_analyzer'];
-      if (restrictedModes.includes(mode)) {
-        alert('🔒 Este modo é exclusivo para o Plano Pro! Faça upgrade por apenas R$ 49,99/mês.');
-        navigate(createPageUrl('Pricing'));
-        return;
-      }
-    }
     setSelectedMode(mode);
-  };
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsSidebarOpen(window.innerWidth >= 1024);
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (selectedMode === 'jurisprudence' || selectedMode === 'document_summary') {
+    if (mode === 'jurisprudence' || mode === 'document_summarizer') {
       setSelectedConversation(null);
     }
-  }, [selectedMode]);
-
-  const getModeInfo = () => {
-    const modes = {
-      assistant: { icon: "💬", name: "Assistente Geral", color: "from-blue-500 to-cyan-500" },
-      jurisprudence: { icon: "⚖️", name: "Pesquisa de Jurisprudência", color: "from-emerald-500 to-teal-500" },
-      legal_document_generator: { icon: "📜", name: "Gerador de Documentos", color: "from-purple-500 to-pink-500" },
-      document_analyzer: { icon: "📄", name: "Analisador de Documentos", color: "from-green-500 to-emerald-500" },
-      document_summary: { icon: "📋", name: "Resumo de Peças", color: "from-orange-500 to-red-500" }
-    };
-    return modes[selectedMode] || modes.assistant;
   };
 
-  const currentMode = getModeInfo();
+  const filteredConversations = conversations.filter(conv =>
+    conv.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Check if user has reached daily limit
-  const hasReachedLimit = subscription && subscription.plan === "free" && 
-    (subscription.daily_actions_used >= subscription.daily_actions_limit);
+  const showConversationsList = !['jurisprudence', 'document_summarizer'].includes(selectedMode);
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="fixed inset-0 flex overflow-hidden bg-slate-50">
       {/* Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.aside
-            initial={{ x: -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -300, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/50 flex flex-col shadow-2xl lg:relative absolute inset-y-0 left-0 z-40"
-          >
-            {/* Sidebar Header */}
-            <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white to-purple-50/30">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <motion.div 
-                    className="relative"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
-                      <Sparkles className="w-6 h-6 text-white" />
+          <>
+            {/* Mobile Overlay */}
+            {window.innerWidth < 768 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsSidebarOpen(false)}
+                className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              />
+            )}
+
+            <motion.aside
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="w-80 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 md:relative md:z-0"
+            >
+              {/* Sidebar Header */}
+              <div className="p-4 border-b border-slate-200 flex-shrink-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
                     </div>
-                    <motion.div 
-                      className="absolute -inset-1 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur-lg opacity-40"
-                      animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [0.4, 0.6, 0.4]
-                      }}
-                      transition={{ 
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  </motion.div>
-                  <div>
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                      IA Jurídica
-                    </h1>
-                    <p className="text-xs text-slate-500 flex items-center gap-1">
-                      <Zap className="w-3 h-3 text-purple-500" />
-                      Powered by AI
-                    </p>
+                    <span className="font-bold text-slate-900">Assistente IA</span>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
                 </div>
+
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden hover:bg-purple-100"
-                  onClick={() => setIsSidebarOpen(false)}
+                  onClick={handleNewConversation}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={createConversationMutation.isPending}
                 >
-                  <X className="w-5 h-5" />
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Conversa
                 </Button>
               </div>
 
-              {(selectedMode !== 'jurisprudence' && selectedMode !== 'document_summary') && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Button
-                    onClick={handleNewConversation}
-                    disabled={createConversationMutation.isPending || hasReachedLimit}
-                    className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group disabled:opacity-50"
-                  >
-                    <MessageSquarePlus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    {hasReachedLimit ? '🔒 Limite Diário Atingido' : 'Nova Conversa'}
-                  </Button>
-                </motion.div>
+              {/* Mode Selector */}
+              <div className="p-4 border-b border-slate-200 flex-shrink-0">
+                <ModeSelector selectedMode={selectedMode} setSelectedMode={handleModeChange} />
+              </div>
+
+              {/* Search */}
+              {showConversationsList && conversations.length > 0 && (
+                <div className="p-4 border-b border-slate-200 flex-shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      placeholder="Buscar conversas..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
               )}
-            </div>
 
-            {/* Usage Limits */}
-            {subscription && (
-              <div className="p-6 border-b border-slate-200/50">
-                <UsageLimits subscription={subscription} />
-              </div>
-            )}
-
-            {/* Mode Selector */}
-            <div className="p-6 border-b border-slate-200/50 bg-gradient-to-br from-white/50 to-blue-50/50">
-              <ModeSelector selectedMode={selectedMode} setSelectedMode={handleModeChange} />
-            </div>
-
-            {/* Conversations List */}
-            {(selectedMode !== 'jurisprudence' && selectedMode !== 'document_summary') && (
-              <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent to-slate-50/50">
-                <ConversationList
-                  conversations={conversations}
-                  selectedConversation={selectedConversation}
-                  setSelectedConversation={setSelectedConversation}
-                  isLoading={isLoading}
-                />
-              </div>
-            )}
-
-            {/* Footer Info */}
-            <motion.div 
-              className="p-4 border-t border-slate-200/50 bg-gradient-to-br from-purple-50/50 to-blue-50/50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="flex items-center gap-2 text-xs text-slate-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span>Sistema operacional</span>
-              </div>
-            </motion.div>
-          </motion.aside>
+              {/* Conversations List */}
+              {showConversationsList && (
+                <div className="flex-1 overflow-y-auto">
+                  {isLoading ? (
+                    <div className="p-4 space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />
+                      ))}
+                    </div>
+                  ) : filteredConversations.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400">
+                      <MessageSquarePlus className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Nenhuma conversa ainda</p>
+                    </div>
+                  ) : (
+                    <div className="p-2 space-y-1">
+                      {filteredConversations.map((conv) => (
+                        <button
+                          key={conv.id}
+                          onClick={() => {
+                            setSelectedConversation(conv);
+                            if (window.innerWidth < 768) {
+                              setIsSidebarOpen(false);
+                            }
+                          }}
+                          className={`w-full text-left p-3 rounded-lg transition-all ${
+                            selectedConversation?.id === conv.id
+                              ? 'bg-blue-50 border border-blue-200'
+                              : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <p className="font-medium text-slate-900 text-sm truncate">
+                            {conv.title}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {conv.messages?.length || 0} mensagens
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative">
+      <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <motion.div 
-          className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-6 py-4 flex items-center gap-4 shadow-sm"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
-          {!isSidebarOpen && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSidebarOpen(true)}
-              className="hover:bg-purple-100"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          )}
-          <div className="flex-1 flex items-center gap-3">
-            <motion.div
-              className={`w-10 h-10 rounded-xl bg-gradient-to-br ${currentMode.color} flex items-center justify-center shadow-lg`}
-              whileHover={{ scale: 1.1, rotate: 5 }}
-            >
-              <span className="text-xl">{currentMode.icon}</span>
-            </motion.div>
-            <div>
-              {selectedMode === 'jurisprudence' ? (
-                <>
-                  <h2 className="font-semibold text-slate-900">{currentMode.name}</h2>
-                  <p className="text-xs text-slate-500">STF, STJ, TRFs e outros tribunais</p>
-                </>
-              ) : (selectedMode === 'document_summary' && !selectedConversation) ? (
-                <>
-                  <h2 className="font-semibold text-slate-900">Bem-vindo ao {currentMode.name}</h2>
-                  <p className="text-xs text-slate-500">Crie um novo resumo de peça</p>
-                </>
-              ) : selectedConversation ? (
-                <>
-                  <h2 className="font-semibold text-slate-900">{selectedConversation.title}</h2>
-                  <p className="text-xs text-slate-500">{currentMode.icon} {currentMode.name}</p>
-                </>
-              ) : (
-                <>
-                  <h2 className="font-semibold text-slate-900">Bem-vindo ao {currentMode.name}</h2>
-                  <p className="text-xs text-slate-500">Selecione ou crie uma conversa</p>
-                </>
-              )}
-            </div>
-          </div>
+        <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-4 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="flex-shrink-0"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
           
-          {subscription && subscription.plan === 'free' && (
-            <Button
-              onClick={() => navigate(createPageUrl('Pricing'))}
-              size="sm"
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 text-white"
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Upgrade
-            </Button>
-          )}
-        </motion.div>
+          <div className="flex-1 min-w-0">
+            {selectedConversation ? (
+              <div>
+                <h2 className="font-semibold text-slate-900 truncate">
+                  {selectedConversation.title}
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {selectedConversation.messages?.length || 0} mensagens
+                </p>
+              </div>
+            ) : (
+              <h2 className="font-semibold text-slate-900">
+                Assistente IA
+              </h2>
+            )}
+          </div>
+        </div>
 
         {/* Chat Area */}
         <div className="flex-1 overflow-hidden">
@@ -361,36 +309,29 @@ export default function AIAssistant() {
             {selectedMode === 'jurisprudence' ? (
               <motion.div
                 key="jurisprudence"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="h-full"
               >
                 <JurisprudenceSearch subscription={subscription} updateUsage={updateUsageMutation.mutate} />
               </motion.div>
-            ) : selectedMode === 'document_summary' ? (
+            ) : selectedMode === 'document_summarizer' ? (
               <motion.div
-                key="document_summary"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                key="document_summarizer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="h-full"
               >
-                {selectedConversation ? (
-                  <DocumentSummaryInterface
-                    conversation={selectedConversation}
-                    onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
-                  />
-                ) : (
-                  <WelcomeScreen onNewConversation={handleNewConversation} selectedMode={selectedMode} />
-                )}
+                <DocumentSummarizer />
               </motion.div>
             ) : selectedConversation ? (
               <motion.div
                 key="chat"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="h-full"
               >
                 <ChatInterface
@@ -403,9 +344,9 @@ export default function AIAssistant() {
             ) : (
               <motion.div
                 key="welcome"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="h-full"
               >
                 <WelcomeScreen onNewConversation={handleNewConversation} selectedMode={selectedMode} />

@@ -10,7 +10,7 @@ import Jurisprudence from './pages/Jurisprudence';
 import Plans from './pages/Plans';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
-import Layout from './Layout.jsx';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -31,5 +31,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "AIAssistant",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
