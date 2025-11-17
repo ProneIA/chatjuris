@@ -14,9 +14,7 @@ import {
   BookOpen,
   LogOut,
   MessageSquare,
-  Settings,
-  HelpCircle,
-  Crown
+  Zap
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,83 +31,106 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { base44 } from "@/api/base44Client";
-import FloatingAIButton from "@/components/common/FloatingAIButton";
+import AIAssistantPanel from "@/components/layout/AIAssistantPanel";
+import FloatingAIButton from "@/components/layout/FloatingAIButton";
 
-const mainMenuItems = [
+// Organize navigation items by sections
+const navigationSections = [
   {
-    title: "Dashboard",
-    url: createPageUrl("Dashboard"),
-    icon: LayoutDashboard,
-    tooltip: "Visão geral do sistema"
+    label: "Principal",
+    items: [
+      {
+        title: "Dashboard",
+        url: createPageUrl("Dashboard"),
+        icon: LayoutDashboard,
+        tooltip: "Visão geral e métricas principais"
+      },
+    ]
   },
   {
-    title: "Clientes",
-    url: createPageUrl("Clients"),
-    icon: Users,
-    tooltip: "Gerenciar clientes"
+    label: "Gestão",
+    items: [
+      {
+        title: "Clientes",
+        url: createPageUrl("Clients"),
+        icon: Users,
+        tooltip: "Gerenciar clientes e contatos"
+      },
+      {
+        title: "Processos",
+        url: createPageUrl("Cases"),
+        icon: FolderOpen,
+        tooltip: "Processos e casos jurídicos"
+      },
+      {
+        title: "Documentos",
+        url: createPageUrl("Documents"),
+        icon: FileText,
+        tooltip: "Documentos e peças jurídicas"
+      },
+      {
+        title: "Tarefas",
+        url: createPageUrl("Tasks"),
+        icon: CheckSquare,
+        tooltip: "Tarefas e prazos importantes"
+      },
+    ]
   },
   {
-    title: "Processos",
-    url: createPageUrl("Cases"),
-    icon: FolderOpen,
-    tooltip: "Acompanhar processos"
+    label: "Recursos",
+    items: [
+      {
+        title: "Jurisprudência",
+        url: createPageUrl("Jurisprudence"),
+        icon: BookOpen,
+        tooltip: "Pesquisa de jurisprudência"
+      },
+      {
+        title: "Templates",
+        url: createPageUrl("Templates"),
+        icon: BookTemplate,
+        tooltip: "Modelos de documentos"
+      },
+      {
+        title: "Calendário",
+        url: createPageUrl("Calendar"),
+        icon: CalendarDays,
+        tooltip: "Agenda e compromissos"
+      },
+    ]
   },
   {
-    title: "Documentos",
-    url: createPageUrl("Documents"),
-    icon: FileText,
-    tooltip: "Biblioteca de documentos"
-  },
+    label: "Suporte",
+    items: [
+      {
+        title: "Contato",
+        url: createPageUrl("Contact"),
+        icon: MessageSquare,
+        tooltip: "Entre em contato conosco"
+      },
+    ]
+  }
 ];
 
-const toolsMenuItems = [
-  {
-    title: "Jurisprudência",
-    url: createPageUrl("Jurisprudence"),
-    icon: BookOpen,
-    tooltip: "Pesquisar jurisprudência"
-  },
-  {
-    title: "Templates",
-    url: createPageUrl("Templates"),
-    icon: BookTemplate,
-    tooltip: "Modelos de documentos"
-  },
-  {
-    title: "Tarefas",
-    url: createPageUrl("Tasks"),
-    icon: CheckSquare,
-    tooltip: "Gerenciar tarefas"
-  },
-  {
-    title: "Calendário",
-    url: createPageUrl("Calendar"),
-    icon: CalendarDays,
-    tooltip: "Agendar compromissos"
-  },
-];
-
-const aiMenuItem = {
-  title: "Assistente IA",
-  url: createPageUrl("AIAssistant"),
-  icon: Sparkles,
-  tooltip: "Converse com a IA para tirar dúvidas e navegar pelo sistema",
-  highlight: true
+// Page context mapping for AI assistant
+const pageContextMap = {
+  "Dashboard": "Dashboard - Visão geral do sistema",
+  "Clients": "Clientes - Gestão de clientes",
+  "Cases": "Processos - Gestão de casos jurídicos",
+  "Documents": "Documentos - Gestão de documentos",
+  "Tasks": "Tarefas - Gestão de tarefas e prazos",
+  "Jurisprudence": "Jurisprudência - Pesquisa jurisprudencial",
+  "Templates": "Templates - Modelos de documentos",
+  "Calendar": "Calendário - Agenda e compromissos",
+  "Contact": "Contato - Suporte ao cliente",
+  "Pricing": "Planos - Escolha seu plano",
+  "AIAssistant": "Assistente IA - Central de IA"
 };
-
-const supportMenuItems = [
-  {
-    title: "Contato",
-    url: createPageUrl("Contact"),
-    icon: MessageSquare,
-    tooltip: "Fale conosco"
-  },
-];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
-  const [hoveredItem, setHoveredItem] = React.useState(null);
+  const [isAIPanelOpen, setIsAIPanelOpen] = React.useState(false);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -122,152 +143,114 @@ export default function Layout({ children, currentPageName }) {
   const userPlan = user?.subscription_plan || "free";
   const isPro = userPlan === "pro" || userPlan === "enterprise";
 
-  const renderMenuItem = (item) => {
-    const isActive = location.pathname === item.url;
-    const Icon = item.icon;
+  // Get current page context for AI
+  const currentContext = pageContextMap[currentPageName] || currentPageName;
 
-    return (
-      <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton 
-          asChild 
-          className="relative group"
-          onMouseEnter={() => setHoveredItem(item.title)}
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <Link 
-            to={item.url} 
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-              isActive 
-                ? item.highlight
-                  ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold shadow-lg'
-                  : 'bg-blue-50 text-blue-700 font-medium'
-                : 'hover:bg-slate-100 hover:translate-x-1'
-            }`}
-          >
-            <Icon className={`w-4 h-4 ${isActive && !item.highlight ? 'text-blue-700' : ''}`} />
-            <span>{item.title}</span>
-            
-            {item.highlight && !isActive && (
-              <div className="ml-auto">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              </div>
-            )}
-
-            {isActive && item.highlight && (
-              <div className="ml-auto">
-                <Sparkles className="w-3 h-3 animate-pulse" />
-              </div>
-            )}
-
-            {/* Tooltip */}
-            {hoveredItem === item.title && (
-              <div className="absolute left-full ml-2 px-3 py-1.5 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none">
-                {item.tooltip}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-slate-900" />
-              </div>
-            )}
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  };
+  // Check if on AI Assistant page to hide floating button
+  const isOnAIPage = location.pathname === createPageUrl("AIAssistant");
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
-        <Sidebar className="border-r border-slate-200 bg-white/80 backdrop-blur-xl">
+        <Sidebar className="border-r border-slate-200">
           <SidebarHeader className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Scale className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Scale className="w-5 h-5 text-white" />
                 </div>
                 <div className="absolute -inset-1 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl blur-md opacity-30" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">LegalTech Pro</h2>
+                <h2 className="font-bold text-slate-900">LegalTech Pro</h2>
                 <p className="text-xs text-slate-500">Gestão Jurídica Inteligente</p>
               </div>
             </div>
           </SidebarHeader>
           
           <SidebarContent className="p-3">
-            {/* Main Menu */}
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-600 uppercase tracking-wider px-2 mb-2 flex items-center gap-2">
-                <LayoutDashboard className="w-3 h-3" />
-                Principal
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {mainMenuItems.map(renderMenuItem)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* AI Assistant Highlight - Desktop */}
+            <div className="mb-4 px-2 hidden md:block">
+              <Link to={createPageUrl("AIAssistant")}>
+                <button
+                  onClick={(e) => {
+                    if (isOnAIPage) {
+                      e.preventDefault();
+                      setIsAIPanelOpen(true);
+                    }
+                  }}
+                  className="w-full p-4 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white hover:opacity-90 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm">Assistente IA</p>
+                        <span className="px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
+                          IA
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/80">Converse com a IA agora</p>
+                    </div>
+                  </div>
+                </button>
+              </Link>
+            </div>
 
-            {/* AI Assistant - Highlighted */}
-            <SidebarGroup className="mt-1">
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {renderMenuItem(aiMenuItem)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {/* Tools Menu */}
-            <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-600 uppercase tracking-wider px-2 mb-2 flex items-center gap-2">
-                <Settings className="w-3 h-3" />
-                Ferramentas
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {toolsMenuItems.map(renderMenuItem)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {/* Support Menu */}
-            <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="text-xs font-semibold text-slate-600 uppercase tracking-wider px-2 mb-2 flex items-center gap-2">
-                <HelpCircle className="w-3 h-3" />
-                Suporte
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {supportMenuItems.map(renderMenuItem)}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* Navigation Sections */}
+            {navigationSections.map((section) => (
+              <SidebarGroup key={section.label} className="mb-2">
+                <SidebarGroupLabel className="text-xs font-medium text-slate-500 uppercase tracking-wider px-2 mb-2">
+                  {section.label}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg mb-1 group ${
+                            location.pathname === item.url ? 'bg-blue-50 text-blue-700 font-medium shadow-sm' : ''
+                          }`}
+                          title={item.tooltip}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
 
             {/* Plan Badge */}
-            <div className="mt-6 px-2">
+            <div className="mt-4 px-2">
               <Link to={createPageUrl("Pricing")}>
-                <div className={`p-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg ${
+                <div className={`p-3 rounded-xl cursor-pointer transition-all hover:scale-105 ${
                   isPro 
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" 
+                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg" 
                     : "bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-slate-200 hover:to-slate-300 border border-slate-300"
                 }`}>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-1">
                     {isPro ? (
-                      <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
-                        <Crown className="w-4 h-4 text-white" />
+                      <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center">
+                        <Scale className="w-3 h-3 text-white" />
                       </div>
                     ) : (
-                      <Sparkles className="w-5 h-5 text-purple-600" />
+                      <Zap className="w-4 h-4 text-blue-600" />
                     )}
-                    <span className="text-sm font-bold">
-                      {isPro ? "Plano Pro Ativo" : "Plano Gratuito"}
+                    <span className="text-xs font-semibold">
+                      {isPro ? "Plano Pro ✓" : "Plano Gratuito"}
                     </span>
                   </div>
                   {!isPro && (
-                    <p className="text-xs opacity-90 font-medium">
-                      ✨ Upgrade para Pro →
-                    </p>
-                  )}
-                  {isPro && (
-                    <p className="text-xs opacity-90">
-                      Uso ilimitado de IA
+                    <p className="text-xs opacity-80">
+                      Upgrade para Pro →
                     </p>
                   )}
                 </div>
@@ -275,16 +258,16 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-slate-200 p-4 bg-slate-50/50">
+          <SidebarFooter className="border-t border-slate-200 p-4">
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
-                  <span className="text-white font-bold text-sm">
+                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white font-semibold text-sm">
                     {user?.full_name?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm truncate">
+                  <p className="font-medium text-slate-900 text-sm truncate">
                     {user?.full_name || 'Usuário'}
                   </p>
                   <p className="text-xs text-slate-500 truncate">{user?.email}</p>
@@ -292,29 +275,31 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 hover:border-slate-300"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Sair da Conta
+                Sair
               </button>
             </div>
           </SidebarFooter>
         </Sidebar>
 
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white/90 backdrop-blur-xl border-b border-slate-200 px-6 py-4 md:hidden shadow-sm">
-            <div className="flex items-center justify-between">
+        <main className="flex-1 flex flex-col overflow-hidden relative">
+          <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 py-4 md:hidden">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors" />
-                <h1 className="text-lg font-bold text-slate-900">LegalTech Pro</h1>
+                <h1 className="text-lg font-semibold text-slate-900">LegalTech Pro</h1>
               </div>
-              <Link 
-                to={createPageUrl('AIAssistant')}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-all"
+              
+              {/* Mobile AI Button */}
+              <button
+                onClick={() => setIsAIPanelOpen(true)}
+                className="p-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:opacity-90 transition-opacity"
+                title="Assistente IA"
               >
-                <Sparkles className="w-4 h-4" />
-                IA
-              </Link>
+                <Sparkles className="w-5 h-5" />
+              </button>
             </div>
           </header>
 
@@ -323,8 +308,19 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </main>
 
-        {/* Floating AI Button */}
-        <FloatingAIButton />
+        {/* Floating AI Button - Desktop only, hidden on AI page */}
+        {!isOnAIPage && (
+          <div className="hidden md:block">
+            <FloatingAIButton onClick={() => setIsAIPanelOpen(true)} />
+          </div>
+        )}
+
+        {/* AI Assistant Panel */}
+        <AIAssistantPanel 
+          isOpen={isAIPanelOpen} 
+          onClose={() => setIsAIPanelOpen(false)}
+          currentPageContext={currentContext}
+        />
       </div>
     </SidebarProvider>
   );
