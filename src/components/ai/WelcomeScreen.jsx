@@ -32,110 +32,112 @@ export default function WelcomeScreen({ onNewConversation, userName }) {
   const timeGreeting = currentHour < 12 ? 'Bom dia' : currentHour < 18 ? 'Boa tarde' : 'Boa noite';
 
   return (
-    <div className="h-full flex items-center justify-center p-4 md:p-8">
-      <div className="max-w-4xl w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          {/* Animated Icon */}
+    <div className="h-full overflow-y-auto">
+      <div className="min-h-full flex items-center justify-center p-4 md:p-8">
+        <div className="max-w-4xl w-full py-12">
           <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{ 
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="inline-block mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
           >
-            <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                <Sparkles className="w-10 h-10 text-white" />
+            {/* Animated Icon */}
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="inline-block mb-6"
+            >
+              <div className="relative">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                  <Sparkles className="w-10 h-10 text-white" />
+                </div>
+                <div className="absolute -inset-2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 animate-pulse" />
               </div>
-              <div className="absolute -inset-2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 animate-pulse" />
+            </motion.div>
+
+            {/* Welcome Message */}
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                {timeGreeting}, {userName ? userName.split(' ')[0] : 'Advogado'}! 👋
+              </span>
+            </h1>
+            <p className="text-xl text-slate-600 mb-8">
+              Seu assistente jurídico com inteligência artificial está pronto para ajudar
+            </p>
+
+            {/* CTA Button */}
+            <Button
+              onClick={onNewConversation}
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-2xl"
+            >
+              <MessageSquare className="w-5 h-5 mr-2" />
+              Começar Nova Conversa
+            </Button>
+          </motion.div>
+
+          {/* Suggested Prompts */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <p className="text-sm text-slate-500 text-center mb-4">
+              Ou experimente uma dessas sugestões:
+            </p>
+            <div className="grid md:grid-cols-2 gap-3">
+              {suggestedPrompts.map((suggestion, index) => {
+                const Icon = suggestion.icon;
+                return (
+                  <motion.button
+                    key={index}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={onNewConversation}
+                    className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-700">{suggestion.text}</span>
+                  </motion.button>
+                );
+              })}
             </div>
           </motion.div>
 
-          {/* Welcome Message */}
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {timeGreeting}, {userName ? userName.split(' ')[0] : 'Advogado'}! 👋
-            </span>
-          </h1>
-          <p className="text-xl text-slate-600 mb-8">
-            Seu assistente jurídico com inteligência artificial está pronto para ajudar
-          </p>
-
-          {/* CTA Button */}
-          <Button
-            onClick={onNewConversation}
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-2xl"
+          {/* Features */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-12 grid md:grid-cols-3 gap-4"
           >
-            <MessageSquare className="w-5 h-5 mr-2" />
-            Começar Nova Conversa
-          </Button>
-        </motion.div>
-
-        {/* Suggested Prompts */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <p className="text-sm text-slate-500 text-center mb-4">
-            Ou experimente uma dessas sugestões:
-          </p>
-          <div className="grid md:grid-cols-2 gap-3">
-            {suggestedPrompts.map((suggestion, index) => {
-              const Icon = suggestion.icon;
+            {[
+              { icon: Zap, title: "Respostas Rápidas", desc: "IA treinada em direito brasileiro" },
+              { icon: Scale, title: "Análise Jurídica", desc: "Interpretação de leis e casos" },
+              { icon: FileText, title: "Redação Legal", desc: "Auxílio em documentos jurídicos" }
+            ].map((feature, index) => {
+              const Icon = feature.icon;
               return (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={onNewConversation}
-                  className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                >
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-blue-600" />
+                <div key={index} className="text-center p-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Icon className="w-6 h-6 text-blue-600" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">{suggestion.text}</span>
-                </motion.button>
+                  <h3 className="font-semibold text-slate-900 text-sm mb-1">{feature.title}</h3>
+                  <p className="text-xs text-slate-600">{feature.desc}</p>
+                </div>
               );
             })}
-          </div>
-        </motion.div>
-
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 grid md:grid-cols-3 gap-4"
-        >
-          {[
-            { icon: Zap, title: "Respostas Rápidas", desc: "IA treinada em direito brasileiro" },
-            { icon: Scale, title: "Análise Jurídica", desc: "Interpretação de leis e casos" },
-            { icon: FileText, title: "Redação Legal", desc: "Auxílio em documentos jurídicos" }
-          ].map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index} className="text-center p-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Icon className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-slate-900 text-sm mb-1">{feature.title}</h3>
-                <p className="text-xs text-slate-600">{feature.desc}</p>
-              </div>
-            );
-          })}
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
