@@ -25,6 +25,7 @@ const navigationSections = [
     label: "Principal",
     items: [
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
+      { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
     ]
   },
   {
@@ -169,19 +170,6 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <nav className="p-4 space-y-6">
-          <Link
-            to={createPageUrl("AIAssistant")}
-            className="block p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:opacity-90 transition-opacity"
-          >
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5" />
-              <div>
-                <p className="font-semibold text-sm">Assistente IA</p>
-                <p className="text-xs opacity-90">Converse agora</p>
-              </div>
-            </div>
-          </Link>
-
           {navigationSections.map((section) => (
             <div key={section.label}>
               <p className="text-xs font-semibold text-slate-500 uppercase mb-2 px-2">
