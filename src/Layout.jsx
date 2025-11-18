@@ -80,16 +80,19 @@ export default function Layout({ children, currentPageName }) {
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
           
-          <div className="flex items-center gap-2">
+          <Link 
+            to={createPageUrl("Dashboard")} 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <Scale className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-slate-900">LegalTech Pro</span>
-          </div>
+          </Link>
 
           <Link
             to={createPageUrl("AIAssistant")}
-            className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg"
+            className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition-opacity"
           >
             <Sparkles className="w-5 h-5 text-white" />
           </Link>
@@ -157,7 +160,10 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 overflow-y-auto">
-        <div className="p-6 border-b border-slate-200">
+        <Link 
+          to={createPageUrl("Dashboard")} 
+          className="block p-6 border-b border-slate-200 hover:bg-slate-50 transition-colors"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
               <Scale className="w-5 h-5 text-white" />
@@ -167,7 +173,7 @@ export default function Layout({ children, currentPageName }) {
               <p className="text-xs text-slate-500">Gestão Jurídica</p>
             </div>
           </div>
-        </div>
+        </Link>
 
         <nav className="p-4 space-y-6">
           {navigationSections.map((section) => (
