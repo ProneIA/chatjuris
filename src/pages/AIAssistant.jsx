@@ -8,10 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 import ChatInterface from "../components/ai/ChatInterface";
-import ModeSelector from "../components/ai/ModeSelector";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
-import JurisprudenceSearch from "../components/ai/JurisprudenceSearch";
-import DocumentSummarizer from "../components/ai/DocumentSummarizer";
 
 const shouldResetDaily = (subscription) => {
   if (!subscription || !subscription.last_reset_date) return true;
@@ -21,7 +18,6 @@ const shouldResetDaily = (subscription) => {
 
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [selectedMode, setSelectedMode] = useState("assistant");
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -84,38 +80,13 @@ export default function AIAssistant() {
       }
     }
 
-    const modeNames = {
-      assistant: "Nova Conversa",
-      document_analyzer: "Analisar Documento",
-      legal_document_generator: "Gerar Documento Legal",
-      jurisprudence: "Pesquisa de Jurisprudência",
-      document_summarizer: "Resumo de Documento"
-    };
-
     createConversationMutation.mutate({
-      title: modeNames[selectedMode],
-      mode: selectedMode,
+      title: "Nova Conversa",
+      mode: "assistant",
       messages: [],
       last_message_at: new Date().toISOString()
     });
   };
-
-  const handleModeChange = (mode) => {
-    if (subscription && subscription.plan === "free") {
-      const restrictedModes = ['legal_document_generator', 'document_analyzer'];
-      if (restrictedModes.includes(mode)) {
-        alert('🔒 Modo exclusivo do Plano Pro!');
-        navigate(createPageUrl('Pricing'));
-        return;
-      }
-    }
-    setSelectedMode(mode);
-    if (mode === 'jurisprudence' || mode === 'document_summarizer') {
-      setSelectedConversation(null);
-    }
-  };
-
-  const showWelcome = !selectedConversation && !['jurisprudence', 'document_summarizer'].includes(selectedMode);
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -135,7 +106,7 @@ export default function AIAssistant() {
         </div>
 
         <div className="flex items-center gap-2">
-          {!showWelcome && (
+          {selectedConversation && (
             <Button
               onClick={handleNewConversation}
               size="sm"
@@ -158,26 +129,20 @@ export default function AIAssistant() {
         </div>
       </div>
 
-      {/* Mode Selector */}
-      <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 flex-shrink-0">
-        <ModeSelector selectedMode={selectedMode} setSelectedMode={handleModeChange} />
-      </div>
-
       {/* Chat Area */}
       <div className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
-          {selectedMode === 'jurisprudence' ? (
-            <JurisprudenceSearch subscription={subscription} />
-          ) : selectedMode === 'document_summarizer' ? (
-            <DocumentSummarizer />
-          ) : selectedConversation ? (
+          {selectedConversation ? (
             <ChatInterface
               conversation={selectedConversation}
               onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
               subscription={subscription}
             />
           ) : (
-            <WelcomeScreen onNewConversation={handleNewConversation} selectedMode={selectedMode} />
+            <WelcomeScreen 
+              onNewConversation={handleNewConversation} 
+              userName={user?.full_name}
+            />
           )}
         </AnimatePresence>
       </div>
