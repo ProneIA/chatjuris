@@ -115,19 +115,15 @@ export default function AIAssistant() {
       }
     }
 
-    // Criar conversa com a primeira mensagem
+    // Criar nova conversa vazia e selecionar imediatamente
     const newConversation = await createConversationMutation.mutateAsync({
-      title: messageContent.slice(0, 50) + (messageContent.length > 50 ? '...' : ''),
+      title: "Nova Conversa",
       mode: "assistant",
-      messages: [{
-        role: "user",
-        content: messageContent,
-        timestamp: new Date().toISOString()
-      }],
+      messages: [],
       last_message_at: new Date().toISOString()
     });
-
-    // A conversa será automaticamente selecionada pelo onSuccess do mutation
+    
+    // A conversa já está selecionada pelo onSuccess, agora processar a mensagem será feito pelo ChatInterface
   };
 
   const handleRenameConversation = (conversationId, newTitle) => {
