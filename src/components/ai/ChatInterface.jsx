@@ -101,8 +101,14 @@ export default function ChatInterface({ conversation, onUpdate }) {
     setIsGenerating(true);
 
     try {
+      // Construir contexto da conversa para a IA
+      const conversationContext = updatedMessages
+        .slice(-10) // Últimas 10 mensagens para evitar timeout
+        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
+        .join('\n\n');
+
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: input,
+        prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário.`,
         add_context_from_internet: false
       });
       
@@ -119,8 +125,22 @@ export default function ChatInterface({ conversation, onUpdate }) {
           last_message_at: new Date().toISOString()
         }
       });
+
+      // Decrementar contador de ações
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      
     } catch (error) {
       console.error("Erro:", error);
+      alert("Erro ao gerar resposta. Tente novamente.");
+      
+      // Remover mensagem do usuário se falhou
+      await updateConversationMutation.mutateAsync({
+        id: conversation.id,
+        data: {
+          messages: conversation.messages,
+          last_message_at: new Date().toISOString()
+        }
+      });
     }
 
     setIsGenerating(false);
