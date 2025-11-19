@@ -27,6 +27,13 @@ export default function AIAssistant() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Selecionar automaticamente a conversa mais recente
+  useEffect(() => {
+    if (conversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(conversations[0]);
+    }
+  }, [conversations]);
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => base44.entities.Conversation.list('-last_message_at'),
@@ -169,20 +176,13 @@ export default function AIAssistant() {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-hidden">
-          <AnimatePresence mode="wait">
-            {selectedConversation ? (
-              <ChatInterface
-                conversation={selectedConversation}
-                onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
-                subscription={subscription}
-              />
-            ) : (
-              <WelcomeScreen 
-                onNewConversation={handleNewConversation} 
-                userName={user?.full_name}
-              />
-            )}
-          </AnimatePresence>
+          <ChatInterface
+            conversation={selectedConversation}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
+            subscription={subscription}
+            onCreateConversation={handleNewConversation}
+            userName={user?.full_name}
+          />
         </div>
       </div>
     </div>
