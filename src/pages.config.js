@@ -10,6 +10,7 @@ import Jurisprudence from './pages/Jurisprudence';
 import Plans from './pages/Plans';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Plans": Plans,
     "Pricing": Pricing,
     "Contact": Contact,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

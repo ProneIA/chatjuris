@@ -15,10 +15,12 @@ import {
   LogOut,
   MessageSquare,
   Menu,
-  X
+  X,
+  Settings
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
+import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
 
 const navigationSections = [
   {
@@ -46,8 +48,9 @@ const navigationSections = [
     ]
   },
   {
-    label: "Suporte",
+    label: "Configurações",
     items: [
+      { title: "Preferências", url: createPageUrl("Settings"), icon: Settings },
       { title: "Contato", url: createPageUrl("Contact"), icon: MessageSquare },
     ]
   }
@@ -70,6 +73,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <KeyboardShortcuts />
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50">
         <div className="h-full px-4 flex items-center justify-between">
