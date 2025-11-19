@@ -31,7 +31,7 @@ export default function AIAssistant() {
     queryKey: ['conversations', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filtro EXPLÍCITO por created_by para garantir isolamento total
+      // Filtro explícito por created_by para garantir isolamento por usuário
       return base44.entities.Conversation.filter(
         { created_by: user.email },
         '-last_message_at'
@@ -73,7 +73,7 @@ export default function AIAssistant() {
   const createConversationMutation = useMutation({
     mutationFn: (data) => base44.entities.Conversation.create(data),
     onSuccess: (newConversation) => {
-      queryClient.invalidateQueries({ queryKey: ['conversations', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(newConversation);
     },
   });
@@ -81,14 +81,14 @@ export default function AIAssistant() {
   const updateConversationMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Conversation.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 
   const deleteConversationMutation = useMutation({
     mutationFn: (id) => base44.entities.Conversation.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setSelectedConversation(null);
     },
   });
