@@ -48,6 +48,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
   const updateConversationMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Conversation.update(id, data),
     onSuccess: () => {
+      // Invalidar cache por usuário específico
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       onUpdate();
     },
