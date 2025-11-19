@@ -11,7 +11,7 @@ import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import AdvancedDocumentAnalyzer from "./AdvancedDocumentAnalyzer";
 import { usePlanAccess } from "../common/PlanGuard";
 
-export default function ChatInterface({ conversation, onUpdate }) {
+export default function ChatInterface({ conversation, onUpdate, subscription }) {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -126,8 +126,13 @@ export default function ChatInterface({ conversation, onUpdate }) {
         }
       });
 
-      // Decrementar contador de ações
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      // Decrementar contador de ações (apenas para plano free)
+      if (subscription && subscription.plan === 'free') {
+        await base44.entities.Subscription.update(subscription.id, {
+          daily_actions_used: (subscription.daily_actions_used || 0) + 1
+        });
+        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      }
       
     } catch (error) {
       console.error("Erro:", error);
