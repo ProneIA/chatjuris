@@ -123,7 +123,7 @@ export default function AIAssistant() {
       }
     }
 
-    // Criar conversa já com a mensagem inicial do usuário
+    // Criar conversa COM a primeira mensagem
     const userMessage = {
       role: "user",
       content: messageContent,
@@ -136,6 +136,38 @@ export default function AIAssistant() {
       messages: [userMessage],
       last_message_at: new Date().toISOString()
     });
+    
+    // Processar resposta da IA automaticamente
+    setTimeout(async () => {
+      try {
+        const response = await base44.integrations.Core.InvokeLLM({
+          prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nUsuário: ${messageContent}\n\nResponda à mensagem do usuário.`,
+          add_context_from_internet: false
+        });
+        
+        const assistantResponse = {
+          role: "assistant",
+          content: response,
+          timestamp: new Date().toISOString()
+        };
+
+        await base44.entities.Conversation.update(newConversation.id, {
+          messages: [userMessage, assistantResponse],
+          last_message_at: new Date().toISOString()
+        });
+
+        if (subscription && subscription.plan === 'free') {
+          await base44.entities.Subscription.update(subscription.id, {
+            daily_actions_used: (subscription.daily_actions_used || 0) + 1
+          });
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ['conversations', user?.email] });
+        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      } catch (error) {
+        console.error("Erro:", error);
+      }
+    }, 100);
   };
 
   const handleRenameConversation = (conversationId, newTitle) => {

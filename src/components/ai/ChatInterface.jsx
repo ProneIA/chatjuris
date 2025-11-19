@@ -38,65 +38,52 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
     scrollToBottom();
   }, [conversation?.messages]);
 
-  // Processar automaticamente mensagens pendentes (sem resposta da IA)
+  // Auto-processar se há apenas 1 mensagem do usuário sem resposta
   useEffect(() => {
     if (!conversation || isGenerating) return;
     
     const messages = conversation.messages || [];
-    const lastMessage = messages[messages.length - 1];
-    
-    // Se última mensagem é do usuário, processar resposta da IA
-    if (lastMessage && lastMessage.role === 'user' && messages.length === 1) {
-      processAIResponse();
+    if (messages.length === 1 && messages[0].role === 'user') {
+      // Processar primeira mensagem automaticamente
+      const processFirstMessage = async () => {
+        setIsGenerating(true);
+        
+        try {
+          const response = await base44.integrations.Core.InvokeLLM({
+            prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nUsuário: ${messages[0].content}\n\nResponda à mensagem do usuário.`,
+            add_context_from_internet: false
+          });
+          
+          const assistantResponse = {
+            role: "assistant",
+            content: response,
+            timestamp: new Date().toISOString()
+          };
+
+          await updateConversationMutation.mutateAsync({
+            id: conversation.id,
+            data: {
+              messages: [...messages, assistantResponse],
+              last_message_at: new Date().toISOString()
+            }
+          });
+
+          if (subscription && subscription.plan === 'free') {
+            await base44.entities.Subscription.update(subscription.id, {
+              daily_actions_used: (subscription.daily_actions_used || 0) + 1
+            });
+            queryClient.invalidateQueries({ queryKey: ['subscription'] });
+          }
+        } catch (error) {
+          console.error("Erro:", error);
+        }
+        
+        setIsGenerating(false);
+      };
+      
+      processFirstMessage();
     }
   }, [conversation?.id]);
-
-  const processAIResponse = async () => {
-    if (!conversation || isGenerating) return;
-    
-    const messages = conversation.messages || [];
-    if (messages.length === 0) return;
-    
-    setIsGenerating(true);
-
-    try {
-      const conversationContext = messages
-        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
-        .join('\n\n');
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário.`,
-        add_context_from_internet: false
-      });
-      
-      const assistantResponse = {
-        role: "assistant",
-        content: response,
-        timestamp: new Date().toISOString()
-      };
-
-      await updateConversationMutation.mutateAsync({
-        id: conversation.id,
-        data: {
-          messages: [...messages, assistantResponse],
-          last_message_at: new Date().toISOString()
-        }
-      });
-
-      if (subscription && subscription.plan === 'free') {
-        await base44.entities.Subscription.update(subscription.id, {
-          daily_actions_used: (subscription.daily_actions_used || 0) + 1
-        });
-        queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      }
-      
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro ao gerar resposta. Tente novamente.");
-    }
-
-    setIsGenerating(false);
-  };
 
   useEffect(() => {
     if (textareaRef.current) {
