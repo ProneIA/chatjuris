@@ -16,6 +16,8 @@ export default function Cases() {
   const [selectedCase, setSelectedCase] = useState(null);
   const [editingCase, setEditingCase] = useState(null);
   const [selectedFolder, setSelectedFolder] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const casesPerPage = 12;
   const queryClient = useQueryClient();
 
   const { data: cases = [], isLoading } = useQuery({
@@ -106,6 +108,11 @@ export default function Cases() {
 
     return matchesSearch && matchesFolder;
   });
+
+  // Paginação
+  const totalPages = Math.ceil(filteredCases.length / casesPerPage);
+  const startIndex = (currentPage - 1) * casesPerPage;
+  const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
   const handleSubmit = (data) => {
     if (editingCase) {
@@ -249,8 +256,9 @@ export default function Cases() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {filteredCases.map((caseItem) => (
+            <>
+              <div className="grid gap-4">
+                {paginatedCases.map((caseItem) => (
                 <CaseCard
                   key={caseItem.id}
                   caseItem={caseItem}
@@ -260,8 +268,61 @@ export default function Cases() {
                   currentFolderId={selectedFolder}
                   onMoveToFolder={handleMoveToFolder}
                 />
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between">
+                  <p className="text-sm text-slate-600">
+                    Mostrando {startIndex + 1}-{Math.min(startIndex + casesPerPage, filteredCases.length)} de {filteredCases.length}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-10"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

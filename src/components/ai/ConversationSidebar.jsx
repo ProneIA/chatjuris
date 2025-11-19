@@ -9,10 +9,12 @@ import {
   Check, 
   X, 
   Trash2,
-  Clock
+  Clock,
+  History
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ConversationHistoryDialog from "./ConversationHistoryDialog";
 
 export default function ConversationSidebar({ 
   conversations, 
@@ -24,6 +26,7 @@ export default function ConversationSidebar({
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
 
   const filteredConversations = conversations.filter(conv => {
     const matchesTitle = conv.title?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -32,6 +35,9 @@ export default function ConversationSidebar({
     );
     return matchesTitle || matchesContent;
   });
+
+  // Mostrar apenas últimas 5 conversas se não houver busca
+  const displayedConversations = searchTerm ? filteredConversations : filteredConversations.slice(0, 5);
 
   const handleStartEdit = (conversation) => {
     setEditingId(conversation.id);
@@ -72,7 +78,7 @@ export default function ConversationSidebar({
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto p-2">
         <AnimatePresence mode="popLayout">
-          {filteredConversations.length === 0 ? (
+          {displayedConversations.length === 0 ? (
             <div className="text-center py-12 px-4">
               <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-500">
@@ -80,7 +86,7 @@ export default function ConversationSidebar({
               </p>
             </div>
           ) : (
-            filteredConversations.map((conversation) => {
+            displayedConversations.map((conversation) => {
               const isSelected = selectedConversation?.id === conversation.id;
               const isEditing = editingId === conversation.id;
               const messageCount = conversation.messages?.length || 0;
@@ -196,6 +202,35 @@ export default function ConversationSidebar({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Botão Ver Histórico Completo */}
+      {!searchTerm && conversations.length > 5 && (
+        <div className="p-3 border-t border-slate-200 bg-white">
+          <Button
+            onClick={() => setShowHistoryDialog(true)}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            <History className="w-4 h-4 mr-2" />
+            Ver Histórico Completo ({conversations.length})
+          </Button>
+        </div>
+      )}
+
+      {/* Dialog de Histórico Completo */}
+      <ConversationHistoryDialog
+        open={showHistoryDialog}
+        onClose={() => setShowHistoryDialog(false)}
+        conversations={conversations}
+        selectedConversation={selectedConversation}
+        onSelectConversation={(conv) => {
+          onSelectConversation(conv);
+          setShowHistoryDialog(false);
+        }}
+        onRenameConversation={onRenameConversation}
+        onDeleteConversation={onDeleteConversation}
+      />
     </div>
   );
 }
