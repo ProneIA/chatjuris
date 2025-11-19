@@ -27,13 +27,6 @@ export default function AIAssistant() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Selecionar automaticamente a conversa mais recente
-  useEffect(() => {
-    if (conversations.length > 0 && !selectedConversation) {
-      setSelectedConversation(conversations[0]);
-    }
-  }, [conversations]);
-
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => base44.entities.Conversation.list('-last_message_at'),
@@ -111,6 +104,32 @@ export default function AIAssistant() {
     });
   };
 
+  const handleSendMessageFromWelcome = async (messageContent) => {
+    if (subscription && subscription.plan === "free") {
+      const used = subscription.daily_actions_used || 0;
+      const limit = subscription.daily_actions_limit || 5;
+      if (used >= limit) {
+        alert('🚫 Limite diário atingido! Faça upgrade para o Plano Pro.');
+        navigate(createPageUrl('Pricing'));
+        return;
+      }
+    }
+
+    // Criar conversa com a primeira mensagem
+    const newConversation = await createConversationMutation.mutateAsync({
+      title: messageContent.slice(0, 50) + (messageContent.length > 50 ? '...' : ''),
+      mode: "assistant",
+      messages: [{
+        role: "user",
+        content: messageContent,
+        timestamp: new Date().toISOString()
+      }],
+      last_message_at: new Date().toISOString()
+    });
+
+    // A conversa será automaticamente selecionada pelo onSuccess do mutation
+  };
+
   const handleRenameConversation = (conversationId, newTitle) => {
     updateConversationMutation.mutate({
       id: conversationId,
@@ -176,13 +195,20 @@ export default function AIAssistant() {
 
         {/* Chat Area */}
         <div className="flex-1 overflow-hidden">
-          <ChatInterface
-            conversation={selectedConversation}
-            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
-            subscription={subscription}
-            onCreateConversation={handleNewConversation}
-            userName={user?.full_name}
-          />
+          <AnimatePresence mode="wait">
+            {selectedConversation ? (
+              <ChatInterface
+                conversation={selectedConversation}
+                onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
+                subscription={subscription}
+              />
+            ) : (
+              <WelcomeScreen 
+                onSendMessage={handleSendMessageFromWelcome} 
+                userName={user?.full_name}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

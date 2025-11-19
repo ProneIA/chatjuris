@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Scale, FileText, Search, Zap } from "lucide-react";
+import { Sparkles, MessageSquare, Scale, FileText, Search, Zap, Send } from "lucide-react";
 
 const suggestedPrompts = [
   {
@@ -26,10 +26,30 @@ const suggestedPrompts = [
   }
 ];
 
-export default function WelcomeScreen({ onNewConversation, userName }) {
+export default function WelcomeScreen({ onSendMessage, userName }) {
+  const [input, setInput] = useState("");
+  const textareaRef = useRef(null);
   const greeting = userName ? `Olá, ${userName.split(' ')[0]}!` : 'Olá!';
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? 'Bom dia' : currentHour < 18 ? 'Boa tarde' : 'Boa noite';
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [input]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    onSendMessage(input);
+    setInput("");
+  };
+
+  const handlePromptClick = (prompt) => {
+    onSendMessage(prompt);
+  };
 
   return (
     <div className="h-full overflow-y-auto">
@@ -71,23 +91,53 @@ export default function WelcomeScreen({ onNewConversation, userName }) {
             <p className="text-xl text-slate-600 mb-8">
               Seu assistente jurídico com inteligência artificial está pronto para ajudar
             </p>
+          </motion.div>
 
-            {/* CTA Button */}
-            <Button
-              onClick={onNewConversation}
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6 rounded-2xl"
-            >
-              <MessageSquare className="w-5 h-5 mr-2" />
-              Começar Nova Conversa
-            </Button>
+          {/* Chat Input */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
+              <div className="flex items-end gap-2 bg-white rounded-2xl p-3 border-2 border-slate-200 focus-within:border-blue-500 shadow-lg transition-all">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Envie uma mensagem..."
+                  className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 max-h-48 text-slate-900 placeholder:text-slate-400"
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={!input.trim()}
+                  size="icon"
+                  className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-xl h-10 w-10"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <p className="text-xs text-slate-500 text-center mt-3">
+                Pressione Enter para enviar • Shift+Enter para nova linha
+              </p>
+            </form>
           </motion.div>
 
           {/* Suggested Prompts */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-6"
           >
             <p className="text-sm text-slate-500 text-center mb-4">
               Ou experimente uma dessas sugestões:
@@ -100,7 +150,7 @@ export default function WelcomeScreen({ onNewConversation, userName }) {
                     key={index}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={onNewConversation}
+                    onClick={() => handlePromptClick(suggestion.prompt)}
                     className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">

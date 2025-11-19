@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Paperclip, X, FileText, StopCircle, Sparkles } from "lucide-react";
+import { Send, Loader2, Paperclip, X, FileText, StopCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageBubble from "./MessageBubble";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
@@ -11,7 +11,7 @@ import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import AdvancedDocumentAnalyzer from "./AdvancedDocumentAnalyzer";
 import { usePlanAccess } from "../common/PlanGuard";
 
-export default function ChatInterface({ conversation, onUpdate, subscription, onCreateConversation, userName }) {
+export default function ChatInterface({ conversation, onUpdate, subscription }) {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -81,12 +81,6 @@ export default function ChatInterface({ conversation, onUpdate, subscription, on
       return;
     }
 
-    // Se não há conversa, criar uma nova
-    if (!conversation) {
-      onCreateConversation();
-      return;
-    }
-
     const userMessage = {
       role: "user",
       content: input,
@@ -124,10 +118,12 @@ export default function ChatInterface({ conversation, onUpdate, subscription, on
         timestamp: new Date().toISOString()
       };
 
+      const finalMessages = [...updatedMessages, assistantResponse];
+      
       await updateConversationMutation.mutateAsync({
         id: conversation.id,
         data: {
-          messages: [...updatedMessages, assistantResponse],
+          messages: finalMessages,
           last_message_at: new Date().toISOString()
         }
       });
@@ -157,55 +153,33 @@ export default function ChatInterface({ conversation, onUpdate, subscription, on
     setIsGenerating(false);
   };
 
-  if (conversation?.mode === "legal_document_generator") {
+  if (conversation.mode === "legal_document_generator") {
     return <LegalDocumentGeneratorInterface conversation={conversation} onUpdate={onUpdate} />;
   }
-
-  const messages = conversation?.messages || [];
 
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Messages Area - ChatGPT Style */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          {messages.length === 0 ? (
+          {conversation.messages.length === 0 ? (
             <div className="h-full flex items-center justify-center text-center py-20">
-              <div className="max-w-2xl">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                  <Sparkles className="w-10 h-10 text-white" />
+              <div>
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">💬</span>
                 </div>
-                <h1 className="text-4xl font-bold mb-4">
-                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Olá{userName ? `, ${userName.split(' ')[0]}` : ''}! 👋
-                  </span>
-                </h1>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                   Como posso ajudar hoje?
                 </h3>
-                <p className="text-slate-600 mb-8">
-                  Seu assistente jurídico com IA está pronto para ajudar
+                <p className="text-slate-600">
+                  Digite sua pergunta ou solicite uma tarefa
                 </p>
-                
-                {/* Sugestões */}
-                <div className="grid md:grid-cols-2 gap-3 mt-8">
-                  {[
-                    { icon: "⚖️", text: "Explicar conceitos jurídicos" },
-                    { icon: "📄", text: "Redigir documentos legais" },
-                    { icon: "🔍", text: "Pesquisar jurisprudência" },
-                    { icon: "💬", text: "Consultoria jurídica" }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4 text-left">
-                      <span className="text-2xl">{item.icon}</span>
-                      <span className="text-sm font-medium text-slate-700">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
               <AnimatePresence mode="popLayout">
-                {messages.map((message, index) => (
+                {conversation.messages.map((message, index) => (
                   <MessageBubble key={index} message={message} />
                 ))}
               </AnimatePresence>
@@ -259,7 +233,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, on
 
           <form onSubmit={handleSubmit} className="relative">
             <div className="flex items-end gap-2 bg-slate-100 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-              {conversation?.mode === "document_analyzer" && (
+              {conversation.mode === "document_analyzer" && (
                 <>
                   <input
                     ref={fileInputRef}
