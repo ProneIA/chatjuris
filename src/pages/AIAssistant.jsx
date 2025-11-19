@@ -9,6 +9,7 @@ import { createPageUrl } from "@/utils";
 
 import ChatInterface from "../components/ai/ChatInterface";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
+import ConversationSidebar from "../components/ai/ConversationSidebar";
 
 const shouldResetDaily = (subscription) => {
   if (!subscription || !subscription.last_reset_date) return true;
@@ -69,6 +70,21 @@ export default function AIAssistant() {
     },
   });
 
+  const updateConversationMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Conversation.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: (id) => base44.entities.Conversation.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      setSelectedConversation(null);
+    },
+  });
+
   const handleNewConversation = () => {
     if (subscription && subscription.plan === "free") {
       const used = subscription.daily_actions_used || 0;
@@ -88,25 +104,48 @@ export default function AIAssistant() {
     });
   };
 
-  return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
-      {/* Top Bar */}
-      <div className="border-b border-slate-200 bg-white px-4 py-3 flex items-center gap-4 flex-shrink-0">
-        <div className="flex-1 flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          {selectedConversation ? (
-            <div>
-              <h2 className="font-semibold text-slate-900 text-sm">{selectedConversation.title}</h2>
-            </div>
-          ) : (
-            <h2 className="font-semibold text-slate-900">Assistente IA</h2>
-          )}
-        </div>
+  const handleRenameConversation = (conversationId, newTitle) => {
+    updateConversationMutation.mutate({
+      id: conversationId,
+      data: { title: newTitle }
+    });
+  };
 
-        <div className="flex items-center gap-2">
-          {selectedConversation && (
+  const handleDeleteConversation = (conversationId) => {
+    deleteConversationMutation.mutate(conversationId);
+  };
+
+  return (
+    <div className="h-screen flex bg-white overflow-hidden">
+      {/* Conversation Sidebar */}
+      {conversations.length > 0 && (
+        <ConversationSidebar
+          conversations={conversations}
+          selectedConversation={selectedConversation}
+          onSelectConversation={setSelectedConversation}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+        />
+      )}
+
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="border-b border-slate-200 bg-white px-4 py-3 flex items-center gap-4 flex-shrink-0">
+          <div className="flex-1 flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            {selectedConversation ? (
+              <div>
+                <h2 className="font-semibold text-slate-900 text-sm">{selectedConversation.title}</h2>
+              </div>
+            ) : (
+              <h2 className="font-semibold text-slate-900">Assistente IA</h2>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
             <Button
               onClick={handleNewConversation}
               size="sm"
@@ -115,36 +154,36 @@ export default function AIAssistant() {
               <MessageSquarePlus className="w-4 h-4 mr-2" />
               Nova Conversa
             </Button>
-          )}
 
-          {subscription && subscription.plan === 'free' && (
-            <Button
-              onClick={() => navigate(createPageUrl('Pricing'))}
-              size="sm"
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white"
-            >
-              Upgrade Pro
-            </Button>
-          )}
+            {subscription && subscription.plan === 'free' && (
+              <Button
+                onClick={() => navigate(createPageUrl('Pricing'))}
+                size="sm"
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white"
+              >
+                Upgrade Pro
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 overflow-hidden">
-        <AnimatePresence mode="wait">
-          {selectedConversation ? (
-            <ChatInterface
-              conversation={selectedConversation}
-              onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
-              subscription={subscription}
-            />
-          ) : (
-            <WelcomeScreen 
-              onNewConversation={handleNewConversation} 
-              userName={user?.full_name}
-            />
-          )}
-        </AnimatePresence>
+        {/* Chat Area */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {selectedConversation ? (
+              <ChatInterface
+                conversation={selectedConversation}
+                onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
+                subscription={subscription}
+              />
+            ) : (
+              <WelcomeScreen 
+                onNewConversation={handleNewConversation} 
+                userName={user?.full_name}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
