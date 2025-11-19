@@ -197,6 +197,7 @@ export default function AIAssistant() {
                 conversation={selectedConversation}
                 onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
                 subscription={subscription}
+                userName={user?.full_name}
               />
             ) : (
               <WelcomeScreen 

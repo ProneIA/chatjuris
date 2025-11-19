@@ -11,7 +11,7 @@ import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import AdvancedDocumentAnalyzer from "./AdvancedDocumentAnalyzer";
 import { usePlanAccess } from "../common/PlanGuard";
 
-export default function ChatInterface({ conversation, onUpdate, subscription }) {
+export default function ChatInterface({ conversation, onUpdate, subscription, userName }) {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -36,7 +36,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription }) 
 
   useEffect(() => {
     scrollToBottom();
-  }, [conversation.messages]);
+  }, [conversation?.messages]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -73,7 +73,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !conversation) return;
 
     const aiAccess = canUseAI();
     if (!aiAccess.allowed) {
@@ -87,18 +87,21 @@ export default function ChatInterface({ conversation, onUpdate, subscription }) 
       timestamp: new Date().toISOString()
     };
 
-    const updatedMessages = [...conversation.messages, userMessage];
+    const updatedMessages = [...(conversation.messages || []), userMessage];
+    const currentInput = input;
+    
+    // Limpar input e atualizar UI imediatamente
+    setInput("");
+    setIsGenerating(true);
     
     await updateConversationMutation.mutateAsync({
       id: conversation.id,
       data: {
         messages: updatedMessages,
-        last_message_at: new Date().toISOString()
+        last_message_at: new Date().toISOString(),
+        title: (conversation.messages?.length || 0) === 0 ? currentInput.slice(0, 50) : conversation.title
       }
     });
-
-    setInput("");
-    setIsGenerating(true);
 
     try {
       // Construir contexto da conversa para a IA
@@ -153,56 +156,68 @@ export default function ChatInterface({ conversation, onUpdate, subscription }) 
     setIsGenerating(false);
   };
 
-  if (conversation.mode === "legal_document_generator") {
+  if (conversation?.mode === "legal_document_generator") {
     return <LegalDocumentGeneratorInterface conversation={conversation} onUpdate={onUpdate} />;
   }
+
+  const messages = conversation?.messages || [];
 
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Messages Area - ChatGPT Style */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          {conversation.messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-center py-20">
-              <div>
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">💬</span>
+          <div className="space-y-6">
+            {/* Welcome Header - sempre visível quando não há mensagens */}
+            {messages.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-12"
+              >
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                  <span className="text-3xl">💬</span>
                 </div>
+                <h1 className="text-4xl font-bold mb-4">
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Olá{userName ? `, ${userName.split(' ')[0]}` : ''}! 👋
+                  </span>
+                </h1>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                   Como posso ajudar hoje?
                 </h3>
                 <p className="text-slate-600">
-                  Digite sua pergunta ou solicite uma tarefa
+                  Seu assistente jurídico com IA está pronto para ajudar
                 </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <AnimatePresence mode="popLayout">
-                {conversation.messages.map((message, index) => (
-                  <MessageBubble key={index} message={message} />
-                ))}
-              </AnimatePresence>
+              </motion.div>
+            )}
 
-              {isGenerating && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-4"
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
-                    <span className="text-sm">🤖</span>
+            {/* Messages */}
+            <AnimatePresence mode="popLayout">
+              {messages.map((message, index) => (
+                <MessageBubble key={index} message={message} />
+              ))}
+            </AnimatePresence>
+
+            {/* Loading indicator */}
+            {isGenerating && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex gap-4"
+              >
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
+                  <span className="text-sm">🤖</span>
+                </div>
+                <div className="flex-1 pt-1">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+                    <span className="text-sm text-slate-600">Pensando...</span>
                   </div>
-                  <div className="flex-1 pt-1">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                      <span className="text-sm text-slate-600">Pensando...</span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
+          </div>
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -233,7 +248,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription }) 
 
           <form onSubmit={handleSubmit} className="relative">
             <div className="flex items-end gap-2 bg-slate-100 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-              {conversation.mode === "document_analyzer" && (
+              {conversation?.mode === "document_analyzer" && (
                 <>
                   <input
                     ref={fileInputRef}
