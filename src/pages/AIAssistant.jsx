@@ -21,6 +21,8 @@ export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [user, setUser] = useState(null);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [tempMessages, setTempMessages] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -105,12 +107,8 @@ export default function AIAssistant() {
       }
     }
 
-    createConversationMutation.mutate({
-      title: "Nova Conversa",
-      mode: "assistant",
-      messages: [],
-      last_message_at: new Date().toISOString()
-    });
+    setSelectedConversation(null);
+    setTempMessages([]);
   };
 
   const handleSendMessageFromWelcome = async (messageContent) => {
@@ -124,62 +122,63 @@ export default function AIAssistant() {
       }
     }
 
-    // Criar conversa COM a primeira mensagem
+    // Adicionar mensagem do usuário imediatamente
     const userMessage = {
       role: "user",
       content: messageContent,
       timestamp: new Date().toISOString()
     };
 
-    const newConversation = await createConversationMutation.mutateAsync({
-      title: messageContent.slice(0, 50),
-      mode: "assistant",
-      messages: [userMessage],
-      last_message_at: new Date().toISOString()
-    });
-    
-    // Processar resposta da IA automaticamente
-    setTimeout(async () => {
-      try {
-        const systemInstructions = `Você é um assistente jurídico especializado em direito brasileiro.
+    setTempMessages([userMessage]);
+    setIsProcessing(true);
 
-    REGRAS DE RESPOSTA:
-    - Sempre responda em texto simples usando Markdown (títulos, listas, blocos de código)
-    - Não envie redirecionamentos, links para novas páginas, nem instruções para abrir outra aba
-    - Não utilize HTML complexo ou scripts
-    - Seja direto, organizado e educado
-    - Use parágrafos curtos e listas quando necessário
-    - Tom em português do Brasil, de forma clara e objetiva
-    - A resposta será exibida diretamente na mesma tela de conversa`;
+    try {
+      const systemInstructions = `Você é um assistente jurídico especializado em direito brasileiro.
 
-        const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `${systemInstructions}\n\nUsuário: ${messageContent}\n\nResponda à mensagem do usuário de forma profissional e precisa.`,
-          add_context_from_internet: false
+  REGRAS DE RESPOSTA:
+  - Sempre responda em texto simples usando Markdown (títulos, listas, blocos de código)
+  - Não envie redirecionamentos, links para novas páginas, nem instruções para abrir outra aba
+  - Não utilize HTML complexo ou scripts
+  - Seja direto, organizado e educado
+  - Use parágrafos curtos e listas quando necessário
+  - Tom em português do Brasil, de forma clara e objetiva
+  - A resposta será exibida diretamente na mesma tela de conversa`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `${systemInstructions}\n\nUsuário: ${messageContent}\n\nResponda à mensagem do usuário de forma profissional e precisa.`,
+        add_context_from_internet: false
+      });
+
+      const assistantResponse = {
+        role: "assistant",
+        content: response,
+        timestamp: new Date().toISOString()
+      };
+
+      // Adicionar resposta da IA às mensagens temporárias
+      setTempMessages([userMessage, assistantResponse]);
+
+      // Salvar conversa em background
+      await createConversationMutation.mutateAsync({
+        title: messageContent.slice(0, 50),
+        mode: "assistant",
+        messages: [userMessage, assistantResponse],
+        last_message_at: new Date().toISOString()
+      });
+
+      if (subscription && subscription.plan === 'free') {
+        await base44.entities.Subscription.update(subscription.id, {
+          daily_actions_used: (subscription.daily_actions_used || 0) + 1
         });
-        
-        const assistantResponse = {
-          role: "assistant",
-          content: response,
-          timestamp: new Date().toISOString()
-        };
-
-        await base44.entities.Conversation.update(newConversation.id, {
-          messages: [userMessage, assistantResponse],
-          last_message_at: new Date().toISOString()
-        });
-
-        if (subscription && subscription.plan === 'free') {
-          await base44.entities.Subscription.update(subscription.id, {
-            daily_actions_used: (subscription.daily_actions_used || 0) + 1
-          });
-        }
-        
-        queryClient.invalidateQueries({ queryKey: ['conversations', user?.email] });
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      } catch (error) {
-        console.error("Erro:", error);
       }
-    }, 100);
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Erro ao gerar resposta. Tente novamente.");
+      setTempMessages([]);
+    }
+
+    setIsProcessing(false);
   };
 
   const handleRenameConversation = (conversationId, newTitle) => {
@@ -259,6 +258,8 @@ export default function AIAssistant() {
               <WelcomeScreen 
                 onSendMessage={handleSendMessageFromWelcome} 
                 userName={user?.full_name}
+                messages={tempMessages}
+                isProcessing={isProcessing}
               />
             )}
           </AnimatePresence>
