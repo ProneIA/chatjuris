@@ -49,8 +49,19 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
         setIsGenerating(true);
         
         try {
+          const systemInstructions = `Você é um assistente jurídico especializado em direito brasileiro.
+
+        REGRAS DE RESPOSTA:
+        - Sempre responda em texto simples usando Markdown (títulos, listas, blocos de código)
+        - Não envie redirecionamentos, links para novas páginas, nem instruções para abrir outra aba
+        - Não utilize HTML complexo ou scripts
+        - Seja direto, organizado e educado
+        - Use parágrafos curtos e listas quando necessário
+        - Tom em português do Brasil, de forma clara e objetiva
+        - A resposta será exibida diretamente na mesma tela de conversa`;
+
           const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nUsuário: ${messages[0].content}\n\nResponda à mensagem do usuário.`,
+            prompt: `${systemInstructions}\n\nUsuário: ${messages[0].content}\n\nResponda à mensagem do usuário de forma profissional e precisa.`,
             add_context_from_internet: false
           });
           
@@ -157,8 +168,19 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
         .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
         .join('\n\n');
 
+      const systemInstructions = `Você é um assistente jurídico especializado em direito brasileiro.
+
+      REGRAS DE RESPOSTA:
+      - Sempre responda em texto simples usando Markdown (títulos, listas, blocos de código)
+      - Não envie redirecionamentos, links para novas páginas, nem instruções para abrir outra aba
+      - Não utilize HTML complexo ou scripts
+      - Seja direto, organizado e educado
+      - Use parágrafos curtos e listas quando necessário
+      - Tom em português do Brasil, de forma clara e objetiva
+      - A resposta será exibida diretamente na mesma tela de conversa`;
+
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um assistente jurídico especializado em direito brasileiro. Responda de forma profissional e precisa.\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário.`,
+        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
         add_context_from_internet: false
       });
       
