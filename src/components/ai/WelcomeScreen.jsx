@@ -27,7 +27,7 @@ const suggestedPrompts = [
   }
 ];
 
-export default function WelcomeScreen({ onSendMessage, userName, messages = [], isProcessing = false }) {
+export default function WelcomeScreen({ onSendMessage, userName, messages = [], isProcessing = false, onOpenHistory }) {
   const [input, setInput] = useState("");
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -197,6 +197,20 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               Pressione Enter para enviar • Shift+Enter para nova linha
             </p>
           </form>
+
+          {onOpenHistory && (
+            <div className="mt-3 flex justify-center">
+              <Button
+                onClick={onOpenHistory}
+                variant="ghost"
+                size="sm"
+                className="text-slate-600 hover:text-slate-900"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Ver Histórico Completo
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

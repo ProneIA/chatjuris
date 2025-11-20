@@ -260,6 +260,7 @@ export default function AIAssistant() {
                 userName={user?.full_name}
                 messages={tempMessages}
                 isProcessing={isProcessing}
+                onOpenHistory={() => setShowHistoryDialog(true)}
               />
             )}
           </AnimatePresence>
