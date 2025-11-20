@@ -75,9 +75,9 @@ export default function AIAssistant() {
 
   const createConversationMutation = useMutation({
     mutationFn: (data) => base44.entities.Conversation.create(data),
-    onSuccess: (newConversation) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      setSelectedConversation(newConversation);
+      // Não mudar de tela ao criar conversa
     },
   });
 
@@ -163,8 +163,8 @@ FORMATO DAS RESPOSTAS:
       // Adicionar resposta da IA às mensagens temporárias
       setTempMessages([userMessage, assistantResponse]);
 
-      // Salvar conversa em background
-      await createConversationMutation.mutateAsync({
+      // Salvar conversa em background sem mudar de tela
+      createConversationMutation.mutate({
         title: messageContent.slice(0, 50),
         mode: "assistant",
         messages: [userMessage, assistantResponse],
