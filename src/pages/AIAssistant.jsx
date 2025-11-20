@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus } from "lucide-react";
+import { Sparkles, MessageSquarePlus, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 import ChatInterface from "../components/ai/ChatInterface";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
-import ConversationSidebar from "../components/ai/ConversationSidebar";
+import ConversationHistoryDialog from "../components/ai/ConversationHistoryDialog";
 
 const shouldResetDaily = (subscription) => {
   if (!subscription || !subscription.last_reset_date) return true;
@@ -20,6 +20,7 @@ const shouldResetDaily = (subscription) => {
 export default function AIAssistant() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [user, setUser] = useState(null);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -183,17 +184,6 @@ export default function AIAssistant() {
 
   return (
     <div className="h-screen flex bg-white overflow-hidden">
-      {/* Conversation Sidebar */}
-      {conversations.length > 0 && (
-        <ConversationSidebar
-          conversations={conversations}
-          selectedConversation={selectedConversation}
-          onSelectConversation={setSelectedConversation}
-          onRenameConversation={handleRenameConversation}
-          onDeleteConversation={handleDeleteConversation}
-        />
-      )}
-
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
@@ -212,6 +202,17 @@ export default function AIAssistant() {
           </div>
 
           <div className="flex items-center gap-2">
+            {conversations.length > 0 && (
+              <Button
+                onClick={() => setShowHistoryDialog(true)}
+                size="sm"
+                variant="outline"
+              >
+                <History className="w-4 h-4 mr-2" />
+                Histórico ({conversations.length})
+              </Button>
+            )}
+
             <Button
               onClick={handleNewConversation}
               size="sm"
@@ -251,7 +252,21 @@ export default function AIAssistant() {
             )}
           </AnimatePresence>
         </div>
-      </div>
-    </div>
-  );
-}
+        </div>
+
+        {/* Dialog de Histórico */}
+        <ConversationHistoryDialog
+        open={showHistoryDialog}
+        onClose={() => setShowHistoryDialog(false)}
+        conversations={conversations}
+        selectedConversation={selectedConversation}
+        onSelectConversation={(conv) => {
+          setSelectedConversation(conv);
+          setShowHistoryDialog(false);
+        }}
+        onRenameConversation={handleRenameConversation}
+        onDeleteConversation={handleDeleteConversation}
+        />
+        </div>
+        );
+        }
