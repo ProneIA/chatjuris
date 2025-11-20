@@ -30,6 +30,23 @@ export default function AIAssistant() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Salvar conversa ao fechar a página
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (tempMessages.length > 0 && !selectedConversation) {
+        await base44.entities.Conversation.create({
+          title: tempMessages[0]?.content?.slice(0, 50) || "Nova conversa",
+          mode: "assistant",
+          messages: tempMessages,
+          last_message_at: new Date().toISOString()
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [tempMessages, selectedConversation]);
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.email],
     queryFn: async () => {
@@ -96,7 +113,17 @@ export default function AIAssistant() {
     },
   });
 
-  const handleNewConversation = () => {
+  const handleNewConversation = async () => {
+    // Salvar conversa atual antes de criar nova
+    if (tempMessages.length > 0) {
+      await createConversationMutation.mutateAsync({
+        title: tempMessages[0]?.content?.slice(0, 50) || "Nova conversa",
+        mode: "assistant",
+        messages: tempMessages,
+        last_message_at: new Date().toISOString()
+      });
+    }
+
     if (subscription && subscription.plan === "free") {
       const used = subscription.daily_actions_used || 0;
       const limit = subscription.daily_actions_limit || 5;
@@ -122,14 +149,13 @@ export default function AIAssistant() {
       }
     }
 
-    // Adicionar mensagem do usuário imediatamente
     const userMessage = {
       role: "user",
       content: messageContent,
       timestamp: new Date().toISOString()
     };
 
-    setTempMessages([userMessage]);
+    setTempMessages(prev => [...prev, userMessage]);
     setIsProcessing(true);
 
     try {
@@ -149,8 +175,12 @@ FORMATO DAS RESPOSTAS:
 - Tom natural, claro e objetivo em português do Brasil
 - A resposta será exibida diretamente na mesma tela de conversa`;
 
+      const conversationContext = tempMessages
+        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
+        .join('\n\n');
+
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemInstructions}\n\nUsuário: ${messageContent}\n\nResponda à mensagem do usuário de forma profissional e precisa.`,
+        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nUsuário: ${messageContent}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
         add_context_from_internet: false
       });
 
@@ -160,16 +190,7 @@ FORMATO DAS RESPOSTAS:
         timestamp: new Date().toISOString()
       };
 
-      // Adicionar resposta da IA às mensagens temporárias
-      setTempMessages([userMessage, assistantResponse]);
-
-      // Salvar conversa em background sem mudar de tela
-      createConversationMutation.mutate({
-        title: messageContent.slice(0, 50),
-        mode: "assistant",
-        messages: [userMessage, assistantResponse],
-        last_message_at: new Date().toISOString()
-      });
+      setTempMessages(prev => [...prev, assistantResponse]);
 
       if (subscription && subscription.plan === 'free') {
         await base44.entities.Subscription.update(subscription.id, {
@@ -180,7 +201,7 @@ FORMATO DAS RESPOSTAS:
     } catch (error) {
       console.error("Erro:", error);
       alert("Erro ao gerar resposta. Tente novamente.");
-      setTempMessages([]);
+      setTempMessages(prev => prev.slice(0, -1));
     }
 
     setIsProcessing(false);
