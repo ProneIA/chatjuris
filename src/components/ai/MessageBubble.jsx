@@ -14,34 +14,34 @@ export default function MessageBubble({ message }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3 }}
-      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+      className={`flex gap-2 sm:gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
     >
       {/* Avatar */}
-      <div className={`shrink-0 h-8 w-8 rounded-xl flex items-center justify-center ${
+      <div className={`shrink-0 h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl flex items-center justify-center ${
         isUser 
           ? "bg-slate-200" 
           : "bg-gradient-to-br from-blue-500 to-purple-500"
       }`}>
         {isUser ? (
-          <User className="w-4 h-4 text-slate-600" />
+          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600" />
         ) : (
-          <Sparkles className="w-4 h-4 text-white" />
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
         )}
       </div>
 
       {/* Message Content */}
-      <div className={`flex flex-col gap-1 max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
-        <div className={`rounded-2xl px-4 py-3 ${
+      <div className={`flex flex-col gap-1 max-w-[80%] sm:max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
+        <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 ${
           isUser
             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
             : "bg-white border border-slate-200 text-slate-900 shadow-sm"
         }`}>
           {message.content && (
             isUser ? (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
             ) : (
               <ReactMarkdown
-                className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                className="prose prose-sm max-w-none text-xs sm:text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
                 components={{
                   p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                   ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
