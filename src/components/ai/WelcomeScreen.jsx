@@ -69,7 +69,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center py-12"
+              className="text-center py-6 sm:py-12 px-4"
             >
             {/* Animated Icon */}
             <motion.div
@@ -82,23 +82,23 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="inline-block mb-6"
+              className="inline-block mb-4 sm:mb-6"
             >
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                  <Sparkles className="w-10 h-10 text-white" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-2xl">
+                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </div>
-                <div className="absolute -inset-2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl blur-2xl opacity-30 animate-pulse" />
+                <div className="absolute -inset-2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl sm:rounded-3xl blur-2xl opacity-30 animate-pulse" />
               </div>
             </motion.div>
 
             {/* Welcome Message */}
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {timeGreeting}, {userName ? userName.split(' ')[0] : 'Advogado'}! 👋
                 </span>
               </h1>
-              <p className="text-xl text-slate-600 mb-8">
+              <p className="text-base sm:text-xl text-slate-600 mb-6 sm:mb-8">
                 Seu assistente jurídico com inteligência artificial está pronto para ajudar
               </p>
             </motion.div>
@@ -141,9 +141,9 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-6"
+              className="mb-4 sm:mb-6"
             >
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {suggestedPrompts.map((suggestion, index) => {
                   const Icon = suggestion.icon;
                   return (
@@ -152,12 +152,12 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handlePromptClick(suggestion.prompt)}
-                      className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      className="flex items-center gap-2 sm:gap-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200 active:scale-95"
                     >
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
-                        <Icon className="w-5 h-5 text-blue-600" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
+                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       </div>
-                      <span className="text-sm font-medium text-slate-700">{suggestion.text}</span>
+                      <span className="text-xs sm:text-sm font-medium text-slate-700">{suggestion.text}</span>
                     </motion.button>
                   );
                 })}
@@ -166,13 +166,13 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
           )}
 
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-2 bg-slate-100 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+            <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Envie uma mensagem..."
-                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-3 max-h-48 text-slate-900 placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
                 rows={1}
                 disabled={isProcessing}
                 onKeyDown={(e) => {
@@ -187,13 +187,13 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 type="submit"
                 disabled={!input.trim() || isProcessing}
                 size="icon"
-                className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-xl"
+                className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             </div>
 
-            <p className="text-xs text-slate-500 text-center mt-2">
+            <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
               Pressione Enter para enviar • Shift+Enter para nova linha
             </p>
           </form>

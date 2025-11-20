@@ -245,8 +245,8 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
     <div className="h-full flex flex-col bg-white">
       {/* Messages Area - ChatGPT Style */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          <div className="space-y-6">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Welcome Header - sempre visível quando não há mensagens */}
             {messages.length === 0 && (
               <motion.div
@@ -303,7 +303,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
 
       {/* Input Area - ChatGPT Style */}
       <div className="border-t border-slate-200 bg-white">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           {uploadedFile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -326,7 +326,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
           )}
 
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-2 bg-slate-100 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+            <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               {conversation?.mode === "document_analyzer" && (
                 <>
                   <input
@@ -358,7 +358,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Envie uma mensagem..."
-                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-3 max-h-48 text-slate-900 placeholder:text-slate-500"
+                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -372,20 +372,20 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
                 type="submit"
                 disabled={!input.trim() || isGenerating}
                 size="icon"
-                className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-xl"
+                className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
               >
                 {isGenerating ? (
-                  <StopCircle className="w-5 h-5" />
+                  <StopCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </Button>
-            </div>
+              </div>
 
-            <p className="text-xs text-slate-500 text-center mt-2">
+              <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
               Pressione Enter para enviar • Shift+Enter para nova linha
-            </p>
-          </form>
+              </p>
+              </form>
         </div>
       </div>
 

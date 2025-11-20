@@ -202,46 +202,48 @@ FORMATO DAS RESPOSTAS:
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="border-b border-slate-200 bg-white px-4 py-3 flex items-center gap-4 flex-shrink-0">
-          <div className="flex-1 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+        <div className="border-b border-slate-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </div>
             {selectedConversation ? (
-              <div>
-                <h2 className="font-semibold text-slate-900 text-sm">{selectedConversation.title}</h2>
+              <div className="min-w-0">
+                <h2 className="font-semibold text-slate-900 text-xs sm:text-sm truncate">{selectedConversation.title}</h2>
               </div>
             ) : (
-              <h2 className="font-semibold text-slate-900">Assistente IA</h2>
+              <h2 className="font-semibold text-slate-900 text-sm sm:text-base">Assistente IA</h2>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {conversations.length > 0 && (
               <Button
                 onClick={() => setShowHistoryDialog(true)}
                 size="sm"
                 variant="outline"
+                className="h-8 sm:h-9 px-2 sm:px-3"
               >
-                <History className="w-4 h-4 mr-2" />
-                Histórico ({conversations.length})
+                <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Histórico ({conversations.length})</span>
+                <span className="sm:hidden">({conversations.length})</span>
               </Button>
             )}
 
             <Button
               onClick={handleNewConversation}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white h-8 sm:h-9 px-2 sm:px-3"
             >
-              <MessageSquarePlus className="w-4 h-4 mr-2" />
-              Nova Conversa
+              <MessageSquarePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nova Conversa</span>
             </Button>
 
             {subscription && subscription.plan === 'free' && (
               <Button
                 onClick={() => navigate(createPageUrl('Pricing'))}
                 size="sm"
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white"
+                className="hidden md:flex bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white h-8 sm:h-9"
               >
                 Upgrade Pro
               </Button>
