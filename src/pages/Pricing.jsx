@@ -123,6 +123,12 @@ export default function Pricing() {
       return;
     }
 
+    // Redirecionar para Mercado Pago
+    if (planId === "pro") {
+      window.open('https://mpago.la/2GcJgzK', '_blank');
+      return;
+    }
+
     setSelectedPlan(plan);
     setShowPaymentModal(true);
   };
