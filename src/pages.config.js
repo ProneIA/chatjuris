@@ -11,6 +11,7 @@ import Plans from './pages/Plans';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Settings from './pages/Settings';
+import Teams from './pages/Teams';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "Pricing": Pricing,
     "Contact": Contact,
     "Settings": Settings,
+    "Teams": Teams,
 }
 
 export const pagesConfig = {
