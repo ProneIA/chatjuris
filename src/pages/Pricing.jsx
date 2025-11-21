@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight, CreditCard, QrCode, Barcode } from "lucide-react";
+import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight, CreditCard, QrCode, Barcode, Key } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PaymentModal from "../components/subscription/PaymentModal";
+import ActivationCodeModal from "../components/subscription/ActivationCodeModal";
 
 const plans = [
   {
@@ -65,6 +66,7 @@ export default function Pricing() {
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showActivationModal, setShowActivationModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   React.useEffect(() => {
@@ -164,7 +166,7 @@ export default function Pricing() {
           </p>
 
           {/* Payment Methods */}
-          <div className="flex items-center justify-center gap-4 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-blue-600" />
               <span>Cartão</span>
@@ -180,6 +182,23 @@ export default function Pricing() {
               <span>Boleto</span>
             </div>
           </div>
+
+          {/* Activation Code Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4"
+          >
+            <Button
+              onClick={() => setShowActivationModal(true)}
+              variant="outline"
+              className="text-sm font-semibold hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
+            >
+              <Key className="w-4 h-4 mr-2" />
+              Já tenho um código de ativação
+            </Button>
+          </motion.div>
         </motion.div>
 
         {/* Plans Grid */}
@@ -346,6 +365,14 @@ export default function Pricing() {
           plan={selectedPlan}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
+        />
+      )}
+
+      {/* Activation Code Modal */}
+      {showActivationModal && user && (
+        <ActivationCodeModal
+          onClose={() => setShowActivationModal(false)}
+          user={user}
         />
       )}
     </div>

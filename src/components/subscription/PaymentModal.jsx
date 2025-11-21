@@ -42,15 +42,20 @@ export default function PaymentModal({ plan, onClose, onComplete }) {
     if (paymentMethod === "pix") {
       const code = generatePixCode();
       setPixCode(code);
-      toast.success("Código PIX gerado! Pague para ativar.");
+      toast.info("💡 Após pagar, você receberá um código de ativação por email");
     } else if (paymentMethod === "boleto") {
       const code = generateBoletoCode();
       setBoletoCode(code);
-      toast.success("Boleto gerado! Pague até a data de vencimento.");
+      toast.info("💡 Após pagar, você receberá um código de ativação por email");
     } else {
-      // Cartão - ativa imediatamente (simulação)
-      toast.success("Pagamento aprovado!");
-      onComplete({ method: paymentMethod });
+      // Cartão - redireciona para link externo
+      toast.info("💡 Você será redirecionado para finalizar o pagamento. Após confirmar, receberá um código de ativação.");
+      // Aqui seria o link real do gateway
+      // window.open('URL_DO_GATEWAY', '_blank');
+      setTimeout(() => {
+        toast.success("Pagamento processado! Verifique seu email para o código de ativação.");
+        onClose();
+      }, 3000);
     }
 
     setIsProcessing(false);
@@ -334,10 +339,15 @@ export default function PaymentModal({ plan, onClose, onComplete }) {
                   </div>
                 </Card>
 
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-                  <p className="text-sm text-yellow-900">
-                    ⏰ Após o pagamento, seu plano será ativado automaticamente em até 5 minutos.
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <p className="text-sm text-blue-900 font-semibold mb-2">
+                    📧 Próximos passos:
                   </p>
+                  <ol className="text-xs text-blue-900 space-y-1 ml-4">
+                    <li>1. Pague o PIX no seu banco</li>
+                    <li>2. Receba o código de ativação por email (até 5 min)</li>
+                    <li>3. Ative seu plano na área de configurações</li>
+                  </ol>
                 </div>
 
                 <Button
@@ -387,11 +397,12 @@ export default function PaymentModal({ plan, onClose, onComplete }) {
                   </div>
                 </Card>
 
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
-                  <p className="text-sm text-yellow-900">
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <p className="text-sm text-blue-900">
                     📅 Vencimento: {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
-                    <br />
-                    ⏰ Após o pagamento, a ativação ocorre em até 2 dias úteis.
+                  </p>
+                  <p className="text-xs text-blue-900 mt-2 font-semibold">
+                    📧 Após confirmar o pagamento, você receberá um código de ativação por email em até 2 dias úteis.
                   </p>
                 </div>
 
