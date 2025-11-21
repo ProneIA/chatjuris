@@ -8,7 +8,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PaymentModal from "../components/subscription/PaymentModal";
-import ActivationCodeModal from "../components/subscription/ActivationCodeModal";
 
 const plans = [
   {
@@ -66,7 +65,6 @@ export default function Pricing() {
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showActivationModal, setShowActivationModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   React.useEffect(() => {
@@ -187,23 +185,6 @@ export default function Pricing() {
               <span>Boleto</span>
             </div>
           </div>
-
-          {/* Activation Code Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4"
-          >
-            <Button
-              onClick={() => setShowActivationModal(true)}
-              variant="outline"
-              className="text-sm font-semibold hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
-            >
-              <Key className="w-4 h-4 mr-2" />
-              Já tenho um código de ativação
-            </Button>
-          </motion.div>
         </motion.div>
 
         {/* Plans Grid */}
@@ -370,14 +351,6 @@ export default function Pricing() {
           plan={selectedPlan}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
-        />
-      )}
-
-      {/* Activation Code Modal */}
-      {showActivationModal && user && (
-        <ActivationCodeModal
-          onClose={() => setShowActivationModal(false)}
-          user={user}
         />
       )}
     </div>
