@@ -51,6 +51,7 @@ const navigationSections = [
     label: "Configurações",
     items: [
       { title: "Preferências", url: createPageUrl("Settings"), icon: Settings },
+      { title: "Assinar Plano", url: createPageUrl("Pricing"), icon: Crown },
       { title: "Contato", url: createPageUrl("Contact"), icon: MessageSquare },
     ]
   }
