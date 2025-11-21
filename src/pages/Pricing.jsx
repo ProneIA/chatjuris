@@ -114,15 +114,7 @@ export default function Pricing() {
     }
   });
 
-  const updateSubMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Subscription.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription'] })
-  });
 
-  const createSubMutation = useMutation({
-    mutationFn: (data) => base44.entities.Subscription.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription'] })
-  });
 
   const handleSelectPlan = (planId) => {
     const plan = plans.find(p => p.id === planId);
@@ -133,31 +125,8 @@ export default function Pricing() {
     }
 
     if (planId === "pro") {
-      // Salva intenção de upgrade antes de redirecionar
-      if (subscription) {
-        updateSubMutation.mutate({
-          id: subscription.id,
-          data: { ...subscription, status: "pending", payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515" }
-        });
-      } else {
-        createSubMutation.mutate({
-          user_id: user.id,
-          plan: "free",
-          status: "pending",
-          daily_actions_limit: 5,
-          daily_actions_used: 0,
-          payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515"
-        });
-      }
-      
-      // Abre checkout e redireciona para callback após pagamento
       window.open('https://pay.cakto.com.br/3ek2n8h_660515', '_blank');
-      toast.success('Complete o pagamento e retorne aqui para ativar seu plano!');
-      
-      // Redireciona para página de callback
-      setTimeout(() => {
-        navigate(createPageUrl('PaymentCallback'));
-      }, 2000);
+      toast.success('Após o pagamento, volte aqui e clique em "Já Paguei" para ativar!');
       return;
     }
 
@@ -288,26 +257,38 @@ export default function Pricing() {
                 </div>
 
                 {/* CTA Button */}
-                <Button
-                  onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                  disabled={isCurrentPlan || subscribeMutation.isPending}
-                  className={`w-full py-7 text-lg font-bold rounded-xl mb-8 ${
-                    isCurrentPlan
-                      ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : plan.id === "pro"
-                      ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
-                      : "bg-slate-900 hover:bg-slate-800 text-white"
-                  }`}
-                >
-                  {isCurrentPlan ? (
-                    "✓ Plano Ativo"
-                  ) : (
-                    <>
-                      {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
-                      <ArrowRight className="w-5 h-5 ml-2 inline" />
-                    </>
+                <div className="space-y-3 mb-8">
+                  <Button
+                    onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                    disabled={isCurrentPlan || subscribeMutation.isPending}
+                    className={`w-full py-7 text-lg font-bold rounded-xl ${
+                      isCurrentPlan
+                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : plan.id === "pro"
+                        ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
+                        : "bg-slate-900 hover:bg-slate-800 text-white"
+                    }`}
+                  >
+                    {isCurrentPlan ? (
+                      "✓ Plano Ativo"
+                    ) : (
+                      <>
+                        {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
+                        <ArrowRight className="w-5 h-5 ml-2 inline" />
+                      </>
+                    )}
+                  </Button>
+
+                  {plan.id === "pro" && !isCurrentPlan && (
+                    <Button
+                      onClick={() => navigate(createPageUrl('ActivatePlan'))}
+                      variant="outline"
+                      className="w-full py-5 text-sm font-semibold"
+                    >
+                      ✓ Já Paguei - Ativar Agora
+                    </Button>
                   )}
-                </Button>
+                </div>
 
                 {/* Features */}
                 <div className="space-y-3">
