@@ -64,7 +64,11 @@ export default function AIAssistant() {
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      // Buscar por user_id (ID) ou por email
+      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+      }
       
       if (subs.length === 0) {
         return await base44.entities.Subscription.create({
