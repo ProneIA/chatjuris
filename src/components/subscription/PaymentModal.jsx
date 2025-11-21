@@ -402,7 +402,7 @@ export default function PaymentModal({ plan, onClose, onComplete }) {
                     📅 Vencimento: {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
                   </p>
                   <p className="text-xs text-blue-900 mt-2 font-semibold">
-                    📧 Após confirmar o pagamento, você receberá um código de ativação por email em até 2 dias úteis.
+                    📧 Entre em contato para ativar seu plano após o pagamento.
                   </p>
                 </div>
 

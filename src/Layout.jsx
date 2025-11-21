@@ -93,7 +93,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <Scale className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-slate-900">LegalTech Pro</span>
+            <span className="font-bold text-slate-900">Juris IA</span>
           </Link>
 
           <Link
@@ -175,7 +175,7 @@ export default function Layout({ children, currentPageName }) {
               <Scale className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">LegalTech Pro</h2>
+              <h2 className="font-bold text-slate-900">Juris IA</h2>
               <p className="text-xs text-slate-500">Gestão Jurídica</p>
             </div>
           </div>
