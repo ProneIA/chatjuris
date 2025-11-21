@@ -311,10 +311,10 @@ FORMATO DAS RESPOSTAS:
             )}
           </AnimatePresence>
         </div>
-        </div>
+      </div>
 
-        {/* Dialog de Histórico */}
-        <ConversationHistoryDialog
+      {/* Dialog de Histórico */}
+      <ConversationHistoryDialog
         open={showHistoryDialog}
         onClose={() => setShowHistoryDialog(false)}
         conversations={conversations}
@@ -325,7 +325,7 @@ FORMATO DAS RESPOSTAS:
         }}
         onRenameConversation={handleRenameConversation}
         onDeleteConversation={handleDeleteConversation}
-        />
-        </div>
-        );
-        }
+      />
+    </div>
+  );
+}
