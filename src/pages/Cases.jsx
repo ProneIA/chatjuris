@@ -9,6 +9,7 @@ import CaseForm from "../components/cases/CaseForm";
 import CaseDetails from "../components/cases/CaseDetails";
 import FolderSidebar from "../components/cases/FolderSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Cases() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,8 +18,13 @@ export default function Cases() {
   const [editingCase, setEditingCase] = useState(null);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState(null);
   const casesPerPage = 12;
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases'],
@@ -33,6 +39,19 @@ export default function Cases() {
   const { data: folders = [], isLoading: foldersLoading } = useQuery({
     queryKey: ['folders'],
     queryFn: () => base44.entities.Folder.list('order'),
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+      }
+      return subs[0] || null;
+    },
+    enabled: !!user?.id
   });
 
   const createCaseMutation = useMutation({
@@ -114,37 +133,10 @@ export default function Cases() {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
-  const [user, setUser] = useState(null);
-
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      if (subs.length === 0) {
-        subs = await base44.entities.Subscription.filter({ user_id: user.email });
-      }
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
-  });
-
   const handleSubmit = (data) => {
     if (editingCase) {
       updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
-      // Verificar limite do plano gratuito
-      if (subscription?.plan === 'free' && cases.length >= 3) {
-        alert('🚫 Limite atingido! O plano gratuito permite apenas 3 processos. Faça upgrade para o Plano Pro.');
-        return;
-      }
-      if (selectedFolder) {
-        data.folder_id = selectedFolder;
-      }
       createCaseMutation.mutate(data);
     }
   };
@@ -250,16 +242,23 @@ export default function Cases() {
 
         <div className="flex-1 overflow-y-auto p-6">
           {showForm ? (
-            <CaseForm
-              caseData={editingCase}
-              clients={clients}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingCase(null);
-              }}
-              isLoading={createCaseMutation.isPending || updateCaseMutation.isPending}
-            />
+            <PlanLimitGuard
+              subscription={subscription}
+              currentCount={cases.length}
+              limitCount={3}
+              entityName="processos"
+            >
+              <CaseForm
+                caseData={editingCase}
+                clients={clients}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingCase(null);
+                }}
+                isLoading={createCaseMutation.isPending || updateCaseMutation.isPending}
+              />
+            </PlanLimitGuard>
           ) : isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3, 4].map(i => (

@@ -4,11 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import DocumentList from "../components/documents/DocumentList";
 import DocumentDetails from "../components/documents/DocumentDetails";
 import DocumentGenerator from "../components/documents/DocumentGenerator";
+import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,14 +81,12 @@ export default function Documents() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const navigate = useNavigate();
   const stats = {
     total: documents.length,
     draft: documents.filter(d => d.status === 'draft').length,
     review: documents.filter(d => d.status === 'review').length,
     approved: documents.filter(d => d.status === 'approved').length,
   };
-  const canAddDocument = subscription?.plan === 'pro' || documents.length < 3;
 
   return (
     <div className="h-full flex">
@@ -101,21 +98,11 @@ export default function Documents() {
               <p className="text-slate-600 mt-1">Gerencie seus documentos legais</p>
             </div>
             <Button
-              onClick={() => {
-                if (!canAddDocument) {
-                  alert('🚫 Limite atingido! O plano gratuito permite apenas 3 documentos. Faça upgrade para o Plano Pro.');
-                  navigate(createPageUrl('Pricing'));
-                  return;
-                }
-                setShowGenerator(true);
-              }}
+              onClick={() => setShowGenerator(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Gerar Documento
-              {subscription?.plan === 'free' && (
-                <span className="ml-2 text-xs">({documents.length}/3)</span>
-              )}
+              Gerar Documento com IA
             </Button>
           </div>
 
