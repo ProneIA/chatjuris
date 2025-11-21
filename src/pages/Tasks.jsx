@@ -12,7 +12,12 @@ import { ptBR } from "date-fns/locale";
 
 export default function Tasks() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['tasks'],

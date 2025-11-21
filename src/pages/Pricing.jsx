@@ -21,14 +21,19 @@ const plans = [
     gradient: "from-slate-500 to-slate-700",
     popular: false,
     features: [
-      { text: "5 ações por dia", included: true, highlight: true },
+      { text: "5 ações de IA por dia", included: true, highlight: true },
+      { text: "Até 3 clientes", included: true, highlight: true },
+      { text: "Até 3 processos", included: true, highlight: true },
+      { text: "Até 3 documentos", included: true, highlight: true },
+      { text: "Até 3 tarefas", included: true, highlight: true },
       { text: "Modo Assistente Geral", included: true },
-      { text: "Pesquisa de jurisprudência básica", included: true },
       { text: "Suporte por email", included: true },
-      { text: "Todos os modos de IA", included: false },
-      { text: "Documentos ilimitados", included: false },
-      { text: "Análise de documentos", included: false },
-      { text: "Sem limite diário", included: false }
+      { text: "Equipes e Workspace", included: false },
+      { text: "Jurisprudência", included: false },
+      { text: "Templates", included: false },
+      { text: "Calendário", included: false },
+      { text: "Análise de documentos LEXIA", included: false },
+      { text: "Sem limites de uso", included: false }
     ],
     limits: {
       daily_actions_limit: 5,
@@ -45,14 +50,19 @@ const plans = [
     gradient: "from-blue-500 via-purple-500 to-pink-500",
     popular: true,
     features: [
-      { text: "Ações ILIMITADAS", included: true, highlight: true },
+      { text: "Ações de IA ILIMITADAS", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Tarefas ILIMITADAS", included: true, highlight: true },
       { text: "Todos os modos de IA", included: true },
-      { text: "Jurisprudência ilimitada", included: true },
-      { text: "Documentos ilimitados", included: true },
-      { text: "Análise de documentos", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Templates ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
       { text: "Gerador de imagens", included: true },
-      { text: "Suporte prioritário", included: true },
-      { text: "Sem marca d'água", included: true }
+      { text: "Suporte prioritário", included: true }
     ],
     limits: {
       daily_actions_limit: 999999,
@@ -259,25 +269,25 @@ export default function Pricing() {
 
                 {/* CTA Button */}
                 <Button
-                  onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                  disabled={isCurrentPlan || subscribeMutation.isPending}
-                  className={`w-full py-7 text-lg font-bold rounded-xl mb-8 ${
-                    isCurrentPlan
-                      ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : plan.id === "pro"
-                      ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
-                      : "bg-slate-900 hover:bg-slate-800 text-white"
-                  }`}
-                >
-                  {isCurrentPlan ? (
-                    "✓ Plano Ativo"
-                  ) : (
-                    <>
-                      {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
-                      <ArrowRight className="w-5 h-5 ml-2 inline" />
-                    </>
-                  )}
-                </Button>
+                    onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                    disabled={isCurrentPlan || subscribeMutation.isPending}
+                    className={`w-full py-7 text-lg font-bold rounded-xl ${
+                      isCurrentPlan
+                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : plan.id === "pro"
+                        ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
+                        : "bg-slate-900 hover:bg-slate-800 text-white"
+                    }`}
+                  >
+                    {isCurrentPlan ? (
+                      "✓ Plano Ativo"
+                    ) : (
+                      <>
+                        {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
+                        <ArrowRight className="w-5 h-5 ml-2 inline" />
+                      </>
+                    )}
+                  </Button>
 
                 {/* Features */}
                 <div className="space-y-3">

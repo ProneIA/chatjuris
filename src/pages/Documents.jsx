@@ -7,6 +7,7 @@ import { Plus, Search, Sparkles } from "lucide-react";
 import DocumentList from "../components/documents/DocumentList";
 import DocumentDetails from "../components/documents/DocumentDetails";
 import DocumentGenerator from "../components/documents/DocumentGenerator";
+import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,7 +15,12 @@ export default function Documents() {
   const [showGenerator, setShowGenerator] = useState(false);
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
@@ -34,6 +40,19 @@ export default function Documents() {
   const { data: templates = [] } = useQuery({
     queryKey: ['templates'],
     queryFn: () => base44.entities.Template.list('name'),
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+      }
+      return subs[0] || null;
+    },
+    enabled: !!user?.id
   });
 
   const updateMutation = useMutation({

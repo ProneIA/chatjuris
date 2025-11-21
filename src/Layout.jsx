@@ -44,18 +44,18 @@ const navigationSections = [
     ]
   },
   {
-    label: "Colaboração",
+    label: "Colaboração Pro",
     items: [
-      { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
-      { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen },
+      { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
+      { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
     ]
   },
   {
-    label: "Recursos",
+    label: "Recursos Pro",
     items: [
-      { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen },
-      { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate },
-      { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays },
+      { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
+      { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
+      { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
     ]
   },
   {
@@ -147,14 +147,19 @@ export default function Layout({ children, currentPageName }) {
                           key={item.title}
                           to={item.url}
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
                             location.pathname === item.url
                               ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-slate-700 hover:bg-slate-100'
                           }`}
                         >
-                          <item.icon className="w-5 h-5" />
-                          <span>{item.title}</span>
+                          <div className="flex items-center gap-3">
+                            <item.icon className="w-5 h-5" />
+                            <span>{item.title}</span>
+                          </div>
+                          {item.proBadge && (
+                            <Crown className="w-4 h-4 text-amber-500" />
+                          )}
                         </Link>
                       ))}
                     </div>
@@ -204,14 +209,19 @@ export default function Layout({ children, currentPageName }) {
                   <Link
                     key={item.title}
                     to={item.url}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
                       location.pathname === item.url
                         ? 'bg-blue-50 text-blue-700 font-medium'
                         : 'text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span className="text-sm">{item.title}</span>
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      <span className="text-sm">{item.title}</span>
+                    </div>
+                    {item.proBadge && (
+                      <Crown className="w-3 h-3 text-amber-500" />
+                    )}
                   </Link>
                 ))}
               </div>

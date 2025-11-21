@@ -13,11 +13,29 @@ export default function Clients() {
   const [showForm, setShowForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list('-created_date'),
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+      }
+      return subs[0] || null;
+    },
+    enabled: !!user?.id
   });
 
   const createMutation = useMutation({
