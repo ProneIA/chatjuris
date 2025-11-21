@@ -61,6 +61,7 @@ export default function Jurisprudence() {
   };
 
   return (
+    <ProGuard featureName="Pesquisa de Jurisprudência">
     <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 py-6">
         <div className="flex items-center justify-between mb-4">
@@ -147,5 +148,6 @@ export default function Jurisprudence() {
         )}
       </div>
     </div>
+    </ProGuard>
   );
 }

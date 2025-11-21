@@ -679,5 +679,6 @@ export default function TeamWorkspace() {
         </Tabs>
       </div>
     </div>
+    </ProGuard>
   );
 }

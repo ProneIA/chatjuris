@@ -114,10 +114,37 @@ export default function Cases() {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+      if (subs.length === 0) {
+        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+      }
+      return subs[0] || null;
+    },
+    enabled: !!user?.id
+  });
+
   const handleSubmit = (data) => {
     if (editingCase) {
       updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
+      // Verificar limite do plano gratuito
+      if (subscription?.plan === 'free' && cases.length >= 3) {
+        alert('🚫 Limite atingido! O plano gratuito permite apenas 3 processos. Faça upgrade para o Plano Pro.');
+        return;
+      }
+      if (selectedFolder) {
+        data.folder_id = selectedFolder;
+      }
       createCaseMutation.mutate(data);
     }
   };
