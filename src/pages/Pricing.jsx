@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight, CreditCard, QrCode, Barcode, Key } from "lucide-react";
+import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight, CreditCard, QrCode, Barcode } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
