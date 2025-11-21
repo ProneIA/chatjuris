@@ -39,7 +39,7 @@ const plans = [
     id: "pro",
     name: "Profissional",
     icon: Zap,
-    price: 49.99,
+    price: 0.01,
     period: "/mês",
     description: "Uso ilimitado para profissionais",
     gradient: "from-blue-500 via-purple-500 to-pink-500",
