@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, UserPlus, Trash2, Crown, Search, Mail } from "lucide-react";
+import { Users, Plus, UserPlus, Trash2, Crown, Search, Mail, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function Teams() {
   const [user, setUser] = useState(null);
@@ -17,6 +19,7 @@ export default function Teams() {
   const [newTeamData, setNewTeamData] = useState({ name: "", description: "" });
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
@@ -228,7 +231,7 @@ export default function Teams() {
             <Card key={team.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
                       {team.name}
                       {team.owner_email === user?.email && (
@@ -241,6 +244,15 @@ export default function Teams() {
                     {team.description && (
                       <CardDescription className="mt-2">{team.description}</CardDescription>
                     )}
+                    <Button
+                      onClick={() => navigate(createPageUrl('TeamWorkspace') + `?team=${team.id}`)}
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                    >
+                      Abrir Workspace
+                      <ArrowRight className="w-3 h-3 ml-2" />
+                    </Button>
                   </div>
                   {team.owner_email === user?.email && (
                     <Button

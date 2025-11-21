@@ -41,7 +41,13 @@ const navigationSections = [
       { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
       { title: "Documentos", url: createPageUrl("Documents"), icon: FileText },
       { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
+    ]
+  },
+  {
+    label: "Colaboração",
+    items: [
       { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
+      { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen },
     ]
   },
   {

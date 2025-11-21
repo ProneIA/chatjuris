@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Settings from './pages/Settings';
 import Teams from './pages/Teams';
+import TeamWorkspace from './pages/TeamWorkspace';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "Contact": Contact,
     "Settings": Settings,
     "Teams": Teams,
+    "TeamWorkspace": TeamWorkspace,
 }
 
 export const pagesConfig = {
