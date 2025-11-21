@@ -6,8 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Save, Trash2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function EventForm({ event, cases, clients, onSubmit, onDelete, onClose, isLoading }) {
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState(event || {
     title: "",
     description: "",
@@ -16,10 +19,27 @@ export default function EventForm({ event, cases, clients, onSubmit, onDelete, o
     end_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
     case_id: "",
     client_id: "",
+    team_id: "",
     location: "",
     priority: "medium",
     reminder_minutes: 30,
     status: "scheduled"
+  });
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
+
+  const { data: teams = [] } = useQuery({
+    queryKey: ['teams', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const allTeams = await base44.entities.Team.list();
+      return allTeams.filter(t => 
+        t.owner_email === user.email || t.members?.includes(user.email)
+      );
+    },
+    enabled: !!user?.email
   });
 
   const handleChange = (field, value) => {
@@ -144,6 +164,23 @@ export default function EventForm({ event, cases, clients, onSubmit, onDelete, o
                 </Select>
               </div>
             </div>
+
+            {teams.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="team_id">Compartilhar com Equipe</Label>
+                <Select value={formData.team_id} onValueChange={(v) => handleChange('team_id', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma equipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhuma (privado)</SelectItem>
+                    {teams.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="location">Local</Label>
