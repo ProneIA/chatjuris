@@ -138,16 +138,23 @@ export default function Documents() {
 
         <div className="flex-1 overflow-y-auto p-6">
           {showGenerator ? (
-            <DocumentGenerator
-              cases={cases}
-              clients={clients}
-              templates={templates}
-              onClose={() => setShowGenerator(false)}
-              onSuccess={() => {
-                setShowGenerator(false);
-                queryClient.invalidateQueries({ queryKey: ['documents'] });
-              }}
-            />
+            <PlanLimitGuard
+              subscription={subscription}
+              currentCount={documents.length}
+              limitCount={3}
+              entityName="documentos"
+            >
+              <DocumentGenerator
+                cases={cases}
+                clients={clients}
+                templates={templates}
+                onClose={() => setShowGenerator(false)}
+                onSuccess={() => {
+                  setShowGenerator(false);
+                  queryClient.invalidateQueries({ queryKey: ['documents'] });
+                }}
+              />
+            </PlanLimitGuard>
           ) : (
             <DocumentList
               documents={filteredDocuments}

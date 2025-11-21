@@ -24,19 +24,6 @@ export default function Tasks() {
     queryFn: () => base44.entities.Task.list('due_date'),
   });
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      if (subs.length === 0) {
-        subs = await base44.entities.Subscription.filter({ user_id: user.email });
-      }
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
-  });
-
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
     onSuccess: () => {
