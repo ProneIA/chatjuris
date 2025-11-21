@@ -29,7 +29,6 @@ const navigationSections = [
     items: [
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
       { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
-      { title: "⭐ Assinar Pro", url: createPageUrl("Pricing"), icon: Crown },
     ]
   },
   {
