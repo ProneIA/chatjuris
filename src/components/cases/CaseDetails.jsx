@@ -1,12 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Edit, Calendar, Scale, User, DollarSign, Building, AlertCircle } from "lucide-react";
+import { X, Edit, Calendar, Scale, User, DollarSign, Building, AlertCircle, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import CommentSection from "@/components/collaboration/CommentSection";
+import ShareDialog from "@/components/collaboration/ShareDialog";
+import { base44 } from "@/api/base44Client";
 
 export default function CaseDetails({ caseData, onClose, onEdit }) {
+  const [user, setUser] = useState(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
   return (
     <motion.div
       initial={{ x: 400, opacity: 0 }}
@@ -21,10 +30,15 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        <Button onClick={() => onEdit(caseData)} className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-          <Edit className="w-4 h-4 mr-2" />
-          Editar Processo
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => onEdit(caseData)} className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600">
+            <Edit className="w-4 h-4 mr-2" />
+            Editar
+          </Button>
+          <Button onClick={() => setShowShareDialog(true)} variant="outline">
+            <Share2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -145,6 +159,23 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
           )}
         </div>
 
+        {caseData.shared_with?.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">
+              Compartilhado com
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {caseData.shared_with.map((email) => (
+                <Badge key={email} variant="secondary" className="text-xs">
+                  {email}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <CommentSection entityType="case" entityId={caseData.id} />
+
         <div>
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">
             Sistema
@@ -157,6 +188,16 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
           </div>
         </div>
       </div>
+
+      {user && (
+        <ShareDialog
+          open={showShareDialog}
+          onClose={() => setShowShareDialog(false)}
+          entity={caseData}
+          entityType="case"
+          user={user}
+        />
+      )}
     </motion.div>
   );
 }
