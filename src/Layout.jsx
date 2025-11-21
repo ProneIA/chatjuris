@@ -17,11 +17,13 @@ import {
   Menu,
   X,
   Settings,
-  Crown
+  Crown,
+  Users2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
+import NotificationPanel from "@/components/collaboration/NotificationPanel";
 
 const navigationSections = [
   {
@@ -39,6 +41,7 @@ const navigationSections = [
       { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
       { title: "Documentos", url: createPageUrl("Documents"), icon: FileText },
       { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
+      { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
     ]
   },
   {
@@ -96,12 +99,15 @@ export default function Layout({ children, currentPageName }) {
             <span className="font-bold text-slate-900">Juris IA</span>
           </Link>
 
-          <Link
-            to={createPageUrl("AIAssistant")}
-            className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition-opacity"
-          >
-            <Sparkles className="w-5 h-5 text-white" />
-          </Link>
+          <div className="flex items-center gap-2">
+            {user && <NotificationPanel user={user} />}
+            <Link
+              to={createPageUrl("AIAssistant")}
+              className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <Sparkles className="w-5 h-5 text-white" />
+            </Link>
+          </div>
         </div>
       </header>
 
