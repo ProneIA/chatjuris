@@ -3,12 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Building2, User as UserIcon, Crown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
+import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,11 +68,6 @@ export default function Clients() {
     if (editingClient) {
       updateMutation.mutate({ id: editingClient.id, data });
     } else {
-      // Verificar limite do plano gratuito
-      if (subscription?.plan === 'free' && clients.length >= 3) {
-        alert('🚫 Limite atingido! O plano gratuito permite apenas 3 clientes. Faça upgrade para o Plano Pro.');
-        return;
-      }
       createMutation.mutate(data);
     }
   };
@@ -84,11 +78,9 @@ export default function Clients() {
     setSelectedClient(null);
   };
 
-  const navigate = useNavigate();
   const activeClients = clients.filter(c => c.status === 'active').length;
   const individualClients = clients.filter(c => c.type === 'individual').length;
   const companyClients = clients.filter(c => c.type === 'company').length;
-  const canAddClient = subscription?.plan === 'pro' || clients.length < 3;
 
   return (
     <div className="h-full flex">
@@ -102,11 +94,6 @@ export default function Clients() {
             </div>
             <Button
               onClick={() => {
-                if (!canAddClient) {
-                  alert('🚫 Limite atingido! O plano gratuito permite apenas 3 clientes. Faça upgrade para o Plano Pro.');
-                  navigate(createPageUrl('Pricing'));
-                  return;
-                }
                 setShowForm(true);
                 setEditingClient(null);
                 setSelectedClient(null);
@@ -115,9 +102,6 @@ export default function Clients() {
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Cliente
-              {subscription?.plan === 'free' && (
-                <span className="ml-2 text-xs">({clients.length}/3)</span>
-              )}
             </Button>
           </div>
 
@@ -157,15 +141,22 @@ export default function Clients() {
 
         <div className="flex-1 overflow-y-auto p-6">
           {showForm ? (
-            <ClientForm
-              client={editingClient}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingClient(null);
-              }}
-              isLoading={createMutation.isPending || updateMutation.isPending}
-            />
+            <PlanLimitGuard
+              subscription={subscription}
+              currentCount={clients.length}
+              limitCount={3}
+              entityName="clientes"
+            >
+              <ClientForm
+                client={editingClient}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingClient(null);
+                }}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+              />
+            </PlanLimitGuard>
           ) : (
             <ClientList
               clients={filteredClients}
