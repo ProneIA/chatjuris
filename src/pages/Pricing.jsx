@@ -267,46 +267,26 @@ export default function Pricing() {
                 </div>
 
                 {/* CTA Button */}
-                {plan.id === "pro" ? (
-                  <a 
-                    href="https://mpago.la/2GcJgzK"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`block w-full py-7 text-lg font-bold rounded-xl mb-8 text-center ${
-                      isCurrentPlan
-                        ? "bg-slate-200 text-slate-500 cursor-not-allowed pointer-events-none"
-                        : `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg transition-opacity`
-                    }`}
-                  >
-                    {isCurrentPlan ? (
-                      "✓ Plano Ativo"
-                    ) : (
-                      <>
-                        Assinar Plano Pro
-                        <ArrowRight className="w-5 h-5 ml-2 inline" />
-                      </>
-                    )}
-                  </a>
-                ) : (
-                  <Button
-                    onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                    disabled={isCurrentPlan || subscribeMutation.isPending}
-                    className={`w-full py-7 text-lg font-bold rounded-xl mb-8 ${
-                      isCurrentPlan
-                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                        : "bg-slate-900 hover:bg-slate-800 text-white"
-                    }`}
-                  >
-                    {isCurrentPlan ? (
-                      "✓ Plano Ativo"
-                    ) : (
-                      <>
-                        Começar Grátis
-                        <ArrowRight className="w-5 h-5 ml-2 inline" />
-                      </>
-                    )}
-                  </Button>
-                )}
+                <Button
+                  onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                  disabled={isCurrentPlan || subscribeMutation.isPending}
+                  className={`w-full py-7 text-lg font-bold rounded-xl mb-8 ${
+                    isCurrentPlan
+                      ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      : plan.id === "pro"
+                      ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
+                      : "bg-slate-900 hover:bg-slate-800 text-white"
+                  }`}
+                >
+                  {isCurrentPlan ? (
+                    "✓ Plano Ativo"
+                  ) : (
+                    <>
+                      {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
+                      <ArrowRight className="w-5 h-5 ml-2 inline" />
+                    </>
+                  )}
+                </Button>
 
                 {/* Features */}
                 <div className="space-y-3">
