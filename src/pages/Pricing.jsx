@@ -114,6 +114,16 @@ export default function Pricing() {
     }
   });
 
+  const updateSubMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Subscription.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription'] })
+  });
+
+  const createSubMutation = useMutation({
+    mutationFn: (data) => base44.entities.Subscription.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscription'] })
+  });
+
   const handleSelectPlan = (planId) => {
     const plan = plans.find(p => p.id === planId);
     
@@ -123,8 +133,31 @@ export default function Pricing() {
     }
 
     if (planId === "pro") {
+      // Salva intenção de upgrade antes de redirecionar
+      if (subscription) {
+        updateSubMutation.mutate({
+          id: subscription.id,
+          data: { ...subscription, status: "pending", payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515" }
+        });
+      } else {
+        createSubMutation.mutate({
+          user_id: user.id,
+          plan: "free",
+          status: "pending",
+          daily_actions_limit: 5,
+          daily_actions_used: 0,
+          payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515"
+        });
+      }
+      
+      // Abre checkout e redireciona para callback após pagamento
       window.open('https://pay.cakto.com.br/3ek2n8h_660515', '_blank');
-      toast.success('Checkout aberto! Complete o pagamento para ativar seu plano Pro.');
+      toast.success('Complete o pagamento e retorne aqui para ativar seu plano!');
+      
+      // Redireciona para página de callback
+      setTimeout(() => {
+        navigate(createPageUrl('PaymentCallback'));
+      }, 2000);
       return;
     }
 
