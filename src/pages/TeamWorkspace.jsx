@@ -21,6 +21,24 @@ export default function TeamWorkspace() {
   const teamId = searchParams.get('team');
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileDescription, setFileDescription] = useState("");
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    assigned_to: "",
+    due_date: "",
+    priority: "medium",
+    type: "other"
+  });
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    start_time: new Date().toISOString().slice(0, 16),
+    end_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
+    event_type: "team_sync",
+    location: ""
+  });
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -110,6 +128,81 @@ export default function TeamWorkspace() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamFiles'] });
       toast.success("Arquivo removido!");
+    }
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: async (taskData) => {
+      return base44.entities.Task.create({
+        ...taskData,
+        team_id: selectedTeam.id
+      });
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['teamTasks'] });
+      
+      // Notificar membro atribuído
+      if (newTask.assigned_to && newTask.assigned_to !== user.email) {
+        await base44.entities.Notification.create({
+          type: "task_assigned",
+          title: "Nova tarefa atribuída",
+          message: `${user.full_name} atribuiu uma tarefa para você: ${newTask.title}`,
+          recipient_email: newTask.assigned_to,
+          entity_type: "task",
+          entity_id: selectedTeam.id,
+          actor_email: user.email,
+          actor_name: user.full_name
+        });
+      }
+      
+      toast.success("Tarefa criada!");
+      setShowTaskForm(false);
+      setNewTask({
+        title: "",
+        description: "",
+        assigned_to: "",
+        due_date: "",
+        priority: "medium",
+        type: "other"
+      });
+    }
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: async (eventData) => {
+      return base44.entities.CalendarEvent.create({
+        ...eventData,
+        team_id: selectedTeam.id,
+        attendees: selectedTeam.members
+      });
+    },
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['teamEvents'] });
+      
+      // Notificar membros da equipe
+      for (const memberEmail of selectedTeam.members.filter(m => m !== user.email)) {
+        await base44.entities.Notification.create({
+          type: "case_shared",
+          title: "Novo evento na agenda da equipe",
+          message: `${user.full_name} agendou: ${newEvent.title}`,
+          recipient_email: memberEmail,
+          entity_type: "event",
+          entity_id: selectedTeam.id,
+          actor_email: user.email,
+          actor_name: user.full_name
+        });
+      }
+      
+      toast.success("Evento criado!");
+      setShowEventForm(false);
+      setNewEvent({
+        title: "",
+        description: "",
+        start_time: new Date().toISOString().slice(0, 16),
+        end_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
+        event_type: "team_sync",
+        location: ""
+      });
     }
   });
 
@@ -270,6 +363,100 @@ export default function TeamWorkspace() {
 
           {/* TAREFAS */}
           <TabsContent value="tasks">
+            {!showTaskForm ? (
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <Button onClick={() => setShowTaskForm(true)} className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Tarefa da Equipe
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Nova Tarefa</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input
+                    placeholder="Título da tarefa"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Descrição"
+                    value={newTask.description}
+                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  />
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Atribuir a:</label>
+                      <select
+                        value={newTask.assigned_to}
+                        onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded-md"
+                      >
+                        <option value="">Selecione um membro</option>
+                        {selectedTeam.members?.map(email => (
+                          <option key={email} value={email}>{email}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Data de vencimento:</label>
+                      <Input
+                        type="date"
+                        value={newTask.due_date}
+                        onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Prioridade:</label>
+                      <select
+                        value={newTask.priority}
+                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded-md"
+                      >
+                        <option value="low">Baixa</option>
+                        <option value="medium">Média</option>
+                        <option value="high">Alta</option>
+                        <option value="urgent">Urgente</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Tipo:</label>
+                      <select
+                        value={newTask.type}
+                        onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded-md"
+                      >
+                        <option value="hearing">Audiência</option>
+                        <option value="deadline">Prazo</option>
+                        <option value="meeting">Reunião</option>
+                        <option value="document">Documento</option>
+                        <option value="research">Pesquisa</option>
+                        <option value="other">Outro</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => createTaskMutation.mutate(newTask)}
+                      disabled={!newTask.title || !newTask.due_date || createTaskMutation.isPending}
+                      className="flex-1"
+                    >
+                      Criar Tarefa
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowTaskForm(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="space-y-4">
               {teamTasks.map((task) => (
                 <Card key={task.id}>
@@ -314,6 +501,91 @@ export default function TeamWorkspace() {
 
           {/* AGENDA */}
           <TabsContent value="calendar">
+            {!showEventForm ? (
+              <Card className="mb-6">
+                <CardContent className="pt-6">
+                  <Button onClick={() => setShowEventForm(true)} className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Evento da Equipe
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Novo Evento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input
+                    placeholder="Título do evento"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Descrição"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  />
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Início:</label>
+                      <Input
+                        type="datetime-local"
+                        value={newEvent.start_time}
+                        onChange={(e) => setNewEvent({ ...newEvent, start_time: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Término:</label>
+                      <Input
+                        type="datetime-local"
+                        value={newEvent.end_time}
+                        onChange={(e) => setNewEvent({ ...newEvent, end_time: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Tipo:</label>
+                      <select
+                        value={newEvent.event_type}
+                        onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded-md"
+                      >
+                        <option value="meeting">Reunião</option>
+                        <option value="deadline">Prazo</option>
+                        <option value="research">Pesquisa</option>
+                        <option value="hearing">Audiência</option>
+                        <option value="consultation">Consulta</option>
+                        <option value="team_sync">Sincronização da Equipe</option>
+                        <option value="other">Outro</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Local:</label>
+                      <Input
+                        placeholder="Ex: Sala 302, Google Meet"
+                        value={newEvent.location}
+                        onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => createEventMutation.mutate(newEvent)}
+                      disabled={!newEvent.title || createEventMutation.isPending}
+                      className="flex-1"
+                    >
+                      Criar Evento
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowEventForm(false)}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="space-y-4">
               {teamEvents.map((event) => (
                 <Card key={event.id}>
