@@ -13,7 +13,6 @@ import Contact from './pages/Contact';
 import Settings from './pages/Settings';
 import Teams from './pages/Teams';
 import TeamWorkspace from './pages/TeamWorkspace';
-import ActivatePlan from './pages/ActivatePlan';
 import PaymentSuccess from './pages/PaymentSuccess';
 import __Layout from './Layout.jsx';
 
@@ -34,7 +33,6 @@ export const PAGES = {
     "Settings": Settings,
     "Teams": Teams,
     "TeamWorkspace": TeamWorkspace,
-    "ActivatePlan": ActivatePlan,
     "PaymentSuccess": PaymentSuccess,
 }
 

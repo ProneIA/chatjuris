@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,72 +9,56 @@ import { motion } from "framer-motion";
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
   const [status, setStatus] = useState("processing"); // processing, success, error
 
   useEffect(() => {
-    base44.auth.me().then(setUser);
-  }, []);
+    const activatePro = async () => {
+      try {
+        const user = await base44.auth.me();
+        const orderId = searchParams.get('order_id') || searchParams.get('transaction_id') || `CAKTO_${Date.now()}`;
+        
+        // Buscar subscription existente
+        let subs = await base44.entities.Subscription.filter({ user_id: user.id });
+        if (subs.length === 0) {
+          subs = await base44.entities.Subscription.filter({ user_id: user.email });
+        }
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
-  });
+        const data = {
+          plan: "pro",
+          status: "active",
+          daily_actions_limit: 999999,
+          daily_actions_used: 0,
+          payment_status: "paid",
+          payment_method: "external",
+          payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515",
+          cakto_order_id: orderId,
+          price: 49.99,
+          start_date: new Date().toISOString().split('T')[0],
+          last_reset_date: new Date().toISOString().split('T')[0],
+          next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        };
 
-  const activateProMutation = useMutation({
-    mutationFn: async () => {
-      const orderId = searchParams.get('order_id') || searchParams.get('transaction_id') || `CAKTO_${Date.now()}`;
-      
-      const data = {
-        plan: "pro",
-        status: "active",
-        daily_actions_limit: 999999,
-        daily_actions_used: 0,
-        payment_status: "paid",
-        payment_method: "external",
-        payment_external_url: "https://pay.cakto.com.br/3ek2n8h_660515",
-        cakto_order_id: orderId,
-        price: 49.99,
-        start_date: new Date().toISOString().split('T')[0],
-        last_reset_date: new Date().toISOString().split('T')[0],
-        next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-      };
+        if (subs.length > 0) {
+          await base44.entities.Subscription.update(subs[0].id, data);
+        } else {
+          await base44.entities.Subscription.create({
+            user_id: user.id,
+            ...data
+          });
+        }
 
-      if (subscription) {
-        return base44.entities.Subscription.update(subscription.id, data);
-      } else {
-        return base44.entities.Subscription.create({
-          user_id: user.id,
-          ...data
-        });
+        setStatus("success");
+        setTimeout(() => {
+          navigate(createPageUrl('AIAssistant'));
+        }, 3000);
+      } catch (error) {
+        console.error("Erro ao ativar plano:", error);
+        setStatus("error");
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      setStatus("success");
-      setTimeout(() => {
-        navigate(createPageUrl('AIAssistant'));
-      }, 3000);
-    },
-    onError: () => {
-      setStatus("error");
-    }
-  });
+    };
 
-  useEffect(() => {
-    if (user && subscription !== undefined && status === "processing") {
-      // Ativa automaticamente o plano Pro
-      setTimeout(() => {
-        activateProMutation.mutate();
-      }, 1500);
-    }
-  }, [user, subscription, status]);
+    activatePro();
+  }, []);
 
   if (status === "error") {
     return (
