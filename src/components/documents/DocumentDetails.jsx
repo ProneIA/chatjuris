@@ -4,14 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Download, Trash2, ExternalLink } from "lucide-react";
+import { X, Download, Trash2, ExternalLink, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import CommentSection from "@/components/collaboration/CommentSection";
+import ShareDialog from "@/components/collaboration/ShareDialog";
+import { base44 } from "@/api/base44Client";
 
 export default function DocumentDetails({ document, onClose, onUpdate, onDelete }) {
+  const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [editedStatus, setEditedStatus] = useState(document.status);
   const [editedNotes, setEditedNotes] = useState(document.notes || "");
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser);
+  }, []);
 
   const handleSave = () => {
     onUpdate({
@@ -45,6 +54,13 @@ export default function DocumentDetails({ document, onClose, onUpdate, onDelete 
               </a>
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowShareDialog(true)}
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -145,6 +161,21 @@ export default function DocumentDetails({ document, onClose, onUpdate, onDelete 
             )}
           </div>
 
+          {document.shared_with?.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-2">Compartilhado com</p>
+              <div className="flex flex-wrap gap-2">
+                {document.shared_with.map((email) => (
+                  <Badge key={email} variant="secondary" className="text-xs">
+                    {email}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <CommentSection entityType="document" entityId={document.id} />
+
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
               Informações do Sistema
@@ -189,6 +220,16 @@ export default function DocumentDetails({ document, onClose, onUpdate, onDelete 
           )}
         </div>
       </div>
+
+      {user && (
+        <ShareDialog
+          open={showShareDialog}
+          onClose={() => setShowShareDialog(false)}
+          entity={document}
+          entityType="document"
+          user={user}
+        />
+      )}
     </motion.div>
   );
 }
