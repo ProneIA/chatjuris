@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   Users, Upload, File, CheckSquare, Calendar, 
-  Download, Trash2, UserPlus, Clock, Mail, FolderOpen 
+  Download, Trash2, UserPlus, Clock, Mail, FolderOpen, Plus 
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
