@@ -60,30 +60,51 @@ export default function TeamWorkspace() {
   const selectedTeam = teams.find(t => t.id === teamId) || teams[0];
 
   const { data: teamFiles = [] } = useQuery({
-    queryKey: ['teamFiles', selectedTeam?.id],
-    queryFn: () => base44.entities.TeamFile.filter(
-      { team_id: selectedTeam.id },
-      '-created_date'
-    ),
-    enabled: !!selectedTeam?.id
+    queryKey: ['teamFiles', selectedTeam?.id, user?.email],
+    queryFn: async () => {
+      if (!selectedTeam?.id || !user?.email) return [];
+      // Verificar se o usuário é membro da equipe
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
+      return base44.entities.TeamFile.filter(
+        { team_id: selectedTeam.id },
+        '-created_date'
+      );
+    },
+    enabled: !!selectedTeam?.id && !!user?.email
   });
 
   const { data: teamTasks = [] } = useQuery({
-    queryKey: ['teamTasks', selectedTeam?.id],
-    queryFn: () => base44.entities.Task.filter(
-      { team_id: selectedTeam.id },
-      '-created_date'
-    ),
-    enabled: !!selectedTeam?.id
+    queryKey: ['teamTasks', selectedTeam?.id, user?.email],
+    queryFn: async () => {
+      if (!selectedTeam?.id || !user?.email) return [];
+      // Verificar se o usuário é membro da equipe
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
+      return base44.entities.Task.filter(
+        { team_id: selectedTeam.id },
+        '-created_date'
+      );
+    },
+    enabled: !!selectedTeam?.id && !!user?.email
   });
 
   const { data: teamEvents = [] } = useQuery({
-    queryKey: ['teamEvents', selectedTeam?.id],
-    queryFn: () => base44.entities.CalendarEvent.filter(
-      { team_id: selectedTeam.id },
-      'start_time'
-    ),
-    enabled: !!selectedTeam?.id
+    queryKey: ['teamEvents', selectedTeam?.id, user?.email],
+    queryFn: async () => {
+      if (!selectedTeam?.id || !user?.email) return [];
+      // Verificar se o usuário é membro da equipe
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
+      return base44.entities.CalendarEvent.filter(
+        { team_id: selectedTeam.id },
+        'start_time'
+      );
+    },
+    enabled: !!selectedTeam?.id && !!user?.email
   });
 
   const uploadFileMutation = useMutation({
