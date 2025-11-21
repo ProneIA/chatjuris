@@ -10,6 +10,14 @@ import CalendarSettings from "../components/calendar/CalendarSettings";
 import AIScheduler from "../components/calendar/AIScheduler";
 
 export default function Calendar() {
+  return (
+    <ProGuard featureName="Calendário Inteligente">
+      <CalendarContent />
+    </ProGuard>
+  );
+}
+
+function CalendarContent() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAIScheduler, setShowAIScheduler] = useState(false);
@@ -219,6 +227,5 @@ export default function Calendar() {
         />
       )}
     </div>
-    </ProGuard>
   );
 }
