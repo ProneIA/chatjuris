@@ -114,47 +114,6 @@ export default function Pricing() {
     }
   });
 
-  const createCheckoutMutation = useMutation({
-    mutationFn: async (planId) => {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Faça uma requisição HTTP POST para criar um checkout na API Cakto:
-        
-URL: https://api.cakto.com.br/api/orders/
-Headers:
-- Authorization: Bearer {obtenha o token OAuth2 primeiro usando client_id e client_secret dos secrets CAKTO_CLIENT_ID e CAKTO_CLIENT_SECRET}
-- Content-Type: application/json
-
-Body:
-{
-  "product_id": "juris-ia-pro-monthly",
-  "offer_id": "juris-ia-pro-offer",
-  "customer": {
-    "name": "${user?.full_name}",
-    "email": "${user?.email}"
-  },
-  "amount": 4999,
-  "payment_method": "pix"
-}
-
-Retorne apenas o JSON com checkout_url e order_id.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            checkout_url: { type: "string" },
-            order_id: { type: "string" }
-          }
-        }
-      });
-      return response;
-    },
-    onSuccess: (data) => {
-      if (data?.checkout_url) {
-        window.open(data.checkout_url, '_blank');
-        toast.success('Checkout aberto! Complete o pagamento para ativar seu plano.');
-      }
-    }
-  });
-
   const handleSelectPlan = (planId) => {
     const plan = plans.find(p => p.id === planId);
     
@@ -164,7 +123,8 @@ Retorne apenas o JSON com checkout_url e order_id.`,
     }
 
     if (planId === "pro") {
-      createCheckoutMutation.mutate(planId);
+      window.open('https://pay.cakto.com.br/3ek2n8h_660515', '_blank');
+      toast.success('Checkout aberto! Complete o pagamento para ativar seu plano Pro.');
       return;
     }
 
