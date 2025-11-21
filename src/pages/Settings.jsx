@@ -7,13 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Palette, Keyboard, Save, Loader2 } from "lucide-react";
+import { User, Bell, Palette, Keyboard, Save, Loader2, Key } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ActivationCodeModal from "../components/subscription/ActivationCodeModal";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showActivationModal, setShowActivationModal] = useState(false);
   const [preferences, setPreferences] = useState({
     email_notifications: true,
     task_reminders: true,
@@ -331,12 +333,31 @@ export default function Settings() {
                       <strong>Dica:</strong> Pressione <kbd className="px-1.5 py-0.5 text-xs bg-white border border-blue-300 rounded">?</kbd> em qualquer página para ver os atalhos disponíveis.
                     </p>
                   </div>
+
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => setShowActivationModal(true)}
+                      variant="outline"
+                      className="w-full hover:bg-blue-50 hover:border-blue-500"
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      Ativar Plano com Código
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         </motion.div>
       </div>
+
+      {/* Activation Code Modal */}
+      {showActivationModal && user && (
+        <ActivationCodeModal
+          onClose={() => setShowActivationModal(false)}
+          user={user}
+        />
+      )}
     </div>
   );
 }
