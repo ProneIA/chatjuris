@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Search, Sparkles, BookOpen, Star, Plus } from "lucide-react";
 import JurisprudenceSearch from "../components/jurisprudence/JurisprudenceSearch";

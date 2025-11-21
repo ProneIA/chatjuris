@@ -3,7 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
+import { Plus, Search, Building2, User as UserIcon, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
@@ -67,6 +69,11 @@ export default function Clients() {
     if (editingClient) {
       updateMutation.mutate({ id: editingClient.id, data });
     } else {
+      // Verificar limite do plano gratuito
+      if (subscription?.plan === 'free' && clients.length >= 3) {
+        alert('🚫 Limite atingido! O plano gratuito permite apenas 3 clientes. Faça upgrade para o Plano Pro.');
+        return;
+      }
       createMutation.mutate(data);
     }
   };
@@ -77,9 +84,11 @@ export default function Clients() {
     setSelectedClient(null);
   };
 
+  const navigate = useNavigate();
   const activeClients = clients.filter(c => c.status === 'active').length;
   const individualClients = clients.filter(c => c.type === 'individual').length;
   const companyClients = clients.filter(c => c.type === 'company').length;
+  const canAddClient = subscription?.plan === 'pro' || clients.length < 3;
 
   return (
     <div className="h-full flex">
@@ -93,6 +102,11 @@ export default function Clients() {
             </div>
             <Button
               onClick={() => {
+                if (!canAddClient) {
+                  alert('🚫 Limite atingido! O plano gratuito permite apenas 3 clientes. Faça upgrade para o Plano Pro.');
+                  navigate(createPageUrl('Pricing'));
+                  return;
+                }
                 setShowForm(true);
                 setEditingClient(null);
                 setSelectedClient(null);
@@ -101,6 +115,9 @@ export default function Clients() {
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Cliente
+              {subscription?.plan === 'free' && (
+                <span className="ml-2 text-xs">({clients.length}/3)</span>
+              )}
             </Button>
           </div>
 

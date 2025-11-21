@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus, Settings, RefreshCw } from "lucide-react";
 import CalendarView from "../components/calendar/CalendarView";
@@ -218,5 +219,6 @@ export default function Calendar() {
         />
       )}
     </div>
+    </ProGuard>
   );
 }

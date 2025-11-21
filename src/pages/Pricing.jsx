@@ -22,18 +22,17 @@ const plans = [
     popular: false,
     features: [
       { text: "5 ações de IA por dia", included: true, highlight: true },
-      { text: "Até 3 clientes", included: true, highlight: true },
-      { text: "Até 3 processos", included: true, highlight: true },
-      { text: "Até 3 documentos", included: true, highlight: true },
-      { text: "Até 3 tarefas", included: true, highlight: true },
-      { text: "Modo Assistente Geral", included: true },
-      { text: "Suporte por email", included: true },
+      { text: "Até 3 clientes", included: true },
+      { text: "Até 3 processos", included: true },
+      { text: "Até 3 documentos", included: true },
+      { text: "Até 3 tarefas", included: true },
+      { text: "Modo Assistente Básico", included: true },
       { text: "Equipes e Workspace", included: false },
       { text: "Jurisprudência", included: false },
-      { text: "Templates", included: false },
-      { text: "Calendário", included: false },
+      { text: "Templates avançados", included: false },
+      { text: "Calendário inteligente", included: false },
       { text: "Análise de documentos LEXIA", included: false },
-      { text: "Sem limites de uso", included: false }
+      { text: "Uso ilimitado", included: false }
     ],
     limits: {
       daily_actions_limit: 5,
@@ -46,7 +45,7 @@ const plans = [
     icon: Zap,
     price: 49.99,
     period: "/mês",
-    description: "Uso ilimitado para profissionais",
+    description: "Poder total sem limites",
     gradient: "from-blue-500 via-purple-500 to-pink-500",
     popular: true,
     features: [
@@ -55,13 +54,12 @@ const plans = [
       { text: "Processos ILIMITADOS", included: true, highlight: true },
       { text: "Documentos ILIMITADOS", included: true, highlight: true },
       { text: "Tarefas ILIMITADAS", included: true, highlight: true },
-      { text: "Todos os modos de IA", included: true },
       { text: "Equipes e Workspace", included: true },
       { text: "Jurisprudência completa", included: true },
-      { text: "Templates ilimitados", included: true },
+      { text: "Templates avançados", included: true },
       { text: "Calendário inteligente", included: true },
       { text: "Análise de documentos LEXIA", included: true },
-      { text: "Gerador de imagens", included: true },
+      { text: "Todos os modos de IA", included: true },
       { text: "Suporte prioritário", included: true }
     ],
     limits: {

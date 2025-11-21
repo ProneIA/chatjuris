@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Star } from "lucide-react";
@@ -75,6 +76,7 @@ export default function Templates() {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
+    <ProGuard featureName="Templates Avançados">
     <div className="h-full flex">
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="bg-white border-b border-slate-200 px-6 py-6">
@@ -158,5 +160,6 @@ export default function Templates() {
         />
       )}
     </div>
+    </ProGuard>
   );
 }
