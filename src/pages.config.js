@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import Teams from './pages/Teams';
 import TeamWorkspace from './pages/TeamWorkspace';
 import ActivatePlan from './pages/ActivatePlan';
+import PaymentSuccess from './pages/PaymentSuccess';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "Teams": Teams,
     "TeamWorkspace": TeamWorkspace,
     "ActivatePlan": ActivatePlan,
+    "PaymentSuccess": PaymentSuccess,
 }
 
 export const pagesConfig = {
