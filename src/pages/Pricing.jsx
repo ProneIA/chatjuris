@@ -39,7 +39,7 @@ const plans = [
     id: "pro",
     name: "Profissional",
     icon: Zap,
-    price: 0.01,
+    price: 49.99,
     period: "/mês",
     description: "Uso ilimitado para profissionais",
     gradient: "from-blue-500 via-purple-500 to-pink-500",
@@ -120,6 +120,11 @@ export default function Pricing() {
     
     if (planId === "free") {
       subscribeMutation.mutate(planId);
+      return;
+    }
+
+    if (planId === "pro") {
+      window.open('https://mpago.la/2GcJgzK', '_blank');
       return;
     }
 
