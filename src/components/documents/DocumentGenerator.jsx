@@ -103,20 +103,100 @@ Use linguagem formal e técnica adequada.
   const downloadDocument = async () => {
     setIsDownloading(true);
     try {
-      // Criar um blob com o conteúdo
-      const blob = new Blob([generatedContent], { type: 'text/html' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${formData.title}.${outputFormat === 'pdf' ? 'html' : 'html'}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      alert(`Documento baixado! Abra o arquivo .html e use "Salvar como PDF" ou "Salvar como ${outputFormat.toUpperCase()}" no seu navegador.`);
+      // Limpar HTML e preparar conteúdo
+      const cleanContent = generatedContent
+        .replace(/<[^>]*>/g, '') // Remove tags HTML básicas
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+
+      if (outputFormat === 'pdf') {
+        // Para PDF: criar HTML formatado e usar print
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${formData.title}</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    h1 { font-size: 16pt; text-align: center; margin-bottom: 30px; }
+    h2 { font-size: 14pt; margin-top: 20px; }
+    h3 { font-size: 12pt; margin-top: 15px; }
+    p { text-align: justify; margin-bottom: 10px; }
+    @media print {
+      body { margin: 0; padding: 20mm; }
+    }
+  </style>
+</head>
+<body>
+  ${generatedContent}
+</body>
+</html>`;
+        
+        // Criar blob e abrir em nova aba para impressão
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = window.URL.createObjectURL(blob);
+        const printWindow = window.open(url, '_blank');
+        
+        if (printWindow) {
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        }
+        
+        window.URL.revokeObjectURL(url);
+        alert('📄 Abrindo janela de impressão. Selecione "Salvar como PDF" como impressora.');
+        
+      } else {
+        // Para Word: criar arquivo .doc (HTML compatível com Word)
+        const wordContent = `
+<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="UTF-8">
+  <title>${formData.title}</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      line-height: 1.6;
+    }
+    h1 { font-size: 16pt; text-align: center; margin-bottom: 30px; }
+    h2 { font-size: 14pt; margin-top: 20px; }
+    h3 { font-size: 12pt; margin-top: 15px; }
+    p { text-align: justify; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  ${generatedContent}
+</body>
+</html>`;
+        
+        const blob = new Blob(['\ufeff', wordContent], { 
+          type: 'application/msword' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${formData.title}.doc`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        alert('📝 Arquivo Word baixado! Abra no Microsoft Word ou Google Docs.');
+      }
     } catch (error) {
       console.error("Erro ao baixar:", error);
-      alert("Erro ao baixar documento.");
+      alert("❌ Erro ao baixar documento. Tente novamente.");
     } finally {
       setIsDownloading(false);
     }
