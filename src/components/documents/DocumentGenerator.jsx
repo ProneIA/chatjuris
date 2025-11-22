@@ -71,20 +71,41 @@ export default function DocumentGenerator({ cases, clients, templates, onClose, 
         context += `CONTEXTO ADICIONAL:\n${formData.additional_context}\n\n`;
       }
 
-      const prompt = `Você é um assistente jurídico especializado em redação de documentos legais.
+      const formatInstructions = {
+        peticao: 'Formato: CABEÇALHO com identificação do juízo, QUALIFICAÇÃO DAS PARTES, DOS FATOS (narrativa cronológica), DO DIREITO (fundamentação legal e jurisprudencial), DOS PEDIDOS (claros e específicos), DO VALOR DA CAUSA, REQUERIMENTOS FINAIS, LOCAL E DATA, ASSINATURA.',
+        recurso: 'Formato: ENDEREÇAMENTO ao tribunal, RECORRENTE e RECORRIDO, RAZÕES DO RECURSO (preliminares e mérito), PEDIDOS, REQUERIMENTOS, LOCAL E DATA, ASSINATURA.',
+        contestacao: 'Formato: ENDEREÇAMENTO ao juízo, QUALIFICAÇÃO DO RÉU/CONTESTANTE, PRELIMINARES (se houver), MÉRITO (impugnação específica dos fatos e fundamentos), PEDIDOS, LOCAL E DATA, ASSINATURA.',
+        contrato: 'Formato: TÍTULO, PARTES CONTRATANTES (qualificação completa), CLÁUSULAS (objeto, preço, prazo, obrigações, penalidades, foro), ASSINATURA DAS PARTES E TESTEMUNHAS.',
+        procuracao: 'Formato: OUTORGANTE (qualificação completa), OUTORGADO (advogado com OAB), PODERES (específicos da cláusula ad judicia), FORO, DATA, ASSINATURA.',
+        parecer: 'Formato: CONSULENTE, CONSULTA (resumo da questão), FUNDAMENTAÇÃO (análise técnica e doutrinária), CONCLUSÃO (resposta objetiva), DATA, ASSINATURA.',
+        memorando: 'Formato: CABEÇALHO (destinatário, remetente, data, assunto), CORPO (exposição clara e objetiva), FECHO, ASSINATURA.'
+      };
+
+      const prompt = `Você é um assistente jurídico especializado em redação de documentos legais brasileiros.
 
 ${context}
 
-INSTRUÇÕES:
-${formData.custom_instructions || 'Gere um documento jurídico profissional baseado no template e nas informações fornecidas.'}
+TIPO DE DOCUMENTO: ${formData.type}
 
-Tipo de documento: ${formData.type}
+FORMATAÇÃO ESPECÍFICA PARA ${formData.type.toUpperCase()}:
+${formatInstructions[formData.type] || formatInstructions.peticao}
 
-Gere o documento completo, profissional e formatado adequadamente. 
-${selectedTemplate ? 'Use o template fornecido como base e preencha com as informações do caso e cliente.' : 'Crie um documento profissional do tipo especificado.'}
-Inclua todas as seções necessárias para este tipo de documento jurídico.
-Use linguagem formal e técnica adequada.
-`;
+INSTRUÇÕES ADICIONAIS:
+${formData.custom_instructions || 'Gere um documento jurídico profissional seguindo rigorosamente a formatação adequada para este tipo de peça.'}
+
+REGRAS DE FORMATAÇÃO:
+- Use HTML semântico com tags apropriadas (<h1>, <h2>, <p>, <strong>, <em>)
+- Centralize títulos principais com <h1 style="text-align: center">
+- Justifique parágrafos com <p style="text-align: justify">
+- Use recuo de primeira linha nos parágrafos
+- Mantenha espaçamento adequado entre seções
+- Use negrito para destaques importantes
+- Numere itens e cláusulas quando apropriado
+${selectedTemplate ? '- Use o template fornecido como base estrutural' : ''}
+
+Gere o documento COMPLETO, profissional e formatado EXATAMENTE conforme os padrões jurídicos brasileiros.
+Use linguagem técnica, formal e precisa.
+Inclua TODAS as seções obrigatórias para este tipo de documento.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: prompt,
@@ -218,27 +239,28 @@ Use linguagem formal e técnica adequada.
   };
 
   return (
-    <Card className="max-w-5xl mx-auto border-none shadow-lg">
-      <CardHeader className="border-b border-slate-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+    <div className="h-full flex flex-col overflow-hidden">
+      <Card className="h-full flex flex-col border-none shadow-lg overflow-hidden">
+        <CardHeader className="border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <CardTitle>Gerador de Documentos com IA</CardTitle>
+                <p className="text-sm text-slate-600 mt-1">
+                  {step === 1 ? 'Passo 1: Configure o documento' : 'Passo 2: Revise e salve'}
+                </p>
+              </div>
             </div>
-            <div>
-              <CardTitle>Gerador de Documentos com IA</CardTitle>
-              <p className="text-sm text-slate-600 mt-1">
-                {step === 1 ? 'Passo 1: Configure o documento' : 'Passo 2: Revise e salve'}
-              </p>
-            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="p-6">
+        <CardContent className="p-6 flex-1 overflow-y-auto">
         {step === 1 ? (
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -430,13 +452,13 @@ Use linguagem formal e técnica adequada.
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1 flex flex-col">
               <Label>Conteúdo do Documento</Label>
-              <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <div className="border border-slate-200 rounded-lg overflow-hidden flex-1 flex flex-col" style={{ minHeight: '500px' }}>
                 <ReactQuill
                   value={generatedContent}
                   onChange={setGeneratedContent}
-                  className="h-96"
+                  style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
                   modules={{
                     toolbar: [
                       [{ 'header': [1, 2, 3, false] }],
@@ -450,7 +472,7 @@ Use linguagem formal e técnica adequada.
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 mt-16">
+            <div className="flex justify-end gap-3 pt-4 flex-shrink-0">
               <Button variant="outline" onClick={() => setStep(1)}>
                 Voltar
               </Button>
@@ -464,7 +486,8 @@ Use linguagem formal e técnica adequada.
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
