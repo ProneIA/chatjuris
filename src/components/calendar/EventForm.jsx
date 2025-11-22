@@ -48,7 +48,16 @@ export default function EventForm({ event, cases, clients, onSubmit, onDelete, o
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Limpar campos vazios antes de enviar
+    const cleanData = { ...formData };
+    if (!cleanData.case_id || cleanData.case_id === "") delete cleanData.case_id;
+    if (!cleanData.client_id || cleanData.client_id === "") delete cleanData.client_id;
+    if (!cleanData.team_id || cleanData.team_id === "") delete cleanData.team_id;
+    if (!cleanData.location || cleanData.location === "") delete cleanData.location;
+    if (!cleanData.description || cleanData.description === "") delete cleanData.description;
+    
+    onSubmit(cleanData);
   };
 
   return (

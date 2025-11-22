@@ -50,7 +50,19 @@ export default function TemplateForm({ template, onSubmit, onCancel, isLoading }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    if (!formData.name || !formData.content) {
+      alert("⚠️ Preencha os campos obrigatórios (Nome e Conteúdo)");
+      return;
+    }
+    
+    const dataToSubmit = { ...formData };
+    
+    // Limpar campos vazios
+    if (!dataToSubmit.description || dataToSubmit.description === "") delete dataToSubmit.description;
+    if (!dataToSubmit.variables || dataToSubmit.variables.length === 0) dataToSubmit.variables = [];
+    
+    onSubmit(dataToSubmit);
   };
 
   return (

@@ -42,10 +42,28 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dataToSubmit = { ...formData };
-    if (dataToSubmit.value) {
-      dataToSubmit.value = parseFloat(dataToSubmit.value);
+    
+    if (!formData.title || !formData.client_id) {
+      alert("⚠️ Preencha os campos obrigatórios (Título e Cliente)");
+      return;
     }
+    
+    const dataToSubmit = { ...formData };
+    
+    // Converter valor para número
+    if (dataToSubmit.value && dataToSubmit.value !== "") {
+      dataToSubmit.value = parseFloat(dataToSubmit.value);
+    } else {
+      delete dataToSubmit.value;
+    }
+    
+    // Limpar campos vazios
+    if (!dataToSubmit.case_number || dataToSubmit.case_number === "") delete dataToSubmit.case_number;
+    if (!dataToSubmit.court || dataToSubmit.court === "") delete dataToSubmit.court;
+    if (!dataToSubmit.opposing_party || dataToSubmit.opposing_party === "") delete dataToSubmit.opposing_party;
+    if (!dataToSubmit.deadline || dataToSubmit.deadline === "") delete dataToSubmit.deadline;
+    if (!dataToSubmit.description || dataToSubmit.description === "") delete dataToSubmit.description;
+    
     onSubmit(dataToSubmit);
   };
 

@@ -25,7 +25,20 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    if (!formData.name || !formData.email || !formData.phone) {
+      alert("⚠️ Preencha todos os campos obrigatórios");
+      return;
+    }
+    
+    const dataToSubmit = { ...formData };
+    
+    // Limpar campos vazios
+    if (!dataToSubmit.cpf_cnpj || dataToSubmit.cpf_cnpj === "") delete dataToSubmit.cpf_cnpj;
+    if (!dataToSubmit.address || dataToSubmit.address === "") delete dataToSubmit.address;
+    if (!dataToSubmit.notes || dataToSubmit.notes === "") delete dataToSubmit.notes;
+    
+    onSubmit(dataToSubmit);
   };
 
   return (
