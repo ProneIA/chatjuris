@@ -3,16 +3,18 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Sparkles } from "lucide-react";
+import { Plus, Search, Sparkles, Clock } from "lucide-react";
 import DocumentList from "../components/documents/DocumentList";
 import DocumentDetails from "../components/documents/DocumentDetails";
 import DocumentGenerator from "../components/documents/DocumentGenerator";
+import DocumentHistory from "../components/documents/DocumentHistory";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Documents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [user, setUser] = useState(null);
@@ -89,39 +91,48 @@ export default function Documents() {
   };
 
   return (
-    <div className="h-full flex overflow-hidden">
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-        <div className="bg-white border-b border-slate-200 px-6 py-6 flex-shrink-0">
-          <div className="flex items-center justify-between mb-6">
+    <div className="h-full flex">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="bg-white border-b border-slate-200 px-6 py-4">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Documentos Jurídicos</h1>
-              <p className="text-slate-600 mt-1">Gerencie seus documentos legais</p>
+              <h1 className="text-xl font-bold text-slate-900">Documentos Jurídicos</h1>
+              <p className="text-slate-600 text-sm mt-1">Gerencie seus documentos legais</p>
             </div>
-            <Button
-              onClick={() => setShowGenerator(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Gerar Documento com IA
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowHistory(true)}
+                variant="outline"
+              >
+                <Clock className="w-4 h-4 mr-2" />
+                Histórico
+              </Button>
+              <Button
+                onClick={() => setShowGenerator(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Gerar Documento com IA
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-              <p className="text-sm text-blue-600 font-medium">Total</p>
-              <p className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</p>
+          <div className="grid grid-cols-4 gap-3 mb-3">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3">
+              <p className="text-xs text-blue-600 font-medium">Total</p>
+              <p className="text-xl font-bold text-blue-900 mt-0.5">{stats.total}</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
-              <p className="text-sm text-yellow-600 font-medium">Rascunhos</p>
-              <p className="text-2xl font-bold text-yellow-900 mt-1">{stats.draft}</p>
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3">
+              <p className="text-xs text-yellow-600 font-medium">Rascunhos</p>
+              <p className="text-xl font-bold text-yellow-900 mt-0.5">{stats.draft}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-              <p className="text-sm text-purple-600 font-medium">Em Revisão</p>
-              <p className="text-2xl font-bold text-purple-900 mt-1">{stats.review}</p>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3">
+              <p className="text-xs text-purple-600 font-medium">Em Revisão</p>
+              <p className="text-xl font-bold text-purple-900 mt-0.5">{stats.review}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-              <p className="text-sm text-green-600 font-medium">Aprovados</p>
-              <p className="text-2xl font-bold text-green-900 mt-1">{stats.approved}</p>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3">
+              <p className="text-xs text-green-600 font-medium">Aprovados</p>
+              <p className="text-xl font-bold text-green-900 mt-0.5">{stats.approved}</p>
             </div>
           </div>
 
@@ -136,8 +147,17 @@ export default function Documents() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
-          {showGenerator ? (
+        <div className="flex-1 overflow-y-auto p-6">
+          {showHistory ? (
+            <DocumentHistory
+              documents={documents}
+              onSelectDocument={(doc) => {
+                setSelectedDocument(doc);
+                setShowHistory(false);
+              }}
+              onClose={() => setShowHistory(false)}
+            />
+          ) : showGenerator ? (
             <PlanLimitGuard
               subscription={subscription}
               currentCount={documents.length}

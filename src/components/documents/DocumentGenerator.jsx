@@ -72,40 +72,109 @@ export default function DocumentGenerator({ cases, clients, templates, onClose, 
       }
 
       const formatInstructions = {
-        peticao: 'Formato: CABEÇALHO com identificação do juízo, QUALIFICAÇÃO DAS PARTES, DOS FATOS (narrativa cronológica), DO DIREITO (fundamentação legal e jurisprudencial), DOS PEDIDOS (claros e específicos), DO VALOR DA CAUSA, REQUERIMENTOS FINAIS, LOCAL E DATA, ASSINATURA.',
-        recurso: 'Formato: ENDEREÇAMENTO ao tribunal, RECORRENTE e RECORRIDO, RAZÕES DO RECURSO (preliminares e mérito), PEDIDOS, REQUERIMENTOS, LOCAL E DATA, ASSINATURA.',
-        contestacao: 'Formato: ENDEREÇAMENTO ao juízo, QUALIFICAÇÃO DO RÉU/CONTESTANTE, PRELIMINARES (se houver), MÉRITO (impugnação específica dos fatos e fundamentos), PEDIDOS, LOCAL E DATA, ASSINATURA.',
-        contrato: 'Formato: TÍTULO, PARTES CONTRATANTES (qualificação completa), CLÁUSULAS (objeto, preço, prazo, obrigações, penalidades, foro), ASSINATURA DAS PARTES E TESTEMUNHAS.',
-        procuracao: 'Formato: OUTORGANTE (qualificação completa), OUTORGADO (advogado com OAB), PODERES (específicos da cláusula ad judicia), FORO, DATA, ASSINATURA.',
-        parecer: 'Formato: CONSULENTE, CONSULTA (resumo da questão), FUNDAMENTAÇÃO (análise técnica e doutrinária), CONCLUSÃO (resposta objetiva), DATA, ASSINATURA.',
-        memorando: 'Formato: CABEÇALHO (destinatário, remetente, data, assunto), CORPO (exposição clara e objetiva), FECHO, ASSINATURA.'
+        peticao: `
+FORMATO PADRÃO PARA PETIÇÃO:
+- Cabeçalho com identificação do juízo
+- EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(ÍZA) DE DIREITO DA [VARA]
+- Identificação completa das partes (nome, nacionalidade, estado civil, profissão, RG, CPF, endereço)
+- Exposição dos fatos em ordem cronológica
+- Do direito: fundamentos jurídicos (artigos de lei, jurisprudência)
+- Dos pedidos: numerados, claros e precisos
+- Valor da causa
+- Pedido de citação da parte contrária
+- Termos em que pede deferimento
+- Data e local
+- Assinatura e OAB`,
+        recurso: `
+FORMATO PADRÃO PARA RECURSO:
+- EXCELENTÍSSIMO(A) SENHOR(A) DESEMBARGADOR(A) PRESIDENTE DO TRIBUNAL
+- Identificação do processo, partes e decisão recorrida
+- Tempestividade e cabimento do recurso
+- Síntese da decisão recorrida
+- Razões do recurso (com numeração)
+- Fundamentação jurídica detalhada
+- Do pedido: reforma ou anulação
+- Termos em que pede provimento
+- Data, assinatura e OAB`,
+        contestacao: `
+FORMATO PADRÃO PARA CONTESTAÇÃO:
+- Identificação do processo e partes
+- Preliminares (se houver): exceções processuais
+- Mérito: impugnação específica dos fatos alegados
+- Impugnação dos pedidos
+- Provas: rol de testemunhas, documentos
+- Pedido de improcedência total
+- Protesto por provas
+- Termos em que pede deferimento`,
+        contrato: `
+FORMATO PADRÃO PARA CONTRATO:
+- Título centralizado (CONTRATO DE...)
+- Preâmbulo: CONTRATANTE e CONTRATADO com qualificação completa
+- CLÁUSULAS numeradas sequencialmente
+- Objeto do contrato
+- Prazo de vigência
+- Valores e formas de pagamento
+- Direitos e obrigações das partes
+- Rescisão e multas
+- Foro de eleição
+- Data e assinaturas das testemunhas`,
+        procuracao: `
+FORMATO PADRÃO PARA PROCURAÇÃO:
+- Título: PROCURAÇÃO
+- OUTORGANTE (qualificação completa)
+- OUTORGADO (qualificação completa com OAB)
+- Poderes conferidos: específicos ou cláusula ad judicia
+- Validade
+- Data e assinatura reconhecida em cartório`,
+        parecer: `
+FORMATO PADRÃO PARA PARECER JURÍDICO:
+- Título: PARECER JURÍDICO
+- I. CONSULTA/QUESTÃO
+- II. RELATÓRIO DOS FATOS
+- III. FUNDAMENTAÇÃO JURÍDICA
+- IV. CONCLUSÃO/PARECER
+- Data, assinatura e OAB`,
+        memorando: `
+FORMATO PADRÃO PARA MEMORANDO:
+- MEMORANDO Nº [número]
+- PARA: destinatário
+- DE: remetente
+- DATA:
+- ASSUNTO:
+- Corpo do texto conciso
+- Conclusão
+- Assinatura`,
+        outros: `
+FORMATO PROFISSIONAL:
+- Estrutura clara com cabeçalho
+- Parágrafos numerados
+- Linguagem técnica apropriada
+- Conclusão objetiva
+- Data e assinatura`
       };
 
       const prompt = `Você é um assistente jurídico especializado em redação de documentos legais brasileiros.
 
 ${context}
 
+INSTRUÇÕES ESPECIAIS:
+${formData.custom_instructions || 'Gere um documento jurídico profissional baseado no template e nas informações fornecidas.'}
+
 TIPO DE DOCUMENTO: ${formData.type}
 
-FORMATAÇÃO ESPECÍFICA PARA ${formData.type.toUpperCase()}:
-${formatInstructions[formData.type] || formatInstructions.peticao}
+${formatInstructions[formData.type] || formatInstructions.outros}
 
-INSTRUÇÕES ADICIONAIS:
-${formData.custom_instructions || 'Gere um documento jurídico profissional seguindo rigorosamente a formatação adequada para este tipo de peça.'}
-
-REGRAS DE FORMATAÇÃO:
-- Use HTML semântico com tags apropriadas (<h1>, <h2>, <p>, <strong>, <em>)
-- Centralize títulos principais com <h1 style="text-align: center">
-- Justifique parágrafos com <p style="text-align: justify">
-- Use recuo de primeira linha nos parágrafos
-- Mantenha espaçamento adequado entre seções
-- Use negrito para destaques importantes
-- Numere itens e cláusulas quando apropriado
+DIRETRIZES GERAIS:
+- Use HTML para formatação (tags: h1, h2, h3, p, strong, em, ul, ol, li)
+- Linguagem formal, técnica e culta do português jurídico brasileiro
+- Citações de leis: Lei nº X.XXX/XXXX, art. X, §X
+- Numeração clara de parágrafos e cláusulas
+- Espaçamento adequado entre seções
+- Alinhamento justificado para parágrafos
 ${selectedTemplate ? '- Use o template fornecido como base estrutural' : ''}
-
-Gere o documento COMPLETO, profissional e formatado EXATAMENTE conforme os padrões jurídicos brasileiros.
-Use linguagem técnica, formal e precisa.
-Inclua TODAS as seções obrigatórias para este tipo de documento.`;
+- Inclua TODAS as seções obrigatórias do tipo de documento
+- Seja completo, profissional e tecnicamente impecável
+`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: prompt,
@@ -239,28 +308,27 @@ Inclua TODAS as seções obrigatórias para este tipo de documento.`;
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <Card className="h-full flex flex-col border-none shadow-lg overflow-hidden">
-        <CardHeader className="border-b border-slate-100 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <CardTitle>Gerador de Documentos com IA</CardTitle>
-                <p className="text-sm text-slate-600 mt-1">
-                  {step === 1 ? 'Passo 1: Configure o documento' : 'Passo 2: Revise e salve'}
-                </p>
-              </div>
+    <Card className="max-w-5xl mx-auto border-none shadow-lg">
+      <CardHeader className="border-b border-slate-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-5 h-5" />
-            </Button>
+            <div>
+              <CardTitle>Gerador de Documentos com IA</CardTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                {step === 1 ? 'Passo 1: Configure o documento' : 'Passo 2: Revise e salve'}
+              </p>
+            </div>
           </div>
-        </CardHeader>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+      </CardHeader>
 
-        <CardContent className="p-6 flex-1 overflow-y-auto">
+      <CardContent className="p-6">
         {step === 1 ? (
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -452,13 +520,13 @@ Inclua TODAS as seções obrigatórias para este tipo de documento.`;
               </div>
             </div>
 
-            <div className="space-y-2 flex-1 flex flex-col">
+            <div className="space-y-2">
               <Label>Conteúdo do Documento</Label>
-              <div className="border border-slate-200 rounded-lg overflow-hidden flex-1 flex flex-col" style={{ minHeight: '500px' }}>
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
                 <ReactQuill
                   value={generatedContent}
                   onChange={setGeneratedContent}
-                  style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                  className="h-96"
                   modules={{
                     toolbar: [
                       [{ 'header': [1, 2, 3, false] }],
@@ -472,7 +540,7 @@ Inclua TODAS as seções obrigatórias para este tipo de documento.`;
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 flex-shrink-0">
+            <div className="flex justify-end gap-3 pt-4 mt-16">
               <Button variant="outline" onClick={() => setStep(1)}>
                 Voltar
               </Button>
@@ -486,8 +554,7 @@ Inclua TODAS as seções obrigatórias para este tipo de documento.`;
             </div>
           </div>
         )}
-        </CardContent>
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
