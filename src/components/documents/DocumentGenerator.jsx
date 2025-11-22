@@ -15,8 +15,8 @@ export default function DocumentGenerator({ cases, clients, templates, onClose, 
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState("");
-  const [exportFormat, setExportFormat] = useState("pdf");
-  const [isExporting, setIsExporting] = useState(false);
+  const [outputFormat, setOutputFormat] = useState("pdf");
+  const [isDownloading, setIsDownloading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     type: "peticao",
@@ -100,44 +100,61 @@ Use linguagem formal e técnica adequada.
     setIsGenerating(false);
   };
 
-  const saveDocument = async () => {
+  const downloadDocument = async () => {
+    setIsDownloading(true);
     try {
-      await base44.entities.LegalDocument.create({
-        title: formData.title,
-        type: formData.type,
-        case_id: formData.case_id || null,
-        client_id: formData.client_id || null,
-        template_used: selectedTemplate?.name || null,
-        content: generatedContent,
-        status: "draft",
-        notes: formData.custom_instructions || null
-      });
-
-      onSuccess();
+      // Criar um blob com o conteúdo
+      const blob = new Blob([generatedContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${formData.title}.${outputFormat === 'pdf' ? 'html' : 'html'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      alert(`Documento baixado! Abra o arquivo .html e use "Salvar como PDF" ou "Salvar como ${outputFormat.toUpperCase()}" no seu navegador.`);
     } catch (error) {
-      console.error("Erro ao salvar documento:", error);
-      alert("Erro ao salvar documento. Tente novamente.");
+      console.error("Erro ao baixar:", error);
+      alert("Erro ao baixar documento.");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
-  const exportDocument = async () => {
-    setIsExporting(true);
+  const saveDocument = async () => {
     try {
-      const content = generatedContent.replace(/<[^>]*>/g, '');
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${formData.title}.${exportFormat === 'pdf' ? 'pdf' : 'docx'}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const documentData = {
+        title: formData.title,
+        type: formData.type,
+        content: generatedContent,
+        status: "draft"
+      };
+
+      // Só adicionar campos se tiverem valores válidos
+      if (formData.case_id && formData.case_id !== "") {
+        documentData.case_id = formData.case_id;
+      }
+      
+      if (formData.client_id && formData.client_id !== "") {
+        documentData.client_id = formData.client_id;
+      }
+      
+      if (selectedTemplate?.name) {
+        documentData.template_used = selectedTemplate.name;
+      }
+      
+      if (formData.custom_instructions && formData.custom_instructions.trim() !== "") {
+        documentData.notes = formData.custom_instructions;
+      }
+
+      await base44.entities.LegalDocument.create(documentData);
+      alert("✅ Documento salvo com sucesso!");
+      onSuccess();
     } catch (error) {
-      console.error("Erro ao exportar:", error);
-      alert("Erro ao exportar documento. Tente novamente.");
+      console.error("Erro ao salvar documento:", error);
+      alert("❌ Erro ao salvar documento. Tente novamente.");
     }
-    setIsExporting(false);
   };
 
   return (
@@ -318,13 +335,39 @@ Use linguagem formal e técnica adequada.
         ) : (
           <div className="space-y-6">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-green-800">
+              <div className="flex items-center gap-2 text-green-800 mb-3">
                 <Sparkles className="w-5 h-5" />
                 <p className="font-medium">Documento gerado com sucesso!</p>
               </div>
-              <p className="text-sm text-green-700 mt-1">
-                Revise o conteúdo abaixo e faça ajustes se necessário antes de salvar.
+              <p className="text-sm text-green-700 mb-3">
+                Revise o conteúdo abaixo e faça ajustes se necessário.
               </p>
+              <div className="flex items-center gap-3">
+                <Label className="text-sm text-slate-700">Formato de saída:</Label>
+                <Select value={outputFormat} onValueChange={setOutputFormat}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="word">Word (DOCX)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={downloadDocument}
+                  disabled={isDownloading}
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Baixar {outputFormat.toUpperCase()}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -347,59 +390,17 @@ Use linguagem formal e técnica adequada.
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 mt-16">
-              <div className="space-y-2">
-                <Label>Formato de Exportação</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={exportFormat === 'pdf' ? 'default' : 'outline'}
-                    onClick={() => setExportFormat('pdf')}
-                    className="flex-1"
-                  >
-                    PDF
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={exportFormat === 'word' ? 'default' : 'outline'}
-                    onClick={() => setExportFormat('word')}
-                    className="flex-1"
-                  >
-                    Word (DOCX)
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setStep(1)}>
-                  Voltar
-                </Button>
-                <Button
-                  onClick={exportDocument}
-                  disabled={isExporting}
-                  variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  {isExporting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Exportando...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" />
-                      Baixar {exportFormat === 'pdf' ? 'PDF' : 'DOCX'}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={saveDocument}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Salvar Documento
-                </Button>
-              </div>
+            <div className="flex justify-end gap-3 pt-4 mt-16">
+              <Button variant="outline" onClick={() => setStep(1)}>
+                Voltar
+              </Button>
+              <Button
+                onClick={saveDocument}
+                className="bg-gradient-to-r from-green-600 to-emerald-600"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Salvar Documento
+              </Button>
             </div>
           </div>
         )}
