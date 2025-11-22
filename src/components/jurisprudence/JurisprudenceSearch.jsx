@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 export default function JurisprudenceSearch({ cases, onSave }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [court, setCourt] = useState("all");
+  const [year, setYear] = useState("all");
   const [context, setContext] = useState("");
   const [relatedCase, setRelatedCase] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -27,11 +28,12 @@ export default function JurisprudenceSearch({ cases, onSave }) {
 
     try {
       const courtFilter = court !== "all" ? ` no tribunal ${court}` : "";
+      const yearFilter = year !== "all" ? ` do ano ${year}` : "";
       const contextInfo = context ? `\n\nCONTEXTO DO CASO: ${context}` : "";
 
       const prompt = `Você é um especialista em pesquisa jurisprudencial brasileira. 
 
-TAREFA: Pesquisar jurisprudências${courtFilter} sobre o seguinte tema:
+TAREFA: Pesquisar jurisprudências${courtFilter}${yearFilter} sobre o seguinte tema:
 "${searchTerm}"
 ${contextInfo}
 
@@ -73,6 +75,7 @@ Seja específico, cite decisões reais encontradas na internet, e forneça anál
       setResults({
         query: searchTerm,
         court: court,
+        year: year,
         content: response,
         timestamp: new Date().toISOString()
       });
@@ -140,7 +143,7 @@ Seja específico, cite decisões reais encontradas na internet, e forneça anál
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="court">Tribunal Específico</Label>
               <Select value={court} onValueChange={setCourt}>
@@ -153,6 +156,28 @@ Seja específico, cite decisões reais encontradas na internet, e forneça anál
                       {option.label}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="year">Ano da Decisão</Label>
+              <Select value={year} onValueChange={setYear}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Anos</SelectItem>
+                  <SelectItem value="2024">2024</SelectItem>
+                  <SelectItem value="2023">2023</SelectItem>
+                  <SelectItem value="2022">2022</SelectItem>
+                  <SelectItem value="2021">2021</SelectItem>
+                  <SelectItem value="2020">2020</SelectItem>
+                  <SelectItem value="2019">2019</SelectItem>
+                  <SelectItem value="2018">2018</SelectItem>
+                  <SelectItem value="2017">2017</SelectItem>
+                  <SelectItem value="2016">2016</SelectItem>
+                  <SelectItem value="2015">2015</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -236,7 +261,7 @@ Seja específico, cite decisões reais encontradas na internet, e forneça anál
                       Resultados da Pesquisa
                     </CardTitle>
                     <p className="text-sm text-slate-600 mt-1">
-                      Pesquisa: "{results.query}" {court !== "all" && `- ${court}`}
+                      Pesquisa: "{results.query}" {court !== "all" && `- ${court}`} {year !== "all" && `(${year})`}
                     </p>
                   </div>
                   <Button
