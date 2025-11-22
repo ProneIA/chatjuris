@@ -150,9 +150,9 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50">
+    <div className="h-full flex flex-col bg-slate-50 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
             <Sparkles className="w-6 h-6" />
@@ -169,7 +169,7 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
         )}
       </div>
 
-      <div className="flex-1 overflow-auto p-4 space-y-4">
+      <div className="flex-1 overflow-x-auto overflow-y-auto p-4 space-y-4">
         {/* Upload Section */}
         <Card>
           <CardHeader>

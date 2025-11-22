@@ -89,9 +89,9 @@ export default function Documents() {
   };
 
   return (
-    <div className="h-full flex">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-6">
+    <div className="h-full flex overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="bg-white border-b border-slate-200 px-6 py-6 flex-shrink-0">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Documentos Jurídicos</h1>
@@ -136,7 +136,7 @@ export default function Documents() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 min-h-0">
           {showGenerator ? (
             <PlanLimitGuard
               subscription={subscription}
