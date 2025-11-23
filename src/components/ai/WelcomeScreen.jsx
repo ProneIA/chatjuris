@@ -134,84 +134,82 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-slate-200 bg-white">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          {showWelcome && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-4 sm:mb-6"
+      <div className="max-w-3xl mx-auto px-4 py-4">
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-4 sm:mb-6"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              {suggestedPrompts.map((suggestion, index) => {
+                const Icon = suggestion.icon;
+                return (
+                  <motion.button
+                    key={index}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handlePromptClick(suggestion.prompt)}
+                    className="flex items-center gap-2 sm:gap-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200 active:scale-95"
+                  >
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium text-slate-700">{suggestion.text}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Envie uma mensagem..."
+              className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
+              rows={1}
+              disabled={isProcessing}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+
+            <Button
+              type="submit"
+              disabled={!input.trim() || isProcessing}
+              size="icon"
+              className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                {suggestedPrompts.map((suggestion, index) => {
-                  const Icon = suggestion.icon;
-                  return (
-                    <motion.button
-                      key={index}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handlePromptClick(suggestion.prompt)}
-                      className="flex items-center gap-2 sm:gap-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200 active:scale-95"
-                    >
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-slate-700">{suggestion.text}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+          </div>
 
-          <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Envie uma mensagem..."
-                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
-                rows={1}
-                disabled={isProcessing}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-              />
+          <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
+            Pressione Enter para enviar • Shift+Enter para nova linha
+          </p>
+        </form>
 
-              <Button
-                type="submit"
-                disabled={!input.trim() || isProcessing}
-                size="icon"
-                className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
-              >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
-            </div>
-
-            <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
-              Pressione Enter para enviar • Shift+Enter para nova linha
-            </p>
-          </form>
-
-          {onOpenHistory && (
-            <div className="mt-3 flex justify-center">
-              <Button
-                onClick={onOpenHistory}
-                variant="ghost"
-                size="sm"
-                className="text-slate-600 hover:text-slate-900"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Ver Histórico Completo
-              </Button>
-            </div>
-          )}
-        </div>
+        {onOpenHistory && (
+          <div className="mt-3 flex justify-center">
+            <Button
+              onClick={onOpenHistory}
+              variant="ghost"
+              size="sm"
+              className="text-slate-600 hover:text-slate-900"
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Ver Histórico Completo
+            </Button>
+          </div>
+        )}
       </div>
 
     </div>
