@@ -95,12 +95,9 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
             {/* Welcome Message */}
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {timeGreeting}, {userName ? userName.split(' ')[0] : 'Advogado'}! 👋
+                  A nova era da advocacia chegou!
                 </span>
               </h1>
-              <p className="text-base sm:text-xl text-slate-600 mb-6 sm:mb-8">
-                Seu assistente jurídico com inteligência artificial está pronto para ajudar
-              </p>
             </motion.div>
           ) : (
             <div className="space-y-6">
@@ -135,35 +132,6 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
       {/* Input Area */}
       <div className="max-w-3xl mx-auto px-4 py-4">
-        {showWelcome && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-4 sm:mb-6"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              {suggestedPrompts.map((suggestion, index) => {
-                const Icon = suggestion.icon;
-                return (
-                  <motion.button
-                    key={index}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handlePromptClick(suggestion.prompt)}
-                    className="flex items-center gap-2 sm:gap-3 bg-white border border-slate-200 rounded-lg sm:rounded-xl p-3 sm:p-4 text-left hover:border-blue-300 hover:shadow-md transition-all duration-200 active:scale-95"
-                  >
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center shrink-0">
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-medium text-slate-700">{suggestion.text}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
         <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
             <textarea
@@ -196,20 +164,6 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
             Pressione Enter para enviar • Shift+Enter para nova linha
           </p>
         </form>
-
-        {onOpenHistory && (
-          <div className="mt-3 flex justify-center">
-            <Button
-              onClick={onOpenHistory}
-              variant="ghost"
-              size="sm"
-              className="text-slate-600 hover:text-slate-900"
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Ver Histórico Completo
-            </Button>
-          </div>
-        )}
       </div>
 
     </div>
