@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PaymentModal from "../components/subscription/PaymentModal";
+import CaktoCheckoutModal from "../components/subscription/CaktoCheckoutModal";
 import { toast } from "sonner";
 
 const plans = [
@@ -22,17 +23,18 @@ const plans = [
     popular: false,
     features: [
       { text: "5 ações de IA por dia", included: true, highlight: true },
-      { text: "Até 3 clientes", included: true },
-      { text: "Até 3 processos", included: true },
-      { text: "Até 3 documentos", included: true },
-      { text: "Até 3 tarefas", included: true },
-      { text: "Modo Assistente Básico", included: true },
+      { text: "Até 3 clientes", included: true, highlight: true },
+      { text: "Até 3 processos", included: true, highlight: true },
+      { text: "Até 3 documentos", included: true, highlight: true },
+      { text: "Até 3 tarefas", included: true, highlight: true },
+      { text: "Modo Assistente Geral", included: true },
+      { text: "Suporte por email", included: true },
       { text: "Equipes e Workspace", included: false },
       { text: "Jurisprudência", included: false },
-      { text: "Templates avançados", included: false },
-      { text: "Calendário inteligente", included: false },
+      { text: "Templates", included: false },
+      { text: "Calendário", included: false },
       { text: "Análise de documentos LEXIA", included: false },
-      { text: "Uso ilimitado", included: false }
+      { text: "Sem limites de uso", included: false }
     ],
     limits: {
       daily_actions_limit: 5,
@@ -45,7 +47,7 @@ const plans = [
     icon: Zap,
     price: 49.99,
     period: "/mês",
-    description: "Poder total sem limites",
+    description: "Uso ilimitado para profissionais",
     gradient: "from-blue-500 via-purple-500 to-pink-500",
     popular: true,
     features: [
@@ -54,12 +56,13 @@ const plans = [
       { text: "Processos ILIMITADOS", included: true, highlight: true },
       { text: "Documentos ILIMITADOS", included: true, highlight: true },
       { text: "Tarefas ILIMITADAS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
       { text: "Equipes e Workspace", included: true },
       { text: "Jurisprudência completa", included: true },
-      { text: "Templates avançados", included: true },
+      { text: "Templates ilimitados", included: true },
       { text: "Calendário inteligente", included: true },
       { text: "Análise de documentos LEXIA", included: true },
-      { text: "Todos os modos de IA", included: true },
+      { text: "Gerador de imagens", included: true },
       { text: "Suporte prioritário", included: true }
     ],
     limits: {
@@ -74,6 +77,7 @@ export default function Pricing() {
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCaktoCheckout, setShowCaktoCheckout] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   React.useEffect(() => {
@@ -133,9 +137,7 @@ export default function Pricing() {
     }
 
     if (planId === "pro") {
-      const callbackUrl = `${window.location.origin}${createPageUrl('PaymentSuccess')}`;
-      const caktoUrl = `https://pay.cakto.com.br/3ek2n8h_660515?redirect_url=${encodeURIComponent(callbackUrl)}`;
-      window.location.href = caktoUrl;
+      setShowCaktoCheckout(true);
       return;
     }
 
@@ -364,6 +366,14 @@ export default function Pricing() {
           plan={selectedPlan}
           onClose={() => setShowPaymentModal(false)}
           onComplete={handlePaymentComplete}
+        />
+      )}
+
+      {/* Cakto Checkout Modal */}
+      {showCaktoCheckout && (
+        <CaktoCheckoutModal
+          checkoutUrl="https://pay.cakto.com.br/8nuuzas_661861"
+          onClose={() => setShowCaktoCheckout(false)}
         />
       )}
     </div>
