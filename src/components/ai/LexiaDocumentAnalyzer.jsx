@@ -150,16 +150,16 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 overflow-x-auto">
+    <div className="h-full flex flex-col bg-slate-50 overflow-y-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between min-w-[768px]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-6 h-6" />
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">LEXIA - Análise de Documentos</h2>
-            <p className="text-sm text-white/80">Assistente Jurídica com IA Avançada</p>
+            <h2 className="text-base sm:text-lg font-bold">LEXIA - Análise de Documentos</h2>
+            <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Assistente Jurídica com IA Avançada</p>
           </div>
         </div>
         {onClose && (
@@ -169,7 +169,7 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
         )}
       </div>
 
-      <div className="flex-1 overflow-auto p-4 space-y-4 min-w-[768px]">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
         {/* Upload Section */}
         <Card>
           <CardHeader>
@@ -192,22 +192,22 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
                 </p>
               </div>
             ) : (
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-slate-900">{selectedFile.name}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="w-8 h-8 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900 truncate">{selectedFile.name}</p>
                     <p className="text-sm text-slate-600">
                       {(selectedFile.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   {!fileUrl && (
                     <Button
                       onClick={handleUpload}
                       disabled={isUploading}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none"
                     >
                       {isUploading ? (
                         <>
@@ -319,7 +319,7 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
               )}
 
               {/* Question Input */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Textarea
                   placeholder="Faça uma pergunta sobre o documento..."
                   value={question}
@@ -330,18 +330,21 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
                       handleAskQuestion();
                     }
                   }}
-                  className="flex-1 min-h-[80px]"
+                  className="flex-1 min-h-[60px] sm:min-h-[80px]"
                   disabled={isAsking}
                 />
                 <Button
                   onClick={handleAskQuestion}
                   disabled={!question.trim() || isAsking}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
                 >
                   {isAsking ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <Send className="w-4 h-4" />
+                    <>
+                      <Send className="w-4 h-4 sm:mr-0 mr-2" />
+                      <span className="sm:hidden">Enviar</span>
+                    </>
                   )}
                 </Button>
               </div>
@@ -356,21 +359,21 @@ TAREFA: Responda à pergunta do usuário sobre o documento anexado. Use o conte�
         {/* Welcome State */}
         {!selectedFile && (
           <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-            <CardContent className="py-12 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-white" />
+            <CardContent className="py-8 sm:py-12 text-center px-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">
                 Bem-vindo ao LEXIA
               </h3>
-              <p className="text-slate-600 max-w-md mx-auto mb-4">
+              <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto mb-4">
                 Faça upload de documentos jurídicos (contratos, petições, sentenças, etc.) para análise inteligente com IA.
               </p>
-              <div className="flex flex-wrap gap-2 justify-center text-sm">
-                <Badge variant="secondary">📄 Extração de Informações</Badge>
-                <Badge variant="secondary">📊 Resumo Executivo</Badge>
-                <Badge variant="secondary">💬 Perguntas e Respostas</Badge>
-                <Badge variant="secondary">⚖️ Análise Jurídica</Badge>
+              <div className="flex flex-wrap gap-2 justify-center text-xs sm:text-sm">
+                <Badge variant="secondary">📄 Extração</Badge>
+                <Badge variant="secondary">📊 Resumo</Badge>
+                <Badge variant="secondary">💬 Perguntas</Badge>
+                <Badge variant="secondary">⚖️ Análise</Badge>
               </div>
             </CardContent>
           </Card>
