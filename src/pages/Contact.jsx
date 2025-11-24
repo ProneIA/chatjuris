@@ -5,18 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { 
-  Mail, 
-  MessageSquare, 
-  Send, 
-  MapPin, 
-  Phone, 
+import {
+  Mail,
+  MessageSquare,
+  Send,
+  MapPin,
+  Phone,
   Clock,
   CheckCircle,
   Loader2,
   Sparkles,
-  HeadphonesIcon
-} from "lucide-react";
+  HeadphonesIcon } from
+"lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -34,7 +34,7 @@ export default function Contact() {
   React.useEffect(() => {
     base44.auth.me().then((u) => {
       setUser(u);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         name: u.full_name || "",
         email: u.email || ""
@@ -88,7 +88,7 @@ export default function Contact() {
 
       setSubmitted(true);
       toast.success("Mensagem enviada com sucesso!");
-      
+
       // Reset form after 3 seconds
       setTimeout(() => {
         setFormData({
@@ -115,16 +115,16 @@ export default function Contact() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
+          className="text-center mb-12">
+
           <motion.div
-            animate={{ 
+            animate={{
               scale: [1, 1.05, 1],
               rotate: [0, 5, -5, 0]
             }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="inline-block mb-6"
-          >
+            className="inline-block mb-6">
+
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
               <MessageSquare className="w-10 h-10 text-white" />
             </div>
@@ -146,15 +146,15 @@ export default function Contact() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-2"
-          >
+            className="lg:col-span-2">
+
             <Card className="p-8 bg-white shadow-xl border-2 border-slate-200 rounded-2xl">
-              {submitted ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12"
-                >
+              {submitted ?
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-12">
+
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="w-10 h-10 text-green-600" />
                   </div>
@@ -167,38 +167,38 @@ export default function Contact() {
                   <p className="text-sm text-slate-500">
                     Você receberá um email de confirmação em {formData.email}
                   </p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                </motion.div> :
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="name" className="text-slate-900 font-semibold">
                         Nome Completo
                       </Label>
                       <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Seu nome"
-                        required
-                        className="mt-2"
-                      />
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Seu nome"
+                      required
+                      className="mt-2" />
+
                     </div>
                     <div>
                       <Label htmlFor="email" className="text-slate-900 font-semibold">
                         Email
                       </Label>
                       <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="seu@email.com"
-                        required
-                        className="mt-2"
-                      />
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="seu@email.com"
+                      required
+                      className="mt-2" />
+
                     </div>
                   </div>
 
@@ -207,14 +207,14 @@ export default function Contact() {
                       Assunto
                     </Label>
                     <Input
-                      id="subject"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      placeholder="Sobre o que você quer falar?"
-                      required
-                      className="mt-2"
-                    />
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    placeholder="Sobre o que você quer falar?"
+                    required
+                    className="mt-2" />
+
                   </div>
 
                   <div>
@@ -222,36 +222,36 @@ export default function Contact() {
                       Mensagem
                     </Label>
                     <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Escreva sua mensagem aqui..."
-                      required
-                      rows={8}
-                      className="mt-2 resize-none"
-                    />
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Escreva sua mensagem aqui..."
+                    required
+                    rows={8}
+                    className="mt-2 resize-none" />
+
                   </div>
 
                   <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
-                  >
-                    {isSubmitting ? (
-                      <>
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity">
+
+                    {isSubmitting ?
+                  <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Enviando...
-                      </>
-                    ) : (
-                      <>
+                      </> :
+
+                  <>
                         <Send className="w-5 h-5 mr-2" />
                         Enviar Mensagem
                       </>
-                    )}
+                  }
                   </Button>
                 </form>
-              )}
+              }
             </Card>
           </motion.div>
 
@@ -260,8 +260,8 @@ export default function Contact() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
+            className="space-y-6">
+
             {/* Support Card */}
             <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mb-4">
@@ -277,8 +277,8 @@ export default function Contact() {
                 variant="outline"
                 size="sm"
                 className="w-full border-blue-300 hover:bg-blue-100"
-                onClick={() => window.location.href = '/pricing'}
-              >
+                onClick={() => window.location.href = '/pricing'}>
+
                 <Sparkles className="w-4 h-4 mr-2" />
                 Fazer Upgrade
               </Button>
@@ -293,11 +293,11 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Email</h4>
-                    <a 
-                      href="mailto:suporte@legaltech.com.br"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      suporte@legaltech.com.br
+                    <a
+                      href="mailto:suporte@legaltech.com.br" className="text-sm text-blue-600 hover:underline">juris.ia.tech@gmail.com
+
+
+
                     </a>
                   </div>
                 </div>
@@ -310,11 +310,11 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Telefone</h4>
-                    <a 
-                      href="tel:+5511999999999"
-                      className="text-sm text-green-600 hover:underline"
-                    >
-                      (11) 99999-9999
+                    <a
+                      href="tel:+5511999999999" className="text-sm text-green-600 hover:underline">(86) 99993-1754
+
+
+
                     </a>
                     <p className="text-xs text-slate-500 mt-1">
                       Segunda a Sexta, 9h às 18h
@@ -347,8 +347,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-slate-900 mb-1">Localização</h4>
-                    <p className="text-sm text-slate-600">
-                      São Paulo, SP
+                    <p className="text-sm text-slate-600">Piripiri, PI
+
                     </p>
                     <p className="text-sm text-slate-600">
                       Brasil
@@ -370,8 +370,8 @@ export default function Contact() {
                 variant="outline"
                 size="sm"
                 className="w-full border-purple-300 hover:bg-purple-100"
-                onClick={() => window.location.href = '/pricing#faq'}
-              >
+                onClick={() => window.location.href = '/pricing#faq'}>
+
                 Ver FAQ
               </Button>
             </Card>
@@ -383,8 +383,8 @@ export default function Contact() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 text-center"
-        >
+          className="mt-12 text-center">
+
           <Card className="max-w-3xl mx-auto p-8 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white border-0">
             <h3 className="text-2xl font-bold mb-3">
               Resposta Rápida Garantida
@@ -403,6 +403,6 @@ export default function Contact() {
           </Card>
         </motion.div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
