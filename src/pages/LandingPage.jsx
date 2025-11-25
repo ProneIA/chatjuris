@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Scale, 
   Sparkles, 
@@ -12,28 +10,25 @@ import {
   Shield,
   ArrowRight,
   Check,
-  Star,
   Zap,
   MessageCircle,
-  Calculator,
-  ChevronDown,
-  Play,
-  Trophy,
-  TrendingUp,
-  Building2,
-  X
+  Sun,
+  Moon,
+  ChevronRight,
+  BarChart3,
+  Globe,
+  Layers,
+  Lock
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import PriceSimulator from "../components/landing/PriceSimulator";
-import TestimonialsCarousel from "../components/landing/TestimonialsCarousel";
 import AISupportChat from "../components/landing/AISupportChat";
-import FeaturesGrid from "../components/landing/FeaturesGrid";
 
 export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(setIsAuthenticated);
@@ -45,330 +40,395 @@ export default function LandingPage() {
 
   const stats = [
     { value: "80%", label: "Redução de tempo" },
-    { value: "10k+", label: "Documentos gerados" },
-    { value: "500+", label: "Advogados ativos" },
-    { value: "4.9", label: "Avaliação média", icon: Star }
+    { value: "10k+", label: "Usuários ativos" },
+    { value: "24/7", label: "Suporte disponível" },
+    { value: "99.9%", label: "Disponibilidade" }
   ];
 
-  const logos = [
-    "OAB", "CFOAB", "AASP", "IASP", "ABAdv"
+  const features = [
+    {
+      icon: Sparkles,
+      title: "IA Jurídica Avançada",
+      description: "Assistente inteligente especializado em Direito brasileiro com respostas precisas."
+    },
+    {
+      icon: FileText,
+      title: "Geração de Documentos",
+      description: "Crie petições, contratos e pareceres em minutos com qualidade profissional."
+    },
+    {
+      icon: BarChart3,
+      title: "Análise LEXIA",
+      description: "Análise profunda de documentos com identificação de riscos e cláusulas críticas."
+    },
+    {
+      icon: Users,
+      title: "Gestão de Clientes",
+      description: "Organize clientes, processos e prazos em uma plataforma unificada."
+    },
+    {
+      icon: Lock,
+      title: "Segurança Total",
+      description: "Dados protegidos com criptografia de ponta e conformidade LGPD."
+    },
+    {
+      icon: Layers,
+      title: "Integração Completa",
+      description: "Conecte calendários, equipes e fluxos de trabalho perfeitamente."
+    }
+  ];
+
+  const plans = [
+    {
+      name: "Gratuito",
+      price: "R$ 0",
+      period: "/mês",
+      description: "Para começar",
+      features: ["5 ações de IA por dia", "Até 3 clientes", "Até 3 processos", "Suporte por email"],
+      cta: "Começar grátis",
+      highlighted: false
+    },
+    {
+      name: "Profissional",
+      price: "R$ 49,99",
+      period: "/mês",
+      description: "Para profissionais",
+      features: ["IA ilimitada", "Clientes ilimitados", "Processos ilimitados", "LEXIA Análise de docs", "Jurisprudência", "Suporte prioritário"],
+      cta: "Assinar agora",
+      highlighted: true
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="bg-black text-white font-light min-h-screen">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                <Scale className="w-5 h-5 text-white" />
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800/50">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
+                <Scale className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-xl text-slate-900">Juris IA</span>
+              <span className="text-xl font-light tracking-tight">Juris IA</span>
             </div>
 
             <div className="hidden md:flex items-center gap-8">
-              <a href="#recursos" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+              <a href="#recursos" className="text-gray-400 hover:text-white transition-colors font-extralight">
                 Recursos
               </a>
-              <a href="#precos" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+              <a href="#precos" className="text-gray-400 hover:text-white transition-colors font-extralight">
                 Preços
               </a>
-              <a href="#depoimentos" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-                Depoimentos
+              <a href="#sobre" className="text-gray-400 hover:text-white transition-colors font-extralight">
+                Sobre
               </a>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsDark(!isDark)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              
               {isAuthenticated ? (
                 <Link to={createPageUrl("Dashboard")}>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90">
-                    Acessar Dashboard
-                  </Button>
+                  <button className="bg-white text-black font-light rounded-md px-5 py-2 hover:bg-opacity-90 transition-all">
+                    Dashboard
+                  </button>
                 </Link>
               ) : (
-                <>
-                  <Button variant="ghost" onClick={handleLogin} className="hidden sm:inline-flex">
-                    Entrar
-                  </Button>
-                  <Button 
-                    onClick={handleLogin}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90"
-                  >
-                    Comece Grátis
-                  </Button>
-                </>
+                <button 
+                  onClick={handleLogin}
+                  className="bg-white text-black font-light rounded-md px-5 py-2 hover:bg-opacity-90 transition-all"
+                >
+                  Entrar
+                </button>
               )}
             </div>
           </div>
         </div>
       </nav>
 
+      {/* Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
+
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
+      <section className="relative overflow-hidden pt-24">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-black to-black z-0" />
+        
+        <div className="container mx-auto px-6 py-16 md:py-24 relative z-10">
+          <div className="flex flex-col md:flex-row items-center">
+            {/* Left Content */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              className="md:w-1/2 mb-12 md:mb-0 md:pr-12"
             >
-              <Badge className="bg-blue-100 text-blue-700 mb-6 px-4 py-1.5">
-                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                Inteligência Artificial Jurídica
-              </Badge>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-6">
-                Reduza sua{" "}
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Burocracia Jurídica
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tighter mb-6 leading-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                  Transforme
                 </span>{" "}
-                em 80%
+                sua prática jurídica
               </h1>
-
-              <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
-                A plataforma de IA mais avançada para advogados. Gere documentos, 
-                analise contratos e pesquise jurisprudência em segundos, não horas.
+              <p className="text-gray-300 text-xl md:text-2xl mb-8 max-w-lg font-extralight tracking-wide">
+                Reduza 80% da burocracia com inteligência artificial especializada em Direito brasileiro.
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <Button 
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
                   onClick={handleLogin}
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-lg px-8 py-6 shadow-xl shadow-blue-500/25"
+                  className="bg-white text-black font-light rounded-md px-6 py-3 hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
                 >
-                  Comece Grátis Agora
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="text-lg px-8 py-6 border-2"
-                  onClick={() => document.getElementById('precos').scrollIntoView({ behavior: 'smooth' })}
+                  Começar grátis
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => document.getElementById('recursos').scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-transparent border border-gray-700 rounded-md px-6 py-3 hover:bg-white/5 transition-all"
                 >
-                  <Calculator className="w-5 h-5 mr-2" />
-                  Simule Seu Preço
-                </Button>
-              </div>
-
-              {/* Trust Badges */}
-              <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-600" />
-                  <span>Dados Protegidos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <span>Suporte 24/7</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-purple-600" />
-                  <span>Cancele quando quiser</span>
-                </div>
+                  Ver recursos
+                </button>
               </div>
             </motion.div>
 
-            {/* Hero Visual */}
-            <motion.div
+            {/* Right Content - Orbital Visual */}
+            <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="md:w-1/2 relative"
             >
-              <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-1 shadow-2xl">
-                <div className="bg-white rounded-[22px] p-6">
-                  <div className="bg-slate-900 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
-                    </div>
-                    <div className="space-y-2 text-sm font-mono">
-                      <p className="text-blue-400">// Assistente IA</p>
-                      <p className="text-green-400">&gt; Gerando petição inicial...</p>
-                      <p className="text-white">✓ Documento gerado em 12 segundos</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <FileText className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-                      <p className="text-xs font-medium text-slate-700">Documentos</p>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <Sparkles className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-                      <p className="text-xs font-medium text-slate-700">IA Avançada</p>
+              <div className="relative h-[400px] w-[400px] md:h-[500px] md:w-[500px] mx-auto">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl" />
+                
+                {/* Orbital Ring */}
+                <div className="absolute inset-8 rounded-full border border-indigo-500/30">
+                  <div className="absolute inset-4 rounded-full border border-purple-500/20">
+                    <div className="absolute inset-4 rounded-full border border-indigo-500/10">
+                      {/* Inner dark circle */}
+                      <div className="absolute inset-4 rounded-full bg-black shadow-[0_0_60px_rgba(99,102,241,0.3)]" />
                     </div>
                   </div>
                 </div>
+
+                {/* Glowing orb */}
+                <motion.div
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 60px rgba(99,102,241,0.4)",
+                      "0 0 80px rgba(139,92,246,0.5)",
+                      "0 0 60px rgba(99,102,241,0.4)"
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute inset-12 rounded-full bg-gradient-to-br from-indigo-600/20 to-purple-600/20 backdrop-blur-sm"
+                />
+
+                {/* Floating elements */}
+                <motion.div
+                  animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }}
+                  transition={{ duration: 5, repeat: Infinity }}
+                  className="absolute top-16 right-16 bg-black/80 border border-gray-800 rounded-lg p-3 backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <span className="text-xs text-gray-300">IA Processando...</span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  animate={{ y: [10, -10, 10], rotate: [0, -5, 0] }}
+                  transition={{ duration: 6, repeat: Infinity }}
+                  className="absolute bottom-20 left-8 bg-black/80 border border-gray-800 rounded-lg p-3 backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-green-400" />
+                    <span className="text-xs text-gray-300">Documento gerado</span>
+                  </div>
+                </motion.div>
               </div>
-
-              {/* Floating elements */}
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Check className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold">Documento salvo</p>
-                    <p className="text-[10px] text-slate-500">Agora mesmo</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold">80% mais rápido</p>
-                    <p className="text-[10px] text-slate-500">que métodos tradicionais</p>
-                  </div>
-                </div>
-              </motion.div>
             </motion.div>
           </div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6"
-          >
-            {stats.map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <p className="text-3xl sm:text-4xl font-black text-slate-900">{stat.value}</p>
-                  {stat.icon && <stat.icon className="w-6 h-6 text-yellow-500 fill-yellow-500" />}
-                </div>
-                <p className="text-sm text-slate-600">{stat.label}</p>
-              </div>
-            ))}
-          </motion.div>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent my-16" />
 
-          {/* Partner Logos */}
-          <div className="mt-16 text-center">
-            <p className="text-sm text-slate-500 mb-6">Reconhecido por profissionais de</p>
-            <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
-              {logos.map((logo, idx) => (
-                <div key={idx} className="text-xl font-bold text-slate-400">
-                  {logo}
-                </div>
-              ))}
-            </div>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 + idx * 0.1 }}
+              >
+                <p className="text-4xl font-light mb-1 tracking-tight">{stat.value}</p>
+                <p className="text-gray-400 font-extralight">{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="recursos" className="py-20 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+      <section id="recursos" className="py-24 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-indigo-950/10 to-black" />
+        
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge className="bg-purple-100 text-purple-700 mb-4">Recursos</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Tudo que você precisa em um só lugar
+            <p className="text-indigo-400 font-light tracking-widest uppercase text-sm mb-4">
+              Recursos
+            </p>
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
+              Tudo que você precisa
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Ferramentas poderosas de IA projetadas especificamente para o profissional jurídico brasileiro
+            <p className="text-gray-400 text-lg font-extralight max-w-2xl mx-auto">
+              Ferramentas poderosas projetadas para o profissional jurídico moderno
             </p>
           </motion.div>
 
-          <FeaturesGrid />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="group p-6 rounded-xl border border-gray-800 bg-black/50 hover:border-indigo-500/50 hover:bg-indigo-950/10 transition-all duration-300"
+                >
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:from-indigo-500/30 group-hover:to-purple-500/30 transition-all">
+                    <Icon className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <h3 className="text-xl font-light mb-2 tracking-tight">{feature.title}</h3>
+                  <p className="text-gray-400 font-extralight">{feature.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* Price Simulator Section */}
-      <section id="precos" className="py-20 px-4 sm:px-6 bg-gradient-to-br from-slate-900 to-slate-800">
-        <div className="max-w-4xl mx-auto">
+      {/* Pricing Section */}
+      <section id="precos" className="py-24 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/10 to-black" />
+        
+        <div className="container mx-auto px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <Badge className="bg-blue-500/20 text-blue-400 mb-4">Simulador de Preços</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Calcule Seu Investimento em 30 Segundos
+            <p className="text-purple-400 font-light tracking-widest uppercase text-sm mb-4">
+              Preços
+            </p>
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
+              Simples e transparente
             </h2>
-            <p className="text-lg text-slate-400">
-              Transparência total. Sem surpresas. Veja exatamente quanto vai pagar.
+            <p className="text-gray-400 text-lg font-extralight">
+              Comece grátis, evolua quando quiser
             </p>
           </motion.div>
 
-          <PriceSimulator onSubscribe={handleLogin} />
-        </div>
-      </section>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {plans.map((plan, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className={`p-8 rounded-2xl border ${
+                  plan.highlighted 
+                    ? "border-indigo-500/50 bg-gradient-to-br from-indigo-950/30 to-purple-950/30" 
+                    : "border-gray-800 bg-black/50"
+                }`}
+              >
+                {plan.highlighted && (
+                  <div className="text-xs font-light tracking-widest uppercase text-indigo-400 mb-4">
+                    Recomendado
+                  </div>
+                )}
+                <h3 className="text-2xl font-light mb-2">{plan.name}</h3>
+                <p className="text-gray-400 font-extralight mb-6">{plan.description}</p>
+                
+                <div className="mb-6">
+                  <span className="text-5xl font-light tracking-tight">{plan.price}</span>
+                  <span className="text-gray-400 font-extralight">{plan.period}</span>
+                </div>
 
-      {/* Testimonials Section */}
-      <section id="depoimentos" className="py-20 px-4 sm:px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <Badge className="bg-green-100 text-green-700 mb-4">Depoimentos</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              O que Advogados Dizem Sobre Nós
-            </h2>
-            <p className="text-lg text-slate-600">
-              Mais de 500 profissionais já transformaram sua prática jurídica
-            </p>
-          </motion.div>
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3 text-gray-300 font-extralight">
+                      <Check className="w-4 h-4 text-indigo-400 shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
 
-          <TestimonialsCarousel />
+                <button 
+                  onClick={handleLogin}
+                  className={`w-full py-3 rounded-md font-light transition-all ${
+                    plan.highlighted
+                      ? "bg-white text-black hover:bg-opacity-90"
+                      : "bg-transparent border border-gray-700 hover:bg-white/5"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-24 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/30 via-purple-950/30 to-indigo-950/30" />
+        
+        <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-              Pronto para Transformar sua Prática Jurídica?
+            <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+              Pronto para{" "}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                transformar
+              </span>{" "}
+              sua advocacia?
             </h2>
-            <p className="text-xl text-white/80 mb-8">
-              Comece grátis hoje e veja a diferença em minutos, não semanas.
+            <p className="text-gray-400 text-lg font-extralight mb-8 max-w-2xl mx-auto">
+              Junte-se a milhares de advogados que já economizam horas por dia com o Juris IA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
+              <button 
                 onClick={handleLogin}
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-slate-100 text-lg px-8 py-6"
+                className="bg-white text-black font-light rounded-md px-8 py-4 hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
               >
-                Começar Grátis Agora
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg"
-                className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6"
+                Começar grátis agora
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button 
                 onClick={() => setShowChat(true)}
+                className="bg-transparent border border-gray-700 rounded-md px-8 py-4 hover:bg-white/5 transition-all flex items-center justify-center gap-2"
               >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Falar com Suporte
-              </Button>
+                <MessageCircle className="w-4 h-4" />
+                Falar com suporte
+              </button>
             </div>
-            <p className="text-sm text-white/60 mt-6">
+            <p className="text-gray-500 text-sm font-extralight mt-6">
               ✓ Sem cartão de crédito &nbsp; ✓ 5 ações grátis por dia &nbsp; ✓ Cancele quando quiser
             </p>
           </motion.div>
@@ -376,50 +436,30 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Scale className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-bold text-xl">Juris IA</span>
+      <footer className="border-t border-gray-800 py-12">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
+                <Scale className="w-4 h-4 text-white" />
               </div>
-              <p className="text-slate-400 text-sm">
-                A plataforma de IA mais avançada para profissionais do Direito.
-              </p>
+              <span className="text-lg font-light">Juris IA</span>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Produto</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#recursos" className="hover:text-white">Recursos</a></li>
-                <li><a href="#precos" className="hover:text-white">Preços</a></li>
-                <li><a href="#depoimentos" className="hover:text-white">Depoimentos</a></li>
-              </ul>
+            
+            <div className="flex items-center gap-8 text-sm text-gray-400 font-extralight">
+              <a href="#" className="hover:text-white transition-colors">Termos</a>
+              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+              <Link to={createPageUrl("Contact")} className="hover:text-white transition-colors">Contato</Link>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Suporte</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><Link to={createPageUrl("Contact")} className="hover:text-white">Contato</Link></li>
-                <li><a href="#" className="hover:text-white">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-white">Privacidade</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-            © 2024 Juris IA. Todos os direitos reservados.
+
+            <p className="text-sm text-gray-500 font-extralight">
+              © 2024 Juris IA. Todos os direitos reservados.
+            </p>
           </div>
         </div>
       </footer>
 
-      {/* AI Support Chat Widget */}
+      {/* AI Support Chat */}
       <AISupportChat isOpen={showChat} onClose={() => setShowChat(false)} onOpen={() => setShowChat(true)} />
     </div>
   );
