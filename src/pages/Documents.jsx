@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Sparkles, Clock } from "lucide-react";
+import { Search, Sparkles, Clock } from "lucide-react";
 import DocumentList from "../components/documents/DocumentList";
 import DocumentDetails from "../components/documents/DocumentDetails";
 import DocumentGenerator from "../components/documents/DocumentGenerator";
@@ -93,61 +93,62 @@ export default function Documents() {
   return (
     <div className="h-full flex">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-black border-b border-neutral-800 px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Documentos Jurídicos</h1>
-              <p className="text-slate-600 text-sm mt-1">Gerencie seus documentos legais</p>
+              <h1 className="text-xl font-light text-white">Documentos Jurídicos</h1>
+              <p className="text-neutral-500 text-sm mt-1">Gerencie seus documentos legais</p>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => setShowHistory(true)}
                 variant="outline"
+                className="border-neutral-800 text-white hover:bg-neutral-800"
               >
                 <Clock className="w-4 h-4 mr-2" />
                 Histórico
               </Button>
               <Button
                 onClick={() => setShowGenerator(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-white text-black hover:bg-gray-100"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Gerar Documento com IA
+                Gerar com IA
               </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-3 mb-3">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3">
-              <p className="text-xs text-blue-600 font-medium">Total</p>
-              <p className="text-xl font-bold text-blue-900 mt-0.5">{stats.total}</p>
+            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
+              <p className="text-xs text-neutral-500">Total</p>
+              <p className="text-xl font-light text-white mt-0.5">{stats.total}</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3">
-              <p className="text-xs text-yellow-600 font-medium">Rascunhos</p>
-              <p className="text-xl font-bold text-yellow-900 mt-0.5">{stats.draft}</p>
+            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
+              <p className="text-xs text-neutral-500">Rascunhos</p>
+              <p className="text-xl font-light text-white mt-0.5">{stats.draft}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3">
-              <p className="text-xs text-purple-600 font-medium">Em Revisão</p>
-              <p className="text-xl font-bold text-purple-900 mt-0.5">{stats.review}</p>
+            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
+              <p className="text-xs text-neutral-500">Em Revisão</p>
+              <p className="text-xl font-light text-white mt-0.5">{stats.review}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3">
-              <p className="text-xs text-green-600 font-medium">Aprovados</p>
-              <p className="text-xl font-bold text-green-900 mt-0.5">{stats.approved}</p>
+            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
+              <p className="text-xs text-neutral-500">Aprovados</p>
+              <p className="text-xl font-light text-white mt-0.5">{stats.approved}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
             <Input
               placeholder="Buscar documentos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
           {showHistory ? (
             <DocumentHistory
               documents={documents}

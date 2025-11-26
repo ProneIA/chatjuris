@@ -32,7 +32,6 @@ export default function AIAssistant() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Salvar conversa ao fechar a página
   useEffect(() => {
     const handleBeforeUnload = async () => {
       if (tempMessages.length > 0 && !selectedConversation) {
@@ -53,7 +52,6 @@ export default function AIAssistant() {
     queryKey: ['conversations', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filtro explícito por created_by para garantir isolamento por usuário
       return base44.entities.Conversation.filter(
         { created_by: user.email },
         '-last_message_at'
@@ -66,7 +64,6 @@ export default function AIAssistant() {
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      // Buscar por user_id (ID) ou por email
       let subs = await base44.entities.Subscription.filter({ user_id: user.id });
       if (subs.length === 0) {
         subs = await base44.entities.Subscription.filter({ user_id: user.email });
@@ -100,7 +97,6 @@ export default function AIAssistant() {
     mutationFn: (data) => base44.entities.Conversation.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      // Não mudar de tela ao criar conversa
     },
   });
 
@@ -120,7 +116,6 @@ export default function AIAssistant() {
   });
 
   const handleNewConversation = async () => {
-    // Salvar conversa atual antes de criar nova
     if (tempMessages.length > 0) {
       await createConversationMutation.mutateAsync({
         title: tempMessages[0]?.content?.slice(0, 50) || "Nova conversa",
@@ -225,14 +220,14 @@ FORMATO DAS RESPOSTAS:
   };
 
   return (
-    <div className="h-screen flex bg-neutral-950 overflow-hidden">
+    <div className="h-screen flex bg-black overflow-hidden">
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="border-b border-gray-800 bg-black px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className="border-b border-neutral-800 bg-black px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
           <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 border border-gray-700 rounded-lg flex items-center justify-center shrink-0">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
             </div>
             {selectedConversation ? (
               <div className="min-w-0">
@@ -248,10 +243,10 @@ FORMATO DAS RESPOSTAS:
               onClick={() => setShowLexiaAnalyzer(true)}
               size="sm"
               variant="outline"
-              className="h-8 sm:h-9 px-2 sm:px-3 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+              className="h-8 sm:h-9 px-2 sm:px-3 border-neutral-800 text-white hover:bg-neutral-800"
             >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-              <span className="hidden sm:inline font-medium">LEXIA Docs</span>
+              <span className="hidden sm:inline">LEXIA Docs</span>
             </Button>
 
             {conversations.length > 0 && (
@@ -259,7 +254,7 @@ FORMATO DAS RESPOSTAS:
                 onClick={() => setShowHistoryDialog(true)}
                 size="sm"
                 variant="outline"
-                className="h-8 sm:h-9 px-2 sm:px-3 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                className="h-8 sm:h-9 px-2 sm:px-3 border-neutral-800 text-white hover:bg-neutral-800"
               >
                 <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Histórico ({conversations.length})</span>
@@ -289,7 +284,7 @@ FORMATO DAS RESPOSTAS:
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden bg-neutral-950">
           <AnimatePresence mode="wait">
             {showLexiaAnalyzer ? (
               <LexiaDocumentAnalyzer onClose={() => setShowLexiaAnalyzer(false)} />

@@ -111,7 +111,6 @@ export default function Cases() {
     },
   });
 
-  // Filter cases by folder
   const filteredCases = cases.filter(caseItem => {
     const matchesSearch = 
       caseItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,7 +127,6 @@ export default function Cases() {
     return matchesSearch && matchesFolder;
   });
 
-  // Paginação
   const totalPages = Math.ceil(filteredCases.length / casesPerPage);
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
@@ -151,7 +149,6 @@ export default function Cases() {
     moveCaseToFolderMutation.mutate({ caseId, folderId });
   };
 
-  // Calculate counts for folders
   const caseCounts = {
     total: cases.length,
     unfiled: cases.filter(c => !c.folder_id).length
@@ -182,17 +179,17 @@ export default function Cases() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-6">
+        <div className="bg-black border-b border-neutral-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-light text-white">
                 {selectedFolder === 'unfiled' 
                   ? 'Processos sem Pasta'
                   : selectedFolder
                   ? folders.find(f => f.id === selectedFolder)?.name || 'Processos'
                   : 'Todos os Processos'}
               </h1>
-              <p className="text-slate-600 mt-1">
+              <p className="text-neutral-500 mt-1">
                 {filteredCases.length} {filteredCases.length === 1 ? 'processo' : 'processos'}
                 {selectedFolder && ' nesta pasta'}
               </p>
@@ -203,7 +200,7 @@ export default function Cases() {
                 setEditingCase(null);
                 setSelectedCase(null);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-white text-black hover:bg-gray-100"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Processo
@@ -211,36 +208,36 @@ export default function Cases() {
           </div>
 
           <div className="grid grid-cols-4 gap-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-              <p className="text-sm text-blue-600 font-medium">Total</p>
-              <p className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500">Total</p>
+              <p className="text-2xl font-light text-white mt-1">{stats.total}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-              <p className="text-sm text-purple-600 font-medium">Em Andamento</p>
-              <p className="text-2xl font-bold text-purple-900 mt-1">{stats.active}</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500">Em Andamento</p>
+              <p className="text-2xl font-light text-white mt-1">{stats.active}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-              <p className="text-sm text-green-600 font-medium">Novos</p>
-              <p className="text-2xl font-bold text-green-900 mt-1">{stats.new}</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500">Novos</p>
+              <p className="text-2xl font-light text-white mt-1">{stats.new}</p>
             </div>
-            <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4">
-              <p className="text-sm text-red-600 font-medium">Urgentes</p>
-              <p className="text-2xl font-bold text-red-900 mt-1">{stats.urgent}</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500">Urgentes</p>
+              <p className="text-2xl font-light text-white mt-1">{stats.urgent}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
             <Input
               placeholder="Buscar por título, número do processo ou cliente..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
           {showForm ? (
             <PlanLimitGuard
               subscription={subscription}
@@ -262,18 +259,18 @@ export default function Cases() {
           ) : isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
+                <Skeleton key={i} className="h-32 rounded-xl bg-neutral-800" />
               ))}
             </div>
           ) : filteredCases.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 border border-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-neutral-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              <h3 className="text-lg font-medium text-white mb-2">
                 Nenhum processo encontrado
               </h3>
-              <p className="text-slate-600">
+              <p className="text-neutral-500">
                 {searchTerm 
                   ? 'Tente ajustar os filtros de busca'
                   : selectedFolder === 'unfiled'
@@ -297,10 +294,9 @@ export default function Cases() {
                 ))}
               </div>
 
-              {/* Paginação */}
               {totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-neutral-500">
                     Mostrando {startIndex + 1}-{Math.min(startIndex + casesPerPage, filteredCases.length)} de {filteredCases.length}
                   </p>
                   <div className="flex gap-2">
@@ -309,6 +305,7 @@ export default function Cases() {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
+                      className="border-neutral-800 text-white hover:bg-neutral-800"
                     >
                       Anterior
                     </Button>
@@ -330,7 +327,7 @@ export default function Cases() {
                             variant={currentPage === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(pageNum)}
-                            className="w-10"
+                            className={`w-10 ${currentPage === pageNum ? 'bg-white text-black' : 'border-neutral-800 text-white hover:bg-neutral-800'}`}
                           >
                             {pageNum}
                           </Button>
@@ -342,6 +339,7 @@ export default function Cases() {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
+                      className="border-neutral-800 text-white hover:bg-neutral-800"
                     >
                       Próxima
                     </Button>

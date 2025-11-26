@@ -18,8 +18,7 @@ import {
   X,
   Settings,
   Crown,
-  Users2,
-  Home
+  Users2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,7 +31,7 @@ const navigationSections = [
     items: [
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
       { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
-      { title: "⭐ Assinar Pro", url: createPageUrl("Pricing"), icon: Crown },
+      { title: "Assinar Pro", url: createPageUrl("Pricing"), icon: Crown },
     ]
   },
   {
@@ -45,14 +44,14 @@ const navigationSections = [
     ]
   },
   {
-    label: "Colaboração Pro",
+    label: "Colaboração",
     items: [
       { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
       { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
     ]
   },
   {
-    label: "Recursos Pro",
+    label: "Recursos",
     items: [
       { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
       { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
@@ -82,22 +81,39 @@ export default function Layout({ children, currentPageName }) {
     };
 
     const isOnAIPage = location.pathname === createPageUrl("AIAssistant");
-      const isLandingPage = currentPageName === "LandingPage";
+    const isLandingPage = currentPageName === "LandingPage";
 
-      // Landing page renders without layout (full screen)
-      if (isLandingPage) {
-        return <>{children}</>;
-      }
+    if (isLandingPage) {
+      return <>{children}</>;
+    }
 
   return (
     <div className="min-h-screen bg-neutral-950">
       <KeyboardShortcuts />
+      
+      {/* Custom Scrollbar */}
+      <style>{`
+        ::-webkit-scrollbar {
+          width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #333;
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #444;
+        }
+      `}</style>
+
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-gray-800 z-50">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-neutral-800 z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 hover:bg-gray-800 rounded-lg text-white"
+            className="p-2 hover:bg-neutral-800 rounded-lg text-white"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -106,16 +122,16 @@ export default function Layout({ children, currentPageName }) {
             to={createPageUrl("Dashboard")} 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <span className="font-semibold text-white text-xl tracking-tight">Juris</span>
+            <span className="text-xl font-semibold text-white tracking-tight">Juris</span>
           </Link>
 
           <div className="flex items-center gap-2">
             {user && <NotificationPanel user={user} />}
             <Link
               to={createPageUrl("AIAssistant")}
-              className="p-2 bg-white text-black rounded-lg hover:bg-gray-100 transition-all"
+              className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-5 h-5 text-black" />
             </Link>
           </div>
         </div>
@@ -137,12 +153,12 @@ export default function Layout({ children, currentPageName }) {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", damping: 30 }}
-              className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-black border-r border-gray-800 z-40 overflow-y-auto"
+              className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-black border-r border-neutral-800 z-40 overflow-y-auto"
             >
               <nav className="p-4 space-y-6">
                 {navigationSections.map((section) => (
                   <div key={section.label}>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2 px-2">
+                    <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3 px-3">
                       {section.label}
                     </p>
                     <div className="space-y-1">
@@ -151,10 +167,10 @@ export default function Layout({ children, currentPageName }) {
                           key={item.title}
                           to={item.url}
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                             location.pathname === item.url
                               ? 'bg-white text-black font-medium'
-                              : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+                              : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -162,7 +178,7 @@ export default function Layout({ children, currentPageName }) {
                             <span>{item.title}</span>
                           </div>
                           {item.proBadge && (
-                            <Crown className="w-4 h-4 text-gray-500" />
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-neutral-800 text-neutral-400 rounded">PRO</span>
                           )}
                         </Link>
                       ))}
@@ -170,10 +186,10 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                 ))}
 
-                <div className="pt-4 border-t border-gray-800">
+                <div className="pt-4 border-t border-neutral-800">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
                     <span>Sair</span>
@@ -186,10 +202,10 @@ export default function Layout({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-black border-r border-gray-800 overflow-y-auto">
+      <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-black border-r border-neutral-800 overflow-y-auto">
         <Link 
           to={createPageUrl("Dashboard")} 
-          className="block p-6 border-b border-gray-800 hover:bg-gray-900 transition-colors"
+          className="block p-6 border-b border-neutral-800 hover:bg-neutral-900 transition-colors"
         >
           <span className="text-2xl font-semibold text-white tracking-tight">Juris</span>
         </Link>
@@ -197,7 +213,7 @@ export default function Layout({ children, currentPageName }) {
         <nav className="p-4 space-y-6">
           {navigationSections.map((section) => (
             <div key={section.label}>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2 px-2">
+              <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3 px-3">
                 {section.label}
               </p>
               <div className="space-y-1">
@@ -205,10 +221,10 @@ export default function Layout({ children, currentPageName }) {
                   <Link
                     key={item.title}
                     to={item.url}
-                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                       location.pathname === item.url
                         ? 'bg-white text-black font-medium'
-                        : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+                        : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -216,7 +232,7 @@ export default function Layout({ children, currentPageName }) {
                       <span className="text-sm">{item.title}</span>
                     </div>
                     {item.proBadge && (
-                      <Crown className="w-3 h-3 text-gray-500" />
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 bg-neutral-800 text-neutral-400 rounded">PRO</span>
                     )}
                   </Link>
                 ))}
@@ -225,10 +241,10 @@ export default function Layout({ children, currentPageName }) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-800 mt-auto">
-          <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700">
-              <span className="text-white font-medium text-sm">
+        <div className="p-4 border-t border-neutral-800 mt-auto">
+          <div className="flex items-center gap-3 px-3 mb-4">
+            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center">
+              <span className="text-black font-semibold text-sm">
                 {user?.full_name?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
@@ -236,12 +252,12 @@ export default function Layout({ children, currentPageName }) {
               <p className="font-medium text-white text-sm truncate">
                 {user?.full_name || 'Usuário'}
               </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sair
@@ -250,8 +266,10 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main Content */}
-      <main className={`min-h-screen bg-neutral-950 ${isOnAIPage ? '' : 'pt-16 lg:pt-0 lg:pl-64'}`}>
-        {children}
+      <main className={`min-h-screen ${isOnAIPage ? '' : 'pt-16 lg:pt-0 lg:pl-64'}`}>
+        <div className="min-h-screen bg-neutral-950">
+          {children}
+        </div>
       </main>
     </div>
   );

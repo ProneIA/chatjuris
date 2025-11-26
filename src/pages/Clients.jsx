@@ -83,14 +83,14 @@ export default function Clients() {
   const companyClients = clients.filter(c => c.type === 'company').length;
 
   return (
-    <div className="h-full flex bg-neutral-950 min-h-screen">
+    <div className="h-full flex">
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-gray-800 px-6 py-6">
+        <div className="bg-black border-b border-neutral-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-light text-white">Clientes</h1>
-              <p className="text-gray-500 mt-1">Gerencie seus clientes</p>
+              <p className="text-neutral-500 mt-1">Gerencie seus clientes</p>
             </div>
             <Button
               onClick={() => {
@@ -107,21 +107,21 @@ export default function Clients() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-              <p className="text-sm text-gray-500 font-medium">Total Ativos</p>
-              <p className="text-2xl font-light text-white mt-1">{activeClients}</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500 mb-1">Total Ativos</p>
+              <p className="text-2xl font-light text-white">{activeClients}</p>
             </div>
-            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <div className="flex items-center gap-2 text-neutral-500 mb-1">
                 <UserIcon className="w-4 h-4" />
-                <p className="text-sm font-medium">Pessoas Físicas</p>
+                <p className="text-sm">Pessoas Físicas</p>
               </div>
               <p className="text-2xl font-light text-white">{individualClients}</p>
             </div>
-            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-              <div className="flex items-center gap-2 text-gray-500 mb-1">
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <div className="flex items-center gap-2 text-neutral-500 mb-1">
                 <Building2 className="w-4 h-4" />
-                <p className="text-sm font-medium">Pessoas Jurídicas</p>
+                <p className="text-sm">Pessoas Jurídicas</p>
               </div>
               <p className="text-2xl font-light text-white">{companyClients}</p>
             </div>
@@ -129,12 +129,12 @@ export default function Clients() {
 
           {/* Search */}
           <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
             <Input
               placeholder="Buscar por nome, email ou CPF/CNPJ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
+              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
             />
           </div>
         </div>

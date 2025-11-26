@@ -9,14 +9,10 @@ import {
   FileText, 
   CheckSquare, 
   AlertCircle,
-  TrendingUp,
   Calendar,
-  DollarSign
+  ArrowRight
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -50,28 +46,24 @@ export default function Dashboard() {
       title: "Total de Clientes",
       value: clients.length,
       icon: Users,
-      color: "from-blue-500 to-cyan-500",
       link: createPageUrl("Clients")
     },
     {
       title: "Processos Ativos",
       value: activeCases,
       icon: FolderOpen,
-      color: "from-purple-500 to-pink-500",
       link: createPageUrl("Cases")
     },
     {
       title: "Documentos Pendentes",
       value: pendingDocuments,
       icon: FileText,
-      color: "from-green-500 to-emerald-500",
       link: createPageUrl("Documents")
     },
     {
       title: "Tarefas Urgentes",
       value: urgentTasks,
       icon: AlertCircle,
-      color: "from-red-500 to-orange-500",
       link: createPageUrl("Tasks")
     }
   ];
@@ -82,55 +74,37 @@ export default function Dashboard() {
 
   const recentCases = cases.slice(0, 5);
 
-  const priorityColors = {
-    low: "bg-blue-100 text-blue-800",
-    medium: "bg-yellow-100 text-yellow-800",
-    high: "bg-orange-100 text-orange-800",
-    urgent: "bg-red-100 text-red-800"
-  };
-
-  const statusColors = {
-    new: "bg-blue-100 text-blue-800",
-    in_progress: "bg-purple-100 text-purple-800",
-    waiting: "bg-yellow-100 text-yellow-800",
-    closed: "bg-green-100 text-green-800"
-  };
+  const isLoading = loadingClients || loadingCases || loadingTasks || loadingDocuments;
 
   return (
-    <div className="p-6 md:p-8 space-y-8 bg-neutral-950 min-h-screen">
+    <div className="p-6 md:p-8 space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-light text-white mb-2">Dashboard</h1>
-        <p className="text-gray-500">Visão geral do escritório</p>
+        <p className="text-neutral-500">Visão geral do escritório</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Link key={index} to={stat.link}>
-              <Card className="hover:border-gray-600 transition-all duration-300 cursor-pointer border border-gray-800 bg-black overflow-hidden group">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-500">
-                      {stat.title}
-                    </CardTitle>
-                    <div className="w-10 h-10 rounded-lg border border-gray-700 flex items-center justify-center group-hover:border-white transition-colors">
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
+              <div className="p-6 border border-neutral-800 rounded-lg hover:border-neutral-700 transition-all group bg-black">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-neutral-500">{stat.title}</p>
+                  <div className="w-10 h-10 border border-neutral-800 rounded-lg flex items-center justify-center group-hover:border-white transition-colors">
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-light text-white">
-                    {loadingClients || loadingCases || loadingTasks || loadingDocuments ? (
-                      <Skeleton className="h-9 w-16 bg-gray-800" />
-                    ) : (
-                      stat.value
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="text-3xl font-light text-white">
+                  {isLoading ? (
+                    <Skeleton className="h-9 w-16 bg-neutral-800" />
+                  ) : (
+                    stat.value
+                  )}
+                </div>
+              </div>
             </Link>
           );
         })}
@@ -138,85 +112,91 @@ export default function Dashboard() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Upcoming Tasks */}
-        <Card className="border border-gray-800 bg-black">
-          <CardHeader className="border-b border-gray-800">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium text-white">Próximas Tarefas</CardTitle>
-              <Link to={createPageUrl("Tasks")}>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">Ver todas</Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
+        <div className="border border-neutral-800 rounded-lg bg-black">
+          <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-white">Próximas Tarefas</h2>
+            <Link to={createPageUrl("Tasks")} className="text-sm text-neutral-500 hover:text-white transition-colors flex items-center gap-1">
+              Ver todas <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="p-6">
             {loadingTasks ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-gray-800" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-neutral-800" />)}
               </div>
             ) : upcomingTasks.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <CheckSquare className="w-12 h-12 mx-auto mb-3 text-gray-700" />
-                <p>Nenhuma tarefa pendente</p>
+              <div className="text-center py-8">
+                <CheckSquare className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
+                <p className="text-neutral-500">Nenhuma tarefa pendente</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {upcomingTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
+                  <div key={task.id} className="flex items-center gap-4 p-4 border border-neutral-800 rounded-lg hover:border-neutral-700 transition-colors">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white truncate">{task.title}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Calendar className="w-3 h-3 text-gray-500" />
-                        <span className="text-xs text-gray-500">
+                        <Calendar className="w-3 h-3 text-neutral-600" />
+                        <span className="text-xs text-neutral-500">
                           {task.due_date && format(new Date(task.due_date), "dd 'de' MMM", { locale: ptBR })}
                         </span>
                       </div>
                     </div>
-                    <Badge className="bg-gray-800 text-gray-300 border border-gray-700">
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      task.priority === 'urgent' ? 'bg-red-500/10 text-red-400' :
+                      task.priority === 'high' ? 'bg-orange-500/10 text-orange-400' :
+                      task.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
+                      'bg-neutral-800 text-neutral-400'
+                    }`}>
                       {task.priority}
-                    </Badge>
+                    </span>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Recent Cases */}
-        <Card className="border border-gray-800 bg-black">
-          <CardHeader className="border-b border-gray-800">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium text-white">Processos Recentes</CardTitle>
-              <Link to={createPageUrl("Cases")}>
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">Ver todos</Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
+        <div className="border border-neutral-800 rounded-lg bg-black">
+          <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
+            <h2 className="text-lg font-medium text-white">Processos Recentes</h2>
+            <Link to={createPageUrl("Cases")} className="text-sm text-neutral-500 hover:text-white transition-colors flex items-center gap-1">
+              Ver todos <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="p-6">
             {loadingCases ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-gray-800" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-neutral-800" />)}
               </div>
             ) : recentCases.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-gray-700" />
-                <p>Nenhum processo cadastrado</p>
+              <div className="text-center py-8">
+                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-neutral-700" />
+                <p className="text-neutral-500">Nenhum processo cadastrado</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {recentCases.map(caseItem => (
-                  <div key={caseItem.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
+                  <div key={caseItem.id} className="flex items-center gap-4 p-4 border border-neutral-800 rounded-lg hover:border-neutral-700 transition-colors">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white truncate">{caseItem.title}</p>
-                      <p className="text-xs text-gray-500 mt-1">{caseItem.client_name}</p>
+                      <p className="text-xs text-neutral-500 mt-1">{caseItem.client_name}</p>
                     </div>
-                    <Badge className="bg-gray-800 text-gray-300 border border-gray-700">
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      caseItem.status === 'in_progress' ? 'bg-blue-500/10 text-blue-400' :
+                      caseItem.status === 'new' ? 'bg-green-500/10 text-green-400' :
+                      caseItem.status === 'waiting' ? 'bg-yellow-500/10 text-yellow-400' :
+                      'bg-neutral-800 text-neutral-400'
+                    }`}>
                       {caseItem.status}
-                    </Badge>
+                    </span>
                   </div>
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
