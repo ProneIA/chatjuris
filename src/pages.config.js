@@ -39,7 +39,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Templates",
+    mainPage: "LandingPage",
     Pages: PAGES,
     Layout: __Layout,
 };
