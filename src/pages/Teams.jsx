@@ -119,8 +119,8 @@ export default function Teams({ theme = 'light' }) {
             <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipes</h1>
             <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie equipes e colaboradores</p>
           </div>
-          <Button onClick={() => setShowNewTeamForm(true)} className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={() => setShowNewTeamForm(true)} className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}>
+                        <Plus className="w-4 h-4 mr-2" />
             Nova Equipe
           </Button>
         </div>

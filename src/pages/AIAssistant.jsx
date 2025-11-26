@@ -285,7 +285,7 @@ FORMATO DAS RESPOSTAS:
         </div>
 
         {/* Chat Area */}
-        <div className={`flex-1 overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>>
+        <div className={`flex-1 overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           <AnimatePresence mode="wait">
             {showLexiaAnalyzer ? (
               <LexiaDocumentAnalyzer onClose={() => setShowLexiaAnalyzer(false)} />
