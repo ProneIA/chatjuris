@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Sparkles, Clock } from "lucide-react";
+import { Plus, Search, Sparkles, Clock } from "lucide-react";
 import DocumentList from "../components/documents/DocumentList";
 import DocumentDetails from "../components/documents/DocumentDetails";
 import DocumentGenerator from "../components/documents/DocumentGenerator";
@@ -91,19 +91,19 @@ export default function Documents() {
   };
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex bg-neutral-950 min-h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-neutral-800 px-6 py-4">
+        <div className="bg-black border-b border-gray-800 px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-light text-white">Documentos Jurídicos</h1>
-              <p className="text-neutral-500 text-sm mt-1">Gerencie seus documentos legais</p>
+              <p className="text-gray-500 text-sm mt-1">Gerencie seus documentos legais</p>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => setShowHistory(true)}
                 variant="outline"
-                className="border-neutral-800 text-white hover:bg-neutral-800"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 <Clock className="w-4 h-4 mr-2" />
                 Histórico
@@ -113,37 +113,37 @@ export default function Documents() {
                 className="bg-white text-black hover:bg-gray-100"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Gerar com IA
+                Gerar Documento com IA
               </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-3 mb-3">
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Total</p>
+            <div className="border border-gray-800 rounded-lg p-3 hover:border-gray-600 transition-colors">
+              <p className="text-xs text-gray-500 font-medium">Total</p>
               <p className="text-xl font-light text-white mt-0.5">{stats.total}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Rascunhos</p>
+            <div className="border border-gray-800 rounded-lg p-3 hover:border-gray-600 transition-colors">
+              <p className="text-xs text-gray-500 font-medium">Rascunhos</p>
               <p className="text-xl font-light text-white mt-0.5">{stats.draft}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Em Revisão</p>
+            <div className="border border-gray-800 rounded-lg p-3 hover:border-gray-600 transition-colors">
+              <p className="text-xs text-gray-500 font-medium">Em Revisão</p>
               <p className="text-xl font-light text-white mt-0.5">{stats.review}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Aprovados</p>
+            <div className="border border-gray-800 rounded-lg p-3 hover:border-gray-600 transition-colors">
+              <p className="text-xs text-gray-500 font-medium">Aprovados</p>
               <p className="text-xl font-light text-white mt-0.5">{stats.approved}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               placeholder="Buscar documentos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
             />
           </div>
         </div>

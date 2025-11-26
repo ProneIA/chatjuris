@@ -111,6 +111,7 @@ export default function Cases() {
     },
   });
 
+  // Filter cases by folder
   const filteredCases = cases.filter(caseItem => {
     const matchesSearch = 
       caseItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -127,6 +128,7 @@ export default function Cases() {
     return matchesSearch && matchesFolder;
   });
 
+  // Paginação
   const totalPages = Math.ceil(filteredCases.length / casesPerPage);
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
@@ -149,6 +151,7 @@ export default function Cases() {
     moveCaseToFolderMutation.mutate({ caseId, folderId });
   };
 
+  // Calculate counts for folders
   const caseCounts = {
     total: cases.length,
     unfiled: cases.filter(c => !c.folder_id).length
@@ -165,7 +168,7 @@ export default function Cases() {
   };
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex bg-neutral-950 min-h-screen">
       {/* Folder Sidebar */}
       <FolderSidebar
         folders={folders}
@@ -179,7 +182,7 @@ export default function Cases() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-neutral-800 px-6 py-6">
+        <div className="bg-black border-b border-gray-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-light text-white">
@@ -189,7 +192,7 @@ export default function Cases() {
                   ? folders.find(f => f.id === selectedFolder)?.name || 'Processos'
                   : 'Todos os Processos'}
               </h1>
-              <p className="text-neutral-500 mt-1">
+              <p className="text-gray-500 mt-1">
                 {filteredCases.length} {filteredCases.length === 1 ? 'processo' : 'processos'}
                 {selectedFolder && ' nesta pasta'}
               </p>
@@ -208,31 +211,31 @@ export default function Cases() {
           </div>
 
           <div className="grid grid-cols-4 gap-4 mb-4">
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500">Total</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Total</p>
               <p className="text-2xl font-light text-white mt-1">{stats.total}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500">Em Andamento</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Em Andamento</p>
               <p className="text-2xl font-light text-white mt-1">{stats.active}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500">Novos</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Novos</p>
               <p className="text-2xl font-light text-white mt-1">{stats.new}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500">Urgentes</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Urgentes</p>
               <p className="text-2xl font-light text-white mt-1">{stats.urgent}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               placeholder="Buscar por título, número do processo ou cliente..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
             />
           </div>
         </div>
@@ -259,18 +262,18 @@ export default function Cases() {
           ) : isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-32 rounded-xl bg-neutral-800" />
+                <Skeleton key={i} className="h-32 rounded-xl" />
               ))}
             </div>
           ) : filteredCases.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 border border-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-neutral-600" />
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-slate-400" />
               </div>
-              <h3 className="text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 Nenhum processo encontrado
               </h3>
-              <p className="text-neutral-500">
+              <p className="text-slate-600">
                 {searchTerm 
                   ? 'Tente ajustar os filtros de busca'
                   : selectedFolder === 'unfiled'
@@ -294,9 +297,10 @@ export default function Cases() {
                 ))}
               </div>
 
+              {/* Paginação */}
               {totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-neutral-500">
+                  <p className="text-sm text-slate-600">
                     Mostrando {startIndex + 1}-{Math.min(startIndex + casesPerPage, filteredCases.length)} de {filteredCases.length}
                   </p>
                   <div className="flex gap-2">
@@ -305,7 +309,6 @@ export default function Cases() {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="border-neutral-800 text-white hover:bg-neutral-800"
                     >
                       Anterior
                     </Button>
@@ -327,7 +330,7 @@ export default function Cases() {
                             variant={currentPage === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 ${currentPage === pageNum ? 'bg-white text-black' : 'border-neutral-800 text-white hover:bg-neutral-800'}`}
+                            className="w-10"
                           >
                             {pageNum}
                           </Button>
@@ -339,7 +342,6 @@ export default function Cases() {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="border-neutral-800 text-white hover:bg-neutral-800"
                     >
                       Próxima
                     </Button>
