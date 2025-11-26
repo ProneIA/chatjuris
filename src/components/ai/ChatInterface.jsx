@@ -49,14 +49,18 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
         setIsGenerating(true);
         
         try {
-          const response = await base44.functions.invoke('chatgpt', {
-            messages: messages.map(m => ({ role: m.role, content: m.content })),
-            mode: 'assistant'
+          const systemInstructions = `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
+Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
+Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
+
+          const response = await base44.integrations.Core.InvokeLLM({
+            prompt: `${systemInstructions}\n\nUsuário: ${messages[0].content}\n\nResponda de forma profissional e precisa.`,
+            add_context_from_internet: false
           });
           
           const assistantResponse = {
             role: "assistant",
-            content: response.data.content,
+            content: response,
             timestamp: new Date().toISOString()
           };
 
@@ -151,14 +155,23 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
     });
 
     try {
-      const response = await base44.functions.invoke('chatgpt', {
-        messages: updatedMessages.slice(-10).map(m => ({ role: m.role, content: m.content })),
-        mode: conversation.mode || 'assistant'
+      const systemInstructions = `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
+Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
+Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
+
+      const conversationContext = updatedMessages
+        .slice(-10)
+        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
+        .join('\n\n');
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
+        add_context_from_internet: false
       });
       
       const assistantResponse = {
         role: "assistant",
-        content: response.data.content,
+        content: response,
         timestamp: new Date().toISOString()
       };
 
