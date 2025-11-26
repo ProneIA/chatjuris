@@ -200,52 +200,79 @@ export default function LandingPage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="md:w-1/2 relative"
             >
-              <div className="relative h-[400px] w-[400px] md:h-[500px] md:w-[500px] mx-auto">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl" />
+              <div className="relative h-[350px] w-[350px] md:h-[500px] md:w-[500px] mx-auto">
+                {/* Background glow */}
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-[100px]" />
                 
-                {/* Orbital Ring */}
-                <div className="absolute inset-8 rounded-full border border-indigo-500/30">
-                  <div className="absolute inset-4 rounded-full border border-purple-500/20">
-                    <div className="absolute inset-4 rounded-full border border-indigo-500/10">
-                      {/* Inner dark circle */}
-                      <div className="absolute inset-4 rounded-full bg-black shadow-[0_0_60px_rgba(99,102,241,0.3)]" />
-                    </div>
-                  </div>
+                {/* Main orbital circle - glowing border effect */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div
+                    animate={{ 
+                      boxShadow: [
+                        "0 0 60px rgba(99,102,241,0.5), inset 0 0 60px rgba(0,0,0,0.8)",
+                        "0 0 80px rgba(139,92,246,0.6), inset 0 0 80px rgba(0,0,0,0.9)",
+                        "0 0 60px rgba(99,102,241,0.5), inset 0 0 60px rgba(0,0,0,0.8)"
+                      ]
+                    }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="w-[280px] h-[280px] md:w-[380px] md:h-[380px] rounded-full bg-black border-2 border-indigo-500/50"
+                    style={{
+                      background: "radial-gradient(circle at center, #000 0%, #000 70%, transparent 100%)"
+                    }}
+                  />
                 </div>
 
-                {/* Glowing orb */}
+                {/* Rotating ring */}
                 <motion.div
-                  animate={{ 
-                    boxShadow: [
-                      "0 0 60px rgba(99,102,241,0.4)",
-                      "0 0 80px rgba(139,92,246,0.5)",
-                      "0 0 60px rgba(99,102,241,0.4)"
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute inset-12 rounded-full bg-gradient-to-br from-indigo-600/20 to-purple-600/20 backdrop-blur-sm"
-                />
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <div className="w-[300px] h-[300px] md:w-[420px] md:h-[420px] rounded-full border border-indigo-500/20" />
+                </motion.div>
+
+                {/* Orbiting dot */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <div className="w-[300px] h-[300px] md:w-[420px] md:h-[420px] relative">
+                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-indigo-400 rounded-full shadow-[0_0_20px_rgba(99,102,241,0.8)]" />
+                  </div>
+                </motion.div>
 
                 {/* Floating elements */}
                 <motion.div
                   animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }}
                   transition={{ duration: 5, repeat: Infinity }}
-                  className="absolute top-16 right-16 bg-black/80 border border-gray-800 rounded-lg p-3 backdrop-blur-sm"
+                  className="absolute top-12 right-8 md:top-16 md:right-12 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
                 >
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs text-gray-300">IA Processando...</span>
+                    <span className="text-xs text-gray-300 font-extralight">IA Processando...</span>
                   </div>
                 </motion.div>
 
                 <motion.div
                   animate={{ y: [10, -10, 10], rotate: [0, -5, 0] }}
                   transition={{ duration: 6, repeat: Infinity }}
-                  className="absolute bottom-20 left-8 bg-black/80 border border-gray-800 rounded-lg p-3 backdrop-blur-sm"
+                  className="absolute bottom-16 left-4 md:bottom-20 md:left-8 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
                 >
                   <div className="flex items-center gap-2">
                     <Check className="w-4 h-4 text-green-400" />
-                    <span className="text-xs text-gray-300">Documento gerado</span>
+                    <span className="text-xs text-gray-300 font-extralight">Documento gerado</span>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  animate={{ y: [-8, 8, -8], x: [5, -5, 5] }}
+                  transition={{ duration: 7, repeat: Infinity }}
+                  className="absolute top-1/2 right-0 md:right-4 transform -translate-y-1/2 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-gray-300 font-extralight">Petição pronta</span>
                   </div>
                 </motion.div>
               </div>
