@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -6,7 +6,6 @@ import {
   Sparkles, 
   FileText, 
   Users, 
-  Clock, 
   Shield,
   ArrowRight,
   Check,
@@ -14,11 +13,10 @@ import {
   MessageCircle,
   Sun,
   Moon,
-  ChevronRight,
   BarChart3,
-  Globe,
   Layers,
-  Lock
+  Lock,
+  ChevronDown
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
@@ -29,9 +27,88 @@ export default function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(setIsAuthenticated);
+  }, []);
+
+  // Orbital animation effect
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 40;
+
+    let rotation = 0;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, width, height);
+      
+      // Outer glow
+      const gradient = ctx.createRadialGradient(centerX, centerY, radius - 20, centerX, centerY, radius + 60);
+      gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
+      gradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
+      gradient.addColorStop(0.8, 'rgba(139, 92, 246, 0.1)');
+      gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      // Main dark circle
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+
+      // Glowing ring
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.6)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Animated orbital ring
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotation);
+      
+      // Draw orbital path with gradient effect
+      for (let i = 0; i < 60; i++) {
+        const angle = (i / 60) * Math.PI * 2;
+        const x = Math.cos(angle) * (radius + 15);
+        const y = Math.sin(angle) * (radius + 15) * 0.3;
+        
+        const opacity = (Math.sin(angle + rotation * 2) + 1) / 2 * 0.5 + 0.1;
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(139, 92, 246, ${opacity})`;
+        ctx.fill();
+      }
+      
+      ctx.restore();
+
+      // Inner subtle glow
+      const innerGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+      innerGlow.addColorStop(0, 'rgba(99, 102, 241, 0.05)');
+      innerGlow.addColorStop(0.5, 'rgba(0, 0, 0, 0)');
+      innerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius - 5, 0, Math.PI * 2);
+      ctx.fillStyle = innerGlow;
+      ctx.fill();
+
+      rotation += 0.005;
+      requestAnimationFrame(draw);
+    };
+
+    draw();
   }, []);
 
   const handleLogin = () => {
@@ -102,46 +179,46 @@ export default function LandingPage() {
   return (
     <div className="bg-black text-white font-light min-h-screen">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-gray-800/50">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
-                <Scale className="w-4 h-4 text-white" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full border border-indigo-500/50 flex items-center justify-center">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" />
               </div>
-              <span className="text-xl font-light tracking-tight">Juris IA</span>
+              <span className="text-lg font-light tracking-tight">Juris IA</span>
             </div>
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#recursos" className="text-gray-400 hover:text-white transition-colors font-extralight">
+            <div className="hidden md:flex items-center gap-10">
+              <a href="#recursos" className="text-gray-400 hover:text-white transition-colors text-sm font-light">
                 Recursos
               </a>
-              <a href="#precos" className="text-gray-400 hover:text-white transition-colors font-extralight">
-                Preços
+              <a href="#solucoes" className="text-gray-400 hover:text-white transition-colors text-sm font-light">
+                Soluções
               </a>
-              <a href="#sobre" className="text-gray-400 hover:text-white transition-colors font-extralight">
-                Sobre
+              <a href="#precos" className="text-gray-400 hover:text-white transition-colors text-sm font-light">
+                Preços
               </a>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsDark(!isDark)}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className="p-2 text-gray-500 hover:text-white transition-colors"
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
               
               {isAuthenticated ? (
                 <Link to={createPageUrl("Dashboard")}>
-                  <button className="bg-white text-black font-light rounded-md px-5 py-2 hover:bg-opacity-90 transition-all">
+                  <button className="bg-white text-black text-sm font-light rounded-md px-4 py-2 hover:bg-gray-100 transition-all">
                     Dashboard
                   </button>
                 </Link>
               ) : (
                 <button 
                   onClick={handleLogin}
-                  className="bg-white text-black font-light rounded-md px-5 py-2 hover:bg-opacity-90 transition-all"
+                  className="bg-white text-black text-sm font-light rounded-md px-4 py-2 hover:bg-gray-100 transition-all"
                 >
                   Entrar
                 </button>
@@ -151,11 +228,11 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Divider */}
+      {/* Divider Line */}
       <div className="h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent" />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-24">
+      <section className="relative overflow-hidden min-h-screen flex items-center">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-black to-black z-0" />
         
         <div className="container mx-auto px-6 py-16 md:py-24 relative z-10">
@@ -167,114 +244,47 @@ export default function LandingPage() {
               transition={{ duration: 0.6 }}
               className="md:w-1/2 mb-12 md:mb-0 md:pr-12"
             >
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tighter mb-6 leading-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tighter mb-6 leading-[1.1]">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
                   Transforme
                 </span>{" "}
-                sua prática jurídica
+                sua advocacia com precisão
               </h1>
-              <p className="text-gray-300 text-xl md:text-2xl mb-8 max-w-lg font-extralight tracking-wide">
+              <p className="text-gray-300 text-xl md:text-2xl mb-8 max-w-lg font-extralight tracking-wide leading-relaxed">
                 Reduza 80% da burocracia com inteligência artificial especializada em Direito brasileiro.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={handleLogin}
-                  className="bg-white text-black font-light rounded-md px-6 py-3 hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
+                  className="bg-white text-black font-light rounded-md px-6 py-3 hover:bg-gray-100 transition-all"
                 >
                   Começar grátis
-                  <ArrowRight className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => document.getElementById('recursos').scrollIntoView({ behavior: 'smooth' })}
-                  className="bg-transparent border border-gray-700 rounded-md px-6 py-3 hover:bg-white/5 transition-all"
+                  className="bg-transparent border border-gray-700 text-white rounded-md px-6 py-3 hover:bg-white/5 transition-all"
                 >
-                  Ver recursos
+                  Ver demonstração
                 </button>
               </div>
             </motion.div>
 
-            {/* Right Content - Orbital Visual */}
+            {/* Right Content - Orbital Canvas */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="md:w-1/2 relative"
+              className="md:w-1/2 relative flex justify-center"
             >
-              <div className="relative h-[350px] w-[350px] md:h-[500px] md:w-[500px] mx-auto">
-                {/* Background glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-[100px]" />
-                
-                {/* Main orbital circle - glowing border effect */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.div
-                    animate={{ 
-                      boxShadow: [
-                        "0 0 60px rgba(99,102,241,0.5), inset 0 0 60px rgba(0,0,0,0.8)",
-                        "0 0 80px rgba(139,92,246,0.6), inset 0 0 80px rgba(0,0,0,0.9)",
-                        "0 0 60px rgba(99,102,241,0.5), inset 0 0 60px rgba(0,0,0,0.8)"
-                      ]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-[280px] h-[280px] md:w-[380px] md:h-[380px] rounded-full bg-black border-2 border-indigo-500/50"
-                    style={{
-                      background: "radial-gradient(circle at center, #000 0%, #000 70%, transparent 100%)"
-                    }}
-                  />
-                </div>
-
-                {/* Rotating ring */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="w-[300px] h-[300px] md:w-[420px] md:h-[420px] rounded-full border border-indigo-500/20" />
-                </motion.div>
-
-                {/* Orbiting dot */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <div className="w-[300px] h-[300px] md:w-[420px] md:h-[420px] relative">
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-indigo-400 rounded-full shadow-[0_0_20px_rgba(99,102,241,0.8)]" />
-                  </div>
-                </motion.div>
-
-                {/* Floating elements */}
-                <motion.div
-                  animate={{ y: [-10, 10, -10], rotate: [0, 5, 0] }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                  className="absolute top-12 right-8 md:top-16 md:right-12 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs text-gray-300 font-extralight">IA Processando...</span>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [10, -10, 10], rotate: [0, -5, 0] }}
-                  transition={{ duration: 6, repeat: Infinity }}
-                  className="absolute bottom-16 left-4 md:bottom-20 md:left-8 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                >
-                  <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-400" />
-                    <span className="text-xs text-gray-300 font-extralight">Documento gerado</span>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [-8, 8, -8], x: [5, -5, 5] }}
-                  transition={{ duration: 7, repeat: Infinity }}
-                  className="absolute top-1/2 right-0 md:right-4 transform -translate-y-1/2 bg-black/90 border border-gray-800 rounded-lg p-3 backdrop-blur-sm shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                >
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-purple-400" />
-                    <span className="text-xs text-gray-300 font-extralight">Petição pronta</span>
-                  </div>
-                </motion.div>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl" />
+                <canvas 
+                  ref={canvasRef}
+                  width={500}
+                  height={500}
+                  className="relative z-10"
+                  style={{ width: '400px', height: '400px' }}
+                />
               </div>
             </motion.div>
           </div>
@@ -283,7 +293,7 @@ export default function LandingPage() {
           <div className="h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent my-16" />
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, idx) => (
               <motion.div
                 key={idx}
@@ -291,8 +301,8 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + idx * 0.1 }}
               >
-                <p className="text-4xl font-light mb-1 tracking-tight">{stat.value}</p>
-                <p className="text-gray-400 font-extralight">{stat.label}</p>
+                <p className="text-4xl md:text-5xl font-light mb-1 tracking-tight">{stat.value}</p>
+                <p className="text-gray-400 font-extralight text-sm">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -301,7 +311,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section id="recursos" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-indigo-950/10 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-indigo-950/5 to-black" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -310,18 +320,18 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <p className="text-indigo-400 font-light tracking-widest uppercase text-sm mb-4">
+            <p className="text-indigo-400 font-extralight tracking-[0.3em] uppercase text-xs mb-4">
               Recursos
             </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
               Tudo que você precisa
             </h2>
-            <p className="text-gray-400 text-lg font-extralight max-w-2xl mx-auto">
+            <p className="text-gray-500 text-lg font-extralight max-w-2xl mx-auto">
               Ferramentas poderosas projetadas para o profissional jurídico moderno
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
@@ -330,14 +340,14 @@ export default function LandingPage() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="group p-6 rounded-xl border border-gray-800 bg-black/50 hover:border-indigo-500/50 hover:bg-indigo-950/10 transition-all duration-300"
+                  transition={{ delay: idx * 0.05 }}
+                  className="group p-6 rounded-xl border border-gray-800/50 bg-black/30 hover:border-indigo-500/30 hover:bg-indigo-950/5 transition-all duration-500"
                 >
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-4 group-hover:from-indigo-500/30 group-hover:to-purple-500/30 transition-all">
-                    <Icon className="w-6 h-6 text-indigo-400" />
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <h3 className="text-xl font-light mb-2 tracking-tight">{feature.title}</h3>
-                  <p className="text-gray-400 font-extralight">{feature.description}</p>
+                  <h3 className="text-lg font-light mb-2 tracking-tight">{feature.title}</h3>
+                  <p className="text-gray-500 font-extralight text-sm leading-relaxed">{feature.description}</p>
                 </motion.div>
               );
             })}
@@ -345,9 +355,91 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Solutions Section */}
+      <section id="solucoes" className="py-24 relative">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="lg:w-1/2"
+            >
+              <p className="text-purple-400 font-extralight tracking-[0.3em] uppercase text-xs mb-4">
+                Soluções
+              </p>
+              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-6">
+                Feito para advogados que valorizam seu tempo
+              </h2>
+              <p className="text-gray-400 font-extralight text-lg mb-8 leading-relaxed">
+                Nossa plataforma combina inteligência artificial de ponta com profundo conhecimento jurídico brasileiro.
+              </p>
+              
+              <div className="space-y-4">
+                {[
+                  "Geração automática de petições e recursos",
+                  "Pesquisa de jurisprudência inteligente",
+                  "Análise de contratos com identificação de riscos",
+                  "Gestão completa de processos e prazos"
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-indigo-400" />
+                    </div>
+                    <span className="text-gray-300 font-extralight">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="lg:w-1/2"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur-2xl" />
+                <div className="relative bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      <div className="flex-1 bg-gray-800/50 rounded-lg p-4">
+                        <p className="text-gray-300 text-sm font-extralight">
+                          Gere uma petição inicial de danos morais para o caso do cliente João Silva...
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0 mt-1">
+                        <FileText className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <div className="flex-1 bg-indigo-950/30 border border-indigo-500/20 rounded-lg p-4">
+                        <p className="text-gray-300 text-sm font-extralight">
+                          ✓ Petição gerada com sucesso! Incluídos 3 fundamentos jurídicos e 5 jurisprudências relevantes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="precos" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/10 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/5 to-black" />
         
         <div className="container mx-auto px-6 relative z-10">
           <motion.div
@@ -356,18 +448,18 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <p className="text-purple-400 font-light tracking-widest uppercase text-sm mb-4">
+            <p className="text-purple-400 font-extralight tracking-[0.3em] uppercase text-xs mb-4">
               Preços
             </p>
             <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
               Simples e transparente
             </h2>
-            <p className="text-gray-400 text-lg font-extralight">
+            <p className="text-gray-500 text-lg font-extralight">
               Comece grátis, evolua quando quiser
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {plans.map((plan, idx) => (
               <motion.div
                 key={idx}
@@ -375,28 +467,28 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className={`p-8 rounded-2xl border ${
+                className={`p-8 rounded-2xl border transition-all duration-300 ${
                   plan.highlighted 
-                    ? "border-indigo-500/50 bg-gradient-to-br from-indigo-950/30 to-purple-950/30" 
-                    : "border-gray-800 bg-black/50"
+                    ? "border-indigo-500/50 bg-gradient-to-br from-indigo-950/20 to-purple-950/20" 
+                    : "border-gray-800/50 bg-black/30 hover:border-gray-700"
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="text-xs font-light tracking-widest uppercase text-indigo-400 mb-4">
+                  <div className="text-xs font-extralight tracking-[0.2em] uppercase text-indigo-400 mb-4">
                     Recomendado
                   </div>
                 )}
-                <h3 className="text-2xl font-light mb-2">{plan.name}</h3>
-                <p className="text-gray-400 font-extralight mb-6">{plan.description}</p>
+                <h3 className="text-2xl font-light mb-1">{plan.name}</h3>
+                <p className="text-gray-500 font-extralight text-sm mb-6">{plan.description}</p>
                 
-                <div className="mb-6">
+                <div className="mb-8">
                   <span className="text-5xl font-light tracking-tight">{plan.price}</span>
-                  <span className="text-gray-400 font-extralight">{plan.period}</span>
+                  <span className="text-gray-500 font-extralight">{plan.period}</span>
                 </div>
 
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3 text-gray-300 font-extralight">
+                    <li key={i} className="flex items-center gap-3 text-gray-400 font-extralight text-sm">
                       <Check className="w-4 h-4 text-indigo-400 shrink-0" />
                       {feature}
                     </li>
@@ -405,10 +497,10 @@ export default function LandingPage() {
 
                 <button 
                   onClick={handleLogin}
-                  className={`w-full py-3 rounded-md font-light transition-all ${
+                  className={`w-full py-3 rounded-md font-light text-sm transition-all ${
                     plan.highlighted
-                      ? "bg-white text-black hover:bg-opacity-90"
-                      : "bg-transparent border border-gray-700 hover:bg-white/5"
+                      ? "bg-white text-black hover:bg-gray-100"
+                      : "bg-transparent border border-gray-700 text-white hover:bg-white/5"
                   }`}
                 >
                   {plan.cta}
@@ -421,7 +513,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/30 via-purple-950/30 to-indigo-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/20 via-purple-950/20 to-indigo-950/20" />
         
         <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
@@ -436,50 +528,50 @@ export default function LandingPage() {
               </span>{" "}
               sua advocacia?
             </h2>
-            <p className="text-gray-400 text-lg font-extralight mb-8 max-w-2xl mx-auto">
+            <p className="text-gray-500 text-lg font-extralight mb-8 max-w-2xl mx-auto">
               Junte-se a milhares de advogados que já economizam horas por dia com o Juris IA.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={handleLogin}
-                className="bg-white text-black font-light rounded-md px-8 py-4 hover:bg-opacity-90 transition-all flex items-center justify-center gap-2"
+                className="bg-white text-black font-light rounded-md px-8 py-3 hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2"
               >
                 Começar grátis agora
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => setShowChat(true)}
-                className="bg-transparent border border-gray-700 rounded-md px-8 py-4 hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                className="bg-transparent border border-gray-700 text-white rounded-md px-8 py-3 hover:bg-white/5 transition-all inline-flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
                 Falar com suporte
               </button>
             </div>
-            <p className="text-gray-500 text-sm font-extralight mt-6">
-              ✓ Sem cartão de crédito &nbsp; ✓ 5 ações grátis por dia &nbsp; ✓ Cancele quando quiser
+            <p className="text-gray-600 text-sm font-extralight mt-6">
+              Sem cartão de crédito • 5 ações grátis por dia • Cancele quando quiser
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-12">
+      <footer className="border-t border-gray-800/50 py-12">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
-                <Scale className="w-4 h-4 text-white" />
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full border border-indigo-500/50 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" />
               </div>
-              <span className="text-lg font-light">Juris IA</span>
+              <span className="text-sm font-light">Juris IA</span>
             </div>
             
-            <div className="flex items-center gap-8 text-sm text-gray-400 font-extralight">
+            <div className="flex items-center gap-8 text-xs text-gray-500 font-extralight">
               <a href="#" className="hover:text-white transition-colors">Termos</a>
               <a href="#" className="hover:text-white transition-colors">Privacidade</a>
               <Link to={createPageUrl("Contact")} className="hover:text-white transition-colors">Contato</Link>
             </div>
 
-            <p className="text-sm text-gray-500 font-extralight">
+            <p className="text-xs text-gray-600 font-extralight">
               © 2024 Juris IA. Todos os direitos reservados.
             </p>
           </div>

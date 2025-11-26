@@ -105,10 +105,10 @@ Responda de forma útil e incentive o usuário a experimentar a plataforma se ap
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
             onClick={onOpen}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_30px_rgba(99,102,241,0.4)] flex items-center justify-center hover:opacity-90 transition-opacity border border-indigo-400/30"
+            className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full shadow-lg shadow-indigo-500/20 flex items-center justify-center hover:opacity-90 transition-opacity border border-indigo-500/30"
           >
             <MessageCircle className="w-6 h-6 text-white" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-black" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -122,51 +122,51 @@ Responda de forma útil e incentive o usuário a experimentar a plataforma se ap
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-6 right-6 z-50 w-[360px] sm:w-[400px] max-h-[600px] flex flex-col"
           >
-            <Card className="flex flex-col h-[500px] shadow-[0_0_60px_rgba(99,102,241,0.2)] border border-gray-800 overflow-hidden bg-black">
+            <Card className="flex flex-col h-[500px] shadow-2xl shadow-indigo-500/10 border border-gray-800 overflow-hidden bg-black">
               {/* Header */}
-              <div className="bg-gradient-to-r from-indigo-600/90 to-purple-600/90 text-white p-4 flex items-center justify-between shrink-0 border-b border-gray-800">
+              <div className="bg-black text-white p-4 flex items-center justify-between shrink-0 border-b border-gray-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
-                    <Sparkles className="w-5 h-5" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-indigo-500/30">
+                    <Sparkles className="w-5 h-5 text-indigo-400" />
                   </div>
                   <div>
-                    <p className="font-light tracking-tight">Assistente Juris IA</p>
-                    <p className="text-xs text-white/60 font-extralight">Online agora</p>
+                    <p className="font-light">Assistente Juris IA</p>
+                    <p className="text-xs text-gray-500 font-extralight">Online agora</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={onClose}
-                  className="text-white hover:bg-white/10"
+                  className="text-white hover:bg-white/20"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-black/95">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-950">
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}
                     className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {msg.role === "assistant" && (
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shrink-0">
-                        <Bot className="w-4 h-4 text-white" />
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center shrink-0 border border-indigo-500/30">
+                        <Bot className="w-4 h-4 text-indigo-400" />
                       </div>
                     )}
                     <div
                       className={`max-w-[80%] p-3 rounded-2xl text-sm ${
                         msg.role === "user"
                           ? "bg-indigo-600 text-white rounded-br-md"
-                          : "bg-gray-900 text-gray-200 border border-gray-800 rounded-bl-md"
+                          : "bg-gray-900 text-gray-300 border border-gray-800 rounded-bl-md"
                       }`}
                     >
-                      <p className="whitespace-pre-line font-extralight">{msg.content}</p>
+                      <p className="whitespace-pre-line">{msg.content}</p>
                     </div>
                     {msg.role === "user" && (
-                      <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center shrink-0 border border-gray-700">
+                      <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center shrink-0">
                         <User className="w-4 h-4 text-gray-400" />
                       </div>
                     )}
@@ -175,8 +175,8 @@ Responda de forma útil e incentive o usuário a experimentar a plataforma se ap
                 
                 {isLoading && (
                   <div className="flex gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center border border-indigo-500/30">
+                      <Bot className="w-4 h-4 text-indigo-400" />
                     </div>
                     <div className="bg-gray-900 p-3 rounded-2xl rounded-bl-md border border-gray-800">
                       <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
@@ -195,13 +195,13 @@ Responda de forma útil e incentive o usuário a experimentar a plataforma se ap
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Digite sua pergunta..."
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    className="flex-1 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 focus:border-indigo-500/50 font-extralight"
+                    className="flex-1 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
                   />
                   <Button
                     onClick={handleSend}
                     disabled={!input.trim() || isLoading}
                     size="icon"
-                    className="bg-indigo-600 hover:bg-indigo-700 border border-indigo-500/30"
+                    className="bg-indigo-600 hover:bg-indigo-700"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
