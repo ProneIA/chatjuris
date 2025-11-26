@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Settings, RefreshCw } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Settings } from "lucide-react";
 import CalendarView from "../components/calendar/CalendarView";
 import EventForm from "../components/calendar/EventForm";
 import CalendarSettings from "../components/calendar/CalendarSettings";
@@ -78,12 +78,12 @@ export default function Calendar() {
   });
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950 min-h-screen">
-      <div className="bg-black border-b border-gray-800 px-6 py-6">
+    <div className="h-full flex flex-col bg-neutral-950">
+      <div className="bg-black border-b border-neutral-800 px-6 py-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-light text-white">Calendário Inteligente</h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-neutral-500 mt-1">
               Gerencie seus compromissos e prazos com IA
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function Calendar() {
             <Button
               variant="outline"
               onClick={() => setShowSettings(true)}
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+              className="border-neutral-800 text-white hover:bg-neutral-800"
             >
               <Settings className="w-4 h-4 mr-2" />
               Configurações
@@ -99,7 +99,7 @@ export default function Calendar() {
             <Button
               variant="outline"
               onClick={() => setShowAIScheduler(true)}
-              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+              className="border-neutral-800 text-white hover:bg-neutral-800"
             >
               <CalendarIcon className="w-4 h-4 mr-2" />
               IA Agendar
@@ -118,14 +118,14 @@ export default function Calendar() {
         </div>
 
         {!hasActiveConnection && (
-          <div className="border border-gray-800 rounded-lg p-4">
+          <div className="border border-yellow-500/30 bg-yellow-500/10 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-gray-400" />
+              <CalendarIcon className="w-5 h-5 text-yellow-500" />
               <div className="flex-1">
-                <p className="font-medium text-white">
+                <p className="font-medium text-yellow-200">
                   Conecte seu calendário
                 </p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-yellow-300/70 mt-0.5">
                   Configure Google Calendar ou Outlook para sincronização automática
                 </p>
               </div>
@@ -133,7 +133,7 @@ export default function Calendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowSettings(true)}
-                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                className="border-yellow-500/30 text-yellow-200 hover:bg-yellow-500/20"
               >
                 Configurar
               </Button>
@@ -141,13 +141,13 @@ export default function Calendar() {
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-4 mt-4">
-          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-            <p className="text-sm text-gray-500 font-medium">Hoje</p>
+        <div className="grid grid-cols-4 gap-4">
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Hoje</p>
             <p className="text-2xl font-light text-white mt-1">{todayEvents.length}</p>
           </div>
-          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-            <p className="text-sm text-gray-500 font-medium">Esta Semana</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Esta Semana</p>
             <p className="text-2xl font-light text-white mt-1">
               {events.filter(e => {
                 const eventDate = new Date(e.start_time);
@@ -157,20 +157,20 @@ export default function Calendar() {
               }).length}
             </p>
           </div>
-          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-            <p className="text-sm text-gray-500 font-medium">Prazos Urgentes</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Prazos Urgentes</p>
             <p className="text-2xl font-light text-white mt-1">
               {events.filter(e => e.priority === 'urgent' && e.event_type === 'deadline').length}
             </p>
           </div>
-          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-            <p className="text-sm text-gray-500 font-medium">Calendários</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Calendários</p>
             <p className="text-2xl font-light text-white mt-1">{connections.length}</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
+      <div className="flex-1 overflow-y-auto p-6">
         <CalendarView
           events={events}
           onEventClick={(event) => {

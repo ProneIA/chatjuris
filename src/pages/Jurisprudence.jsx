@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
-import { Search, Sparkles, BookOpen, Star, Plus } from "lucide-react";
+import { Search, BookOpen } from "lucide-react";
 import JurisprudenceSearch from "../components/jurisprudence/JurisprudenceSearch";
 import JurisprudenceList from "../components/jurisprudence/JurisprudenceList";
 import JurisprudenceDetails from "../components/jurisprudence/JurisprudenceDetails";
@@ -61,19 +60,18 @@ export default function Jurisprudence() {
   };
 
   return (
-    <ProGuard featureName="Pesquisa de Jurisprudência">
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 py-6">
+    <div className="h-full flex flex-col bg-neutral-950">
+      <div className="bg-black border-b border-neutral-800 px-6 py-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Pesquisa de Jurisprudência</h1>
-            <p className="text-slate-600 mt-1">
+            <h1 className="text-2xl font-light text-white">Pesquisa de Jurisprudência</h1>
+            <p className="text-neutral-500 mt-1">
               Busque decisões nos principais tribunais brasileiros com IA
             </p>
           </div>
           <Button
             onClick={() => setShowSearch(!showSearch)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600"
+            className="bg-white text-black hover:bg-gray-100"
           >
             {showSearch ? (
               <>
@@ -90,21 +88,21 @@ export default function Jurisprudence() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-            <p className="text-sm text-blue-600 font-medium">Total Salvas</p>
-            <p className="text-2xl font-bold text-blue-900 mt-1">{stats.total}</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Total Salvas</p>
+            <p className="text-2xl font-light text-white mt-1">{stats.total}</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-            <p className="text-sm text-purple-600 font-medium">STF</p>
-            <p className="text-2xl font-bold text-purple-900 mt-1">{stats.stf}</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">STF</p>
+            <p className="text-2xl font-light text-white mt-1">{stats.stf}</p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-            <p className="text-sm text-green-600 font-medium">STJ</p>
-            <p className="text-2xl font-bold text-green-900 mt-1">{stats.stj}</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">STJ</p>
+            <p className="text-2xl font-light text-white mt-1">{stats.stj}</p>
           </div>
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
-            <p className="text-sm text-yellow-600 font-medium">Favoritas</p>
-            <p className="text-2xl font-bold text-yellow-900 mt-1">{stats.favorites}</p>
+          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <p className="text-sm text-neutral-500">Favoritas</p>
+            <p className="text-2xl font-light text-white mt-1">{stats.favorites}</p>
           </div>
         </div>
       </div>
@@ -148,6 +146,5 @@ export default function Jurisprudence() {
         )}
       </div>
     </div>
-    </ProGuard>
   );
 }

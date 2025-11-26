@@ -75,13 +75,13 @@ export default function Templates() {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <div className="h-full flex bg-neutral-950 min-h-screen">
+    <div className="h-full flex">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-gray-800 px-6 py-6">
+        <div className="bg-black border-b border-neutral-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-light text-white">Templates</h1>
-              <p className="text-gray-500 mt-1">Modelos de documentos jurídicos</p>
+              <p className="text-neutral-500 mt-1">Modelos de documentos jurídicos</p>
             </div>
             <Button
               onClick={() => {
@@ -97,26 +97,26 @@ export default function Templates() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-              <p className="text-sm text-gray-500 font-medium">Total de Templates</p>
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+              <p className="text-sm text-neutral-500">Total de Templates</p>
               <p className="text-2xl font-light text-white mt-1">{templates.length}</p>
             </div>
-            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
               <div className="flex items-center gap-2 mb-1">
-                <Star className="w-4 h-4 text-gray-400" />
-                <p className="text-sm text-gray-500 font-medium">Favoritos</p>
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <p className="text-sm text-neutral-500">Favoritos</p>
               </div>
               <p className="text-2xl font-light text-white">{favoriteTemplates}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
             <Input
               placeholder="Buscar templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
+              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
             />
           </div>
         </div>

@@ -1,15 +1,12 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight, CreditCard, QrCode, Barcode } from "lucide-react";
+import { Check, X, Sparkles, Zap, Crown, Star, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PaymentModal from "../components/subscription/PaymentModal";
 import CaktoCheckoutModal from "../components/subscription/CaktoCheckoutModal";
-import { toast } from "sonner";
 
 const plans = [
   {
@@ -19,7 +16,6 @@ const plans = [
     price: 0,
     period: "/sempre",
     description: "Para começar sua jornada",
-    gradient: "from-slate-500 to-slate-700",
     popular: false,
     features: [
       { text: "5 ações de IA por dia", included: true, highlight: true },
@@ -48,7 +44,6 @@ const plans = [
     price: 49.99,
     period: "/mês",
     description: "Uso ilimitado para profissionais",
-    gradient: "from-blue-500 via-purple-500 to-pink-500",
     popular: true,
     features: [
       { text: "Ações de IA ILIMITADAS", included: true, highlight: true },
@@ -126,11 +121,7 @@ export default function Pricing() {
     }
   });
 
-
-
   const handleSelectPlan = (planId) => {
-    const plan = plans.find(p => p.id === planId);
-    
     if (planId === "free") {
       subscribeMutation.mutate(planId);
       return;
@@ -141,11 +132,12 @@ export default function Pricing() {
       return;
     }
 
+    const plan = plans.find(p => p.id === planId);
     setSelectedPlan(plan);
     setShowPaymentModal(true);
   };
 
-  const handlePaymentComplete = (paymentData) => {
+  const handlePaymentComplete = () => {
     subscribeMutation.mutate(selectedPlan.id);
     setShowPaymentModal(false);
   };
@@ -153,211 +145,153 @@ export default function Pricing() {
   const currentPlan = subscription?.plan || 'free';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-black py-12 px-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <motion.div
-            animate={{ 
-              scale: [1, 1.05, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="inline-block mb-6"
-          >
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
-              <Sparkles className="w-10 h-10 text-white" />
-            </div>
-          </motion.div>
+        <div className="text-center mb-16">
+          <div className="w-16 h-16 border border-neutral-800 rounded-lg flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
 
-          <h1 className="text-5xl md:text-6xl font-black mb-4">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Escolha Seu Plano
-            </span>
+          <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
+            Escolha Seu Plano
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-6">
+          <p className="text-lg text-neutral-500 max-w-xl mx-auto">
             Comece grátis com 5 ações por dia ou tenha acesso ilimitado por apenas R$ 49,99/mês
           </p>
-
-          {/* Payment Methods */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-600">
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-blue-600" />
-              <span>Cartão</span>
-            </div>
-            <div className="w-1 h-1 bg-slate-400 rounded-full" />
-            <div className="flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-green-600" />
-              <span>PIX</span>
-            </div>
-            <div className="w-1 h-1 bg-slate-400 rounded-full" />
-            <div className="flex items-center gap-2">
-              <Barcode className="w-4 h-4 text-orange-600" />
-              <span>Boleto</span>
-            </div>
-          </div>
-        </motion.div>
+        </div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
-          {plans.map((plan, index) => {
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
+          {plans.map((plan) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id;
 
             return (
-              <motion.div
+              <div
                 key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -8 }}
-                className={`relative bg-white rounded-3xl p-8 border-2 shadow-xl ${
+                className={`relative border rounded-lg p-8 transition-all ${
                   plan.popular 
-                    ? "border-purple-500 ring-4 ring-purple-200 md:scale-105" 
-                    : "border-slate-200"
+                    ? "border-white bg-neutral-900" 
+                    : "border-neutral-800 bg-black hover:border-neutral-700"
                 }`}
               >
                 {/* Popular Badge */}
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 text-sm font-bold shadow-lg">
-                      ⭐ MAIS POPULAR
-                    </Badge>
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-white text-black text-xs font-medium px-4 py-1 rounded-full">
+                      MAIS POPULAR
+                    </span>
                   </div>
                 )}
 
                 {/* Current Plan Badge */}
                 {isCurrentPlan && (
-                  <div className="absolute -top-4 right-4">
-                    <Badge className="bg-green-600 text-white px-4 py-1.5 text-xs font-bold shadow-lg">
-                      ✓ Plano Atual
-                    </Badge>
+                  <div className="absolute -top-3 right-4">
+                    <span className="bg-green-500/20 text-green-400 text-xs font-medium px-3 py-1 rounded-full border border-green-500/30">
+                      Plano Atual
+                    </span>
                   </div>
                 )}
 
                 {/* Icon */}
-                <div className={`w-20 h-20 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-lg mx-auto`}>
-                  <Icon className="w-10 h-10 text-white" />
+                <div className="w-12 h-12 border border-neutral-800 rounded-lg flex items-center justify-center mb-6">
+                  <Icon className="w-6 h-6 text-white" />
                 </div>
 
                 {/* Plan Info */}
-                <div className="text-center mb-6">
-                  <h3 className="text-3xl font-bold text-slate-900 mb-2">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-medium text-white mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-slate-600 mb-4">{plan.description}</p>
+                  <p className="text-neutral-500 mb-4">{plan.description}</p>
 
                   {/* Price */}
-                  <div className="mb-6">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-5xl font-black text-slate-900">
-                        R$ {plan.price.toFixed(2).replace('.', ',')}
-                      </span>
-                      <span className="text-slate-600 text-lg">{plan.period}</span>
-                    </div>
-                    {plan.price > 0 && (
-                      <p className="text-sm text-slate-500 mt-2">
-                        💳 Cartão, PIX ou Boleto
-                      </p>
-                    )}
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-light text-white">
+                      R$ {plan.price.toFixed(2).replace('.', ',')}
+                    </span>
+                    <span className="text-neutral-500">{plan.period}</span>
                   </div>
                 </div>
 
                 {/* CTA Button */}
                 <Button
-                    onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                    disabled={isCurrentPlan || subscribeMutation.isPending}
-                    className={`w-full py-7 text-lg font-bold rounded-xl ${
-                      isCurrentPlan
-                        ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                        : plan.id === "pro"
-                        ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg`
-                        : "bg-slate-900 hover:bg-slate-800 text-white"
-                    }`}
-                  >
-                    {isCurrentPlan ? (
-                      "✓ Plano Ativo"
-                    ) : (
-                      <>
-                        {plan.id === "pro" ? "Assinar Plano Pro" : "Começar Grátis"}
-                        <ArrowRight className="w-5 h-5 ml-2 inline" />
-                      </>
-                    )}
-                  </Button>
+                  onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                  disabled={isCurrentPlan || subscribeMutation.isPending}
+                  className={`w-full py-6 text-base font-medium rounded-lg mb-8 ${
+                    isCurrentPlan
+                      ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+                      : plan.popular
+                      ? "bg-white text-black hover:bg-gray-100"
+                      : "bg-neutral-900 text-white border border-neutral-800 hover:bg-neutral-800"
+                  }`}
+                >
+                  {isCurrentPlan ? (
+                    "Plano Ativo"
+                  ) : (
+                    <>
+                      {plan.id === "pro" ? "Assinar Pro" : "Começar Grátis"}
+                      <ArrowRight className="w-4 h-4 ml-2 inline" />
+                    </>
+                  )}
+                </Button>
 
                 {/* Features */}
                 <div className="space-y-3">
                   {plan.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
-                      <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 ${
+                      <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
                         feature.included 
-                          ? "bg-green-100" 
-                          : "bg-slate-100"
+                          ? "bg-white/10" 
+                          : "bg-neutral-900"
                       }`}>
                         {feature.included ? (
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="w-3 h-3 text-white" />
                         ) : (
-                          <X className="w-4 h-4 text-slate-400" />
+                          <X className="w-3 h-3 text-neutral-600" />
                         )}
                       </div>
                       <span className={`text-sm ${
                         feature.highlight && feature.included
-                          ? "font-bold text-slate-900"
+                          ? "font-medium text-white"
                           : feature.included 
-                          ? "text-slate-700" 
-                          : "text-slate-400 line-through"
+                          ? "text-neutral-400" 
+                          : "text-neutral-600 line-through"
                       }`}>
                         {feature.text}
                       </span>
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
 
         {/* Info Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
-        >
-          <div className="bg-white rounded-2xl p-6 border-2 border-blue-200 text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Pagamento Seguro</h3>
-            <p className="text-sm text-slate-600">
-              Processamento 100% seguro com criptografia SSL
+        <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+          <div className="border border-neutral-800 rounded-lg p-6 text-center bg-neutral-900">
+            <p className="font-medium text-white mb-1">Pagamento Seguro</p>
+            <p className="text-sm text-neutral-500">
+              Processamento 100% seguro
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border-2 border-green-200 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <QrCode className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">PIX Instantâneo</h3>
-            <p className="text-sm text-slate-600">
-              Aprovação imediata com pagamento via PIX
+          <div className="border border-neutral-800 rounded-lg p-6 text-center bg-neutral-900">
+            <p className="font-medium text-white mb-1">PIX Instantâneo</p>
+            <p className="text-sm text-neutral-500">
+              Aprovação imediata
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border-2 border-purple-200 text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Crown className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-bold text-slate-900 mb-2">Cancele Quando Quiser</h3>
-            <p className="text-sm text-slate-600">
-              Sem contratos ou taxas de cancelamento
+          <div className="border border-neutral-800 rounded-lg p-6 text-center bg-neutral-900">
+            <p className="font-medium text-white mb-1">Cancele Quando Quiser</p>
+            <p className="text-sm text-neutral-500">
+              Sem taxas ou contratos
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Payment Modal */}
