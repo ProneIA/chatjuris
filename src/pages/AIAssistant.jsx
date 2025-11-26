@@ -162,14 +162,23 @@ export default function AIAssistant({ theme = 'light' }) {
 
     try {
       const allMessages = [...tempMessages, userMessage];
-      const response = await base44.functions.invoke('chatgpt', {
-        messages: allMessages.map(m => ({ role: m.role, content: m.content })),
-        mode: 'assistant'
+      
+      const systemInstructions = `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
+Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
+Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
+
+      const conversationContext = allMessages
+        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
+        .join('\n\n');
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
+        add_context_from_internet: false
       });
 
       const assistantResponse = {
         role: "assistant",
-        content: response.data.content,
+        content: response,
         timestamp: new Date().toISOString()
       };
 
