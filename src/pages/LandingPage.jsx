@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Scale, 
   Sparkles, 
   FileText, 
   Users, 
-  Shield,
   ArrowRight,
   Check,
   BarChart3,
   Layers,
   Lock,
-  MessageCircle
+  MessageCircle,
+  Scale
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
@@ -125,27 +124,27 @@ export default function LandingPage() {
           >
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-tight mb-6">
               Direito Tradicional.<br />
-              <span className="font-semibold">Soluções Modernas.</span>
+              <span className="font-normal">Soluções Modernas.</span>
             </h1>
             
             {/* Underline */}
             <div className="w-24 h-1 bg-white mx-auto rounded-full mb-8" />
             
-            <p className="text-white/80 text-lg md:text-xl font-light max-w-2xl mx-auto mb-10">
+            <p className="text-white/80 text-lg md:text-xl font-extralight max-w-2xl mx-auto mb-10">
               Reduza 80% da burocracia com inteligência artificial especializada em Direito brasileiro.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={handleLogin}
-                className="px-8 py-3 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2"
+                className="px-8 py-3 text-sm font-light bg-white text-black rounded-md hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2"
               >
                 Começar grátis
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => document.getElementById('recursos').scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-3 text-sm font-medium border border-white/50 text-white rounded-md hover:bg-white/10 transition-all"
+                className="px-8 py-3 text-sm font-light border border-white/30 text-white rounded-md hover:bg-white/10 transition-all"
               >
                 Ver demonstração
               </button>
@@ -430,12 +429,7 @@ export default function LandingPage() {
       <footer className="border-t border-white/10 py-12 bg-black">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full border border-white/30 flex items-center justify-center">
-                <Scale className="w-3 h-3 text-white" />
-              </div>
-              <span className="text-sm font-light">Juris IA</span>
-            </div>
+            <span className="text-lg font-semibold text-white">Juris</span>
             
             <div className="flex items-center gap-8 text-xs text-gray-500 font-extralight">
               <a href="#" className="hover:text-white transition-colors">Termos</a>
