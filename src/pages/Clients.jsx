@@ -140,7 +140,7 @@ export default function Clients({ theme = 'light' }) {
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showForm ? (
             <PlanLimitGuard
               subscription={subscription}
