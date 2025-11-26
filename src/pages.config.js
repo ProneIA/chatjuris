@@ -39,7 +39,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "AIAssistant",
+    mainPage: "Templates",
     Pages: PAGES,
     Layout: __Layout,
 };
