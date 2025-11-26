@@ -98,43 +98,40 @@ export default function LandingPage() {
               Juris
             </span>
             
-            {/* Links de navegação centrais */}
             <div className="hidden md:flex items-center gap-8">
               <Link 
-                to={createPageUrl("AboutUs")} 
-                className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                to={createPageUrl("QuemSomos")}
+                className="text-sm text-white/80 hover:text-white transition-colors"
               >
                 Quem somos
               </Link>
               <Link 
-                to={createPageUrl("Features")} 
-                className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                to={createPageUrl("Funcionalidades")}
+                className="text-sm text-white/80 hover:text-white transition-colors"
               >
                 Funcionalidades
               </Link>
-              <Link 
-                to={createPageUrl("Contact")} 
-                className="text-white/80 hover:text-white text-sm font-medium transition-colors"
-              >
-                Contato
-              </Link>
-            </div>
-
-            {/* Botões de ação */}
-            <div className="flex items-center gap-3">
               <button 
                 onClick={handleLogin}
-                className="px-5 py-2 text-sm font-medium text-white hover:text-white/80 transition-all"
+                className="text-sm text-white/80 hover:text-white transition-colors"
               >
                 Entrar
               </button>
               <button 
                 onClick={handleLogin}
-                className="px-5 py-2.5 text-sm font-medium bg-amber-500 text-white rounded-md hover:bg-amber-400 transition-all"
+                className="px-6 py-2.5 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
               >
                 Teste grátis
               </button>
             </div>
+
+            {/* Mobile */}
+            <button 
+              onClick={handleLogin}
+              className="md:hidden px-6 py-2.5 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+            >
+              Entrar
+            </button>
           </nav>
 
           {/* Título centralizado */}

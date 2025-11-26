@@ -15,8 +15,8 @@ import Teams from './pages/Teams';
 import TeamWorkspace from './pages/TeamWorkspace';
 import PaymentSuccess from './pages/PaymentSuccess';
 import LandingPage from './pages/LandingPage';
-import AboutUs from './pages/AboutUs';
-import Features from './pages/Features';
+import QuemSomos from './pages/QuemSomos';
+import Funcionalidades from './pages/Funcionalidades';
 import __Layout from './Layout.jsx';
 
 
@@ -38,8 +38,8 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "PaymentSuccess": PaymentSuccess,
     "LandingPage": LandingPage,
-    "AboutUs": AboutUs,
-    "Features": Features,
+    "QuemSomos": QuemSomos,
+    "Funcionalidades": Funcionalidades,
 }
 
 export const pagesConfig = {
