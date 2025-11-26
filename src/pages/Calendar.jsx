@@ -8,7 +8,8 @@ import EventForm from "../components/calendar/EventForm";
 import CalendarSettings from "../components/calendar/CalendarSettings";
 import AIScheduler from "../components/calendar/AIScheduler";
 
-export default function Calendar() {
+export default function Calendar({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [showEventForm, setShowEventForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAIScheduler, setShowAIScheduler] = useState(false);
@@ -78,12 +79,12 @@ export default function Calendar() {
   });
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950">
-      <div className="bg-black border-b border-neutral-800 px-6 py-6">
+    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-light text-white">Calendário Inteligente</h1>
-            <p className="text-neutral-500 mt-1">
+            <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Calendário Inteligente</h1>
+            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
               Gerencie seus compromissos e prazos com IA
             </p>
           </div>
@@ -91,7 +92,7 @@ export default function Calendar() {
             <Button
               variant="outline"
               onClick={() => setShowSettings(true)}
-              className="border-neutral-800 text-white hover:bg-neutral-800"
+              className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
             >
               <Settings className="w-4 h-4 mr-2" />
               Configurações

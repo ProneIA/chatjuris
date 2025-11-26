@@ -7,7 +7,8 @@ import JurisprudenceSearch from "../components/jurisprudence/JurisprudenceSearch
 import JurisprudenceList from "../components/jurisprudence/JurisprudenceList";
 import JurisprudenceDetails from "../components/jurisprudence/JurisprudenceDetails";
 
-export default function Jurisprudence() {
+export default function Jurisprudence({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [showSearch, setShowSearch] = useState(true);
   const [selectedJurisprudence, setSelectedJurisprudence] = useState(null);
   const [filterCourt, setFilterCourt] = useState("all");
@@ -60,18 +61,18 @@ export default function Jurisprudence() {
   };
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950">
-      <div className="bg-black border-b border-neutral-800 px-6 py-6">
+    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-light text-white">Pesquisa de Jurisprudência</h1>
-            <p className="text-neutral-500 mt-1">
+            <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Pesquisa de Jurisprudência</h1>
+            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
               Busque decisões nos principais tribunais brasileiros com IA
             </p>
           </div>
           <Button
             onClick={() => setShowSearch(!showSearch)}
-            className="bg-white text-black hover:bg-gray-100"
+            className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
           >
             {showSearch ? (
               <>

@@ -84,14 +84,14 @@ export default function Clients({ theme = 'light' }) {
   const companyClients = clients.filter(c => c.type === 'company').length;
 
   return (
-    <div className="h-full flex">
+    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-neutral-800 px-6 py-6">
+        <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-light text-white">Clientes</h1>
-              <p className="text-neutral-500 mt-1">Gerencie seus clientes</p>
+              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Clientes</h1>
+              <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie seus clientes</p>
             </div>
             <Button
               onClick={() => {
@@ -99,7 +99,7 @@ export default function Clients({ theme = 'light' }) {
                 setEditingClient(null);
                 setSelectedClient(null);
               }}
-              className="bg-white text-black hover:bg-gray-100"
+              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Cliente
@@ -108,39 +108,39 @@ export default function Clients({ theme = 'light' }) {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500 mb-1">Total Ativos</p>
-              <p className="text-2xl font-light text-white">{activeClients}</p>
+            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-sm mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total Ativos</p>
+              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeClients}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <div className="flex items-center gap-2 text-neutral-500 mb-1">
+            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 <UserIcon className="w-4 h-4" />
                 <p className="text-sm">Pessoas Físicas</p>
               </div>
-              <p className="text-2xl font-light text-white">{individualClients}</p>
+              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{individualClients}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <div className="flex items-center gap-2 text-neutral-500 mb-1">
+            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 <Building2 className="w-4 h-4" />
                 <p className="text-sm">Pessoas Jurídicas</p>
               </div>
-              <p className="text-2xl font-light text-white">{companyClients}</p>
+              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{companyClients}</p>
             </div>
           </div>
 
           {/* Search */}
           <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
             <Input
               placeholder="Buscar por nome, email ou CPF/CNPJ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
+              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
+        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
           {showForm ? (
             <PlanLimitGuard
               subscription={subscription}

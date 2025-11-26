@@ -8,7 +8,8 @@ import TemplateList from "../components/templates/TemplateList";
 import TemplateForm from "../components/templates/TemplateForm";
 import TemplateDetails from "../components/templates/TemplateDetails";
 
-export default function Templates() {
+export default function Templates({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -75,13 +76,13 @@ export default function Templates() {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <div className="h-full flex">
+    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-neutral-800 px-6 py-6">
+        <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-light text-white">Templates</h1>
-              <p className="text-neutral-500 mt-1">Modelos de documentos jurídicos</p>
+              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Templates</h1>
+              <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Modelos de documentos jurídicos</p>
             </div>
             <Button
               onClick={() => {
@@ -89,7 +90,7 @@ export default function Templates() {
                 setEditingTemplate(null);
                 setSelectedTemplate(null);
               }}
-              className="bg-white text-black hover:bg-gray-100"
+              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Template

@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
-export default function Teams() {
+export default function Teams({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewTeamForm, setShowNewTeamForm] = useState(false);
@@ -111,14 +112,14 @@ export default function Teams() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-6">
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-light text-white">Equipes</h1>
-            <p className="text-neutral-500 mt-1">Gerencie equipes e colaboradores</p>
+            <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipes</h1>
+            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie equipes e colaboradores</p>
           </div>
-          <Button onClick={() => setShowNewTeamForm(true)} className="bg-white text-black hover:bg-gray-100">
+          <Button onClick={() => setShowNewTeamForm(true)} className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
             <Plus className="w-4 h-4 mr-2" />
             Nova Equipe
           </Button>

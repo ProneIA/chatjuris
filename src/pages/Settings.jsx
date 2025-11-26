@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { User, Bell, Palette, Keyboard, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function Settings() {
+export default function Settings({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -67,11 +68,11 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-6">
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-light text-white">Configurações</h1>
-          <p className="text-neutral-500 mt-1">Gerencie suas preferências e informações da conta</p>
+          <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Configurações</h1>
+          <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie suas preferências e informações da conta</p>
         </div>
 
         {/* Tabs */}

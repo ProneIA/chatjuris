@@ -67,7 +67,8 @@ const plans = [
   }
 ];
 
-export default function Pricing() {
+export default function Pricing({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
@@ -145,18 +146,18 @@ export default function Pricing() {
   const currentPlan = subscription?.plan || 'free';
 
   return (
-    <div className="min-h-screen bg-black py-12 px-4">
+    <div className={`min-h-screen py-12 px-4 ${isDark ? 'bg-black' : 'bg-gray-50'}`}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="w-16 h-16 border border-neutral-800 rounded-lg flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="w-8 h-8 text-white" />
+          <div className={`w-16 h-16 border rounded-lg flex items-center justify-center mx-auto mb-6 ${isDark ? 'border-neutral-800' : 'border-gray-200 bg-white'}`}>
+            <Sparkles className={`w-8 h-8 ${isDark ? 'text-white' : 'text-gray-900'}`} />
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-light text-white mb-4">
+          <h1 className={`text-4xl md:text-5xl font-light mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Escolha Seu Plano
           </h1>
-          <p className="text-lg text-neutral-500 max-w-xl mx-auto">
+          <p className={`text-lg max-w-xl mx-auto ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
             Comece grátis com 5 ações por dia ou tenha acesso ilimitado por apenas R$ 49,99/mês
           </p>
         </div>
