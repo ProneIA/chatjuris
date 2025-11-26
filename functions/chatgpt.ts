@@ -1,9 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import OpenAI from 'npm:openai';
-
-const openai = new OpenAI({
-    apiKey: Deno.env.get("OPENAI_API_KEY"),
-});
+import OpenAI from 'npm:openai@4.68.1';
 
 Deno.serve(async (req) => {
     try {
@@ -14,7 +10,18 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const apiKey = Deno.env.get("OPENAI_API_KEY");
+        if (!apiKey) {
+            return Response.json({ error: 'OpenAI API key not configured' }, { status: 500 });
+        }
+
+        const openai = new OpenAI({ apiKey });
+
         const { messages, mode } = await req.json();
+        
+        if (!messages || !Array.isArray(messages)) {
+            return Response.json({ error: 'Messages array is required' }, { status: 400 });
+        }
 
         const systemPrompts = {
             assistant: `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro. 
