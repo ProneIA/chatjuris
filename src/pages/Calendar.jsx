@@ -79,7 +79,7 @@ export default function Calendar({ theme = 'light' }) {
   });
 
   return (
-    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between mb-4">
           <div>

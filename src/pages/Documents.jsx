@@ -92,26 +92,26 @@ export default function Documents({ theme = 'light' }) {
   };
 
   return (
-    <div className="h-full flex">
+    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-black border-b border-neutral-800 px-6 py-4">
+        <div className={`border-b px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-light text-white">Documentos Jurídicos</h1>
-              <p className="text-neutral-500 text-sm mt-1">Gerencie seus documentos legais</p>
+              <h1 className={`text-xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Documentos Jurídicos</h1>
+              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie seus documentos legais</p>
             </div>
             <div className="flex gap-2">
               <Button
                 onClick={() => setShowHistory(true)}
                 variant="outline"
-                className="border-neutral-800 text-white hover:bg-neutral-800"
+                className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
               >
                 <Clock className="w-4 h-4 mr-2" />
                 Histórico
               </Button>
               <Button
                 onClick={() => setShowGenerator(true)}
-                className="bg-white text-black hover:bg-gray-100"
+                className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Gerar com IA
@@ -120,36 +120,36 @@ export default function Documents({ theme = 'light' }) {
           </div>
 
           <div className="grid grid-cols-4 gap-3 mb-3">
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Total</p>
-              <p className="text-xl font-light text-white mt-0.5">{stats.total}</p>
+            <div className={`border rounded-lg p-3 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total</p>
+              <p className={`text-xl font-light mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Rascunhos</p>
-              <p className="text-xl font-light text-white mt-0.5">{stats.draft}</p>
+            <div className={`border rounded-lg p-3 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Rascunhos</p>
+              <p className={`text-xl font-light mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.draft}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Em Revisão</p>
-              <p className="text-xl font-light text-white mt-0.5">{stats.review}</p>
+            <div className={`border rounded-lg p-3 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Em Revisão</p>
+              <p className={`text-xl font-light mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.review}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-3 bg-neutral-900">
-              <p className="text-xs text-neutral-500">Aprovados</p>
-              <p className="text-xl font-light text-white mt-0.5">{stats.approved}</p>
+            <div className={`border rounded-lg p-3 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Aprovados</p>
+              <p className={`text-xl font-light mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.approved}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
             <Input
               placeholder="Buscar documentos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
+              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
+        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showHistory ? (
             <DocumentHistory
               documents={documents}

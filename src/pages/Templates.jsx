@@ -98,31 +98,31 @@ export default function Templates({ theme = 'light' }) {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-              <p className="text-sm text-neutral-500">Total de Templates</p>
-              <p className="text-2xl font-light text-white mt-1">{templates.length}</p>
+            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total de Templates</p>
+              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{templates.length}</p>
             </div>
-            <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
+            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
               <div className="flex items-center gap-2 mb-1">
                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <p className="text-sm text-neutral-500">Favoritos</p>
+                <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Favoritos</p>
               </div>
-              <p className="text-2xl font-light text-white">{favoriteTemplates}</p>
+              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{favoriteTemplates}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
             <Input
               placeholder="Buscar templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
+              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
+        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showForm ? (
             <TemplateForm
               template={editingTemplate}
