@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Star } from "lucide-react";
@@ -76,14 +75,13 @@ export default function Templates() {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <ProGuard featureName="Templates Avançados">
-    <div className="h-full flex">
+    <div className="h-full flex bg-neutral-950 min-h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-6">
+        <div className="bg-black border-b border-gray-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Templates</h1>
-              <p className="text-slate-600 mt-1">Modelos de documentos jurídicos</p>
+              <h1 className="text-2xl font-light text-white">Templates</h1>
+              <p className="text-gray-500 mt-1">Modelos de documentos jurídicos</p>
             </div>
             <Button
               onClick={() => {
@@ -91,7 +89,7 @@ export default function Templates() {
                 setEditingTemplate(null);
                 setSelectedTemplate(null);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-white text-black hover:bg-gray-100"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Template
@@ -99,31 +97,31 @@ export default function Templates() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-              <p className="text-sm text-blue-600 font-medium">Total de Templates</p>
-              <p className="text-2xl font-bold text-blue-900 mt-1">{templates.length}</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Total de Templates</p>
+              <p className="text-2xl font-light text-white mt-1">{templates.length}</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
               <div className="flex items-center gap-2 mb-1">
-                <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-                <p className="text-sm text-yellow-600 font-medium">Favoritos</p>
+                <Star className="w-4 h-4 text-gray-400" />
+                <p className="text-sm text-gray-500 font-medium">Favoritos</p>
               </div>
-              <p className="text-2xl font-bold text-yellow-900">{favoriteTemplates}</p>
+              <p className="text-2xl font-light text-white">{favoriteTemplates}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               placeholder="Buscar templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
           {showForm ? (
             <TemplateForm
               template={editingTemplate}
@@ -160,6 +158,5 @@ export default function Templates() {
         />
       )}
     </div>
-    </ProGuard>
   );
 }

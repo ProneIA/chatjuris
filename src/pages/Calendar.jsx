@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus, Settings, RefreshCw } from "lucide-react";
 import CalendarView from "../components/calendar/CalendarView";
@@ -10,14 +9,6 @@ import CalendarSettings from "../components/calendar/CalendarSettings";
 import AIScheduler from "../components/calendar/AIScheduler";
 
 export default function Calendar() {
-  return (
-    <ProGuard featureName="Calendário Inteligente">
-      <CalendarContent />
-    </ProGuard>
-  );
-}
-
-function CalendarContent() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAIScheduler, setShowAIScheduler] = useState(false);
@@ -87,12 +78,12 @@ function CalendarContent() {
   });
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 py-6">
+    <div className="h-full flex flex-col bg-neutral-950 min-h-screen">
+      <div className="bg-black border-b border-gray-800 px-6 py-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Calendário Inteligente</h1>
-            <p className="text-slate-600 mt-1">
+            <h1 className="text-2xl font-light text-white">Calendário Inteligente</h1>
+            <p className="text-gray-500 mt-1">
               Gerencie seus compromissos e prazos com IA
             </p>
           </div>
@@ -100,6 +91,7 @@ function CalendarContent() {
             <Button
               variant="outline"
               onClick={() => setShowSettings(true)}
+              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
             >
               <Settings className="w-4 h-4 mr-2" />
               Configurações
@@ -107,7 +99,7 @@ function CalendarContent() {
             <Button
               variant="outline"
               onClick={() => setShowAIScheduler(true)}
-              className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200"
+              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
             >
               <CalendarIcon className="w-4 h-4 mr-2" />
               IA Agendar
@@ -117,7 +109,7 @@ function CalendarContent() {
                 setSelectedEvent(null);
                 setShowEventForm(true);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600"
+              className="bg-white text-black hover:bg-gray-100"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Evento
@@ -126,14 +118,14 @@ function CalendarContent() {
         </div>
 
         {!hasActiveConnection && (
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+          <div className="border border-gray-800 rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-yellow-600" />
+              <CalendarIcon className="w-5 h-5 text-gray-400" />
               <div className="flex-1">
-                <p className="font-medium text-yellow-900">
+                <p className="font-medium text-white">
                   Conecte seu calendário
                 </p>
-                <p className="text-sm text-yellow-700 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   Configure Google Calendar ou Outlook para sincronização automática
                 </p>
               </div>
@@ -141,7 +133,7 @@ function CalendarContent() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowSettings(true)}
-                className="border-yellow-300 hover:bg-yellow-100"
+                className="border-gray-700 text-gray-300 hover:bg-gray-800"
               >
                 Configurar
               </Button>
@@ -150,13 +142,13 @@ function CalendarContent() {
         )}
 
         <div className="grid grid-cols-4 gap-4 mt-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-            <p className="text-sm text-blue-600 font-medium">Hoje</p>
-            <p className="text-2xl font-bold text-blue-900 mt-1">{todayEvents.length}</p>
+          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+            <p className="text-sm text-gray-500 font-medium">Hoje</p>
+            <p className="text-2xl font-light text-white mt-1">{todayEvents.length}</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-            <p className="text-sm text-purple-600 font-medium">Esta Semana</p>
-            <p className="text-2xl font-bold text-purple-900 mt-1">
+          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+            <p className="text-sm text-gray-500 font-medium">Esta Semana</p>
+            <p className="text-2xl font-light text-white mt-1">
               {events.filter(e => {
                 const eventDate = new Date(e.start_time);
                 const weekFromNow = new Date();
@@ -165,20 +157,20 @@ function CalendarContent() {
               }).length}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-            <p className="text-sm text-green-600 font-medium">Prazos Urgentes</p>
-            <p className="text-2xl font-bold text-green-900 mt-1">
+          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+            <p className="text-sm text-gray-500 font-medium">Prazos Urgentes</p>
+            <p className="text-2xl font-light text-white mt-1">
               {events.filter(e => e.priority === 'urgent' && e.event_type === 'deadline').length}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-            <p className="text-sm text-orange-600 font-medium">Calendários</p>
-            <p className="text-2xl font-bold text-orange-900 mt-1">{connections.length}</p>
+          <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+            <p className="text-sm text-gray-500 font-medium">Calendários</p>
+            <p className="text-2xl font-light text-white mt-1">{connections.length}</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
         <CalendarView
           events={events}
           onEventClick={(event) => {

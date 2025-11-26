@@ -225,21 +225,21 @@ FORMATO DAS RESPOSTAS:
   };
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
+    <div className="h-screen flex bg-neutral-950 overflow-hidden">
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="border-b border-slate-200 bg-white px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className="border-b border-gray-800 bg-black px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
           <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 border border-gray-700 rounded-lg flex items-center justify-center shrink-0">
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </div>
             {selectedConversation ? (
               <div className="min-w-0">
-                <h2 className="font-semibold text-slate-900 text-xs sm:text-sm truncate">{selectedConversation.title}</h2>
+                <h2 className="font-medium text-white text-xs sm:text-sm truncate">{selectedConversation.title}</h2>
               </div>
             ) : (
-              <h2 className="font-semibold text-slate-900 text-sm sm:text-base">Assistente IA</h2>
+              <h2 className="font-medium text-white text-sm sm:text-base">Assistente IA</h2>
             )}
           </div>
 
@@ -248,10 +248,10 @@ FORMATO DAS RESPOSTAS:
               onClick={() => setShowLexiaAnalyzer(true)}
               size="sm"
               variant="outline"
-              className="h-8 sm:h-9 px-2 sm:px-3 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-300 hover:from-blue-100 hover:to-purple-100"
+              className="h-8 sm:h-9 px-2 sm:px-3 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
             >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2 text-purple-600" />
-              <span className="hidden sm:inline text-purple-700 font-medium">LEXIA Docs</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline font-medium">LEXIA Docs</span>
             </Button>
 
             {conversations.length > 0 && (
@@ -259,7 +259,7 @@ FORMATO DAS RESPOSTAS:
                 onClick={() => setShowHistoryDialog(true)}
                 size="sm"
                 variant="outline"
-                className="h-8 sm:h-9 px-2 sm:px-3"
+                className="h-8 sm:h-9 px-2 sm:px-3 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Histórico ({conversations.length})</span>
@@ -270,7 +270,7 @@ FORMATO DAS RESPOSTAS:
             <Button
               onClick={handleNewConversation}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white h-8 sm:h-9 px-2 sm:px-3"
+              className="bg-white text-black hover:bg-gray-100 h-8 sm:h-9 px-2 sm:px-3"
             >
               <MessageSquarePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">Nova Conversa</span>
@@ -280,7 +280,7 @@ FORMATO DAS RESPOSTAS:
               <Button
                 onClick={() => navigate(createPageUrl('Pricing'))}
                 size="sm"
-                className="hidden md:flex bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 text-white h-8 sm:h-9"
+                className="hidden md:flex bg-white text-black hover:bg-gray-100 h-8 sm:h-9"
               >
                 Upgrade Pro
               </Button>

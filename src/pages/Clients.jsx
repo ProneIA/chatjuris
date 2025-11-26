@@ -83,14 +83,14 @@ export default function Clients() {
   const companyClients = clients.filter(c => c.type === 'company').length;
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex bg-neutral-950 min-h-screen">
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-white border-b border-slate-200 px-6 py-6">
+        <div className="bg-black border-b border-gray-800 px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
-              <p className="text-slate-600 mt-1">Gerencie seus clientes</p>
+              <h1 className="text-2xl font-light text-white">Clientes</h1>
+              <p className="text-gray-500 mt-1">Gerencie seus clientes</p>
             </div>
             <Button
               onClick={() => {
@@ -98,7 +98,7 @@ export default function Clients() {
                 setEditingClient(null);
                 setSelectedClient(null);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-white text-black hover:bg-gray-100"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Cliente
@@ -107,39 +107,39 @@ export default function Clients() {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-              <p className="text-sm text-blue-600 font-medium">Total Ativos</p>
-              <p className="text-2xl font-bold text-blue-900 mt-1">{activeClients}</p>
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <p className="text-sm text-gray-500 font-medium">Total Ativos</p>
+              <p className="text-2xl font-light text-white mt-1">{activeClients}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-purple-600 mb-1">
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <UserIcon className="w-4 h-4" />
                 <p className="text-sm font-medium">Pessoas Físicas</p>
               </div>
-              <p className="text-2xl font-bold text-purple-900">{individualClients}</p>
+              <p className="text-2xl font-light text-white">{individualClients}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-green-600 mb-1">
+            <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
+              <div className="flex items-center gap-2 text-gray-500 mb-1">
                 <Building2 className="w-4 h-4" />
                 <p className="text-sm font-medium">Pessoas Jurídicas</p>
               </div>
-              <p className="text-2xl font-bold text-green-900">{companyClients}</p>
+              <p className="text-2xl font-light text-white">{companyClients}</p>
             </div>
           </div>
 
           {/* Search */}
           <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               placeholder="Buscar por nome, email ou CPF/CNPJ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-neutral-950">
           {showForm ? (
             <PlanLimitGuard
               subscription={subscription}
