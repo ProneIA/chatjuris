@@ -90,14 +90,14 @@ export default function Layout({ children, currentPageName }) {
       }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-950">
       <KeyboardShortcuts />
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-50">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-gray-800 z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 hover:bg-slate-100 rounded-lg"
+            className="p-2 hover:bg-gray-800 rounded-lg text-white"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -106,19 +106,16 @@ export default function Layout({ children, currentPageName }) {
             to={createPageUrl("Dashboard")} 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Scale className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-slate-900">Juris IA</span>
+            <span className="font-semibold text-white text-xl tracking-tight">Juris</span>
           </Link>
 
           <div className="flex items-center gap-2">
             {user && <NotificationPanel user={user} />}
             <Link
               to={createPageUrl("AIAssistant")}
-              className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition-opacity"
+              className="p-2 bg-white text-black rounded-lg hover:bg-gray-100 transition-all"
             >
-              <Sparkles className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -133,19 +130,19 @@ export default function Layout({ children, currentPageName }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden fixed inset-0 bg-black/50 z-40"
+              className="lg:hidden fixed inset-0 bg-black/70 z-40"
             />
             <motion.aside
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", damping: 30 }}
-              className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-white border-r border-slate-200 z-40 overflow-y-auto"
+              className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-black border-r border-gray-800 z-40 overflow-y-auto"
             >
               <nav className="p-4 space-y-6">
                 {navigationSections.map((section) => (
                   <div key={section.label}>
-                    <p className="text-xs font-semibold text-slate-500 uppercase mb-2 px-2">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2 px-2">
                       {section.label}
                     </p>
                     <div className="space-y-1">
@@ -156,8 +153,8 @@ export default function Layout({ children, currentPageName }) {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
                             location.pathname === item.url
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-slate-700 hover:bg-slate-100'
+                              ? 'bg-white text-black font-medium'
+                              : 'text-gray-400 hover:bg-gray-900 hover:text-white'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -165,7 +162,7 @@ export default function Layout({ children, currentPageName }) {
                             <span>{item.title}</span>
                           </div>
                           {item.proBadge && (
-                            <Crown className="w-4 h-4 text-amber-500" />
+                            <Crown className="w-4 h-4 text-gray-500" />
                           )}
                         </Link>
                       ))}
@@ -173,10 +170,10 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                 ))}
 
-                <div className="pt-4 border-t border-slate-200">
+                <div className="pt-4 border-t border-gray-800">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
                     <span>Sair</span>
@@ -189,26 +186,18 @@ export default function Layout({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-slate-200 overflow-y-auto">
+      <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-black border-r border-gray-800 overflow-y-auto">
         <Link 
           to={createPageUrl("Dashboard")} 
-          className="block p-6 border-b border-slate-200 hover:bg-slate-50 transition-colors"
+          className="block p-6 border-b border-gray-800 hover:bg-gray-900 transition-colors"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <Scale className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-900">Juris IA</h2>
-              <p className="text-xs text-slate-500">Gestão Jurídica</p>
-            </div>
-          </div>
+          <span className="text-2xl font-semibold text-white tracking-tight">Juris</span>
         </Link>
 
         <nav className="p-4 space-y-6">
           {navigationSections.map((section) => (
             <div key={section.label}>
-              <p className="text-xs font-semibold text-slate-500 uppercase mb-2 px-2">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2 px-2">
                 {section.label}
               </p>
               <div className="space-y-1">
@@ -218,8 +207,8 @@ export default function Layout({ children, currentPageName }) {
                     to={item.url}
                     className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors ${
                       location.pathname === item.url
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-slate-700 hover:bg-slate-100'
+                        ? 'bg-white text-black font-medium'
+                        : 'text-gray-400 hover:bg-gray-900 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -227,7 +216,7 @@ export default function Layout({ children, currentPageName }) {
                       <span className="text-sm">{item.title}</span>
                     </div>
                     {item.proBadge && (
-                      <Crown className="w-3 h-3 text-amber-500" />
+                      <Crown className="w-3 h-3 text-gray-500" />
                     )}
                   </Link>
                 ))}
@@ -236,23 +225,23 @@ export default function Layout({ children, currentPageName }) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-200 mt-auto">
+        <div className="p-4 border-t border-gray-800 mt-auto">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
+            <div className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center border border-gray-700">
+              <span className="text-white font-medium text-sm">
                 {user?.full_name?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-slate-900 text-sm truncate">
+              <p className="font-medium text-white text-sm truncate">
                 {user?.full_name || 'Usuário'}
               </p>
-              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sair
@@ -261,7 +250,7 @@ export default function Layout({ children, currentPageName }) {
       </aside>
 
       {/* Main Content */}
-      <main className={`min-h-screen ${isOnAIPage ? '' : 'pt-16 lg:pt-0 lg:pl-64'}`}>
+      <main className={`min-h-screen bg-neutral-950 ${isOnAIPage ? '' : 'pt-16 lg:pt-0 lg:pl-64'}`}>
         {children}
       </main>
     </div>
