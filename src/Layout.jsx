@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
     }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <KeyboardShortcuts />
       
       {/* Custom Scrollbar */}
@@ -117,23 +117,23 @@ export default function Layout({ children, currentPageName }) {
           width: 6px;
         }
         ::-webkit-scrollbar-track {
-          background: #0a0a0a;
+          background: ${isDark ? '#0a0a0a' : '#f1f5f9'};
         }
         ::-webkit-scrollbar-thumb {
-          background: #333;
+          background: ${isDark ? '#333' : '#cbd5e1'};
           border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-          background: #444;
+          background: ${isDark ? '#444' : '#94a3b8'};
         }
       `}</style>
 
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-black border-b border-neutral-800 z-50">
+      <header className={`lg:hidden fixed top-0 left-0 right-0 h-16 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'} border-b z-50`}>
         <div className="h-full px-4 flex items-center justify-between">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 hover:bg-neutral-800 rounded-lg text-white"
+            className={`p-2 rounded-lg ${isDark ? 'hover:bg-neutral-800 text-white' : 'hover:bg-gray-100 text-gray-900'}`}
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -142,16 +142,24 @@ export default function Layout({ children, currentPageName }) {
             to={createPageUrl("Dashboard")} 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <span className="text-xl font-semibold text-white tracking-tight">Juris</span>
+            <span className={`text-xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Juris</span>
           </Link>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className={isDark ? 'text-white hover:bg-neutral-800' : 'text-gray-600 hover:bg-gray-100'}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
             {user && <NotificationPanel user={user} />}
             <Link
               to={createPageUrl("AIAssistant")}
-              className="p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors"
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white hover:bg-gray-100' : 'bg-gray-900 hover:bg-gray-800'}`}
             >
-              <Sparkles className="w-5 h-5 text-black" />
+              <Sparkles className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
             </Link>
           </div>
         </div>
@@ -166,19 +174,19 @@ export default function Layout({ children, currentPageName }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="lg:hidden fixed inset-0 bg-black/70 z-40"
+              className={`lg:hidden fixed inset-0 ${isDark ? 'bg-black/70' : 'bg-black/50'} z-40`}
             />
             <motion.aside
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", damping: 30 }}
-              className="lg:hidden fixed top-16 left-0 bottom-0 w-72 bg-black border-r border-neutral-800 z-40 overflow-y-auto"
+              className={`lg:hidden fixed top-16 left-0 bottom-0 w-72 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'} border-r z-40 overflow-y-auto`}
             >
               <nav className="p-4 space-y-6">
                 {navigationSections.map((section) => (
                   <div key={section.label}>
-                    <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3 px-3">
+                    <p className={`text-xs font-medium uppercase tracking-wider mb-3 px-3 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                       {section.label}
                     </p>
                     <div className="space-y-1">
@@ -189,8 +197,8 @@ export default function Layout({ children, currentPageName }) {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                             location.pathname === item.url
-                              ? 'bg-white text-black font-medium'
-                              : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                              ? isDark ? 'bg-white text-black font-medium' : 'bg-gray-900 text-white font-medium'
+                              : isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -198,7 +206,7 @@ export default function Layout({ children, currentPageName }) {
                             <span>{item.title}</span>
                           </div>
                           {item.proBadge && (
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-neutral-800 text-neutral-400 rounded">PRO</span>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-500'}`}>PRO</span>
                           )}
                         </Link>
                       ))}
@@ -206,10 +214,10 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                 ))}
 
-                <div className="pt-4 border-t border-neutral-800">
+                <div className={`pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors"
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
                     <LogOut className="w-5 h-5" />
                     <span>Sair</span>
@@ -222,18 +230,28 @@ export default function Layout({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-black border-r border-neutral-800 overflow-y-auto">
-        <Link 
-          to={createPageUrl("Dashboard")} 
-          className="block p-6 border-b border-neutral-800 hover:bg-neutral-900 transition-colors"
-        >
-          <span className="text-2xl font-semibold text-white tracking-tight">Juris</span>
-        </Link>
+      <aside className={`hidden lg:block fixed top-0 left-0 bottom-0 w-64 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'} border-r overflow-y-auto`}>
+        <div className={`p-6 border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'} flex items-center justify-between`}>
+          <Link 
+            to={createPageUrl("Dashboard")} 
+            className="hover:opacity-80 transition-opacity"
+          >
+            <span className={`text-2xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Juris</span>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className={isDark ? 'text-white hover:bg-neutral-800' : 'text-gray-600 hover:bg-gray-100'}
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+        </div>
 
         <nav className="p-4 space-y-6">
           {navigationSections.map((section) => (
             <div key={section.label}>
-              <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3 px-3">
+              <p className={`text-xs font-medium uppercase tracking-wider mb-3 px-3 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 {section.label}
               </p>
               <div className="space-y-1">
@@ -243,8 +261,8 @@ export default function Layout({ children, currentPageName }) {
                     to={item.url}
                     className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                       location.pathname === item.url
-                        ? 'bg-white text-black font-medium'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                        ? isDark ? 'bg-white text-black font-medium' : 'bg-gray-900 text-white font-medium'
+                        : isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -252,7 +270,7 @@ export default function Layout({ children, currentPageName }) {
                       <span className="text-sm">{item.title}</span>
                     </div>
                     {item.proBadge && (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 bg-neutral-800 text-neutral-400 rounded">PRO</span>
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-500'}`}>PRO</span>
                     )}
                   </Link>
                 ))}
@@ -261,23 +279,23 @@ export default function Layout({ children, currentPageName }) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-neutral-800 mt-auto">
+        <div className={`p-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} mt-auto`}>
           <div className="flex items-center gap-3 px-3 mb-4">
-            <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center">
-              <span className="text-black font-semibold text-sm">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${isDark ? 'bg-white' : 'bg-gray-900'}`}>
+              <span className={`font-semibold text-sm ${isDark ? 'text-black' : 'text-white'}`}>
                 {user?.full_name?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-white text-sm truncate">
+              <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {user?.full_name || 'Usuário'}
               </p>
-              <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
+              <p className={`text-xs truncate ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{user?.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors"
+            className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg transition-colors ${isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`}
           >
             <LogOut className="w-4 h-4" />
             Sair
@@ -287,8 +305,8 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className={`min-h-screen ${isOnAIPage ? '' : 'pt-16 lg:pt-0 lg:pl-64'}`}>
-        <div className="min-h-screen bg-neutral-950">
-          {children}
+        <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+          {React.cloneElement(children, { theme })}
         </div>
       </main>
     </div>
