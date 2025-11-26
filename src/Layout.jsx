@@ -82,12 +82,12 @@ export default function Layout({ children, currentPageName }) {
     };
 
     const isOnAIPage = location.pathname === createPageUrl("AIAssistant");
-    const isLandingPage = currentPageName === "LandingPage";
+      const isLandingPage = currentPageName === "LandingPage";
 
-    // Landing page renders without layout
-    if (isLandingPage) {
-      return <>{children}</>;
-    }
+      // Landing page renders without layout (full screen)
+      if (isLandingPage) {
+        return <>{children}</>;
+      }
 
   return (
     <div className="min-h-screen bg-slate-50">
