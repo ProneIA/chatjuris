@@ -68,7 +68,7 @@ export default function Settings({ theme = 'light' }) {
   ];
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Configurações</h1>

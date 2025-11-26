@@ -146,7 +146,7 @@ export default function Pricing({ theme = 'light' }) {
   const currentPlan = subscription?.plan || 'free';
 
   return (
-    <div className={`min-h-screen py-12 px-4 ${isDark ? 'bg-black' : 'bg-gray-50'}`}
+    <div className={`min-h-screen py-12 px-4 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
