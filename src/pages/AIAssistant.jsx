@@ -162,14 +162,15 @@ export default function AIAssistant({ theme = 'light' }) {
     try {
       const allMessages = [...tempMessages, userMessage];
       
-      // Se há documento anexado, usa prompt LEXIA
-      const hasDocument = uploadedFile?.url;
-      
+      const hasDocument = messageContent.includes('[DOCUMENTO ANEXADO:');
+      const fileUrl = hasDocument ? messageContent.match(/URL do arquivo: (.*?)\n/)?.[1] : null;
+
       const systemInstructions = hasDocument 
-        ? `Você é LEXIA, uma inteligência artificial jurídica avançada. Seu foco principal é o Direito brasileiro.
-Analise o documento anexado e responda às perguntas do usuário sobre ele.
-Seja profissional, técnico e objetivo. Use Português do Brasil.
-Priorize Constituição Federal, Leis federais, Códigos e jurisprudência dos Tribunais Superiores.`
+        ? `Você é LEXIA, um especialista em análise de documentos jurídicos brasileiros.
+MISSÃO: Analisar documentos legais de forma completa e profissional.
+FORMATO: Use Markdown com títulos, listas e destaques para organizar a análise.
+INCLUA: Resumo executivo, pontos importantes, riscos identificados, cláusulas relevantes e sugestões de melhoria.
+Responda sempre em português brasileiro.`
         : `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
 Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
 Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
@@ -178,17 +179,11 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
         .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
         .join('\n\n');
 
-      const llmParams = {
+      const response = await base44.integrations.Core.InvokeLLM({
         prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
-        add_context_from_internet: false
-      };
-
-      // Adiciona arquivo se existir
-      if (hasDocument) {
-        llmParams.file_urls = [uploadedFile.url];
-      }
-
-      const response = await base44.integrations.Core.InvokeLLM(llmParams);
+        add_context_from_internet: false,
+        file_urls: fileUrl ? [fileUrl] : undefined
+      });
 
       const assistantResponse = {
         role: "assistant",
