@@ -74,10 +74,27 @@ export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+    const [theme, setTheme] = React.useState(() => {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('juris-theme') || 'light';
+      }
+      return 'light';
+    });
 
     React.useEffect(() => {
       base44.auth.me().then(setUser).catch(() => {});
     }, []);
+
+    React.useEffect(() => {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('juris-theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+      setTheme(theme === 'light' ? 'dark' : 'light');
+    };
+
+    const isDark = theme === 'dark';
 
     const handleLogout = () => {
       base44.auth.logout();
