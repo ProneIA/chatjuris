@@ -161,34 +161,15 @@ export default function AIAssistant({ theme = 'light' }) {
     setIsProcessing(true);
 
     try {
-      const systemInstructions = `Você é um assistente jurídico especializado em direito brasileiro.
-
-REGRAS DE COMPORTAMENTO:
-- Considere todo o histórico de mensagens como parte da mesma conversa contínua
-- Nunca peça para mudar de aba, página, link ou interface
-- Dê respostas que façam sentido com base nas mensagens anteriores, mantendo contexto e coerência
-- A conversa pode seguir indefinidamente, mensagem após mensagem
-- Se precisar retomar algo já falado, faça um resumo breve
-
-FORMATO DAS RESPOSTAS:
-- Responda em texto simples usando Markdown (títulos, listas, blocos de código)
-- Use parágrafos curtos e listas quando útil
-- Não sugira criar novas janelas, abas, telas ou sessões
-- Tom natural, claro e objetivo em português do Brasil
-- A resposta será exibida diretamente na mesma tela de conversa`;
-
-      const conversationContext = tempMessages
-        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
-        .join('\n\n');
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nUsuário: ${messageContent}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
-        add_context_from_internet: false
+      const allMessages = [...tempMessages, userMessage];
+      const response = await base44.functions.invoke('chatgpt', {
+        messages: allMessages.map(m => ({ role: m.role, content: m.content })),
+        mode: 'assistant'
       });
 
       const assistantResponse = {
         role: "assistant",
-        content: response,
+        content: response.data.content,
         timestamp: new Date().toISOString()
       };
 
