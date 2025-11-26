@@ -18,12 +18,15 @@ import {
   X,
   Settings,
   Crown,
-  Users2
+  Users2,
+  Moon,
+  Sun
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
 import NotificationPanel from "@/components/collaboration/NotificationPanel";
+import { Button } from "@/components/ui/button";
 
 const navigationSections = [
   {
