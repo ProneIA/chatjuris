@@ -9,7 +9,8 @@ import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
-export default function Clients() {
+export default function Clients({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);

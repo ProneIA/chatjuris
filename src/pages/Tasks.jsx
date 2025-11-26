@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, CheckSquare, Calendar } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Search, CheckSquare, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export default function Tasks() {
+export default function Tasks({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
@@ -48,55 +46,41 @@ export default function Tasks() {
     return 'upcoming';
   };
 
-  const priorityColors = {
-    low: "bg-blue-100 text-blue-800",
-    medium: "bg-yellow-100 text-yellow-800",
-    high: "bg-orange-100 text-orange-800",
-    urgent: "bg-red-100 text-red-800"
-  };
-
-  const statusColors = {
-    pending: "bg-slate-100 text-slate-800",
-    in_progress: "bg-purple-100 text-purple-800",
-    completed: "bg-green-100 text-green-800",
-    cancelled: "bg-slate-100 text-slate-800"
-  };
-
   return (
-    <div className="p-6 md:p-8 space-y-6 bg-neutral-950 min-h-screen">
+    <div className="p-6 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-light text-white">Tarefas e Prazos</h1>
-          <p className="text-gray-500 mt-1">Gerencie suas tarefas e compromissos</p>
+          <p className="text-neutral-500 mt-1">Gerencie suas tarefas e compromissos</p>
         </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-          <p className="text-sm text-gray-500 font-medium">Pendentes</p>
+        <div className="border border-neutral-800 rounded-lg p-4 bg-black">
+          <p className="text-sm text-neutral-500">Pendentes</p>
           <p className="text-2xl font-light text-white mt-1">{pendingTasks.length}</p>
         </div>
-        <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-          <p className="text-sm text-gray-500 font-medium">Atrasadas</p>
+        <div className="border border-neutral-800 rounded-lg p-4 bg-black">
+          <p className="text-sm text-red-400">Atrasadas</p>
           <p className="text-2xl font-light text-white mt-1">{overdueTasks.length}</p>
         </div>
-        <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-          <p className="text-sm text-gray-500 font-medium">Concluídas</p>
+        <div className="border border-neutral-800 rounded-lg p-4 bg-black">
+          <p className="text-sm text-green-400">Concluídas</p>
           <p className="text-2xl font-light text-white mt-1">{completedTasks.length}</p>
         </div>
-        <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-600 transition-colors">
-          <p className="text-sm text-gray-500 font-medium">Total</p>
+        <div className="border border-neutral-800 rounded-lg p-4 bg-black">
+          <p className="text-sm text-neutral-500">Total</p>
           <p className="text-2xl font-light text-white mt-1">{tasks.length}</p>
         </div>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
         <Input
           placeholder="Buscar tarefas..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-gray-900 border-gray-800 text-white placeholder:text-gray-500"
+          className="pl-10 bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
         />
       </div>
 
@@ -104,24 +88,24 @@ export default function Tasks() {
         <h2 className="text-lg font-medium text-white">Tarefas Pendentes</h2>
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-xl bg-gray-800" />)}
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-xl bg-neutral-800" />)}
           </div>
         ) : pendingTasks.length === 0 ? (
-          <Card className="p-8 text-center bg-black border-gray-800">
-            <CheckSquare className="w-12 h-12 mx-auto text-gray-700 mb-3" />
-            <p className="text-gray-500">Nenhuma tarefa pendente</p>
-          </Card>
+          <div className="border border-neutral-800 rounded-lg p-8 text-center bg-black">
+            <CheckSquare className="w-12 h-12 mx-auto text-neutral-700 mb-3" />
+            <p className="text-neutral-500">Nenhuma tarefa pendente</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {pendingTasks.map(task => {
               const urgency = getTaskUrgency(task);
               return (
-                <Card 
+                <div 
                   key={task.id} 
-                  className={`p-4 bg-black border-gray-800 hover:border-gray-600 transition-all ${
-                    urgency === 'overdue' ? 'border-l-4 border-l-red-500' :
-                    urgency === 'today' ? 'border-l-4 border-l-orange-500' :
-                    urgency === 'tomorrow' ? 'border-l-4 border-l-yellow-500' : ''
+                  className={`p-4 border border-neutral-800 rounded-lg bg-black hover:border-neutral-700 transition-all ${
+                    urgency === 'overdue' ? 'border-l-2 border-l-red-500' :
+                    urgency === 'today' ? 'border-l-2 border-l-orange-500' :
+                    urgency === 'tomorrow' ? 'border-l-2 border-l-yellow-500' : ''
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -135,20 +119,20 @@ export default function Tasks() {
                             data: { ...task, status: e.target.checked ? 'completed' : 'pending' }
                           });
                         }}
-                        className="mt-1 w-5 h-5 rounded border-gray-700 bg-gray-900"
+                        className="mt-1 w-5 h-5 rounded border-neutral-700 bg-neutral-900"
                       />
                       <div className="flex-1">
                         <h3 className="font-medium text-white mb-1">{task.title}</h3>
                         {task.description && (
-                          <p className="text-sm text-gray-400 mb-2">{task.description}</p>
+                          <p className="text-sm text-neutral-500 mb-2">{task.description}</p>
                         )}
                         <div className="flex items-center gap-3 text-sm">
                           {task.due_date && (
                             <div className={`flex items-center gap-1 ${
-                              urgency === 'overdue' ? 'text-red-400 font-medium' :
-                              urgency === 'today' ? 'text-orange-400 font-medium' :
-                              urgency === 'tomorrow' ? 'text-yellow-400 font-medium' :
-                              'text-gray-400'
+                              urgency === 'overdue' ? 'text-red-400' :
+                              urgency === 'today' ? 'text-orange-400' :
+                              urgency === 'tomorrow' ? 'text-yellow-400' :
+                              'text-neutral-500'
                             }`}>
                               <Calendar className="w-4 h-4" />
                               {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
@@ -158,31 +142,36 @@ export default function Tasks() {
                             </div>
                           )}
                           {task.assigned_to && (
-                            <span className="text-gray-500">• {task.assigned_to}</span>
+                            <span className="text-neutral-600">• {task.assigned_to}</span>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge className="bg-gray-800 text-gray-300 border border-gray-700">
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        task.priority === 'urgent' ? 'bg-red-500/10 text-red-400' :
+                        task.priority === 'high' ? 'bg-orange-500/10 text-orange-400' :
+                        task.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
+                        'bg-neutral-800 text-neutral-400'
+                      }`}>
                         {task.priority === 'urgent' && 'Urgente'}
                         {task.priority === 'high' && 'Alta'}
                         {task.priority === 'medium' && 'Média'}
                         {task.priority === 'low' && 'Baixa'}
-                      </Badge>
+                      </span>
                       {task.type && (
-                        <Badge variant="outline" className="text-xs border-gray-700 text-gray-400">
+                        <span className="text-xs px-2 py-1 rounded border border-neutral-800 text-neutral-500">
                           {task.type === 'hearing' && 'Audiência'}
                           {task.type === 'deadline' && 'Prazo'}
                           {task.type === 'meeting' && 'Reunião'}
                           {task.type === 'document' && 'Documento'}
                           {task.type === 'research' && 'Pesquisa'}
                           {task.type === 'other' && 'Outro'}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
@@ -194,19 +183,19 @@ export default function Tasks() {
           <h2 className="text-lg font-medium text-white">Tarefas Concluídas</h2>
           <div className="space-y-3 opacity-60">
             {completedTasks.slice(0, 5).map(task => (
-              <Card key={task.id} className="p-4 bg-black border-gray-800">
+              <div key={task.id} className="p-4 border border-neutral-800 rounded-lg bg-black">
                 <div className="flex items-start gap-3">
                   <CheckSquare className="w-5 h-5 text-green-500 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-400 line-through">{task.title}</h3>
+                    <h3 className="font-medium text-neutral-400 line-through">{task.title}</h3>
                     {task.due_date && (
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-neutral-600 mt-1">
                         Concluída em {format(new Date(task.updated_date), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
                     )}
                   </div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
