@@ -10,7 +10,6 @@ import { createPageUrl } from "@/utils";
 import ChatInterface from "../components/ai/ChatInterface";
 import WelcomeScreen from "../components/ai/WelcomeScreen";
 import ConversationHistoryDialog from "../components/ai/ConversationHistoryDialog";
-import LexiaDocumentAnalyzer from "../components/ai/LexiaDocumentAnalyzer";
 
 const shouldResetDaily = (subscription) => {
   if (!subscription || !subscription.last_reset_date) return true;
@@ -25,7 +24,7 @@ export default function AIAssistant({ theme = 'light' }) {
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [tempMessages, setTempMessages] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showLexiaAnalyzer, setShowLexiaAnalyzer] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -230,16 +229,6 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <Button
-              onClick={() => setShowLexiaAnalyzer(true)}
-              size="sm"
-              variant="outline"
-              className={`h-8 sm:h-9 px-2 sm:px-3 ${isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-              <span className="hidden sm:inline">LEXIA Docs</span>
-            </Button>
-
             {conversations.length > 0 && (
               <Button
                 onClick={() => setShowHistoryDialog(true)}
@@ -277,9 +266,7 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
         {/* Chat Area */}
         <div className={`flex-1 overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           <AnimatePresence mode="wait">
-            {showLexiaAnalyzer ? (
-              <LexiaDocumentAnalyzer onClose={() => setShowLexiaAnalyzer(false)} />
-            ) : selectedConversation ? (
+            {selectedConversation ? (
               <ChatInterface
                 conversation={selectedConversation}
                 onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
@@ -293,6 +280,8 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
                 messages={tempMessages}
                 isProcessing={isProcessing}
                 onOpenHistory={() => setShowHistoryDialog(true)}
+                uploadedFile={uploadedFile}
+                onFileUpload={setUploadedFile}
               />
             )}
           </AnimatePresence>
