@@ -90,65 +90,28 @@ export default function LandingPage() {
       <section 
         className="relative min-h-screen flex flex-col"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')`,
+          backgroundImage: `url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/0f8c5f3e3_image.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
         }}
       >
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60 z-0" />
+        <div className="absolute inset-0 bg-black/40 z-0" />
 
         {/* Navigation */}
         <nav className="relative z-10 w-full px-6 md:px-12 py-6">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center">
-                <Scale className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-light tracking-tight">Juris IA</span>
-            </div>
+            <span className="text-2xl font-semibold tracking-tight text-white">Juris</span>
 
-            {/* Menu Central */}
-            <div className="hidden md:flex items-center gap-10">
-              <a href="#sobre" className="text-white/80 hover:text-white transition-colors text-sm font-light">
-                Quem somos
-              </a>
-              <a href="#recursos" className="text-white/80 hover:text-white transition-colors text-sm font-light">
-                Recursos
-              </a>
-              <a href="#precos" className="text-white/80 hover:text-white transition-colors text-sm font-light">
-                Preços
-              </a>
-              <Link to={createPageUrl("Contact")} className="text-white/80 hover:text-white transition-colors text-sm font-light">
-                Contato
-              </Link>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleLogin}
-                className="px-5 py-2 text-sm font-light text-white border border-white/30 rounded-md hover:bg-white/10 transition-all"
-              >
-                Entrar
-              </button>
-              {isAuthenticated ? (
-                <Link to={createPageUrl("Dashboard")}>
-                  <button className="px-5 py-2 text-sm font-light bg-white/90 text-black rounded-md hover:bg-white transition-all">
-                    Dashboard
-                  </button>
-                </Link>
-              ) : (
-                <button 
-                  onClick={handleLogin}
-                  className="px-5 py-2 text-sm font-light bg-white/90 text-black rounded-md hover:bg-white transition-all"
-                >
-                  Participe agora
-                </button>
-              )}
-            </div>
+            {/* Action Button */}
+            <button 
+              onClick={handleLogin}
+              className="px-6 py-2.5 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+            >
+              Entrar
+            </button>
           </div>
         </nav>
 
@@ -161,28 +124,28 @@ export default function LandingPage() {
             className="text-center"
           >
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-tight mb-6">
-              Assuma o controle<br />
-              <span className="font-normal">da sua advocacia</span>
+              Direito Tradicional.<br />
+              <span className="font-semibold">Soluções Modernas.</span>
             </h1>
             
             {/* Underline */}
             <div className="w-24 h-1 bg-white mx-auto rounded-full mb-8" />
             
-            <p className="text-white/70 text-lg md:text-xl font-extralight max-w-2xl mx-auto mb-10">
+            <p className="text-white/80 text-lg md:text-xl font-light max-w-2xl mx-auto mb-10">
               Reduza 80% da burocracia com inteligência artificial especializada em Direito brasileiro.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={handleLogin}
-                className="px-8 py-3 text-sm font-light bg-white text-black rounded-md hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2"
+                className="px-8 py-3 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all inline-flex items-center justify-center gap-2"
               >
                 Começar grátis
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => document.getElementById('recursos').scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-3 text-sm font-light border border-white/30 text-white rounded-md hover:bg-white/10 transition-all"
+                className="px-8 py-3 text-sm font-medium border border-white/50 text-white rounded-md hover:bg-white/10 transition-all"
               >
                 Ver demonstração
               </button>
