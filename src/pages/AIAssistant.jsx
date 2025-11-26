@@ -18,7 +18,8 @@ const shouldResetDaily = (subscription) => {
   return subscription.last_reset_date !== today;
 };
 
-export default function AIAssistant() {
+export default function AIAssistant({ theme = 'light' }) {
+  const isDark = theme === 'dark';
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [user, setUser] = useState(null);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
@@ -220,21 +221,21 @@ FORMATO DAS RESPOSTAS:
   };
 
   return (
-    <div className="h-screen flex bg-black overflow-hidden">
+    <div className={`h-screen flex overflow-hidden ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="border-b border-neutral-800 bg-black px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0">
+        <div className={`border-b px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0 ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'}`}>
           <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 ${isDark ? 'bg-white' : 'bg-gray-900'}`}>
+              <Sparkles className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isDark ? 'text-black' : 'text-white'}`} />
             </div>
             {selectedConversation ? (
               <div className="min-w-0">
-                <h2 className="font-medium text-white text-xs sm:text-sm truncate">{selectedConversation.title}</h2>
+                <h2 className={`font-medium text-xs sm:text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedConversation.title}</h2>
               </div>
             ) : (
-              <h2 className="font-medium text-white text-sm sm:text-base">Assistente IA</h2>
+              <h2 className={`font-medium text-sm sm:text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>Assistente IA</h2>
             )}
           </div>
 
@@ -243,7 +244,7 @@ FORMATO DAS RESPOSTAS:
               onClick={() => setShowLexiaAnalyzer(true)}
               size="sm"
               variant="outline"
-              className="h-8 sm:h-9 px-2 sm:px-3 border-neutral-800 text-white hover:bg-neutral-800"
+              className={`h-8 sm:h-9 px-2 sm:px-3 ${isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
             >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">LEXIA Docs</span>
@@ -254,7 +255,7 @@ FORMATO DAS RESPOSTAS:
                 onClick={() => setShowHistoryDialog(true)}
                 size="sm"
                 variant="outline"
-                className="h-8 sm:h-9 px-2 sm:px-3 border-neutral-800 text-white hover:bg-neutral-800"
+                className={`h-8 sm:h-9 px-2 sm:px-3 ${isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}
               >
                 <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Histórico ({conversations.length})</span>
@@ -265,7 +266,7 @@ FORMATO DAS RESPOSTAS:
             <Button
               onClick={handleNewConversation}
               size="sm"
-              className="bg-white text-black hover:bg-gray-100 h-8 sm:h-9 px-2 sm:px-3"
+              className={`h-8 sm:h-9 px-2 sm:px-3 ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
             >
               <MessageSquarePlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">Nova Conversa</span>
@@ -275,7 +276,7 @@ FORMATO DAS RESPOSTAS:
               <Button
                 onClick={() => navigate(createPageUrl('Pricing'))}
                 size="sm"
-                className="hidden md:flex bg-white text-black hover:bg-gray-100 h-8 sm:h-9"
+                className={`hidden md:flex h-8 sm:h-9 ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}
               >
                 Upgrade Pro
               </Button>
@@ -284,7 +285,7 @@ FORMATO DAS RESPOSTAS:
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-hidden bg-neutral-950">
+        <div className={`flex-1 overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           <AnimatePresence mode="wait">
             {showLexiaAnalyzer ? (
               <LexiaDocumentAnalyzer onClose={() => setShowLexiaAnalyzer(false)} />
