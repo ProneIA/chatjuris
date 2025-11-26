@@ -97,11 +97,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8">
+    <div className="p-6 md:p-8 space-y-8 bg-neutral-950 min-h-screen">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1>
-        <p className="text-slate-600">Visão geral do escritório</p>
+        <h1 className="text-3xl font-light text-white mb-2">Dashboard</h1>
+        <p className="text-gray-500">Visão geral do escritório</p>
       </div>
 
       {/* Stats Grid */}
@@ -110,21 +110,21 @@ export default function Dashboard() {
           const Icon = stat.icon;
           return (
             <Link key={index} to={stat.link}>
-              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border-none bg-white overflow-hidden group">
+              <Card className="hover:border-gray-600 transition-all duration-300 cursor-pointer border border-gray-800 bg-black overflow-hidden group">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-slate-600">
+                    <CardTitle className="text-sm font-medium text-gray-500">
                       {stat.title}
                     </CardTitle>
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                    <div className="w-10 h-10 rounded-lg border border-gray-700 flex items-center justify-center group-hover:border-white transition-colors">
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-slate-900">
+                  <div className="text-3xl font-light text-white">
                     {loadingClients || loadingCases || loadingTasks || loadingDocuments ? (
-                      <Skeleton className="h-9 w-16" />
+                      <Skeleton className="h-9 w-16 bg-gray-800" />
                     ) : (
                       stat.value
                     )}
@@ -138,39 +138,39 @@ export default function Dashboard() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Upcoming Tasks */}
-        <Card className="border-none shadow-lg">
-          <CardHeader className="border-b border-slate-100">
+        <Card className="border border-gray-800 bg-black">
+          <CardHeader className="border-b border-gray-800">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold">Próximas Tarefas</CardTitle>
+              <CardTitle className="text-lg font-medium text-white">Próximas Tarefas</CardTitle>
               <Link to={createPageUrl("Tasks")}>
-                <Button variant="ghost" size="sm">Ver todas</Button>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">Ver todas</Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent className="p-6">
             {loadingTasks ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-gray-800" />)}
               </div>
             ) : upcomingTasks.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <CheckSquare className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <div className="text-center py-8 text-gray-500">
+                <CheckSquare className="w-12 h-12 mx-auto mb-3 text-gray-700" />
                 <p>Nenhuma tarefa pendente</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {upcomingTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
+                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{task.title}</p>
+                      <p className="font-medium text-white truncate">{task.title}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Calendar className="w-3 h-3 text-slate-400" />
-                        <span className="text-xs text-slate-500">
+                        <Calendar className="w-3 h-3 text-gray-500" />
+                        <span className="text-xs text-gray-500">
                           {task.due_date && format(new Date(task.due_date), "dd 'de' MMM", { locale: ptBR })}
                         </span>
                       </div>
                     </div>
-                    <Badge className={priorityColors[task.priority]}>
+                    <Badge className="bg-gray-800 text-gray-300 border border-gray-700">
                       {task.priority}
                     </Badge>
                   </div>
@@ -181,34 +181,34 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Cases */}
-        <Card className="border-none shadow-lg">
-          <CardHeader className="border-b border-slate-100">
+        <Card className="border border-gray-800 bg-black">
+          <CardHeader className="border-b border-gray-800">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold">Processos Recentes</CardTitle>
+              <CardTitle className="text-lg font-medium text-white">Processos Recentes</CardTitle>
               <Link to={createPageUrl("Cases")}>
-                <Button variant="ghost" size="sm">Ver todos</Button>
+                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white hover:bg-gray-800">Ver todos</Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent className="p-6">
             {loadingCases ? (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full bg-gray-800" />)}
               </div>
             ) : recentCases.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <div className="text-center py-8 text-gray-500">
+                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-gray-700" />
                 <p>Nenhum processo cadastrado</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {recentCases.map(caseItem => (
-                  <div key={caseItem.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors">
+                  <div key={caseItem.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-gray-600 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{caseItem.title}</p>
-                      <p className="text-xs text-slate-500 mt-1">{caseItem.client_name}</p>
+                      <p className="font-medium text-white truncate">{caseItem.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">{caseItem.client_name}</p>
                     </div>
-                    <Badge className={statusColors[caseItem.status]}>
+                    <Badge className="bg-gray-800 text-gray-300 border border-gray-700">
                       {caseItem.status}
                     </Badge>
                   </div>
