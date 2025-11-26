@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, MessageSquare, Scale, FileText, Search, Send, Loader2, Paperclip, X, Upload } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { toast } from "sonner";
 import MessageBubble from "./MessageBubble";
 
 const suggestedPrompts = [
@@ -31,44 +30,13 @@ const suggestedPrompts = [
 
 export default function WelcomeScreen({ onSendMessage, userName, messages = [], isProcessing = false, onOpenHistory, uploadedFile, onFileUpload }) {
   const [input, setInput] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const textareaRef = useRef(null);
-  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
   const greeting = userName ? `Olá, ${userName.split(' ')[0]}!` : 'Olá!';
   const currentHour = new Date().getHours();
   const timeGreeting = currentHour < 12 ? 'Bom dia' : currentHour < 18 ? 'Boa tarde' : 'Boa noite';
-
-  const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'image/png', 'image/jpeg'];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Formato inválido. Use PDF, DOCX, PNG ou JPG.");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. Máximo 10MB.");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onFileUpload({ url: file_url, name: file.name, type: file.type });
-      toast.success("Arquivo anexado! Envie uma mensagem para analisá-lo.");
-    } catch (error) {
-      console.error("Erro ao fazer upload:", error);
-      toast.error("Erro ao carregar arquivo.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    onFileUpload(null);
-  };
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -81,10 +49,31 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      onFileUpload({ url: file_url, name: file.name, type: file.type });
+    } catch (error) {
+      alert("Erro ao fazer upload do arquivo.");
+    }
+    setUploadingFile(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    onSendMessage(input);
+    if (!input.trim() && !uploadedFile) return;
+    
+    let messageContent = input;
+    if (uploadedFile) {
+      messageContent = `[DOCUMENTO ANEXADO: ${uploadedFile.name}]\n\nURL do arquivo: ${uploadedFile.url}\n\n${input || "Por favor, analise este documento jurídico e forneça um resumo detalhado, identificando pontos importantes, riscos e sugestões."}`;
+      onFileUpload(null);
+    }
+    
+    onSendMessage(messageContent);
     setInput("");
   };
 
@@ -167,52 +156,50 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
       {/* Input Area */}
       <div className="max-w-3xl mx-auto px-4 py-4">
-        {/* Arquivo anexado */}
         {uploadedFile && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3"
+            className="mb-3 p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center gap-3"
           >
-            <FileText className="w-5 h-5 text-blue-600 shrink-0" />
+            <FileText className="w-5 h-5 text-purple-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-blue-900 truncate">{uploadedFile.name}</p>
-              <p className="text-xs text-blue-600">Pronto para análise LEXIA</p>
+              <p className="text-sm font-medium text-purple-900 truncate">{uploadedFile.name}</p>
+              <p className="text-xs text-purple-600">Documento pronto para análise</p>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleRemoveFile}
-              className="shrink-0 h-8 w-8 hover:bg-blue-100"
+              onClick={() => onFileUpload(null)}
+              className="shrink-0 h-8 w-8 hover:bg-purple-100"
             >
-              <X className="w-4 h-4 text-blue-600" />
+              <X className="w-4 h-4 text-purple-600" />
             </Button>
           </motion.div>
         )}
 
         <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-            {/* Botão de anexar arquivo */}
             <input
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-              onChange={handleFileSelect}
+              accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"
+              onChange={handleFileUpload}
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || isProcessing}
+              disabled={uploadingFile || isProcessing}
               className="shrink-0 hover:bg-slate-200 h-9 w-9 sm:h-10 sm:w-10"
-              title="Anexar documento para análise LEXIA"
+              title="Anexar documento para análise (LEXIA)"
             >
-              {isUploading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-slate-600" />
+              {uploadingFile ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
               ) : (
-                <Paperclip className="w-5 h-5 text-slate-600" />
+                <Paperclip className="w-5 h-5 text-slate-500" />
               )}
             </Button>
 
@@ -220,7 +207,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={uploadedFile ? "Pergunte algo sobre o documento..." : "Envie uma mensagem..."}
+              placeholder={uploadedFile ? "Adicione instruções para análise do documento..." : "Envie uma mensagem..."}
               className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
               rows={1}
               disabled={isProcessing}
@@ -234,7 +221,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
             <Button
               type="submit"
-              disabled={!input.trim() || isProcessing}
+              disabled={(!input.trim() && !uploadedFile) || isProcessing}
               size="icon"
               className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
             >
@@ -243,7 +230,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
           </div>
 
           <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
-            📎 Anexe documentos para análise LEXIA • Enter para enviar
+            Pressione Enter para enviar • Shift+Enter para nova linha • 📎 Anexar documento para análise
           </p>
         </form>
       </div>
