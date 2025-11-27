@@ -7,11 +7,53 @@ import { base44 } from "@/api/base44Client";
 
 export default function QuemSomos() {
   const handleLogin = () => {
-    base44.auth.redirectToLogin();
+    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Header */}
+      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between bg-white border-b border-gray-100">
+        <Link to={createPageUrl("LandingPage")} className="text-2xl font-semibold text-gray-900 tracking-tight">
+          Juris
+        </Link>
+        
+        <div className="hidden md:flex items-center gap-8">
+          <Link 
+            to={createPageUrl("QuemSomos")}
+            className="text-sm text-gray-900 font-medium"
+          >
+            Quem somos
+          </Link>
+          <Link 
+            to={createPageUrl("Funcionalidades")}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Funcionalidades
+          </Link>
+          <button 
+            onClick={handleLogin}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Entrar
+          </button>
+          <button 
+            onClick={handleLogin}
+            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-all"
+          >
+            Teste grátis
+          </button>
+        </div>
+
+        {/* Mobile */}
+        <button 
+          onClick={handleLogin}
+          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-all"
+        >
+          Entrar
+        </button>
+      </nav>
+
       {/* Hero */}
       <section className="pt-16 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
