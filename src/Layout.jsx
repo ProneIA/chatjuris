@@ -42,13 +42,14 @@ const navigationSections = [
     items: [
       { title: "Clientes", url: createPageUrl("Clients"), icon: Users },
       { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
-      { title: "Documentos", url: createPageUrl("Documents"), icon: FileText },
+      { title: "Documentos", url: createPageUrl("DocumentManager"), icon: FileText },
       { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
     ]
   },
   {
     label: "Colaboração",
     items: [
+      { title: "Portal do Cliente", url: createPageUrl("ClientPortal"), icon: Users, proBadge: true },
       { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
       { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
     ]
@@ -56,6 +57,7 @@ const navigationSections = [
   {
     label: "Recursos",
     items: [
+      { title: "Pesquisa IA", url: createPageUrl("LegalResearch"), icon: BookOpen, proBadge: true },
       { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
       { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
       { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
