@@ -103,11 +103,13 @@ export default function Layout({ children, currentPageName }) {
     };
 
     const isOnAIPage = location.pathname === createPageUrl("AIAssistant");
-    const isLandingPage = currentPageName === "LandingPage";
+          const isLandingPage = currentPageName === "LandingPage";
+          const isQuemSomos = currentPageName === "QuemSomos";
+          const isFuncionalidades = currentPageName === "Funcionalidades";
 
-    if (isLandingPage) {
-      return <>{children}</>;
-    }
+          if (isLandingPage || isQuemSomos || isFuncionalidades) {
+            return <>{children}</>;
+          }
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
