@@ -34,6 +34,7 @@ const navigationSections = [
     items: [
       { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
       { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
+      { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
       { title: "Assinar Pro", url: createPageUrl("Pricing"), icon: Crown },
     ]
   },
@@ -41,15 +42,15 @@ const navigationSections = [
     label: "Gestão",
     items: [
       { title: "Clientes", url: createPageUrl("Clients"), icon: Users },
+      { title: "Portal do Cliente", url: createPageUrl("ClientPortal"), icon: Users2 },
       { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
-      { title: "Documentos", url: createPageUrl("DocumentManager"), icon: FileText },
+      { title: "Documentos", url: createPageUrl("DocumentsEnhanced"), icon: FileText },
       { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
     ]
   },
   {
     label: "Colaboração",
     items: [
-      { title: "Portal do Cliente", url: createPageUrl("ClientPortal"), icon: Users, proBadge: true },
       { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
       { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
     ]
@@ -57,7 +58,6 @@ const navigationSections = [
   {
     label: "Recursos",
     items: [
-      { title: "Pesquisa IA", url: createPageUrl("LegalResearch"), icon: BookOpen, proBadge: true },
       { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
       { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
       { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
