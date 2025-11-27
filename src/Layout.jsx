@@ -56,13 +56,19 @@ const navigationSections = [
     ]
   },
   {
-    label: "Recursos",
-    items: [
-      { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
-      { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
-      { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
-    ]
-  },
+      label: "Ferramentas",
+      items: [
+        { title: "Calculadora Jurídica", url: createPageUrl("LegalCalculator"), icon: Scale },
+      ]
+    },
+    {
+      label: "Recursos",
+      items: [
+        { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
+        { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
+        { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
+      ]
+    },
   {
     label: "Configurações",
     items: [

@@ -20,6 +20,7 @@ import Funcionalidades from './pages/Funcionalidades';
 import ClientPortal from './pages/ClientPortal';
 import DocumentsEnhanced from './pages/DocumentsEnhanced';
 import LegalResearchAI from './pages/LegalResearchAI';
+import LegalCalculator from './pages/LegalCalculator';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "ClientPortal": ClientPortal,
     "DocumentsEnhanced": DocumentsEnhanced,
     "LegalResearchAI": LegalResearchAI,
+    "LegalCalculator": LegalCalculator,
 }
 
 export const pagesConfig = {
