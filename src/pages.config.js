@@ -17,6 +17,9 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import LandingPage from './pages/LandingPage';
 import QuemSomos from './pages/QuemSomos';
 import Funcionalidades from './pages/Funcionalidades';
+import ClientPortal from './pages/ClientPortal';
+import LegalResearch from './pages/LegalResearch';
+import DocumentManager from './pages/DocumentManager';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +43,9 @@ export const PAGES = {
     "LandingPage": LandingPage,
     "QuemSomos": QuemSomos,
     "Funcionalidades": Funcionalidades,
+    "ClientPortal": ClientPortal,
+    "LegalResearch": LegalResearch,
+    "DocumentManager": DocumentManager,
 }
 
 export const pagesConfig = {
