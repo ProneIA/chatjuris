@@ -220,35 +220,30 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
   };
 
   return (
-    <div className={`h-screen flex overflow-hidden ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className="h-screen flex overflow-hidden bg-white">
       {/* Main Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className={`border-b px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4 flex-shrink-0 ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'}`}>
-          <div className="flex-1 flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 bg-black">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+        <div className="border-b px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 flex-shrink-0 border-gray-200 bg-white">
+          <div className="flex-1 flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-black">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            {selectedConversation ? (
-              <div className="min-w-0">
-                <h2 className="font-medium text-xs sm:text-sm truncate text-black">{selectedConversation.title}</h2>
-              </div>
-            ) : (
-              <h2 className="font-medium text-sm sm:text-base text-black">Assistente IA</h2>
-            )}
+            <h2 className="font-semibold text-base sm:text-lg text-black">
+              {selectedConversation ? selectedConversation.title : 'Assistente Jurídico'}
+            </h2>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {conversations.length > 0 && (
               <Button
                 onClick={() => setShowHistoryDialog(true)}
                 size="sm"
                 variant="outline"
-                className="h-8 sm:h-9 px-2 sm:px-3 border-gray-200 text-gray-700 hover:bg-gray-100"
+                className="h-9 px-3 border-gray-300 text-gray-700 hover:bg-gray-100"
               >
-                <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Histórico ({conversations.length})</span>
-                <span className="sm:hidden">({conversations.length})</span>
+                <History className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Histórico</span>
               </Button>
             )}
 
@@ -256,7 +251,8 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
               <Button
                 onClick={() => navigate(createPageUrl('Pricing'))}
                 size="sm"
-                className="h-8 sm:h-9 bg-black text-white hover:bg-gray-800"
+                variant="outline"
+                className="hidden md:flex h-9 border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 Upgrade Pro
               </Button>
@@ -265,7 +261,7 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
         </div>
 
         {/* Chat Area */}
-        <div className={`flex-1 overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div className="flex-1 overflow-hidden bg-white">
           <AnimatePresence mode="wait">
             {selectedConversation ? (
               <ChatInterface
