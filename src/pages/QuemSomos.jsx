@@ -12,33 +12,8 @@ export default function QuemSomos() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-            <Scale className="w-7 h-7 text-gray-900" />
-            <span className="text-xl font-semibold text-gray-900">Juris</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to={createPageUrl("QuemSomos")} className="text-sm font-medium text-gray-900">
-              Quem somos
-            </Link>
-            <Link to={createPageUrl("Funcionalidades")} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Funcionalidades
-            </Link>
-            <button onClick={handleLogin} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Entrar
-            </button>
-            <Button onClick={handleLogin} className="bg-gray-900 text-white hover:bg-gray-800">
-              Teste grátis
-            </Button>
-          </nav>
-        </div>
-      </header>
-
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-16 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-6">
             Transformando a advocacia com inteligência artificial
