@@ -54,7 +54,7 @@ const gestaoItems = [
 
 const ferramentasItems = [
   { title: "Calculadora Jurídica", url: createPageUrl("LegalCalculator"), icon: Calculator },
-  { title: "Monitor de Diários", url: createPageUrl("DiarioMonitor"), icon: Newspaper, badge: "IA" },
+  { title: "Monitor de Diários", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
   { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
   { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
   { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
@@ -157,6 +157,11 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 {item.proBadge && (
                   <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${isDark ? 'bg-neutral-700 text-neutral-400' : 'bg-gray-200 text-gray-500'}`}>PRO</span>
+                )}
+                {item.badge && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
+                    {item.badge}
+                  </span>
                 )}
               </Link>
             </DropdownMenuItem>
