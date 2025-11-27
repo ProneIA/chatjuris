@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Scale, FileText, Search, Send, Loader2, Paperclip, X, Upload } from "lucide-react";
+import { Scale, FileText, Send, Loader2, Paperclip, X } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 
 const suggestedPrompts = [
