@@ -81,7 +81,7 @@ export default function Dashboard({ theme = 'light' }) {
     <div className="p-6 md:p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className={`text-3xl font-light mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dashboard</h1>
+        <h1 className={`text-3xl font-light mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Painel</h1>
         <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>Visão geral do escritório</p>
       </div>
 

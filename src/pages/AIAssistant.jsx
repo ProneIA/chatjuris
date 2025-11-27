@@ -254,7 +254,7 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
                 variant="outline"
                 className="hidden md:flex h-9 border-gray-300 text-gray-700 hover:bg-gray-100"
               >
-                Upgrade Pro
+                Assinar Pro
               </Button>
             )}
           </div>

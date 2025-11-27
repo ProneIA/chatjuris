@@ -32,7 +32,7 @@ const navigationSections = [
   {
     label: "Principal",
     items: [
-      { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
+      { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
       { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
       { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
       { title: "Assinar Pro", url: createPageUrl("Pricing"), icon: Crown },
@@ -52,7 +52,7 @@ const navigationSections = [
     label: "Colaboração",
     items: [
       { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
-      { title: "Workspace", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
+      { title: "Área de Trabalho", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
     ]
   },
   {
