@@ -68,9 +68,9 @@ export default function LegalResearchAI({ theme = 'light' }) {
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
-  const [yearMin, setYearMin] = useState("");
-  const [yearMax, setYearMax] = useState("");
-  const [sortPreference, setSortPreference] = useState("relevante");
+  const [minYear, setMinYear] = useState("");
+  const [maxYear, setMaxYear] = useState("");
+  const [sortOrder, setSortOrder] = useState("relevant");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -120,15 +120,15 @@ export default function LegalResearchAI({ theme = 'light' }) {
       const typeLabel = researchTypes.find(t => t.id === researchType)?.label || "Geral";
       const areaLabel = areas.find(a => a.id === area)?.label || "Geral";
 
-      const yearFilter = yearMin || yearMax 
-        ? `\nFiltro de período: ${yearMin ? `a partir de ${yearMin}` : ''}${yearMin && yearMax ? ' até ' : ''}${yearMax ? `até ${yearMax}` : ''}`
+      const yearFilter = minYear || maxYear 
+        ? `\nPeríodo: ${minYear ? `a partir de ${minYear}` : ''}${minYear && maxYear ? ' até ' : ''}${maxYear ? `até ${maxYear}` : ''}`
         : '';
       
-      const sortInstruction = sortPreference === 'recente' 
-        ? '\nPRIORIDADE: Dê preferência para jurisprudências e decisões mais recentes, ordenando da mais nova para a mais antiga.'
-        : sortPreference === 'antigo'
-        ? '\nPRIORIDADE: Dê preferência para jurisprudências e decisões mais antigas e consolidadas, ordenando da mais antiga para a mais nova.'
-        : '\nPRIORIDADE: Ordene os resultados por relevância e importância para o tema pesquisado.';
+      const sortInstruction = sortOrder === 'recent' 
+        ? '\n\nPRIORIDADE: Dê preferência às decisões e legislações mais RECENTES, ordenando os resultados do mais novo para o mais antigo.'
+        : sortOrder === 'oldest'
+        ? '\n\nPRIORIDADE: Dê preferência às decisões e legislações mais ANTIGAS, apresentando a evolução histórica do tema.'
+        : '\n\nPRIORIDADE: Ordene os resultados por RELEVÂNCIA jurídica, priorizando decisões de tribunais superiores e legislação vigente.';
 
       const prompt = `Você é um especialista em pesquisa jurídica brasileira. 
       
@@ -256,49 +256,49 @@ Formate a resposta em Markdown para melhor visualização.`;
                   ))}
                 </select>
 
-                {/* Year Filters */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Year Range */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                       Ano Mínimo
                     </label>
                     <Input
                       type="number"
                       placeholder="Ex: 2015"
-                      value={yearMin}
-                      onChange={(e) => setYearMin(e.target.value)}
+                      value={minYear}
+                      onChange={(e) => setMinYear(e.target.value)}
                       min="1900"
                       max={new Date().getFullYear()}
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                       Ano Máximo
                     </label>
                     <Input
                       type="number"
                       placeholder="Ex: 2024"
-                      value={yearMax}
-                      onChange={(e) => setYearMax(e.target.value)}
+                      value={maxYear}
+                      onChange={(e) => setMaxYear(e.target.value)}
                       min="1900"
                       max={new Date().getFullYear()}
                     />
                   </div>
                 </div>
 
-                {/* Sort Preference */}
+                {/* Sort Order */}
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                    Ordenar resultados por
+                  <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    Ordenar por
                   </label>
                   <select
-                    value={sortPreference}
-                    onChange={(e) => setSortPreference(e.target.value)}
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
                     className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
                   >
-                    <option value="relevante">Mais Relevantes</option>
-                    <option value="recente">Mais Recentes</option>
-                    <option value="antigo">Mais Antigos</option>
+                    <option value="relevant">Mais Relevantes</option>
+                    <option value="recent">Mais Recentes</option>
+                    <option value="oldest">Mais Antigos</option>
                   </select>
                 </div>
 
