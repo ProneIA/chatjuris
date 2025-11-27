@@ -84,7 +84,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
   const showWelcome = messages.length === 0;
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-gray-50">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
@@ -155,7 +155,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
       </div>
 
       {/* Input Area */}
-      <div className="max-w-3xl mx-auto px-4 py-4">
+      <div className="max-w-3xl mx-auto px-4 py-6">
         {uploadedFile && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -179,7 +179,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
         )}
 
         <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-end gap-1.5 sm:gap-2 bg-slate-100 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+          <div className="flex items-end gap-2 bg-white rounded-2xl p-3 shadow-lg border border-gray-200 focus-within:ring-2 focus-within:ring-gray-300 focus-within:border-gray-300 transition-all">
             <input
               ref={fileInputRef}
               type="file"
@@ -193,13 +193,13 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingFile || isProcessing}
-              className="shrink-0 hover:bg-slate-200 h-9 w-9 sm:h-10 sm:w-10"
+              className="shrink-0 hover:bg-gray-100 h-10 w-10 rounded-xl"
               title="Anexar documento para análise (LEXIA)"
             >
               {uploadingFile ? (
-                <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
               ) : (
-                <Paperclip className="w-5 h-5 text-slate-500" />
+                <Paperclip className="w-5 h-5 text-gray-400" />
               )}
             </Button>
 
@@ -207,8 +207,8 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={uploadedFile ? "Adicione instruções para análise do documento..." : "Envie uma mensagem..."}
-              className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 sm:py-3 max-h-32 sm:max-h-48 text-sm sm:text-base text-slate-900 placeholder:text-slate-500"
+              placeholder={uploadedFile ? "Adicione instruções para análise do documento..." : "Como posso ajudar você hoje?"}
+              className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 max-h-48 text-base text-gray-900 placeholder:text-gray-400"
               rows={1}
               disabled={isProcessing}
               onKeyDown={(e) => {
@@ -223,16 +223,12 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
               type="submit"
               disabled={(!input.trim() && !uploadedFile) || isProcessing}
               size="icon"
-              className="shrink-0 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 rounded-lg sm:rounded-xl h-9 w-9 sm:h-10 sm:w-10"
+              className="shrink-0 bg-black hover:bg-gray-800 disabled:bg-gray-200 rounded-xl h-10 w-10"
             >
-              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Send className="w-5 h-5" />
             </Button>
-          </div>
-
-          <p className="text-xs text-slate-500 text-center mt-2 hidden sm:block">
-            Pressione Enter para enviar • Shift+Enter para nova linha • 📎 Anexar documento para análise
-          </p>
-        </form>
+            </div>
+            </form>
       </div>
 
     </div>
