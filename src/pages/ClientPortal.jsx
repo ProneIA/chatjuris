@@ -3,43 +3,59 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Users, 
-  Send, 
-  Plus, 
-  Eye,
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Users,
+  Plus,
+  Search,
   Mail,
-  Key,
+  Eye,
   Copy,
-  Check,
+  ExternalLink,
   MessageSquare,
   FileText,
-  Calendar,
-  Search,
+  Bell,
+  Settings,
   MoreVertical,
-  Trash2,
+  Send,
+  Paperclip,
+  Check,
+  X,
   RefreshCw
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 export default function ClientPortal({ theme = 'light' }) {
   const isDark = theme === 'dark';
-  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [selectedClient, setSelectedClient] = useState(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [copiedToken, setCopiedToken] = useState(null);
-  const [newAccess, setNewAccess] = useState({ client_id: "", cases: [] });
+  const [selectedPortal, setSelectedPortal] = useState(null);
+  const [newMessage, setNewMessage] = useState("");
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  const { data: portals = [] } = useQuery({
+    queryKey: ['client-portals'],
+    queryFn: () => base44.entities.ClientPortalAccess.list('-created_date'),
+  });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
@@ -51,83 +67,77 @@ export default function ClientPortal({ theme = 'light' }) {
     queryFn: () => base44.entities.Case.list(),
   });
 
-  const { data: portalAccesses = [] } = useQuery({
-    queryKey: ['portal-accesses'],
-    queryFn: () => base44.entities.ClientPortalAccess.list(),
-  });
-
   const { data: messages = [] } = useQuery({
-    queryKey: ['client-messages', selectedClient?.client_id],
-    queryFn: () => base44.entities.ClientMessage.filter({ client_id: selectedClient?.client_id }, '-created_date'),
-    enabled: !!selectedClient,
+    queryKey: ['client-messages', selectedPortal?.id],
+    queryFn: () => base44.entities.ClientMessage.filter({ client_portal_id: selectedPortal.id }, 'created_date'),
+    enabled: !!selectedPortal,
   });
 
-  const createAccessMutation = useMutation({
-    mutationFn: async (data) => {
-      const client = clients.find(c => c.id === data.client_id);
-      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      return base44.entities.ClientPortalAccess.create({
-        client_id: data.client_id,
-        client_email: client.email,
-        client_name: client.name,
-        access_token: token,
-        allowed_cases: data.cases,
-        is_active: true
-      });
+  const { data: updates = [] } = useQuery({
+    queryKey: ['case-updates', selectedPortal?.case_ids],
+    queryFn: async () => {
+      if (!selectedPortal?.case_ids?.length) return [];
+      const allUpdates = [];
+      for (const caseId of selectedPortal.case_ids) {
+        const caseUpdates = await base44.entities.CaseUpdate.filter({ case_id: caseId, is_visible_to_client: true });
+        allUpdates.push(...caseUpdates);
+      }
+      return allUpdates.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
+    enabled: !!selectedPortal?.case_ids?.length,
+  });
+
+  const createPortalMutation = useMutation({
+    mutationFn: (data) => base44.entities.ClientPortalAccess.create({
+      ...data,
+      access_token: crypto.randomUUID(),
+      permissions: {
+        view_documents: true,
+        view_updates: true,
+        send_messages: true,
+        upload_documents: false
+      }
+    }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portal-accesses'] });
+      queryClient.invalidateQueries({ queryKey: ['client-portals'] });
       setShowCreateDialog(false);
-      setNewAccess({ client_id: "", cases: [] });
-    }
+      toast.success("Portal criado com sucesso!");
+    },
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: (data) => base44.entities.ClientMessage.create(data),
+    mutationFn: (content) => base44.entities.ClientMessage.create({
+      case_id: selectedPortal.case_ids[0],
+      client_portal_id: selectedPortal.id,
+      sender_type: "lawyer",
+      sender_name: user?.full_name,
+      sender_email: user?.email,
+      content,
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-messages'] });
-    }
+      setNewMessage("");
+    },
   });
 
-  const deleteAccessMutation = useMutation({
-    mutationFn: (id) => base44.entities.ClientPortalAccess.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portal-accesses'] });
-      setSelectedClient(null);
-    }
+  const togglePortalMutation = useMutation({
+    mutationFn: ({ id, is_active }) => base44.entities.ClientPortalAccess.update(id, { is_active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['client-portals'] }),
   });
 
-  const [messageInput, setMessageInput] = useState("");
-
-  const handleSendMessage = () => {
-    if (!messageInput.trim() || !selectedClient) return;
-    sendMessageMutation.mutate({
-      client_id: selectedClient.client_id,
-      sender_type: "lawyer",
-      sender_name: user?.full_name || "Advogado",
-      sender_email: user?.email,
-      content: messageInput,
-      is_read: false
-    });
-    setMessageInput("");
-  };
-
-  const copyToken = (token) => {
-    navigator.clipboard.writeText(token);
-    setCopiedToken(token);
-    setTimeout(() => setCopiedToken(null), 2000);
-  };
-
-  const filteredAccesses = portalAccesses.filter(a => 
-    a.client_name?.toLowerCase().includes(search.toLowerCase()) ||
-    a.client_email?.toLowerCase().includes(search.toLowerCase())
+  const filteredPortals = portals.filter(p =>
+    p.client_name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.client_email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const clientCases = selectedClient ? 
-    cases.filter(c => selectedClient.allowed_cases?.includes(c.id)) : [];
+  const copyPortalLink = (portal) => {
+    const link = `${window.location.origin}/client-access/${portal.access_token}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Link copiado!");
+  };
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -135,320 +145,346 @@ export default function ClientPortal({ theme = 'light' }) {
             <h1 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Portal do Cliente
             </h1>
-            <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-              Gerencie o acesso dos seus clientes
+            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+              Gerencie o acesso dos seus clientes aos casos
             </p>
           </div>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button className={isDark ? 'bg-white text-black hover:bg-gray-100' : ''}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Acesso
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Criar Acesso do Cliente</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Cliente</label>
-                  <select
-                    value={newAccess.client_id}
-                    onChange={(e) => setNewAccess({ ...newAccess, client_id: e.target.value })}
-                    className="w-full border rounded-lg p-2"
-                  >
-                    <option value="">Selecione um cliente</option>
-                    {clients.filter(c => !portalAccesses.find(p => p.client_id === c.id)).map(client => (
-                      <option key={client.id} value={client.id}>{client.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Casos com Acesso</label>
-                  <div className="max-h-48 overflow-y-auto border rounded-lg p-2 space-y-2">
-                    {cases.filter(c => c.client_id === newAccess.client_id).map(caseItem => (
-                      <label key={caseItem.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newAccess.cases.includes(caseItem.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewAccess({ ...newAccess, cases: [...newAccess.cases, caseItem.id] });
-                            } else {
-                              setNewAccess({ ...newAccess, cases: newAccess.cases.filter(id => id !== caseItem.id) });
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{caseItem.title}</span>
-                      </label>
-                    ))}
-                    {cases.filter(c => c.client_id === newAccess.client_id).length === 0 && (
-                      <p className="text-sm text-gray-500">Selecione um cliente primeiro</p>
-                    )}
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => createAccessMutation.mutate(newAccess)}
-                  disabled={!newAccess.client_id || createAccessMutation.isPending}
-                  className="w-full"
-                >
-                  Criar Acesso
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Criar Acesso
+          </Button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-            <CardContent className="p-4">
+          {[
+            { label: "Portais Ativos", value: portals.filter(p => p.is_active).length, icon: Users },
+            { label: "Mensagens", value: messages.length, icon: MessageSquare },
+            { label: "Atualizações", value: updates.length, icon: Bell },
+            { label: "Clientes", value: clients.length, icon: Users },
+          ].map((stat, i) => (
+            <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-blue-100'}`}>
-                  <Users className={`w-5 h-5 ${isDark ? 'text-white' : 'text-blue-600'}`} />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                  <stat.icon className={`w-5 h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
                 </div>
                 <div>
-                  <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {portalAccesses.length}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Acessos Ativos
-                  </p>
+                  <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
+                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{stat.label}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-green-100'}`}>
-                  <MessageSquare className={`w-5 h-5 ${isDark ? 'text-white' : 'text-green-600'}`} />
-                </div>
-                <div>
-                  <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {messages.filter(m => !m.is_read && m.sender_type === 'client').length}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Não Lidas
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          ))}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Lista de Acessos */}
-          <div className="lg:col-span-1">
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-              <CardHeader className="pb-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar cliente..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
-                {filteredAccesses.map(access => (
-                  <div
-                    key={access.id}
-                    onClick={() => setSelectedClient(access)}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedClient?.id === access.id
-                        ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
-                        : isDark ? 'hover:bg-neutral-800' : 'hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className={`font-medium text-sm ${
-                          selectedClient?.id === access.id 
-                            ? isDark ? 'text-black' : 'text-white'
-                            : isDark ? 'text-white' : 'text-gray-900'
-                        }`}>
-                          {access.client_name}
-                        </p>
-                        <p className={`text-xs ${
-                          selectedClient?.id === access.id
-                            ? isDark ? 'text-gray-600' : 'text-gray-300'
-                            : isDark ? 'text-neutral-500' : 'text-gray-500'
-                        }`}>
-                          {access.client_email}
-                        </p>
+          {/* Portal List */}
+          <div className={`lg:col-span-1 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+            <div className="p-4 border-b border-neutral-800">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar cliente..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="divide-y divide-neutral-800 max-h-[600px] overflow-y-auto">
+              {filteredPortals.map((portal) => (
+                <div
+                  key={portal.id}
+                  onClick={() => setSelectedPortal(portal)}
+                  className={`p-4 cursor-pointer transition-colors ${
+                    selectedPortal?.id === portal.id
+                      ? isDark ? 'bg-neutral-800' : 'bg-gray-100'
+                      : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {portal.client_name}
+                      </p>
+                      <p className={`text-sm truncate ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                        {portal.client_email}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={portal.is_active ? "default" : "secondary"} className="text-xs">
+                          {portal.is_active ? "Ativo" : "Inativo"}
+                        </Badge>
+                        <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          {portal.case_ids?.length || 0} caso(s)
+                        </span>
                       </div>
-                      <Badge variant={access.is_active ? "default" : "secondary"} className="text-xs">
-                        {access.is_active ? 'Ativo' : 'Inativo'}
-                      </Badge>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => copyPortalLink(portal)}>
+                          <Copy className="w-4 h-4 mr-2" /> Copiar Link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => togglePortalMutation.mutate({ id: portal.id, is_active: !portal.is_active })}>
+                          {portal.is_active ? <X className="w-4 h-4 mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                          {portal.is_active ? "Desativar" : "Ativar"}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                ))}
-                {filteredAccesses.length === 0 && (
-                  <p className={`text-center py-8 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Nenhum acesso encontrado
+                </div>
+              ))}
+              {filteredPortals.length === 0 && (
+                <div className="p-8 text-center">
+                  <Users className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    Nenhum portal encontrado
                   </p>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Detalhes e Chat */}
-          <div className="lg:col-span-2">
-            {selectedClient ? (
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+          {/* Portal Details */}
+          <div className={`lg:col-span-2 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+            {selectedPortal ? (
+              <Tabs defaultValue="messages" className="h-full">
+                <div className={`p-4 border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <CardTitle className={isDark ? 'text-white' : ''}>
-                        {selectedClient.client_name}
-                      </CardTitle>
-                      <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                        {selectedClient.client_email}
+                      <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {selectedPortal.client_name}
+                      </h2>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                        {selectedPortal.client_email}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToken(selectedClient.access_token)}
-                        className={isDark ? 'border-neutral-700' : ''}
+                    <Button variant="outline" size="sm" onClick={() => copyPortalLink(selectedPortal)}>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Copiar Link
+                    </Button>
+                  </div>
+                  <TabsList>
+                    <TabsTrigger value="messages">Mensagens</TabsTrigger>
+                    <TabsTrigger value="updates">Atualizações</TabsTrigger>
+                    <TabsTrigger value="settings">Configurações</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="messages" className="p-0 h-[450px] flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.sender_type === 'lawyer' ? 'justify-end' : 'justify-start'}`}
                       >
-                        {copiedToken === selectedClient.access_token ? (
-                          <Check className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Copy className="w-4 h-4 mr-2" />
-                        )}
-                        Token
-                      </Button>
+                        <div className={`max-w-[70%] rounded-lg p-3 ${
+                          msg.sender_type === 'lawyer'
+                            ? 'bg-blue-600 text-white'
+                            : isDark ? 'bg-neutral-800 text-white' : 'bg-gray-100 text-gray-900'
+                        }`}>
+                          <p className="text-sm">{msg.content}</p>
+                          <p className={`text-xs mt-1 ${msg.sender_type === 'lawyer' ? 'text-blue-200' : 'text-gray-400'}`}>
+                            {new Date(msg.created_date).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {messages.length === 0 && (
+                      <div className="h-full flex items-center justify-center">
+                        <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                          Nenhuma mensagem ainda
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`p-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Digite sua mensagem..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && newMessage.trim() && sendMessageMutation.mutate(newMessage)}
+                      />
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteAccessMutation.mutate(selectedClient.id)}
-                        className="text-red-500 hover:text-red-600"
+                        onClick={() => newMessage.trim() && sendMessageMutation.mutate(newMessage)}
+                        disabled={!newMessage.trim()}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Send className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="messages">
-                    <TabsList className="mb-4">
-                      <TabsTrigger value="messages">Mensagens</TabsTrigger>
-                      <TabsTrigger value="cases">Casos ({clientCases.length})</TabsTrigger>
-                      <TabsTrigger value="info">Informações</TabsTrigger>
-                    </TabsList>
+                </TabsContent>
 
-                    <TabsContent value="messages" className="space-y-4">
-                      <div className={`h-80 overflow-y-auto rounded-lg p-4 space-y-3 ${
-                        isDark ? 'bg-neutral-800' : 'bg-gray-50'
-                      }`}>
-                        {messages.map(msg => (
-                          <div
-                            key={msg.id}
-                            className={`flex ${msg.sender_type === 'lawyer' ? 'justify-end' : 'justify-start'}`}
-                          >
-                            <div className={`max-w-[70%] p-3 rounded-lg ${
-                              msg.sender_type === 'lawyer'
-                                ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
-                                : isDark ? 'bg-neutral-700 text-white' : 'bg-white text-gray-900'
-                            }`}>
-                              <p className="text-sm">{msg.content}</p>
-                              <p className={`text-xs mt-1 ${
-                                msg.sender_type === 'lawyer'
-                                  ? isDark ? 'text-gray-500' : 'text-gray-400'
-                                  : isDark ? 'text-neutral-400' : 'text-gray-500'
-                              }`}>
-                                {format(new Date(msg.created_date), "dd/MM HH:mm")}
-                              </p>
-                            </div>
+                <TabsContent value="updates" className="p-4 max-h-[500px] overflow-y-auto">
+                  <div className="space-y-4">
+                    {updates.map((update) => (
+                      <div key={update.id} className={`p-4 rounded-lg border ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            update.update_type === 'milestone' ? 'bg-green-500/20 text-green-500' :
+                            update.update_type === 'deadline' ? 'bg-red-500/20 text-red-500' :
+                            'bg-blue-500/20 text-blue-500'
+                          }`}>
+                            <Bell className="w-4 h-4" />
                           </div>
-                        ))}
-                        {messages.length === 0 && (
-                          <p className={`text-center py-8 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                            Nenhuma mensagem ainda
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Digite sua mensagem..."
-                          value={messageInput}
-                          onChange={(e) => setMessageInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                          className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
-                        />
-                        <Button onClick={handleSendMessage} disabled={sendMessageMutation.isPending}>
-                          <Send className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="cases" className="space-y-3">
-                      {clientCases.map(caseItem => (
-                        <div
-                          key={caseItem.id}
-                          className={`p-4 rounded-lg border ${isDark ? 'border-neutral-700 bg-neutral-800' : 'border-gray-200'}`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {caseItem.title}
-                              </p>
-                              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                                {caseItem.case_number || 'Sem número'}
-                              </p>
-                            </div>
-                            <Badge>{caseItem.status}</Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    <TabsContent value="info">
-                      <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <Key className={`w-5 h-5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                            <div>
-                              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Token de Acesso</p>
-                              <p className={`text-sm font-mono ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {selectedClient.access_token}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Calendar className={`w-5 h-5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                            <div>
-                              <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Criado em</p>
-                              <p className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {format(new Date(selectedClient.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                              </p>
-                            </div>
+                          <div className="flex-1">
+                            <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{update.title}</h4>
+                            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>{update.content}</p>
+                            <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                              {new Date(update.created_date).toLocaleDateString('pt-BR')}
+                            </p>
                           </div>
                         </div>
                       </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+                    ))}
+                    {updates.length === 0 && (
+                      <p className={`text-center py-8 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                        Nenhuma atualização visível ao cliente
+                      </p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="settings" className="p-4">
+                  <div className="space-y-4">
+                    <h3 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Permissões</h3>
+                    {Object.entries(selectedPortal.permissions || {}).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          {key === 'view_documents' && 'Visualizar documentos'}
+                          {key === 'view_updates' && 'Visualizar atualizações'}
+                          {key === 'send_messages' && 'Enviar mensagens'}
+                          {key === 'upload_documents' && 'Enviar documentos'}
+                        </span>
+                        <Badge variant={value ? "default" : "secondary"}>
+                          {value ? "Permitido" : "Bloqueado"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
             ) : (
-              <Card className={`h-full flex items-center justify-center ${isDark ? 'bg-neutral-900 border-neutral-800' : ''}`}>
-                <CardContent className="text-center py-16">
-                  <Users className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
-                    Selecione um cliente para ver detalhes
+              <div className="h-[500px] flex items-center justify-center">
+                <div className="text-center">
+                  <Users className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                  <p className={`${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    Selecione um portal para ver detalhes
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Create Portal Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Acesso ao Portal</DialogTitle>
+          </DialogHeader>
+          <CreatePortalForm
+            clients={clients}
+            cases={cases}
+            onSubmit={(data) => createPortalMutation.mutate(data)}
+            onCancel={() => setShowCreateDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState({
+    client_id: "",
+    client_email: "",
+    client_name: "",
+    case_ids: []
+  });
+
+  const selectedClient = clients.find(c => c.id === formData.client_id);
+
+  useEffect(() => {
+    if (selectedClient) {
+      setFormData(prev => ({
+        ...prev,
+        client_email: selectedClient.email,
+        client_name: selectedClient.name
+      }));
+    }
+  }, [selectedClient]);
+
+  const clientCases = cases.filter(c => c.client_id === formData.client_id);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="text-sm font-medium">Cliente</label>
+        <select
+          value={formData.client_id}
+          onChange={(e) => setFormData({ ...formData, client_id: e.target.value, case_ids: [] })}
+          className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+        >
+          <option value="">Selecione um cliente</option>
+          {clients.map(client => (
+            <option key={client.id} value={client.id}>{client.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {formData.client_id && (
+        <>
+          <div>
+            <label className="text-sm font-medium">Email de acesso</label>
+            <Input
+              value={formData.client_email}
+              onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+              placeholder="email@cliente.com"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Casos com acesso</label>
+            <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+              {clientCases.map(c => (
+                <label key={c.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.case_ids.includes(c.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData({ ...formData, case_ids: [...formData.case_ids, c.id] });
+                      } else {
+                        setFormData({ ...formData, case_ids: formData.case_ids.filter(id => id !== c.id) });
+                      }
+                    }}
+                  />
+                  <span className="text-sm">{c.title}</span>
+                </label>
+              ))}
+              {clientCases.length === 0 && (
+                <p className="text-sm text-gray-500">Nenhum caso encontrado para este cliente</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+        <Button
+          onClick={() => onSubmit(formData)}
+          disabled={!formData.client_id || !formData.client_email || formData.case_ids.length === 0}
+        >
+          Criar Portal
+        </Button>
       </div>
     </div>
   );

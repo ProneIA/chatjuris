@@ -18,8 +18,8 @@ import LandingPage from './pages/LandingPage';
 import QuemSomos from './pages/QuemSomos';
 import Funcionalidades from './pages/Funcionalidades';
 import ClientPortal from './pages/ClientPortal';
-import LegalResearch from './pages/LegalResearch';
-import DocumentManager from './pages/DocumentManager';
+import DocumentsEnhanced from './pages/DocumentsEnhanced';
+import LegalResearchAI from './pages/LegalResearchAI';
 import __Layout from './Layout.jsx';
 
 
@@ -44,8 +44,8 @@ export const PAGES = {
     "QuemSomos": QuemSomos,
     "Funcionalidades": Funcionalidades,
     "ClientPortal": ClientPortal,
-    "LegalResearch": LegalResearch,
-    "DocumentManager": DocumentManager,
+    "DocumentsEnhanced": DocumentsEnhanced,
+    "LegalResearchAI": LegalResearchAI,
 }
 
 export const pagesConfig = {
