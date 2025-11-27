@@ -68,6 +68,9 @@ export default function LegalResearchAI({ theme = 'light' }) {
   const [selectedResearch, setSelectedResearch] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
+  const [yearMin, setYearMin] = useState("");
+  const [yearMax, setYearMax] = useState("");
+  const [sortPreference, setSortPreference] = useState("relevante");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -117,12 +120,22 @@ export default function LegalResearchAI({ theme = 'light' }) {
       const typeLabel = researchTypes.find(t => t.id === researchType)?.label || "Geral";
       const areaLabel = areas.find(a => a.id === area)?.label || "Geral";
 
+      const yearFilter = yearMin || yearMax 
+        ? `\nFiltro de período: ${yearMin ? `a partir de ${yearMin}` : ''}${yearMin && yearMax ? ' até ' : ''}${yearMax ? `até ${yearMax}` : ''}`
+        : '';
+      
+      const sortInstruction = sortPreference === 'recente' 
+        ? '\nPRIORIDADE: Dê preferência para jurisprudências e decisões mais recentes, ordenando da mais nova para a mais antiga.'
+        : sortPreference === 'antigo'
+        ? '\nPRIORIDADE: Dê preferência para jurisprudências e decisões mais antigas e consolidadas, ordenando da mais antiga para a mais nova.'
+        : '\nPRIORIDADE: Ordene os resultados por relevância e importância para o tema pesquisado.';
+
       const prompt = `Você é um especialista em pesquisa jurídica brasileira. 
       
 Realize uma pesquisa completa sobre: "${query}"
 
 Tipo de pesquisa: ${typeLabel}
-Área do direito: ${areaLabel}
+Área do direito: ${areaLabel}${yearFilter}${sortInstruction}
 
 Forneça uma resposta estruturada com:
 
@@ -242,6 +255,52 @@ Formate a resposta em Markdown para melhor visualização.`;
                     <option key={a.id} value={a.id}>{a.label}</option>
                   ))}
                 </select>
+
+                {/* Year Filters */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                      Ano Mínimo
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 2015"
+                      value={yearMin}
+                      onChange={(e) => setYearMin(e.target.value)}
+                      min="1900"
+                      max={new Date().getFullYear()}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                      Ano Máximo
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 2024"
+                      value={yearMax}
+                      onChange={(e) => setYearMax(e.target.value)}
+                      min="1900"
+                      max={new Date().getFullYear()}
+                    />
+                  </div>
+                </div>
+
+                {/* Sort Preference */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                    Ordenar resultados por
+                  </label>
+                  <select
+                    value={sortPreference}
+                    onChange={(e) => setSortPreference(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
+                  >
+                    <option value="relevante">Mais Relevantes</option>
+                    <option value="recente">Mais Recentes</option>
+                    <option value="antigo">Mais Antigos</option>
+                  </select>
+                </div>
 
                 {/* Query Input */}
                 <div className="relative">
