@@ -231,21 +231,25 @@ Retorne JSON:
       const user = await base44.auth.me();
       
       for (const pub of results.results) {
-        await base44.entities.DiaryPublication.create({
-          title: pub.title,
-          content: pub.original_excerpt,
+        const pubData = {
+          title: pub.title || "Publicação sem título",
+          content: pub.original_excerpt || pub.summary || "",
           source: uploadedFile?.name || "Upload",
           publication_date: new Date().toISOString().split('T')[0],
-          category: pub.category,
-          case_number: pub.process_number,
           parties_involved: pub.parties || [],
-          ai_summary: pub.summary,
-          urgency: pub.urgency,
-          deadline_detected: pub.deadline,
+          ai_summary: pub.summary || "",
           keywords_matched: pub.keywords_matched || [],
           is_read: false,
           is_starred: true
-        });
+        };
+        
+        // Só adiciona campos opcionais se tiverem valor válido
+        if (pub.category && pub.category !== "" && pub.category !== "null") pubData.category = pub.category;
+        if (pub.process_number && pub.process_number !== "" && pub.process_number !== "null") pubData.case_number = pub.process_number;
+        if (pub.urgency && pub.urgency !== "" && pub.urgency !== "null") pubData.urgency = pub.urgency;
+        if (pub.deadline && pub.deadline !== "" && pub.deadline !== "null") pubData.deadline_detected = pub.deadline;
+        
+        await base44.entities.DiaryPublication.create(pubData);
       }
 
       // Notificações
