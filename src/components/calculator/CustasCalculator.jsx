@@ -17,6 +17,7 @@ const tabelaCustas = {
   "BA": { nome: "Bahia", taxa: 0.01, minimo: 48.00, maximo: 55000.00, preparo: 0.02 },
   "PE": { nome: "Pernambuco", taxa: 0.01, minimo: 45.00, maximo: 52000.00, preparo: 0.02 },
   "CE": { nome: "Ceará", taxa: 0.01, minimo: 42.00, maximo: 48000.00, preparo: 0.02 },
+  "PI": { nome: "Piauí", taxa: 0.01, minimo: 40.00, maximo: 45000.00, preparo: 0.02 },
   "DF": { nome: "Distrito Federal", taxa: 0.01, minimo: 75.00, maximo: 80000.00, preparo: 0.02 },
   "GO": { nome: "Goiás", taxa: 0.01, minimo: 52.00, maximo: 58000.00, preparo: 0.02 },
   "ES": { nome: "Espírito Santo", taxa: 0.01, minimo: 48.00, maximo: 55000.00, preparo: 0.02 },
