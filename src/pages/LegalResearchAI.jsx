@@ -57,6 +57,33 @@ const areas = [
   { id: "geral", label: "Geral" },
 ];
 
+const tribunais = [
+  { id: "todos", label: "Todos os Tribunais" },
+  { id: "STF", label: "STF - Supremo Tribunal Federal" },
+  { id: "STJ", label: "STJ - Superior Tribunal de Justiça" },
+  { id: "TST", label: "TST - Tribunal Superior do Trabalho" },
+  { id: "TSE", label: "TSE - Tribunal Superior Eleitoral" },
+  { id: "STM", label: "STM - Superior Tribunal Militar" },
+  { id: "TJSP", label: "TJSP - Tribunal de Justiça de São Paulo" },
+  { id: "TJRJ", label: "TJRJ - Tribunal de Justiça do Rio de Janeiro" },
+  { id: "TJMG", label: "TJMG - Tribunal de Justiça de Minas Gerais" },
+  { id: "TJRS", label: "TJRS - Tribunal de Justiça do Rio Grande do Sul" },
+  { id: "TJPR", label: "TJPR - Tribunal de Justiça do Paraná" },
+  { id: "TJSC", label: "TJSC - Tribunal de Justiça de Santa Catarina" },
+  { id: "TJBA", label: "TJBA - Tribunal de Justiça da Bahia" },
+  { id: "TJPE", label: "TJPE - Tribunal de Justiça de Pernambuco" },
+  { id: "TJCE", label: "TJCE - Tribunal de Justiça do Ceará" },
+  { id: "TJPI", label: "TJPI - Tribunal de Justiça do Piauí" },
+  { id: "TJGO", label: "TJGO - Tribunal de Justiça de Goiás" },
+  { id: "TJDF", label: "TJDF - Tribunal de Justiça do Distrito Federal" },
+  { id: "TJES", label: "TJES - Tribunal de Justiça do Espírito Santo" },
+  { id: "TRF1", label: "TRF1 - Tribunal Regional Federal da 1ª Região" },
+  { id: "TRF2", label: "TRF2 - Tribunal Regional Federal da 2ª Região" },
+  { id: "TRF3", label: "TRF3 - Tribunal Regional Federal da 3ª Região" },
+  { id: "TRF4", label: "TRF4 - Tribunal Regional Federal da 4ª Região" },
+  { id: "TRF5", label: "TRF5 - Tribunal Regional Federal da 5ª Região" },
+];
+
 export default function LegalResearchAI({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
@@ -71,6 +98,7 @@ export default function LegalResearchAI({ theme = 'light' }) {
   const [minYear, setMinYear] = useState("");
   const [maxYear, setMaxYear] = useState("");
   const [sortOrder, setSortOrder] = useState("relevant");
+  const [tribunal, setTribunal] = useState("todos");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -124,6 +152,10 @@ export default function LegalResearchAI({ theme = 'light' }) {
         ? `\nPeríodo: ${minYear ? `a partir de ${minYear}` : ''}${minYear && maxYear ? ' até ' : ''}${maxYear ? `até ${maxYear}` : ''}`
         : '';
       
+      const tribunalFilter = researchType === "jurisprudence" && tribunal !== "todos"
+        ? `\nTribunal de preferência: ${tribunais.find(t => t.id === tribunal)?.label || tribunal}. PRIORIZE decisões deste tribunal.`
+        : '';
+      
       const sortInstruction = sortOrder === 'recent' 
         ? '\n\nPRIORIDADE: Dê preferência às decisões e legislações mais RECENTES, ordenando os resultados do mais novo para o mais antigo.'
         : sortOrder === 'oldest'
@@ -135,7 +167,7 @@ export default function LegalResearchAI({ theme = 'light' }) {
 Realize uma pesquisa completa sobre: "${query}"
 
 Tipo de pesquisa: ${typeLabel}
-Área do direito: ${areaLabel}${yearFilter}${sortInstruction}
+Área do direito: ${areaLabel}${yearFilter}${tribunalFilter}${sortInstruction}
 
 Forneça uma resposta estruturada com:
 
@@ -261,6 +293,24 @@ Formate a resposta em Markdown para melhor visualização.`;
                     <option key={a.id} value={a.id}>{a.label}</option>
                   ))}
                 </select>
+
+                {/* Tribunal Select - Only for Jurisprudence */}
+                {researchType === "jurisprudence" && (
+                  <div>
+                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                      Tribunal de Preferência
+                    </label>
+                    <select
+                      value={tribunal}
+                      onChange={(e) => setTribunal(e.target.value)}
+                      className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
+                    >
+                      {tribunais.map(t => (
+                        <option key={t.id} value={t.id}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Year Range */}
                 <div className="grid grid-cols-2 gap-3">
