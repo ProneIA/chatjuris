@@ -5,24 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save } from "lucide-react";
+import { X, Save, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoading }) {
-  const [formData, setFormData] = useState(caseData || {
-    case_number: "",
-    client_id: "",
-    client_name: "",
-    title: "",
-    description: "",
-    area: "civil",
-    status: "new",
-    priority: "medium",
-    court: "",
-    opposing_party: "",
-    start_date: new Date().toISOString().split('T')[0],
-    deadline: "",
-    value: ""
+export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({
+    case_number: caseData?.case_number || "",
+    client_id: caseData?.client_id || "",
+    client_name: caseData?.client_name || "",
+    title: caseData?.title || "",
+    description: caseData?.description || "",
+    area: caseData?.area || "civil",
+    status: caseData?.status || "new",
+    priority: caseData?.priority || "medium",
+    court: caseData?.court || "",
+    opposing_party: caseData?.opposing_party || "",
+    start_date: caseData?.start_date || new Date().toISOString().split('T')[0],
+    deadline: caseData?.deadline || "",
+    value: caseData?.value || ""
   });
+  const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData(prev => {
@@ -40,31 +43,80 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
     });
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.title || formData.title.trim() === "") {
+      newErrors.title = "Título é obrigatório";
+    }
+    
+    if (!formData.client_id || formData.client_id === "") {
+      newErrors.client_id = "Selecione um cliente";
+    }
+    
+    if (!formData.area || formData.area === "") {
+      newErrors.area = "Selecione a área do direito";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.client_id) {
-      alert("⚠️ Preencha os campos obrigatórios (Título e Cliente)");
+    if (!validateForm()) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
     
-    const dataToSubmit = { ...formData };
+    setIsSaving(true);
     
-    // Converter valor para número
-    if (dataToSubmit.value && dataToSubmit.value !== "") {
-      dataToSubmit.value = parseFloat(dataToSubmit.value);
-    } else {
-      delete dataToSubmit.value;
+    try {
+      // Preparar dados para envio
+      const dataToSubmit = {
+        title: formData.title.trim(),
+        client_id: formData.client_id,
+        client_name: formData.client_name,
+        area: formData.area,
+        status: formData.status || "new",
+        priority: formData.priority || "medium",
+      };
+      
+      // Adicionar campos opcionais apenas se preenchidos
+      if (formData.case_number && formData.case_number.trim() !== "") {
+        dataToSubmit.case_number = formData.case_number.trim();
+      }
+      if (formData.court && formData.court.trim() !== "") {
+        dataToSubmit.court = formData.court.trim();
+      }
+      if (formData.opposing_party && formData.opposing_party.trim() !== "") {
+        dataToSubmit.opposing_party = formData.opposing_party.trim();
+      }
+      if (formData.start_date && formData.start_date !== "") {
+        dataToSubmit.start_date = formData.start_date;
+      }
+      if (formData.deadline && formData.deadline !== "") {
+        dataToSubmit.deadline = formData.deadline;
+      }
+      if (formData.description && formData.description.trim() !== "") {
+        dataToSubmit.description = formData.description.trim();
+      }
+      if (formData.value && formData.value !== "" && !isNaN(parseFloat(formData.value))) {
+        dataToSubmit.value = parseFloat(formData.value);
+      }
+      
+      console.log("Salvando processo:", dataToSubmit);
+      
+      await onSubmit(dataToSubmit);
+      toast.success(caseData ? "Processo atualizado com sucesso!" : "Processo criado com sucesso!");
+      
+    } catch (error) {
+      console.error("Erro ao salvar processo:", error);
+      toast.error("Erro ao salvar processo. Tente novamente.");
+    } finally {
+      setIsSaving(false);
     }
-    
-    // Limpar campos vazios
-    if (!dataToSubmit.case_number || dataToSubmit.case_number === "") delete dataToSubmit.case_number;
-    if (!dataToSubmit.court || dataToSubmit.court === "") delete dataToSubmit.court;
-    if (!dataToSubmit.opposing_party || dataToSubmit.opposing_party === "") delete dataToSubmit.opposing_party;
-    if (!dataToSubmit.deadline || dataToSubmit.deadline === "") delete dataToSubmit.deadline;
-    if (!dataToSubmit.description || dataToSubmit.description === "") delete dataToSubmit.description;
-    
-    onSubmit(dataToSubmit);
   };
 
   return (
@@ -81,13 +133,24 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Título do Processo *</Label>
+              <Label htmlFor="title" className="flex items-center gap-1">
+                Título do Processo <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                required
+                onChange={(e) => {
+                  handleChange('title', e.target.value);
+                  if (errors.title) setErrors(prev => ({ ...prev, title: null }));
+                }}
+                className={errors.title ? "border-red-500 focus:ring-red-500" : ""}
+                placeholder="Ex: Ação de Cobrança - João Silva"
               />
+              {errors.title && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.title}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -100,19 +163,38 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_id">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(v) => handleChange('client_id', v)} required>
-                <SelectTrigger>
+              <Label htmlFor="client_id" className="flex items-center gap-1">
+                Cliente <span className="text-red-500">*</span>
+              </Label>
+              <Select 
+                value={formData.client_id} 
+                onValueChange={(v) => {
+                  handleChange('client_id', v);
+                  if (errors.client_id) setErrors(prev => ({ ...prev, client_id: null }));
+                }}
+              >
+                <SelectTrigger className={errors.client_id ? "border-red-500" : ""}>
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
+                  {clients.length === 0 ? (
+                    <div className="p-2 text-sm text-gray-500">
+                      Nenhum cliente cadastrado. Cadastre um cliente primeiro.
+                    </div>
+                  ) : (
+                    clients.map(client => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {errors.client_id && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.client_id}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -226,13 +308,26 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+          <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-blue-600 to-purple-600">
-              <Save className="w-4 h-4 mr-2" />
-              {caseData ? 'Atualizar' : 'Criar'} Processo
+            <Button 
+              type="submit" 
+              disabled={isSaving || isLoading} 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 min-w-[160px]"
+            >
+              {(isSaving || isLoading) ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  {caseData ? 'Atualizar' : 'Criar'} Processo
+                </>
+              )}
             </Button>
           </div>
         </form>
