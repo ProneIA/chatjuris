@@ -133,45 +133,89 @@ Verifique se algum desses números de processo aparece nas publicações.`
 
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um especialista em análise de publicações de Diários Oficiais jurídicos brasileiros.
+        prompt: `Você é um ESPECIALISTA JURÍDICO em análise de Diários Oficiais brasileiros. Sua tarefa é analisar o texto com MÁXIMA PRECISÃO.
 
-Analise o seguinte conteúdo de diário oficial e extraia TODAS as publicações relevantes, classificando cada uma.
+REGRAS FUNDAMENTAIS DE ANÁLISE:
+1. LEIA O TEXTO COMPLETO palavra por palavra antes de extrair qualquer informação
+2. APENAS extraia informações que EXISTEM LITERALMENTE no texto - NÃO INVENTE dados
+3. Se um número de processo não estiver no texto, retorne null - NÃO CRIE números fictícios
+4. Se nomes de partes não estiverem claros, retorne array vazio - NÃO INVENTE nomes
+5. Verifique CADA dado extraído comparando com o texto original
+6. Para prazos, APENAS inclua se houver data EXPLÍCITA no texto
+7. O campo "original_content" DEVE conter o TRECHO EXATO do diário, copiado literalmente
 ${keywordsInstruction}${clientsInstruction}${casesInstruction}
 
-CONTEÚDO DO DIÁRIO:
+CONTEÚDO DO DIÁRIO PARA ANÁLISE:
+---
 ${diaryContent.substring(0, 15000)}
+---
 
-Para CADA publicação identificada, extraia:
-1. Título/Resumo curto (máximo 100 caracteres)
-2. Categoria: intimacao, sentenca, despacho, edital, decisao, acordao, citacao ou outros
-3. Número do processo (se houver)
-4. Partes envolvidas (nomes das partes)
-5. Resumo da publicação (2-3 frases)
-6. Análise: O que essa publicação significa na prática? Quais ações devem ser tomadas?
-7. Urgência: alta (prazo curto, ação imediata), media (prazo normal), baixa (informativo)
-8. Prazo identificado (se houver, no formato YYYY-MM-DD)
-9. Palavras-chave correspondentes encontradas no texto (do campo matched_keywords)
+INSTRUÇÕES DE EXTRAÇÃO (seja PRECISO):
 
-Retorne um JSON com a estrutura exata:
+1. TÍTULO: Resumo curto do assunto principal (máx 100 caracteres) - baseado no conteúdo real
+2. CATEGORIA: Classifique com base no tipo REAL da publicação:
+   - intimacao: citações, intimações, notificações para comparecer ou se manifestar
+   - sentenca: sentenças, decisões terminativas
+   - despacho: despachos ordinatórios, de mero expediente
+   - edital: editais de leilão, citação por edital, convocações públicas
+   - decisao: decisões interlocutórias, liminares
+   - acordao: acórdãos de tribunais
+   - citacao: citações iniciais
+   - outros: quando não se encaixar nas anteriores
+
+3. NÚMERO DO PROCESSO: 
+   - Extraia APENAS se aparecer no texto
+   - Formato CNJ (0000000-00.0000.0.00.0000) ou formato antigo
+   - Se não houver número, retorne null
+
+4. PARTES: 
+   - Liste APENAS nomes que aparecem EXPLICITAMENTE como partes
+   - Não confunda advogados, juízes ou serventuários com partes
+   - Se não identificar partes claramente, retorne array vazio []
+
+5. RESUMO: Descreva objetivamente O QUE a publicação comunica (2-3 frases)
+
+6. ANÁLISE: 
+   - O que essa publicação significa juridicamente?
+   - Quais providências devem ser tomadas?
+   - Há prazos a cumprir?
+
+7. URGÊNCIA:
+   - alta: prazo de 5 dias ou menos, citação inicial, intimação para audiência próxima
+   - media: prazos de 15 dias, manifestações ordinárias
+   - baixa: meras comunicações, publicações informativas
+
+8. PRAZO: 
+   - APENAS inclua se uma DATA específica for mencionada
+   - Formato: YYYY-MM-DD
+   - Se mencionar "15 dias" sem data base, NÃO calcule - deixe null
+
+9. ORIGINAL_CONTENT: Copie o TRECHO EXATO do diário que corresponde a esta publicação
+
+10. MATCHED_KEYWORDS: Liste APENAS palavras-chave que REALMENTE aparecem no texto
+
+Retorne JSON com esta estrutura:
 {
   "publications": [
     {
-      "title": "string",
-      "category": "string",
-      "case_number": "string ou null",
-      "parties": ["string"],
-      "summary": "string",
-      "analysis": "string",
+      "title": "string - resumo curto e preciso",
+      "category": "intimacao|sentenca|despacho|edital|decisao|acordao|citacao|outros",
+      "case_number": "string exato do texto ou null",
+      "parties": ["nomes exatos do texto"],
+      "summary": "descrição objetiva do conteúdo",
+      "analysis": "análise jurídica e providências necessárias",
       "urgency": "alta|media|baixa",
       "deadline": "YYYY-MM-DD ou null",
-      "original_content": "trecho original relevante",
-      "matched_keywords": ["palavras-chave encontradas nesta publicação"]
+      "original_content": "trecho literal copiado do diário",
+      "matched_keywords": ["palavras encontradas no texto"]
     }
   ],
-  "total_found": number,
-  "overview": "resumo geral do que foi encontrado no diário",
-  "keywords_summary": {"palavra-chave": numero_de_ocorrencias}
-}`,
+  "total_found": número_de_publicações_identificadas,
+  "overview": "resumo geral do diário analisado",
+  "keywords_summary": {"palavra": quantidade}
+}
+
+ATENÇÃO: Prefira MENOS publicações com dados CORRETOS do que muitas com dados inventados.`,
         response_json_schema: {
           type: "object",
           properties: {
