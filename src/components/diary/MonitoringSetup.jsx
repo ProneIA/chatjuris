@@ -20,8 +20,20 @@ import {
   Users,
   FileText,
   Loader2,
-  Check
+  Check,
+  Mail,
+  AlertTriangle,
+  Clock,
+  Calendar,
+  Settings2
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function MonitoringSetup({ open, onClose, isDark, monitorings, onRefresh }) {
@@ -34,7 +46,11 @@ export default function MonitoringSetup({ open, onClose, isDark, monitorings, on
     case_numbers: [],
     courts: [],
     is_active: true,
-    notification_email: true
+    notification_email: true,
+    notification_push: false,
+    notify_urgent_only: false,
+    notify_with_deadlines: true,
+    email_frequency: "instant"
   });
   const [inputValues, setInputValues] = useState({
     keyword: "",
@@ -80,7 +96,11 @@ export default function MonitoringSetup({ open, onClose, isDark, monitorings, on
         case_numbers: [],
         courts: [],
         is_active: true,
-        notification_email: true
+        notification_email: true,
+        notification_push: false,
+        notify_urgent_only: false,
+        notify_with_deadlines: true,
+        email_frequency: "instant"
       });
     } catch (error) {
       toast.error("Erro ao criar monitoramento");
@@ -148,7 +168,7 @@ export default function MonitoringSetup({ open, onClose, isDark, monitorings, on
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {mon.keywords?.map((kw, i) => (
                       <Badge key={i} variant="outline" className="text-xs">
                         <Search className="w-3 h-3 mr-1" />
@@ -167,6 +187,29 @@ export default function MonitoringSetup({ open, onClose, isDark, monitorings, on
                         {c}
                       </Badge>
                     ))}
+                  </div>
+                  
+                  {/* Notification Settings Summary */}
+                  <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+                    {mon.notification_email && (
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-3 h-3" />
+                        {mon.email_frequency === 'instant' ? 'Email imediato' : 
+                         mon.email_frequency === 'daily' ? 'Resumo diário' : 'Resumo semanal'}
+                      </span>
+                    )}
+                    {mon.notification_push && (
+                      <span className="flex items-center gap-1">
+                        <Bell className="w-3 h-3" />
+                        Push
+                      </span>
+                    )}
+                    {mon.notify_urgent_only && (
+                      <Badge variant="outline" className="text-xs text-amber-500 border-amber-500/30">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Só urgentes
+                      </Badge>
+                    )}
                   </div>
                 </div>
               ))}
@@ -270,15 +313,119 @@ export default function MonitoringSetup({ open, onClose, isDark, monitorings, on
                 </div>
               </div>
 
-              {/* Options */}
-              <div className="flex items-center justify-between py-2">
-                <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
-                  Receber notificações por email
-                </span>
-                <Switch
-                  checked={formData.notification_email}
-                  onCheckedChange={(v) => setFormData(prev => ({ ...prev, notification_email: v }))}
-                />
+              {/* Notification Settings Section */}
+              <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-slate-50 border-slate-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Bell className={`w-4 h-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                  <h4 className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Configurações de Notificação
+                  </h4>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Email Notifications */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`} />
+                      <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                        Notificações por email
+                      </span>
+                    </div>
+                    <Switch
+                      checked={formData.notification_email}
+                      onCheckedChange={(v) => setFormData(prev => ({ ...prev, notification_email: v }))}
+                    />
+                  </div>
+
+                  {/* Email Frequency */}
+                  {formData.notification_email && (
+                    <div className="ml-6">
+                      <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
+                        Frequência de envio
+                      </label>
+                      <Select 
+                        value={formData.email_frequency} 
+                        onValueChange={(v) => setFormData(prev => ({ ...prev, email_frequency: v }))}
+                      >
+                        <SelectTrigger className={`w-full ${isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="instant">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3 h-3" />
+                              Instantâneo
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="daily">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3 h-3" />
+                              Resumo diário
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="weekly">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-3 h-3" />
+                              Resumo semanal
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Push Notifications */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bell className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`} />
+                      <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                        Notificações no app
+                      </span>
+                    </div>
+                    <Switch
+                      checked={formData.notification_push}
+                      onCheckedChange={(v) => setFormData(prev => ({ ...prev, notification_push: v }))}
+                    />
+                  </div>
+
+                  {/* Urgent Only */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`} />
+                      <div>
+                        <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                          Apenas urgentes
+                        </span>
+                        <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>
+                          Notificar só publicações com urgência alta
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.notify_urgent_only}
+                      onCheckedChange={(v) => setFormData(prev => ({ ...prev, notify_urgent_only: v }))}
+                    />
+                  </div>
+
+                  {/* With Deadlines */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`} />
+                      <div>
+                        <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                          Prazos identificados
+                        </span>
+                        <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>
+                          Notificar quando houver prazo detectado
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.notify_with_deadlines}
+                      onCheckedChange={(v) => setFormData(prev => ({ ...prev, notify_with_deadlines: v }))}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
