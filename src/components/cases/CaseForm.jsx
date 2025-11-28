@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { X, Save } from "lucide-react";
 
 export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoading }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(caseData || {
     case_number: "",
     client_id: "",
     client_name: "",
@@ -24,127 +23,52 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
     deadline: "",
     value: ""
   });
-  const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Inicializar com dados existentes
-  useEffect(() => {
-    if (caseData) {
-      setFormData({
-        case_number: caseData.case_number || "",
-        client_id: caseData.client_id || "",
-        client_name: caseData.client_name || "",
-        title: caseData.title || "",
-        description: caseData.description || "",
-        area: caseData.area || "civil",
-        status: caseData.status || "new",
-        priority: caseData.priority || "medium",
-        court: caseData.court || "",
-        opposing_party: caseData.opposing_party || "",
-        start_date: caseData.start_date || new Date().toISOString().split('T')[0],
-        deadline: caseData.deadline || "",
-        value: caseData.value || ""
-      });
-    }
-  }, [caseData]);
 
   const handleChange = (field, value) => {
     setFormData(prev => {
-      const updated = { ...prev, [field]: value };
+      const newData = { ...prev, [field]: value };
       
-      // Auto-fill client name when client is selected
+      // Se mudar o cliente, atualiza o nome também
       if (field === 'client_id') {
-        const selectedClient = clients.find(c => c.id === value);
-        if (selectedClient) {
-          updated.client_name = selectedClient.name;
+        const client = clients.find(c => c.id === value);
+        if (client) {
+          newData.client_name = client.name;
         }
       }
       
-      return updated;
+      return newData;
     });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.title || formData.title.trim() === "") {
-      newErrors.title = "Título é obrigatório";
-    }
-    
-    if (!formData.client_id || formData.client_id === "") {
-      newErrors.client_id = "Cliente é obrigatório";
-    }
-    
-    if (!formData.area || formData.area === "") {
-      newErrors.area = "Área do direito é obrigatória";
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      toast.error("Preencha todos os campos obrigatórios");
+    if (!formData.title || !formData.client_id || !formData.area) {
+      alert("⚠️ Preencha os campos obrigatórios (Título, Cliente e Área)");
       return;
     }
     
-    setIsSaving(true);
+    const dataToSubmit = { ...formData };
     
-    try {
-      // Construir objeto de dados limpo
-      const dataToSubmit = {
-        title: formData.title.trim(),
-        client_id: formData.client_id,
-        client_name: formData.client_name,
-        area: formData.area,
-        status: formData.status || "new",
-        priority: formData.priority || "medium"
-      };
-      
-      // Adicionar campos opcionais apenas se preenchidos
-      if (formData.case_number && formData.case_number.trim() !== "") {
-        dataToSubmit.case_number = formData.case_number.trim();
-      }
-      if (formData.court && formData.court.trim() !== "") {
-        dataToSubmit.court = formData.court.trim();
-      }
-      if (formData.opposing_party && formData.opposing_party.trim() !== "") {
-        dataToSubmit.opposing_party = formData.opposing_party.trim();
-      }
-      if (formData.start_date && formData.start_date !== "") {
-        dataToSubmit.start_date = formData.start_date;
-      }
-      if (formData.deadline && formData.deadline !== "") {
-        dataToSubmit.deadline = formData.deadline;
-      }
-      if (formData.description && formData.description.trim() !== "") {
-        dataToSubmit.description = formData.description.trim();
-      }
-      if (formData.value && formData.value !== "") {
-        const parsedValue = parseFloat(formData.value);
-        if (!isNaN(parsedValue) && parsedValue > 0) {
-          dataToSubmit.value = parsedValue;
-        }
-      }
-      
-      console.log("Salvando processo:", dataToSubmit);
-      
-      await onSubmit(dataToSubmit);
-      toast.success(caseData ? "Processo atualizado com sucesso!" : "Processo criado com sucesso!");
-      
-    } catch (error) {
-      console.error("Erro ao salvar processo:", error);
-      toast.error("Erro ao salvar processo. Tente novamente.");
-    } finally {
-      setIsSaving(false);
+    // Converter valor para número
+    if (dataToSubmit.value && dataToSubmit.value !== "") {
+      dataToSubmit.value = parseFloat(dataToSubmit.value);
+    } else {
+      delete dataToSubmit.value;
     }
+    
+    // Limpar campos vazios
+    if (!dataToSubmit.case_number || dataToSubmit.case_number === "") delete dataToSubmit.case_number;
+    if (!dataToSubmit.court || dataToSubmit.court === "") delete dataToSubmit.court;
+    if (!dataToSubmit.opposing_party || dataToSubmit.opposing_party === "") delete dataToSubmit.opposing_party;
+    if (!dataToSubmit.deadline || dataToSubmit.deadline === "") delete dataToSubmit.deadline;
+    if (!dataToSubmit.description || dataToSubmit.description === "") delete dataToSubmit.description;
+    
+    onSubmit(dataToSubmit);
   };
 
   return (
-    <Card className="max-w-4xl mx-auto border-none shadow-lg">
+    <Card className="max-w-3xl mx-auto border-none shadow-lg">
       <CardHeader className="border-b border-slate-100">
         <div className="flex items-center justify-between">
           <CardTitle>{caseData ? 'Editar Processo' : 'Novo Processo'}</CardTitle>
@@ -157,28 +81,17 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="title" className="flex items-center gap-1">
-                Título do Processo <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="title">Título do Processo *</Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => {
-                  handleChange('title', e.target.value);
-                  if (errors.title) setErrors(prev => ({ ...prev, title: null }));
-                }}
-                className={errors.title ? "border-red-500 focus:ring-red-500" : ""}
-                placeholder="Ex: Ação de Cobrança - João Silva"
+                onChange={(e) => handleChange('title', e.target.value)}
+                required
               />
-              {errors.title && (
-                <p className="text-xs text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {errors.title}
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="case_number">Número do Processo (CNJ)</Label>
+              <Label htmlFor="case_number">Número do Processo</Label>
               <Input
                 id="case_number"
                 value={formData.case_number}
@@ -188,44 +101,23 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_id" className="flex items-center gap-1">
-                Cliente <span className="text-red-500">*</span>
-              </Label>
-              <Select 
-                value={formData.client_id} 
-                onValueChange={(v) => {
-                  handleChange('client_id', v);
-                  if (errors.client_id) setErrors(prev => ({ ...prev, client_id: null }));
-                }}
-              >
-                <SelectTrigger className={errors.client_id ? "border-red-500" : ""}>
+              <Label htmlFor="client_id">Cliente *</Label>
+              <Select value={formData.client_id} onValueChange={(v) => handleChange('client_id', v)} required>
+                <SelectTrigger>
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.length === 0 ? (
-                    <div className="p-2 text-sm text-gray-500 text-center">
-                      Nenhum cliente cadastrado
-                    </div>
-                  ) : (
-                    clients.map(client => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))
-                  )}
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {errors.client_id && (
-                <p className="text-xs text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {errors.client_id}
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="area" className="flex items-center gap-1">
-                Área do Direito <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="area">Área do Direito *</Label>
               <Select value={formData.area} onValueChange={(v) => handleChange('area', v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -245,7 +137,7 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">Status *</Label>
               <Select value={formData.status} onValueChange={(v) => handleChange('status', v)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -254,7 +146,7 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
                   <SelectItem value="new">Novo</SelectItem>
                   <SelectItem value="in_progress">Em Andamento</SelectItem>
                   <SelectItem value="waiting">Aguardando</SelectItem>
-                  <SelectItem value="closed">Fechado</SelectItem>
+                  <SelectItem value="closed">Encerrado</SelectItem>
                   <SelectItem value="archived">Arquivado</SelectItem>
                 </SelectContent>
               </Select>
@@ -326,35 +218,22 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição Detalhada</Label>
+            <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              rows={6}
+              rows={4}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving || isLoading}>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isSaving || isLoading} 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 min-w-[160px]"
-            >
-              {(isSaving || isLoading) ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  {caseData ? 'Atualizar' : 'Criar'} Processo
-                </>
-              )}
+            <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-blue-600 to-purple-600">
+              <Save className="w-4 h-4 mr-2" />
+              {caseData ? 'Atualizar' : 'Criar'} Processo
             </Button>
           </div>
         </form>
