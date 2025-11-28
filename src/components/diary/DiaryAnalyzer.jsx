@@ -274,14 +274,127 @@ ATENÇÃO: Prefira MENOS publicações com dados CORRETOS do que muitas com dado
     setIsAnalyzing(false);
   };
 
+  // Verifica se uma publicação corresponde aos critérios de monitoramento
+  const checkMonitoringMatch = (publication, monitoring) => {
+    const pubText = `${publication.title} ${publication.original_content || ''} ${publication.summary || ''}`.toLowerCase();
+    
+    // Verifica palavras-chave
+    if (monitoring.keywords?.length > 0) {
+      const hasKeyword = monitoring.keywords.some(kw => pubText.includes(kw.toLowerCase()));
+      if (hasKeyword) return { matched: true, reason: 'keyword' };
+    }
+    
+    // Verifica nomes de clientes
+    if (monitoring.client_names?.length > 0 && publication.parties) {
+      const hasClient = monitoring.client_names.some(client => 
+        publication.parties.some(party => 
+          party.toLowerCase().includes(client.toLowerCase())
+        )
+      );
+      if (hasClient) return { matched: true, reason: 'client' };
+    }
+    
+    // Verifica números de processos
+    if (monitoring.case_numbers?.length > 0 && publication.case_number) {
+      const hasCase = monitoring.case_numbers.some(caseNum => 
+        publication.case_number.includes(caseNum) || caseNum.includes(publication.case_number)
+      );
+      if (hasCase) return { matched: true, reason: 'case' };
+    }
+    
+    return { matched: false };
+  };
+
+  // Envia notificações por email e no app
+  const sendNotifications = async (savedPublications, userEmail) => {
+    const activeMonitorings = monitorings.filter(m => m.is_active);
+    
+    for (const monitoring of activeMonitorings) {
+      const matchedPubs = savedPublications.filter(pub => 
+        checkMonitoringMatch(pub, monitoring).matched
+      );
+      
+      if (matchedPubs.length === 0) continue;
+      
+      // Filtra por configurações
+      let pubsToNotify = matchedPubs;
+      if (monitoring.notify_urgent_only) {
+        pubsToNotify = pubsToNotify.filter(p => p.urgency === 'alta');
+      }
+      
+      if (pubsToNotify.length === 0) continue;
+      
+      const urgentCount = pubsToNotify.filter(p => p.urgency === 'alta').length;
+      const deadlineCount = pubsToNotify.filter(p => p.deadline).length;
+      
+      // Email instantâneo
+      if (monitoring.notification_email && monitoring.email_frequency === 'instant') {
+        const emailBody = `
+Olá!
+
+Novas publicações foram encontradas no monitoramento "${monitoring.name}":
+
+📋 Total: ${pubsToNotify.length} publicação(ões)
+${urgentCount > 0 ? `⚠️ Urgentes: ${urgentCount}` : ''}
+${deadlineCount > 0 ? `📅 Com prazo: ${deadlineCount}` : ''}
+
+Publicações:
+${pubsToNotify.slice(0, 5).map(p => `
+• ${p.title}
+  Categoria: ${p.category || 'N/A'}
+  ${p.case_number ? `Processo: ${p.case_number}` : ''}
+  ${p.deadline ? `⏰ Prazo: ${p.deadline}` : ''}
+`).join('')}
+${pubsToNotify.length > 5 ? `\n... e mais ${pubsToNotify.length - 5} publicação(ões)` : ''}
+
+Acesse o JURIS para ver todos os detalhes.
+
+--
+JURIS - Monitor de Diários Oficiais
+        `.trim();
+
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: userEmail,
+            subject: `🔔 JURIS: ${pubsToNotify.length} nova(s) publicação(ões) - ${monitoring.name}`,
+            body: emailBody
+          });
+        } catch (e) {
+          console.error('Erro ao enviar email:', e);
+        }
+      }
+      
+      // Notificação no app
+      if (monitoring.notification_push) {
+        try {
+          await base44.entities.Notification.create({
+            type: 'deadline',
+            title: `📰 ${pubsToNotify.length} nova(s) publicação(ões)`,
+            message: `Monitoramento "${monitoring.name}" encontrou ${pubsToNotify.length} publicação(ões) relevante(s).`,
+            recipient_email: userEmail,
+            is_read: false,
+            entity_type: 'DiaryMonitoring',
+            entity_id: monitoring.id,
+            actor_name: 'Monitor de Diários'
+          });
+        } catch (e) {
+          console.error('Erro ao criar notificação:', e);
+        }
+      }
+    }
+  };
+
   const savePublications = async () => {
     if (!analysisResults?.publications) return;
 
     setIsAnalyzing(true);
 
     try {
+      const savedPubs = [];
+      const user = await base44.auth.me();
+      
       for (const pub of analysisResults.publications) {
-        await base44.entities.DiaryPublication.create({
+        const saved = await base44.entities.DiaryPublication.create({
           title: pub.title,
           content: pub.original_content || pub.summary,
           source: selectedCourt || "Diário Oficial",
@@ -296,8 +409,14 @@ ATENÇÃO: Prefira MENOS publicações com dados CORRETOS do que muitas com dado
           deadline_detected: pub.deadline,
           keywords_matched: pub.matched_keywords || [],
           is_read: false,
-          is_starred: pub.matched_keywords?.length > 0 // Auto-favoritar se tiver palavra-chave
+          is_starred: pub.matched_keywords?.length > 0
         });
+        savedPubs.push({ ...pub, id: saved.id });
+      }
+
+      // Envia notificações se houver monitoramentos correspondentes
+      if (monitorings.filter(m => m.is_active).length > 0) {
+        await sendNotifications(savedPubs, user.email);
       }
 
       toast.success(`${analysisResults.publications.length} publicações salvas!`);
