@@ -425,7 +425,8 @@ JURIS - Monitor de Diários Oficiais
 
       toast.success(`${analysisResults.publications.length} publicações salvas!`);
       onSuccess();
-      resetForm();
+      // Mantém o modal aberto com resultados visíveis para o usuário ver o que salvou
+      // Não chama resetForm() para manter os dados na tela
       
     } catch (error) {
       console.error(error);
