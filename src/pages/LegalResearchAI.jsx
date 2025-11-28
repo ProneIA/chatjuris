@@ -188,14 +188,20 @@ Formate a resposta em Markdown para melhor visualização.`;
   const handleSaveResearch = () => {
     if (!currentResult) return;
     
-    saveResearchMutation.mutate({
-      title: query.slice(0, 100),
-      query: currentResult.query,
-      research_type: currentResult.research_type,
-      area: currentResult.area,
-      results_summary: currentResult.results_summary,
-      sources: currentResult.sources || [],
-    });
+    const dataToSave = {
+      title: query.slice(0, 100) || "Pesquisa sem título",
+      query: currentResult.query || "",
+      research_type: currentResult.research_type || "general",
+      area: currentResult.area || "geral",
+      results_summary: currentResult.results_summary || "",
+    };
+    
+    // Só adiciona sources se não estiver vazio
+    if (currentResult.sources && currentResult.sources.length > 0) {
+      dataToSave.sources = currentResult.sources;
+    }
+    
+    saveResearchMutation.mutate(dataToSave);
   };
 
   const handleCopyCitation = (text) => {
