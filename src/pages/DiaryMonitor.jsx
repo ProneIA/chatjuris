@@ -57,8 +57,8 @@ import PublicationCard from "@/components/diary/PublicationCard";
 import PublicationAccordion from "@/components/diary/PublicationAccordion";
 import PublicationDetails from "@/components/diary/PublicationDetails";
 import MonitoringSetup from "@/components/diary/MonitoringSetup";
+import MonitoringDashboard from "@/components/diary/MonitoringDashboard";
 import AdvancedSearch from "@/components/diary/AdvancedSearch";
-import SmartSearch from "@/components/diary/SmartSearch";
 import DiarySearchAnalyzer from "@/components/diary/DiarySearchAnalyzer";
 
 const categoryLabels = {
@@ -96,6 +96,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [activeFilters, setActiveFilters] = useState(null);
   const [expandedPubId, setExpandedPubId] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showMonitoringDashboard, setShowMonitoringDashboard] = useState(false);
 
   const { data: publications = [], isLoading: loadingPubs } = useQuery({
     queryKey: ['diary-publications'],
@@ -105,6 +106,11 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const { data: monitorings = [], isLoading: loadingMonitorings } = useQuery({
     queryKey: ['diary-monitorings'],
     queryFn: () => base44.entities.DiaryMonitoring.list('-created_date'),
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('name'),
   });
 
   const updatePublicationMutation = useMutation({
@@ -247,7 +253,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => { setShowAdvancedSearch(!showAdvancedSearch); setShowSmartSearch(false); }}
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
               className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
             >
               <Filter className="w-4 h-4 mr-2" />
@@ -255,8 +261,8 @@ export default function DiaryMonitor({ theme = 'light' }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setShowSetup(true)}
-              className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+              onClick={() => setShowMonitoringDashboard(!showMonitoringDashboard)}
+              className={`${showMonitoringDashboard ? 'bg-purple-600 text-white hover:bg-purple-700' : ''} ${!showMonitoringDashboard && isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}`}
             >
               <Bell className="w-4 h-4 mr-2" />
               Monitoramentos
@@ -274,6 +280,19 @@ export default function DiaryMonitor({ theme = 'light' }) {
             }}
           />
         </div>
+
+        {/* Monitoring Dashboard Panel */}
+        {showMonitoringDashboard && (
+          <div className="mb-6">
+            <MonitoringDashboard
+              isDark={isDark}
+              monitorings={monitorings}
+              publications={publications}
+              clients={clients}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['diary-monitorings'] })}
+            />
+          </div>
+        )}
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
@@ -426,14 +445,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
 
       {/* Diary Analyzer Modal - Removed, now integrated */}
 
-      {/* Monitoring Setup Modal */}
-      <MonitoringSetup
-        open={showSetup}
-        onClose={() => setShowSetup(false)}
-        isDark={isDark}
-        monitorings={monitorings}
-        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['diary-monitorings'] })}
-      />
+      {/* MonitoringSetup removed - now using MonitoringDashboard inline */}
 
       {/* Publication Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
