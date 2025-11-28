@@ -25,7 +25,8 @@ export default function PublicationDetails({
   categoryLabels, 
   urgencyConfig,
   onClose,
-  onToggleStar
+  onToggleStar,
+  isModal = false
 }) {
   const category = categoryLabels[publication.category] || categoryLabels.outros;
   const urgency = urgencyConfig[publication.urgency] || urgencyConfig.media;
@@ -38,34 +39,36 @@ export default function PublicationDetails({
   };
 
   return (
-    <div className={`sticky top-24 rounded-xl border overflow-hidden ${isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'}`}>
+    <div className={`${isModal ? '' : 'sticky top-24'} rounded-xl ${isModal ? '' : 'border'} overflow-hidden ${isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'}`}>
       {/* Header */}
-      <div className={`p-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
-        <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${category.color}-500/10`}>
-            <CategoryIcon className={`w-4 h-4 text-${category.color}-500`} />
+      {!isModal && (
+        <div className={`p-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${category.color}-500/10`}>
+              <CategoryIcon className={`w-4 h-4 text-${category.color}-500`} />
+            </div>
+            <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {category.label}
+            </span>
           </div>
-          <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {category.label}
-          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleStar}
+              className={publication.is_starred ? 'text-yellow-500' : ''}
+            >
+              {publication.is_starred ? <Star className="w-4 h-4 fill-current" /> : <StarOff className="w-4 h-4" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleStar}
-            className={publication.is_starred ? 'text-yellow-500' : ''}
-          >
-            {publication.is_starred ? <Star className="w-4 h-4 fill-current" /> : <StarOff className="w-4 h-4" />}
-          </Button>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
+      )}
 
       {/* Content */}
-      <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+      <div className={`p-4 space-y-4 ${isModal ? '' : 'max-h-[calc(100vh-200px)] overflow-y-auto'}`}>
         {/* Urgency Alert */}
         {publication.urgency === 'alta' && (
           <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
