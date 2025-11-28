@@ -394,23 +394,27 @@ JURIS - Monitor de Diários Oficiais
       const user = await base44.auth.me();
       
       for (const pub of analysisResults.publications) {
-        const saved = await base44.entities.DiaryPublication.create({
-          title: pub.title,
-          content: pub.original_content || pub.summary,
+        const pubData = {
+          title: pub.title || "Publicação sem título",
+          content: pub.original_content || pub.summary || "",
           source: selectedCourt || "Diário Oficial",
           publication_date: publicationDate,
-          category: pub.category,
-          court: selectedCourt,
-          case_number: pub.case_number,
           parties_involved: pub.parties || [],
-          ai_summary: pub.summary,
-          ai_analysis: pub.analysis,
-          urgency: pub.urgency,
-          deadline_detected: pub.deadline,
+          ai_summary: pub.summary || "",
           keywords_matched: pub.matched_keywords || [],
           is_read: false,
-          is_starred: pub.matched_keywords?.length > 0
-        });
+          is_starred: (pub.matched_keywords?.length || 0) > 0
+        };
+        
+        // Só adiciona campos opcionais se tiverem valor válido
+        if (pub.category && pub.category !== "" && pub.category !== "null") pubData.category = pub.category;
+        if (selectedCourt && selectedCourt !== "") pubData.court = selectedCourt;
+        if (pub.case_number && pub.case_number !== "" && pub.case_number !== "null") pubData.case_number = pub.case_number;
+        if (pub.analysis && pub.analysis !== "") pubData.ai_analysis = pub.analysis;
+        if (pub.urgency && pub.urgency !== "" && pub.urgency !== "null") pubData.urgency = pub.urgency;
+        if (pub.deadline && pub.deadline !== "" && pub.deadline !== "null") pubData.deadline_detected = pub.deadline;
+        
+        const saved = await base44.entities.DiaryPublication.create(pubData);
         savedPubs.push({ ...pub, id: saved.id });
       }
 
