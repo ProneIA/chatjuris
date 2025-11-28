@@ -92,7 +92,6 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [filteredResults, setFilteredResults] = useState(null);
   const [activeFilters, setActiveFilters] = useState(null);
   const [expandedPubId, setExpandedPubId] = useState(null);
