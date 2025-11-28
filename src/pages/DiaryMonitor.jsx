@@ -333,6 +333,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
         open={showAnalyzer}
         onClose={() => setShowAnalyzer(false)}
         isDark={isDark}
+        monitorings={monitorings}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['diary-publications'] });
           setShowAnalyzer(false);

@@ -45,7 +45,7 @@ const courts = [
   "Outro"
 ];
 
-export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess }) {
+export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess, monitorings = [] }) {
   const [step, setStep] = useState(1);
   const [diaryContent, setDiaryContent] = useState("");
   const [selectedCourt, setSelectedCourt] = useState("");
@@ -90,6 +90,19 @@ export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess }) {
     }
   };
 
+  // Extrair todas as palavras-chave dos monitoramentos ativos
+  const getAllKeywords = () => {
+    const keywords = new Set();
+    monitorings.forEach(mon => {
+      if (mon.is_active !== false) {
+        mon.keywords?.forEach(kw => keywords.add(kw.toLowerCase()));
+        mon.client_names?.forEach(cn => keywords.add(cn.toLowerCase()));
+        mon.case_numbers?.forEach(cn => keywords.add(cn.toLowerCase()));
+      }
+    });
+    return Array.from(keywords);
+  };
+
   const analyzeContent = async () => {
     if (!diaryContent.trim()) {
       toast.error("Cole ou faça upload do conteúdo do diário");
@@ -98,11 +111,22 @@ export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess }) {
 
     setIsAnalyzing(true);
 
+    const configuredKeywords = getAllKeywords();
+    const keywordsInstruction = configuredKeywords.length > 0 
+      ? `\n\nPALAVRAS-CHAVE MONITORADAS (PRIORIDADE MÁXIMA):
+${configuredKeywords.map(kw => `- "${kw}"`).join('\n')}
+
+IMPORTANTE: Identifique TODAS as publicações que contenham qualquer uma dessas palavras-chave acima. 
+Para cada publicação, liste em "matched_keywords" quais palavras-chave foram encontradas.
+Publicações com palavras-chave monitoradas devem ter urgência "alta" automaticamente.`
+      : '';
+
     try {
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `Você é um especialista em análise de publicações de Diários Oficiais jurídicos brasileiros.
 
 Analise o seguinte conteúdo de diário oficial e extraia TODAS as publicações relevantes, classificando cada uma.
+${keywordsInstruction}
 
 CONTEÚDO DO DIÁRIO:
 ${diaryContent.substring(0, 15000)}
@@ -114,8 +138,9 @@ Para CADA publicação identificada, extraia:
 4. Partes envolvidas (nomes das partes)
 5. Resumo da publicação (2-3 frases)
 6. Análise: O que essa publicação significa na prática? Quais ações devem ser tomadas?
-7. Urgência: alta (prazo curto, ação imediata), media (prazo normal), baixa (informativo)
+7. Urgência: alta (prazo curto, ação imediata, ou contém palavra-chave monitorada), media (prazo normal), baixa (informativo)
 8. Prazo identificado (se houver, no formato YYYY-MM-DD)
+9. Palavras-chave encontradas: liste TODAS as palavras-chave monitoradas encontradas nesta publicação
 
 Retorne um JSON com a estrutura exata:
 {
@@ -129,11 +154,13 @@ Retorne um JSON com a estrutura exata:
       "analysis": "string",
       "urgency": "alta|media|baixa",
       "deadline": "YYYY-MM-DD ou null",
-      "original_content": "trecho original relevante"
+      "original_content": "trecho original relevante",
+      "matched_keywords": ["palavras-chave encontradas nesta publicação"]
     }
   ],
   "total_found": number,
-  "overview": "resumo geral do que foi encontrado no diário"
+  "overview": "resumo geral do que foi encontrado no diário",
+  "keywords_summary": {"palavra-chave": quantidade de ocorrências}
 }`,
         response_json_schema: {
           type: "object",
@@ -151,12 +178,14 @@ Retorne um JSON com a estrutura exata:
                   analysis: { type: "string" },
                   urgency: { type: "string" },
                   deadline: { type: "string" },
-                  original_content: { type: "string" }
+                  original_content: { type: "string" },
+                  matched_keywords: { type: "array", items: { type: "string" } }
                 }
               }
             },
             total_found: { type: "number" },
-            overview: { type: "string" }
+            overview: { type: "string" },
+            keywords_summary: { type: "object" }
           }
         }
       });
@@ -193,7 +222,8 @@ Retorne um JSON com a estrutura exata:
           urgency: pub.urgency,
           deadline_detected: pub.deadline,
           is_read: false,
-          is_starred: false
+          is_starred: pub.matched_keywords?.length > 0, // Marcar como favorita se tiver palavra-chave
+          keywords_matched: pub.matched_keywords || []
         });
       }
 
@@ -336,6 +366,25 @@ Retorne um JSON com a estrutura exata:
               <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
                 {analysisResults.overview}
               </p>
+              
+              {/* Keywords Summary */}
+              {analysisResults.keywords_summary && Object.keys(analysisResults.keywords_summary).length > 0 && (
+                <div className="mt-3 pt-3 border-t border-neutral-700">
+                  <p className={`text-xs font-medium mb-2 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
+                    Palavras-chave encontradas:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(analysisResults.keywords_summary).map(([keyword, count]) => (
+                      <span 
+                        key={keyword}
+                        className="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-400"
+                      >
+                        {keyword}: {count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Publications Preview */}
@@ -369,6 +418,15 @@ Retorne um JSON com a estrutura exata:
                         <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
                           Processo: {pub.case_number}
                         </p>
+                      )}
+                      {pub.matched_keywords?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {pub.matched_keywords.map((kw, i) => (
+                            <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
