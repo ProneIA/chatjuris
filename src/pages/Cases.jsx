@@ -158,8 +158,8 @@ export default function Cases({ theme = 'light' }) {
         await createCaseMutation.mutateAsync(data);
       }
     } catch (error) {
-      console.error("Erro ao salvar processo:", error);
-      throw error;
+      console.error("Erro no handleSubmit:", error);
+      throw error; // Re-throw para o form tratar
     }
   };
 
