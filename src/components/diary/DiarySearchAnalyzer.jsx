@@ -298,7 +298,8 @@ Retorne JSON:
 
       toast.success(`${results.results.length} publicação(ões) salva(s)!`);
       onSuccess?.();
-      clearAll();
+      // Mantém os resultados visíveis após salvar, apenas limpa o estado de "saving"
+      // O usuário pode limpar manualmente se quiser
       
     } catch (error) {
       console.error(error);
