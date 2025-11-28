@@ -28,8 +28,8 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
       
-      // Se mudar o cliente, atualiza o nome também
-      if (field === 'client_id') {
+      // Atualiza client_name quando client_id muda
+      if (field === 'client_id' && clients) {
         const client = clients.find(c => c.id === value);
         if (client) {
           newData.client_name = client.name;
@@ -44,7 +44,7 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
     e.preventDefault();
     
     if (!formData.title || !formData.client_id || !formData.area) {
-      alert("⚠️ Preencha os campos obrigatórios (Título, Cliente e Área)");
+      alert("⚠️ Preencha todos os campos obrigatórios");
       return;
     }
     
@@ -86,6 +86,7 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Ex: Ação de Cobrança"
                 required
               />
             </div>
@@ -102,12 +103,12 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
 
             <div className="space-y-2">
               <Label htmlFor="client_id">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(v) => handleChange('client_id', v)} required>
+              <Select value={formData.client_id} onValueChange={(v) => handleChange('client_id', v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map(client => (
+                  {clients && clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -153,7 +154,7 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority">Prioridade</Label>
+              <Label htmlFor="priority">Prioridade *</Label>
               <Select value={formData.priority} onValueChange={(v) => handleChange('priority', v)}>
                 <SelectTrigger>
                   <SelectValue />

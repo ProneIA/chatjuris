@@ -56,22 +56,40 @@ export default function Cases({ theme = 'light' }) {
   });
 
   const createCaseMutation = useMutation({
-    mutationFn: (data) => base44.entities.Case.create(data),
-    onSuccess: () => {
+    mutationFn: async (data) => {
+      console.log("Criando processo com dados:", data);
+      const result = await base44.entities.Case.create(data);
+      console.log("Processo criado:", result);
+      return result;
+    },
+    onSuccess: (data) => {
+      console.log("Sucesso ao criar processo:", data);
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
       setEditingCase(null);
     },
+    onError: (error) => {
+      console.error("Erro ao criar processo:", error);
+    }
   });
 
   const updateCaseMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Case.update(id, data),
-    onSuccess: () => {
+    mutationFn: async ({ id, data }) => {
+      console.log("Atualizando processo:", id, data);
+      const result = await base44.entities.Case.update(id, data);
+      console.log("Processo atualizado:", result);
+      return result;
+    },
+    onSuccess: (data) => {
+      console.log("Sucesso ao atualizar processo:", data);
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
       setEditingCase(null);
       setSelectedCase(null);
     },
+    onError: (error) => {
+      console.error("Erro ao atualizar processo:", error);
+    }
   });
 
   const createFolderMutation = useMutation({
@@ -132,11 +150,16 @@ export default function Cases({ theme = 'light' }) {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
-  const handleSubmit = (data) => {
-    if (editingCase) {
-      updateCaseMutation.mutate({ id: editingCase.id, data });
-    } else {
-      createCaseMutation.mutate(data);
+  const handleSubmit = async (data) => {
+    try {
+      if (editingCase) {
+        await updateCaseMutation.mutateAsync({ id: editingCase.id, data });
+      } else {
+        await createCaseMutation.mutateAsync(data);
+      }
+    } catch (error) {
+      console.error("Erro no handleSubmit:", error);
+      throw error; // Re-throw para o form tratar
     }
   };
 
