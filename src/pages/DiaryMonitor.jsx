@@ -59,6 +59,7 @@ import PublicationDetails from "@/components/diary/PublicationDetails";
 import MonitoringSetup from "@/components/diary/MonitoringSetup";
 import AdvancedSearch from "@/components/diary/AdvancedSearch";
 import SmartSearch from "@/components/diary/SmartSearch";
+import DiarySearchAnalyzer from "@/components/diary/DiarySearchAnalyzer";
 
 const categoryLabels = {
   intimacao: { label: "Intimação", icon: Bell, color: "orange" },
@@ -91,11 +92,11 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [filteredResults, setFilteredResults] = useState(null);
   const [activeFilters, setActiveFilters] = useState(null);
   const [expandedPubId, setExpandedPubId] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showSmartSearch, setShowSmartSearch] = useState(false);
 
   const { data: publications = [], isLoading: loadingPubs } = useQuery({
     queryKey: ['diary-publications'],
@@ -246,21 +247,6 @@ export default function DiaryMonitor({ theme = 'light' }) {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              onClick={() => setShowAnalyzer(true)}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Analisar Diário
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => { setShowSmartSearch(!showSmartSearch); setShowAdvancedSearch(false); }}
-              className={`${showSmartSearch ? 'bg-purple-600 text-white hover:bg-purple-700' : ''} ${!showSmartSearch && isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}`}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Busca Inteligente
-            </Button>
-            <Button
               variant="outline"
               onClick={() => { setShowAdvancedSearch(!showAdvancedSearch); setShowSmartSearch(false); }}
               className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
@@ -279,30 +265,16 @@ export default function DiaryMonitor({ theme = 'light' }) {
           </div>
         </div>
 
-        {/* Smart Search Panel */}
-        {showSmartSearch && (
-          <div className="mb-6">
-            <SmartSearch
-              isDark={isDark}
-              publications={publications}
-              onResultsFound={(results) => {
-                if (results) {
-                  const allPubs = results.flatMap(g => g.publications);
-                  const uniquePubs = [...new Map(allPubs.map(p => [p.id, p])).values()];
-                  setFilteredResults(uniquePubs);
-                } else {
-                  setFilteredResults(null);
-                }
-              }}
-              onSelectProcess={(group) => {
-                if (group.publications.length > 0) {
-                  setSelectedPublication(group.publications[0]);
-                  setShowDetailsModal(true);
-                }
-              }}
-            />
-          </div>
-        )}
+        {/* Unified Search & Analyzer Panel */}
+        <div className="mb-6">
+          <DiarySearchAnalyzer
+            isDark={isDark}
+            monitorings={monitorings}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['diary-publications'] });
+            }}
+          />
+        </div>
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
@@ -453,17 +425,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
         </div>
       </div>
 
-      {/* Diary Analyzer Modal */}
-      <DiaryAnalyzer
-        open={showAnalyzer}
-        onClose={() => setShowAnalyzer(false)}
-        isDark={isDark}
-        monitorings={monitorings}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['diary-publications'] });
-          setShowAnalyzer(false);
-        }}
-      />
+      {/* Diary Analyzer Modal - Removed, now integrated */}
 
       {/* Monitoring Setup Modal */}
       <MonitoringSetup
