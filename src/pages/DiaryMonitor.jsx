@@ -54,6 +54,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import DiaryAnalyzer from "@/components/diary/DiaryAnalyzer";
 import PublicationCard from "@/components/diary/PublicationCard";
+import PublicationAccordion from "@/components/diary/PublicationAccordion";
 import PublicationDetails from "@/components/diary/PublicationDetails";
 import MonitoringSetup from "@/components/diary/MonitoringSetup";
 import AdvancedSearch from "@/components/diary/AdvancedSearch";
@@ -91,6 +92,8 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [filteredResults, setFilteredResults] = useState(null);
   const [activeFilters, setActiveFilters] = useState(null);
+  const [expandedPubId, setExpandedPubId] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const { data: publications = [], isLoading: loadingPubs } = useQuery({
     queryKey: ['diary-publications'],
@@ -107,13 +110,94 @@ export default function DiaryMonitor({ theme = 'light' }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['diary-publications'] }),
   });
 
+  // Função de busca precisa com sinônimos
+  const searchWithSynonyms = (text, term) => {
+    if (!text || !term) return false;
+    const lowerText = text.toLowerCase();
+    const lowerTerm = term.toLowerCase().trim();
+    
+    // Busca direta
+    if (lowerText.includes(lowerTerm)) return true;
+    
+    // Dicionário de sinônimos jurídicos
+    const synonyms = {
+      'intimação': ['intimado', 'intimando', 'intimar', 'intimações'],
+      'sentença': ['sentenças', 'sentenciado', 'sentenciar', 'julgamento', 'decisão'],
+      'despacho': ['despachos', 'despachado', 'despachar'],
+      'citação': ['citado', 'citar', 'citações', 'citando'],
+      'recurso': ['recursos', 'recorrer', 'recorrido', 'recorrente', 'apelação', 'agravo'],
+      'prazo': ['prazos', 'termo', 'vencimento', 'dias'],
+      'pagamento': ['pagar', 'pago', 'pagamentos', 'quitação', 'adimplemento'],
+      'precatório': ['precatórios', 'requisição', 'rqo', 'requisitório'],
+      'execução': ['executar', 'executado', 'execuções', 'executivo'],
+      'audiência': ['audiências', 'sessão', 'sessões'],
+      'autor': ['autora', 'autores', 'requerente', 'demandante', 'exequente'],
+      'réu': ['ré', 'réus', 'requerido', 'demandado', 'executado'],
+      'advogado': ['advogados', 'advogada', 'oab', 'patrono', 'procurador'],
+      'multa': ['multas', 'astreintes', 'penalidade'],
+      'embargo': ['embargos', 'embargar', 'embargado'],
+      'tutela': ['tutelas', 'liminar', 'antecipação', 'cautelar'],
+      'urgência': ['urgente', 'urgentes', 'emergência', 'emergencial'],
+      'trânsito': ['transitado', 'transitar', 'trânsito em julgado'],
+      'arquivamento': ['arquivado', 'arquivar', 'arquivo'],
+      'petição': ['petições', 'peticionar', 'peticionado', 'manifestação'],
+      'contestação': ['contestar', 'contestado', 'defesa'],
+      'apelação': ['apelar', 'apelado', 'apelante'],
+      'agravo': ['agravos', 'agravar', 'agravante', 'agravado'],
+    };
+    
+    // Verifica sinônimos
+    for (const [key, syns] of Object.entries(synonyms)) {
+      if (key.includes(lowerTerm) || lowerTerm.includes(key)) {
+        for (const syn of syns) {
+          if (lowerText.includes(syn)) return true;
+        }
+      }
+      if (syns.some(s => s.includes(lowerTerm) || lowerTerm.includes(s))) {
+        if (lowerText.includes(key)) return true;
+        for (const syn of syns) {
+          if (lowerText.includes(syn)) return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+  
+  // Extrai termos de busca ativos
+  const getActiveSearchTerms = () => {
+    const terms = [];
+    if (searchTerm) {
+      terms.push(...searchTerm.split(/\s+/).filter(t => t.length > 1));
+    }
+    if (activeFilters?.query) {
+      terms.push(...activeFilters.query.split(/\s+/).filter(t => t.length > 1));
+    }
+    return [...new Set(terms)];
+  };
+
   const basePublications = filteredResults || publications;
   
   const filteredPublications = basePublications.filter(pub => {
-    const matchesSearch = !searchTerm || 
-      pub.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pub.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pub.case_number?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Busca completa em todos os campos
+    const searchableFields = [
+      pub.title,
+      pub.content,
+      pub.original_content,
+      pub.ai_summary,
+      pub.ai_analysis,
+      pub.case_number,
+      pub.court,
+      pub.source,
+      ...(pub.parties_involved || []),
+      ...(pub.keywords_matched || [])
+    ].filter(Boolean).join(' ');
+    
+    // Aplica busca com sinônimos para cada termo
+    const matchesSearch = !searchTerm || searchTerm.split(/\s+/).every(term => 
+      term.length < 2 || searchWithSynonyms(searchableFields, term)
+    );
+    
     const matchesCategory = selectedCategory === "all" || pub.category === selectedCategory;
     const matchesUrgency = selectedUrgency === "all" || pub.urgency === selectedUrgency;
     const matchesUnread = !showUnreadOnly || !pub.is_read;
@@ -288,69 +372,49 @@ export default function DiaryMonitor({ theme = 'light' }) {
           </div>
         </div>
 
-        {/* Publications List */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-3">
-            {loadingPubs ? (
-              Array(5).fill(0).map((_, i) => (
-                <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
-              ))
-            ) : filteredPublications.length === 0 ? (
-              <div className={`text-center py-16 rounded-xl border ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
-                <Newspaper className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
-                <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Nenhuma publicação encontrada
-                </h3>
-                <p className={`text-sm mb-4 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                  Analise um diário oficial para começar
-                </p>
-                <Button onClick={() => setShowAnalyzer(true)} className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Analisar Diário
-                </Button>
-              </div>
-            ) : (
-              <AnimatePresence>
-                {filteredPublications.map((pub, index) => (
-                  <PublicationCard
-                    key={pub.id}
-                    publication={pub}
-                    isDark={isDark}
-                    categoryLabels={categoryLabels}
-                    urgencyConfig={urgencyConfig}
-                    onSelect={() => {
-                      setSelectedPublication(pub);
-                      markAsRead(pub);
-                    }}
-                    onToggleStar={() => toggleStar(pub)}
-                    isSelected={selectedPublication?.id === pub.id}
-                    index={index}
-                  />
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
-
-          {/* Details Panel */}
-          <div className="lg:col-span-1">
-            {selectedPublication ? (
-              <PublicationDetails
-                publication={selectedPublication}
-                isDark={isDark}
-                categoryLabels={categoryLabels}
-                urgencyConfig={urgencyConfig}
-                onClose={() => setSelectedPublication(null)}
-                onToggleStar={() => toggleStar(selectedPublication)}
-              />
-            ) : (
-              <div className={`sticky top-24 p-6 rounded-xl border text-center ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
-                <FileText className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
-                <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                  Selecione uma publicação para ver os detalhes
-                </p>
-              </div>
-            )}
-          </div>
+        {/* Publications List - Accordion Style */}
+        <div className="space-y-3">
+          {loadingPubs ? (
+            Array(5).fill(0).map((_, i) => (
+              <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
+            ))
+          ) : filteredPublications.length === 0 ? (
+            <div className={`text-center py-16 rounded-xl border ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
+              <Newspaper className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
+              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Nenhuma publicação encontrada
+              </h3>
+              <p className={`text-sm mb-4 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+                Analise um diário oficial para começar
+              </p>
+              <Button onClick={() => setShowAnalyzer(true)} className="gap-2">
+                <Sparkles className="w-4 h-4" />
+                Analisar Diário
+              </Button>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {filteredPublications.map((pub, index) => (
+                <PublicationAccordion
+                  key={pub.id}
+                  publication={pub}
+                  isDark={isDark}
+                  categoryLabels={categoryLabels}
+                  urgencyConfig={urgencyConfig}
+                  isExpanded={expandedPubId === pub.id}
+                  onToggleExpand={() => setExpandedPubId(expandedPubId === pub.id ? null : pub.id)}
+                  onToggleStar={() => toggleStar(pub)}
+                  onMarkAsRead={() => markAsRead(pub)}
+                  onViewDetails={() => {
+                    setSelectedPublication(pub);
+                    setShowDetailsModal(true);
+                  }}
+                  searchTerms={getActiveSearchTerms()}
+                  index={index}
+                />
+              ))}
+            </AnimatePresence>
+          )}
         </div>
       </div>
 
@@ -374,6 +438,28 @@ export default function DiaryMonitor({ theme = 'light' }) {
         monitorings={monitorings}
         onRefresh={() => queryClient.invalidateQueries({ queryKey: ['diary-monitorings'] })}
       />
+
+      {/* Publication Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className={`max-w-3xl max-h-[85vh] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : ''}`}>
+          <DialogHeader>
+            <DialogTitle className={isDark ? 'text-white' : ''}>
+              Detalhes da Publicação
+            </DialogTitle>
+          </DialogHeader>
+          {selectedPublication && (
+            <PublicationDetails
+              publication={selectedPublication}
+              isDark={isDark}
+              categoryLabels={categoryLabels}
+              urgencyConfig={urgencyConfig}
+              onClose={() => setShowDetailsModal(false)}
+              onToggleStar={() => toggleStar(selectedPublication)}
+              isModal
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
