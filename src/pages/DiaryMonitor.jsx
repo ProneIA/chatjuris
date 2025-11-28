@@ -58,6 +58,7 @@ import PublicationAccordion from "@/components/diary/PublicationAccordion";
 import PublicationDetails from "@/components/diary/PublicationDetails";
 import MonitoringSetup from "@/components/diary/MonitoringSetup";
 import AdvancedSearch from "@/components/diary/AdvancedSearch";
+import SmartSearch from "@/components/diary/SmartSearch";
 
 const categoryLabels = {
   intimacao: { label: "Intimação", icon: Bell, color: "orange" },
@@ -94,6 +95,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [activeFilters, setActiveFilters] = useState(null);
   const [expandedPubId, setExpandedPubId] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showSmartSearch, setShowSmartSearch] = useState(false);
 
   const { data: publications = [], isLoading: loadingPubs } = useQuery({
     queryKey: ['diary-publications'],
@@ -252,11 +254,19 @@ export default function DiaryMonitor({ theme = 'light' }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              onClick={() => { setShowSmartSearch(!showSmartSearch); setShowAdvancedSearch(false); }}
+              className={`${showSmartSearch ? 'bg-purple-600 text-white hover:bg-purple-700' : ''} ${!showSmartSearch && isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}`}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Busca Inteligente
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => { setShowAdvancedSearch(!showAdvancedSearch); setShowSmartSearch(false); }}
               className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
             >
               <Filter className="w-4 h-4 mr-2" />
-              Busca Avançada
+              Filtros
             </Button>
             <Button
               variant="outline"
@@ -268,6 +278,31 @@ export default function DiaryMonitor({ theme = 'light' }) {
             </Button>
           </div>
         </div>
+
+        {/* Smart Search Panel */}
+        {showSmartSearch && (
+          <div className="mb-6">
+            <SmartSearch
+              isDark={isDark}
+              publications={publications}
+              onResultsFound={(results) => {
+                if (results) {
+                  const allPubs = results.flatMap(g => g.publications);
+                  const uniquePubs = [...new Map(allPubs.map(p => [p.id, p])).values()];
+                  setFilteredResults(uniquePubs);
+                } else {
+                  setFilteredResults(null);
+                }
+              }}
+              onSelectProcess={(group) => {
+                if (group.publications.length > 0) {
+                  setSelectedPublication(group.publications[0]);
+                  setShowDetailsModal(true);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Advanced Search Panel */}
         {showAdvancedSearch && (
