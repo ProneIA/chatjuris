@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,24 +8,45 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X, Save, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, isLoading }) {
+export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoading }) {
   const [formData, setFormData] = useState({
-    case_number: caseData?.case_number || "",
-    client_id: caseData?.client_id || "",
-    client_name: caseData?.client_name || "",
-    title: caseData?.title || "",
-    description: caseData?.description || "",
-    area: caseData?.area || "civil",
-    status: caseData?.status || "new",
-    priority: caseData?.priority || "medium",
-    court: caseData?.court || "",
-    opposing_party: caseData?.opposing_party || "",
-    start_date: caseData?.start_date || new Date().toISOString().split('T')[0],
-    deadline: caseData?.deadline || "",
-    value: caseData?.value || ""
+    case_number: "",
+    client_id: "",
+    client_name: "",
+    title: "",
+    description: "",
+    area: "civil",
+    status: "new",
+    priority: "medium",
+    court: "",
+    opposing_party: "",
+    start_date: new Date().toISOString().split('T')[0],
+    deadline: "",
+    value: ""
   });
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Inicializar com dados existentes
+  useEffect(() => {
+    if (caseData) {
+      setFormData({
+        case_number: caseData.case_number || "",
+        client_id: caseData.client_id || "",
+        client_name: caseData.client_name || "",
+        title: caseData.title || "",
+        description: caseData.description || "",
+        area: caseData.area || "civil",
+        status: caseData.status || "new",
+        priority: caseData.priority || "medium",
+        court: caseData.court || "",
+        opposing_party: caseData.opposing_party || "",
+        start_date: caseData.start_date || new Date().toISOString().split('T')[0],
+        deadline: caseData.deadline || "",
+        value: caseData.value || ""
+      });
+    }
+  }, [caseData]);
 
   const handleChange = (field, value) => {
     setFormData(prev => {
@@ -51,11 +72,11 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
     }
     
     if (!formData.client_id || formData.client_id === "") {
-      newErrors.client_id = "Selecione um cliente";
+      newErrors.client_id = "Cliente é obrigatório";
     }
     
     if (!formData.area || formData.area === "") {
-      newErrors.area = "Selecione a área do direito";
+      newErrors.area = "Área do direito é obrigatória";
     }
     
     setErrors(newErrors);
@@ -73,14 +94,14 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
     setIsSaving(true);
     
     try {
-      // Preparar dados para envio
+      // Construir objeto de dados limpo
       const dataToSubmit = {
         title: formData.title.trim(),
         client_id: formData.client_id,
         client_name: formData.client_name,
         area: formData.area,
         status: formData.status || "new",
-        priority: formData.priority || "medium",
+        priority: formData.priority || "medium"
       };
       
       // Adicionar campos opcionais apenas se preenchidos
@@ -102,8 +123,11 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
       if (formData.description && formData.description.trim() !== "") {
         dataToSubmit.description = formData.description.trim();
       }
-      if (formData.value && formData.value !== "" && !isNaN(parseFloat(formData.value))) {
-        dataToSubmit.value = parseFloat(formData.value);
+      if (formData.value && formData.value !== "") {
+        const parsedValue = parseFloat(formData.value);
+        if (!isNaN(parsedValue) && parsedValue > 0) {
+          dataToSubmit.value = parsedValue;
+        }
       }
       
       console.log("Salvando processo:", dataToSubmit);
@@ -154,11 +178,12 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="case_number">Número do Processo</Label>
+              <Label htmlFor="case_number">Número do Processo (CNJ)</Label>
               <Input
                 id="case_number"
                 value={formData.case_number}
                 onChange={(e) => handleChange('case_number', e.target.value)}
+                placeholder="0000000-00.0000.0.00.0000"
               />
             </div>
 
@@ -178,8 +203,8 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
                 </SelectTrigger>
                 <SelectContent>
                   {clients.length === 0 ? (
-                    <div className="p-2 text-sm text-gray-500">
-                      Nenhum cliente cadastrado. Cadastre um cliente primeiro.
+                    <div className="p-2 text-sm text-gray-500 text-center">
+                      Nenhum cliente cadastrado
                     </div>
                   ) : (
                     clients.map(client => (
@@ -198,7 +223,9 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="area">Área do Direito *</Label>
+              <Label htmlFor="area" className="flex items-center gap-1">
+                Área do Direito <span className="text-red-500">*</span>
+              </Label>
               <Select value={formData.area} onValueChange={(v) => handleChange('area', v)}>
                 <SelectTrigger>
                   <SelectValue />
