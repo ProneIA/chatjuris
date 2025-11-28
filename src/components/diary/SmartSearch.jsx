@@ -306,36 +306,43 @@ export default function SmartSearch({
           </h3>
         </div>
         
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
+        {/* Caixa de Palavras-chave */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-slate-50 border-slate-200'}`}>
+          <label className={`text-xs font-medium mb-2 block ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
+            Palavras-chave para busca
+          </label>
+          <div className="relative">
             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
             <Input
               placeholder="Digite termos separados por vírgula: licitação, contrato, precatório..."
               value={searchTerms}
               onChange={(e) => setSearchTerms(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && performSearch()}
-              className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}
+              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-600 text-white placeholder:text-neutral-500' : 'bg-white'}`}
             />
           </div>
+          <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            💡 A busca inclui sinônimos jurídicos automaticamente. Ex: "licitação" também busca "pregão", "certame", "edital".
+          </p>
+        </div>
+
+        {/* Botões de ação */}
+        <div className="flex gap-2">
           {results && (
-            <Button variant="ghost" size="icon" onClick={clearSearch}>
-              <X className="w-4 h-4" />
+            <Button variant="outline" onClick={clearSearch} className={isDark ? 'border-neutral-700' : ''}>
+              <X className="w-4 h-4 mr-2" />
+              Limpar
             </Button>
           )}
           <Button 
             onClick={performSearch}
             disabled={!searchTerms.trim() || isSearching}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="flex-1 bg-purple-600 hover:bg-purple-700"
           >
             <Search className="w-4 h-4 mr-2" />
-            Buscar
+            Buscar Publicações
           </Button>
         </div>
-
-        {/* Info about synonyms */}
-        <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-          A busca inclui automaticamente sinônimos jurídicos. Ex: "licitação" também busca "pregão", "certame", "edital".
-        </p>
       </div>
 
       {/* Results */}
