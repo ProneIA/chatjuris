@@ -86,6 +86,7 @@ export default function DiarySearchAnalyzer({ isDark, monitorings = [], onSucces
 
     setUploadedFile(file);
     setResults(null);
+    setFileContent(""); // Limpa conteúdo anterior
     
     if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
       try {
@@ -103,29 +104,55 @@ export default function DiarySearchAnalyzer({ isDark, monitorings = [], onSucces
         });
         
         if (extracted.status === "success" && extracted.output?.full_text) {
-          setFileContent(extracted.output.full_text);
-          toast.success("Texto extraído!");
+          const text = extracted.output.full_text;
+          console.log("Texto extraído com sucesso:", text.length, "caracteres");
+          setFileContent(text);
+          toast.success(`Texto extraído! ${text.length.toLocaleString()} caracteres`);
+        } else {
+          console.error("Falha na extração:", extracted);
+          toast.error("Não foi possível extrair texto do arquivo");
         }
       } catch (error) {
+        console.error("Erro ao processar arquivo:", error);
         toast.error("Erro ao processar arquivo");
       }
     } else if (file.type === 'text/plain') {
       const text = await file.text();
+      console.log("Texto lido do TXT:", text.length, "caracteres");
       setFileContent(text);
+      toast.success(`Arquivo carregado! ${text.length.toLocaleString()} caracteres`);
+    } else {
+      // Tentar ler como texto para outros formatos
+      try {
+        const text = await file.text();
+        if (text && text.trim().length > 0) {
+          console.log("Texto lido:", text.length, "caracteres");
+          setFileContent(text);
+          toast.success(`Arquivo carregado! ${text.length.toLocaleString()} caracteres`);
+        } else {
+          toast.error("Formato de arquivo não suportado ou arquivo vazio");
+        }
+      } catch (error) {
+        toast.error("Formato de arquivo não suportado");
+      }
     }
   };
 
   const analyzeWithAI = async () => {
-    if (!fileContent.trim()) {
+    console.log("analyzeWithAI chamado", { fileContentLength: fileContent?.length, searchTerms });
+    
+    if (!fileContent || fileContent.trim().length === 0) {
       toast.error("Faça upload de um arquivo primeiro");
       return;
     }
 
-    const terms = searchTerms.split(',').map(t => t.trim()).filter(Boolean);
+    const terms = searchTerms.split(',').map(t => t.trim()).filter(t => t.length > 0);
     if (terms.length === 0) {
       toast.error("Digite pelo menos uma palavra-chave");
       return;
     }
+    
+    console.log("Iniciando análise com termos:", terms);
 
     setIsAnalyzing(true);
     const expandedTerms = expandSynonyms(terms);
@@ -386,8 +413,12 @@ Retorne JSON:
         {/* Botão de Análise */}
         <Button 
           onClick={analyzeWithAI}
-          disabled={!fileContent || !searchTerms.trim() || isAnalyzing}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+          disabled={!(fileContent && fileContent.trim().length > 0) || !searchTerms.trim() || isAnalyzing}
+          className={`w-full ${
+            (fileContent && fileContent.trim().length > 0) && searchTerms.trim() && !isAnalyzing
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+              : 'bg-gray-400 cursor-not-allowed'
+          }`}
         >
           {isAnalyzing ? (
             <>
@@ -401,6 +432,22 @@ Retorne JSON:
             </>
           )}
         </Button>
+        {/* Debug info */}
+        {(!fileContent || fileContent.trim().length === 0) && uploadedFile && (
+          <p className="text-xs text-amber-500 mt-1">
+            ⏳ Aguarde a extração do texto do arquivo...
+          </p>
+        )}
+        {(!fileContent || fileContent.trim().length === 0) && !uploadedFile && (
+          <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            ⬆️ Faça upload de um arquivo para começar
+          </p>
+        )}
+        {fileContent && fileContent.trim().length > 0 && !searchTerms.trim() && (
+          <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            🔍 Digite uma ou mais palavras-chave para buscar
+          </p>
+        )}
       </div>
 
       {/* Resultados */}
