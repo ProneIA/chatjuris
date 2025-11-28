@@ -46,6 +46,24 @@ const courts = [
   "Outro"
 ];
 
+const SUMMARY_LEVELS = {
+  short: {
+    label: "Curto",
+    description: "1-2 frases",
+    prompt: "Resumo MUITO BREVE em 1-2 frases apenas, focando no ponto principal."
+  },
+  medium: {
+    label: "Médio",
+    description: "3-4 frases",
+    prompt: "Resumo em 3-4 frases, cobrindo os pontos principais e ação necessária."
+  },
+  detailed: {
+    label: "Detalhado",
+    description: "Análise completa",
+    prompt: "Resumo detalhado incluindo: contexto, pontos principais, análise jurídica, prazos identificados e providências recomendadas."
+  }
+};
+
 export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess, monitorings = [] }) {
   const [step, setStep] = useState(1);
   const [diaryContent, setDiaryContent] = useState("");
@@ -54,7 +72,7 @@ export default function DiaryAnalyzer({ open, onClose, isDark, onSuccess, monito
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [summaryLevel, setSummaryLevel] = useState("medium"); // short, medium, detailed
+  const [summaryLevel, setSummaryLevel] = useState("medium");
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -132,12 +150,6 @@ ${allCaseNumbers.map(c => `- "${c}"`).join('\n')}
 Verifique se algum desses números de processo aparece nas publicações.`
       : '';
 
-    const summaryInstructions = {
-      short: "RESUMO: Máximo 1-2 frases curtas e diretas. ANÁLISE: 1 frase sobre a ação necessária.",
-      medium: "RESUMO: 3-4 frases objetivas cobrindo o essencial. ANÁLISE: 2-3 frases sobre significado e providências.",
-      detailed: "RESUMO: Parágrafo completo com todos os detalhes relevantes. ANÁLISE: Análise jurídica aprofundada incluindo fundamentação, prazos, riscos e recomendações específicas."
-    };
-
     try {
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `Você é um ESPECIALISTA JURÍDICO em análise de Diários Oficiais brasileiros. Sua tarefa é analisar o texto com MÁXIMA PRECISÃO.
@@ -180,8 +192,12 @@ INSTRUÇÕES DE EXTRAÇÃO (seja PRECISO):
    - Não confunda advogados, juízes ou serventuários com partes
    - Se não identificar partes claramente, retorne array vazio []
 
-5. RESUMO e 6. ANÁLISE - NÍVEL DE DETALHE SOLICITADO: ${summaryLevel.toUpperCase()}
-   ${summaryInstructions[summaryLevel]}
+5. RESUMO: ${SUMMARY_LEVELS[summaryLevel].prompt}
+
+6. ANÁLISE: 
+   - O que essa publicação significa juridicamente?
+   - Quais providências devem ser tomadas?
+   - Há prazos a cumprir?
 
 7. URGÊNCIA:
    - alta: prazo de 5 dias ou menos, citação inicial, intimação para audiência próxima
@@ -316,7 +332,7 @@ ATENÇÃO: Prefira MENOS publicações com dados CORRETOS do que muitas com dado
 
         {step === 1 && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
                   Tribunal/Fonte
@@ -343,39 +359,22 @@ ATENÇÃO: Prefira MENOS publicações com dados CORRETOS do que muitas com dado
                   className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
                 />
               </div>
-            </div>
-
-            {/* Summary Level Setting */}
-            <div>
-              <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
-                Nível de Detalhe do Resumo IA
-              </label>
-              <div className="flex gap-2">
-                {[
-                  { value: 'short', label: 'Curto', desc: '1-2 frases' },
-                  { value: 'medium', label: 'Médio', desc: '3-4 frases' },
-                  { value: 'detailed', label: 'Detalhado', desc: 'Análise completa' }
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setSummaryLevel(opt.value)}
-                    className={`flex-1 p-3 rounded-lg border text-left transition-all ${
-                      summaryLevel === opt.value
-                        ? isDark 
-                          ? 'bg-purple-500/20 border-purple-500 text-purple-300' 
-                          : 'bg-purple-50 border-purple-500 text-purple-700'
-                        : isDark
-                          ? 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:border-neutral-600'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="font-medium text-sm">{opt.label}</div>
-                    <div className={`text-xs mt-0.5 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                      {opt.desc}
-                    </div>
-                  </button>
-                ))}
+              <div>
+                <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                  Nível do Resumo IA
+                </label>
+                <Select value={summaryLevel} onValueChange={setSummaryLevel}>
+                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(SUMMARY_LEVELS).map(([key, val]) => (
+                      <SelectItem key={key} value={key}>
+                        {val.label} ({val.description})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

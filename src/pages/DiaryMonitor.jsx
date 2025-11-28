@@ -45,7 +45,8 @@ import {
   BookOpen,
   Gavel,
   Scale,
-  RefreshCw
+  RefreshCw,
+  SlidersHorizontal
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -55,6 +56,7 @@ import DiaryAnalyzer from "@/components/diary/DiaryAnalyzer";
 import PublicationCard from "@/components/diary/PublicationCard";
 import PublicationDetails from "@/components/diary/PublicationDetails";
 import MonitoringSetup from "@/components/diary/MonitoringSetup";
+import AdvancedSearch from "@/components/diary/AdvancedSearch";
 
 const categoryLabels = {
   intimacao: { label: "Intimação", icon: Bell, color: "orange" },
@@ -87,11 +89,8 @@ export default function DiaryMonitor({ theme = 'light' }) {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [exactPhrase, setExactPhrase] = useState("");
-  const [includeTerms, setIncludeTerms] = useState("");
-  const [excludeTerms, setExcludeTerms] = useState("");
+  const [filteredResults, setFilteredResults] = useState(null);
+  const [activeFilters, setActiveFilters] = useState(null);
 
   const { data: publications = [], isLoading: loadingPubs } = useQuery({
     queryKey: ['diary-publications'],
@@ -108,52 +107,13 @@ export default function DiaryMonitor({ theme = 'light' }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['diary-publications'] }),
   });
 
-  // Função de busca avançada com operadores booleanos
-  const advancedSearch = (pub) => {
-    const searchableText = `${pub.title || ''} ${pub.content || ''} ${pub.ai_summary || ''} ${pub.case_number || ''} ${(pub.parties_involved || []).join(' ')} ${(pub.keywords_matched || []).join(' ')}`.toLowerCase();
-    
-    // Busca simples
-    if (searchTerm && !showAdvancedSearch) {
-      return searchableText.includes(searchTerm.toLowerCase());
-    }
-    
-    // Busca avançada
-    if (showAdvancedSearch) {
-      // Filtro de data
-      if (dateFrom && pub.publication_date) {
-        if (new Date(pub.publication_date) < new Date(dateFrom)) return false;
-      }
-      if (dateTo && pub.publication_date) {
-        if (new Date(pub.publication_date) > new Date(dateTo)) return false;
-      }
-      
-      // Frase exata (entre aspas)
-      if (exactPhrase) {
-        if (!searchableText.includes(exactPhrase.toLowerCase())) return false;
-      }
-      
-      // Termos que DEVEM estar presentes (AND)
-      if (includeTerms) {
-        const terms = includeTerms.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-        for (const term of terms) {
-          if (!searchableText.includes(term)) return false;
-        }
-      }
-      
-      // Termos que NÃO devem estar presentes (NOT)
-      if (excludeTerms) {
-        const terms = excludeTerms.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-        for (const term of terms) {
-          if (searchableText.includes(term)) return false;
-        }
-      }
-    }
-    
-    return true;
-  };
-
-  const filteredPublications = publications.filter(pub => {
-    const matchesSearch = advancedSearch(pub);
+  const basePublications = filteredResults || publications;
+  
+  const filteredPublications = basePublications.filter(pub => {
+    const matchesSearch = !searchTerm || 
+      pub.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pub.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pub.case_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || pub.category === selectedCategory;
     const matchesUrgency = selectedUrgency === "all" || pub.urgency === selectedUrgency;
     const matchesUnread = !showUnreadOnly || !pub.is_read;
@@ -208,6 +168,14 @@ export default function DiaryMonitor({ theme = 'light' }) {
             </Button>
             <Button
               variant="outline"
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Busca Avançada
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setShowSetup(true)}
               className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
             >
@@ -216,6 +184,17 @@ export default function DiaryMonitor({ theme = 'light' }) {
             </Button>
           </div>
         </div>
+
+        {/* Advanced Search Panel */}
+        {showAdvancedSearch && (
+          <AdvancedSearch
+            isDark={isDark}
+            publications={publications}
+            onSearch={(results) => setFilteredResults(results)}
+            activeFilters={activeFilters}
+            setActiveFilters={setActiveFilters}
+          />
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -251,109 +230,16 @@ export default function DiaryMonitor({ theme = 'light' }) {
 
         {/* Filters */}
         <div className={`p-4 rounded-xl border mb-6 ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-                <Input
-                  placeholder="Buscar por título, conteúdo ou número do processo..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}
-                />
-              </div>
-              <Button
-                variant={showAdvancedSearch ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                className={`gap-2 ${!showAdvancedSearch && isDark ? 'border-neutral-700 text-neutral-300' : ''}`}
-              >
-                <Filter className="w-4 h-4" />
-                Busca Avançada
-              </Button>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
+              <Input
+                placeholder="Buscar por título, conteúdo ou número do processo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}
+              />
             </div>
-
-            {/* Advanced Search Panel */}
-            {showAdvancedSearch && (
-              <div className={`p-4 rounded-lg border space-y-4 ${isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-slate-50 border-slate-200'}`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      Data Inicial
-                    </label>
-                    <Input
-                      type="date"
-                      value={dateFrom}
-                      onChange={(e) => setDateFrom(e.target.value)}
-                      className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}
-                    />
-                  </div>
-                  <div>
-                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      Data Final
-                    </label>
-                    <Input
-                      type="date"
-                      value={dateTo}
-                      onChange={(e) => setDateTo(e.target.value)}
-                      className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      Frase Exata
-                    </label>
-                    <Input
-                      placeholder='Ex: "pagamento de precatórios"'
-                      value={exactPhrase}
-                      onChange={(e) => setExactPhrase(e.target.value)}
-                      className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      <span className="text-green-500">INCLUIR</span> todos estes termos (AND) - separados por vírgula
-                    </label>
-                    <Input
-                      placeholder="Ex: precatório, pagamento, federal"
-                      value={includeTerms}
-                      onChange={(e) => setIncludeTerms(e.target.value)}
-                      className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}
-                    />
-                  </div>
-                  <div>
-                    <label className={`text-xs font-medium mb-1 block ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      <span className="text-red-500">EXCLUIR</span> estes termos (NOT) - separados por vírgula
-                    </label>
-                    <Input
-                      placeholder="Ex: arquivado, cancelado"
-                      value={excludeTerms}
-                      onChange={(e) => setExcludeTerms(e.target.value)}
-                      className={isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setDateFrom("");
-                      setDateTo("");
-                      setExactPhrase("");
-                      setIncludeTerms("");
-                      setExcludeTerms("");
-                    }}
-                    className={isDark ? 'text-neutral-400 hover:text-white' : ''}
-                  >
-                    Limpar Filtros
-                  </Button>
-                </div>
-              </div>
-            )}
-
             <div className="flex flex-wrap gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className={`w-[140px] ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}>
