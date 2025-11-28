@@ -54,8 +54,8 @@ Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redaç
 Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
 
           const response = await base44.integrations.Core.InvokeLLM({
-            prompt: `${systemInstructions}\n\nUsuário: ${messages[0].content}\n\nResponda de forma profissional e precisa.`,
-            add_context_from_internet: false
+            prompt: `${systemInstructions}\n\n**CONSULTA:** ${messages[0].content}\n\n**RESPOSTA:**`,
+            add_context_from_internet: true
           });
           
           const assistantResponse = {
@@ -155,18 +155,30 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
     });
 
     try {
-      const systemInstructions = `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
-Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
-Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
+      const systemInstructions = `**PERSONA:** Você é o **LEX BRASILIS**, um motor de inteligência jurídica de alta performance, especializado integralmente no **Direito Brasileiro** (Civil, Penal, Constitucional, Trabalhista, Tributário, Administrativo, Empresarial, Consumidor, Previdenciário, etc.).
+
+**OBJETIVO:** Velocidade e fluidez na entrega de informações jurídicas. Responda de forma IMEDIATA, sem delongas ou introduções desnecessárias.
+
+**DIRETRIZES DE CONTEÚDO:**
+1. **Lei Seca:** Priorize o texto literal da legislação (CF/88, Códigos, Leis), citando artigo, parágrafo e inciso.
+2. **Jurisprudência:** Inclua posição majoritária dos Tribunais Superiores (STF/STJ), mencionando súmulas ou teses.
+3. **Doutrina:** Apresente entendimento doutrinário de forma CONCISA.
+4. **Linguagem:** Tom FORMAL, TÉCNICO e impecável.
+
+**REGRAS DE FORMATAÇÃO:**
+- Vá DIRETO ao ponto - resposta imediata à pergunta
+- Use **listas, negrito e subtítulos** (Markdown) para clareza
+- PROIBIDO: frases como "Como modelo de linguagem...", "Essa é uma questão complexa..." ou qualquer enrolação
+- Estruture: Lei → Jurisprudência → Doutrina → Aplicação Prática (quando aplicável)`;
 
       const conversationContext = updatedMessages
         .slice(-10)
-        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
+        .map(m => `${m.role === 'user' ? 'Usuário' : 'LEX BRASILIS'}: ${m.content}`)
         .join('\n\n');
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
-        add_context_from_internet: false
+        prompt: `${systemInstructions}\n\n**HISTÓRICO:**\n${conversationContext}\n\n**RESPOSTA (direta e técnica):**`,
+        add_context_from_internet: true
       });
       
       const assistantResponse = {
@@ -230,18 +242,18 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
                 className="text-center py-12"
               >
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                  <span className="text-3xl">💬</span>
+                  <span className="text-3xl">⚖️</span>
                 </div>
                 <h1 className="text-4xl font-bold mb-4">
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Olá{userName ? `, ${userName.split(' ')[0]}` : ''}! 👋
+                    LEX BRASILIS
                   </span>
                 </h1>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Como posso ajudar hoje?
+                  {userName ? `Olá, ${userName.split(' ')[0]}!` : 'Olá!'} Como posso ajudar?
                 </h3>
                 <p className="text-slate-600">
-                  Seu assistente jurídico com IA está pronto para ajudar
+                  Motor de inteligência jurídica especializado em Direito Brasileiro
                 </p>
               </motion.div>
             )}
@@ -261,12 +273,12 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
                 className="flex gap-4"
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
-                  <span className="text-sm">🤖</span>
+                  <span className="text-sm">⚖️</span>
                 </div>
                 <div className="flex-1 pt-1">
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                    <span className="text-sm text-slate-600">Pensando...</span>
+                    <span className="text-sm text-slate-600">Consultando legislação e jurisprudência...</span>
                   </div>
                 </div>
               </motion.div>
