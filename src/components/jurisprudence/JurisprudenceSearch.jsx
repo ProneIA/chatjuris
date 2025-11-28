@@ -99,9 +99,13 @@ Seja específico, cite decisões reais encontradas na internet, e forneça anál
       tags: [results.query],
       source_url: "Pesquisa com IA - JusBrasil, STF, STJ",
       relevance_score: 85,
-      case_id: relatedCase || undefined,
       is_favorite: false
     };
+    
+    // Só adiciona case_id se tiver valor
+    if (relatedCase && relatedCase !== "") {
+      jurisprudenceData.case_id = relatedCase;
+    }
 
     onSave(jurisprudenceData);
     alert("Jurisprudência salva com sucesso!");
