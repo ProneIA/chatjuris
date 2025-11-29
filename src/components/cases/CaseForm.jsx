@@ -48,21 +48,37 @@ export default function CaseForm({ caseData, clients, onSubmit, onCancel, isLoad
       return;
     }
     
-    const dataToSubmit = { ...formData };
+    const dataToSubmit = {
+      title: formData.title,
+      client_id: formData.client_id,
+      client_name: formData.client_name,
+      area: formData.area,
+      status: formData.status,
+      priority: formData.priority
+    };
     
-    // Converter valor para número
-    if (dataToSubmit.value && dataToSubmit.value !== "") {
-      dataToSubmit.value = parseFloat(dataToSubmit.value);
-    } else {
-      delete dataToSubmit.value;
+    // Só adiciona campos opcionais se tiverem valor
+    if (formData.case_number && formData.case_number.trim() !== "") {
+      dataToSubmit.case_number = formData.case_number;
     }
-    
-    // Limpar campos vazios
-    if (!dataToSubmit.case_number || dataToSubmit.case_number === "") delete dataToSubmit.case_number;
-    if (!dataToSubmit.court || dataToSubmit.court === "") delete dataToSubmit.court;
-    if (!dataToSubmit.opposing_party || dataToSubmit.opposing_party === "") delete dataToSubmit.opposing_party;
-    if (!dataToSubmit.deadline || dataToSubmit.deadline === "") delete dataToSubmit.deadline;
-    if (!dataToSubmit.description || dataToSubmit.description === "") delete dataToSubmit.description;
+    if (formData.court && formData.court.trim() !== "") {
+      dataToSubmit.court = formData.court;
+    }
+    if (formData.opposing_party && formData.opposing_party.trim() !== "") {
+      dataToSubmit.opposing_party = formData.opposing_party;
+    }
+    if (formData.description && formData.description.trim() !== "") {
+      dataToSubmit.description = formData.description;
+    }
+    if (formData.start_date && formData.start_date.trim() !== "") {
+      dataToSubmit.start_date = formData.start_date;
+    }
+    if (formData.deadline && formData.deadline.trim() !== "") {
+      dataToSubmit.deadline = formData.deadline;
+    }
+    if (formData.value && formData.value !== "" && !isNaN(parseFloat(formData.value))) {
+      dataToSubmit.value = parseFloat(formData.value);
+    }
     
     onSubmit(dataToSubmit);
   };
