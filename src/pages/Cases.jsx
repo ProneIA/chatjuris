@@ -167,9 +167,15 @@ export default function Cases({ theme = 'light' }) {
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
   const handleSubmit = (data) => {
+    console.log("Cases.jsx - handleSubmit chamado");
+    console.log("Cases.jsx - dados recebidos:", JSON.stringify(data, null, 2));
+    console.log("Cases.jsx - editingCase:", editingCase);
+    
     if (editingCase) {
+      console.log("Cases.jsx - chamando updateCaseMutation");
       updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
+      console.log("Cases.jsx - chamando createCaseMutation");
       createCaseMutation.mutate(data);
     }
   };
