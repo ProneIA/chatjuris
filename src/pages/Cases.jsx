@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -24,23 +24,32 @@ export default function Cases({ theme = 'light' }) {
   const casesPerPage = 12;
   const queryClient = useQueryClient();
 
-  React.useEffect(() => {
+  useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list('-created_date'),
+    queryFn: async () => {
+      const result = await base44.entities.Case.list('-created_date');
+      return result || [];
+    },
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryFn: async () => {
+      const result = await base44.entities.Client.list('name');
+      return result || [];
+    },
   });
 
-  const { data: folders = [], isLoading: foldersLoading } = useQuery({
+  const { data: folders = [] } = useQuery({
     queryKey: ['folders'],
-    queryFn: () => base44.entities.Folder.list('order'),
+    queryFn: async () => {
+      const result = await base44.entities.Folder.list('order');
+      return result || [];
+    },
   });
 
   const { data: subscription } = useQuery({
@@ -57,7 +66,12 @@ export default function Cases({ theme = 'light' }) {
   });
 
   const createCaseMutation = useMutation({
-    mutationFn: (data) => base44.entities.Case.create(data),
+    mutationFn: async (data) => {
+      console.log("Criando processo com dados:", data);
+      const result = await base44.entities.Case.create(data);
+      console.log("Processo criado:", result);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
@@ -66,12 +80,17 @@ export default function Cases({ theme = 'light' }) {
     },
     onError: (error) => {
       console.error("Erro ao criar processo:", error);
-      toast.error("Erro ao criar processo. Verifique os dados e tente novamente.");
+      toast.error("Erro ao criar processo: " + (error.message || "Verifique os dados"));
     },
   });
 
   const updateCaseMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Case.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      console.log("Atualizando processo", id, "com dados:", data);
+      const result = await base44.entities.Case.update(id, data);
+      console.log("Processo atualizado:", result);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
@@ -81,7 +100,7 @@ export default function Cases({ theme = 'light' }) {
     },
     onError: (error) => {
       console.error("Erro ao atualizar processo:", error);
-      toast.error("Erro ao atualizar processo. Verifique os dados e tente novamente.");
+      toast.error("Erro ao atualizar processo: " + (error.message || "Verifique os dados"));
     },
   });
 
@@ -89,6 +108,10 @@ export default function Cases({ theme = 'light' }) {
     mutationFn: (data) => base44.entities.Folder.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['folders'] });
+      toast.success("Pasta criada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar pasta");
     },
   });
 
@@ -107,19 +130,19 @@ export default function Cases({ theme = 'light' }) {
       if (selectedFolder && typeof selectedFolder === 'string') {
         setSelectedFolder(null);
       }
+      toast.success("Pasta excluída!");
     },
   });
 
   const moveCaseToFolderMutation = useMutation({
-    mutationFn: ({ caseId, folderId }) => {
-      const caseData = cases.find(c => c.id === caseId);
+    mutationFn: async ({ caseId, folderId }) => {
       return base44.entities.Case.update(caseId, { 
-        ...caseData, 
-        folder_id: folderId || undefined 
+        folder_id: folderId || null 
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
+      toast.success("Processo movido!");
     },
   });
 
@@ -143,15 +166,10 @@ export default function Cases({ theme = 'light' }) {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
-  const handleSubmit = async (data) => {
-    console.log("handleSubmit chamado com:", data);
-    console.log("editingCase:", editingCase);
-    
+  const handleSubmit = (data) => {
     if (editingCase) {
-      console.log("Atualizando processo ID:", editingCase.id);
       updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
-      console.log("Criando novo processo");
       createCaseMutation.mutate(data);
     }
   };
@@ -276,18 +294,18 @@ export default function Cases({ theme = 'light' }) {
           ) : isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-32 rounded-xl bg-neutral-800" />
+                <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
               ))}
             </div>
           ) : filteredCases.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 border border-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-neutral-600" />
+              <div className={`w-16 h-16 border rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'border-neutral-800' : 'border-gray-300'}`}>
+                <Search className={`w-8 h-8 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
               </div>
-              <h3 className="text-lg font-medium text-white mb-2">
+              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Nenhum processo encontrado
               </h3>
-              <p className="text-neutral-500">
+              <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
                 {searchTerm 
                   ? 'Tente ajustar os filtros de busca'
                   : selectedFolder === 'unfiled'
@@ -313,7 +331,7 @@ export default function Cases({ theme = 'light' }) {
 
               {totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
-                  <p className="text-sm text-neutral-500">
+                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                     Mostrando {startIndex + 1}-{Math.min(startIndex + casesPerPage, filteredCases.length)} de {filteredCases.length}
                   </p>
                   <div className="flex gap-2">
@@ -322,7 +340,7 @@ export default function Cases({ theme = 'light' }) {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="border-neutral-800 text-white hover:bg-neutral-800"
+                      className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : ''}
                     >
                       Anterior
                     </Button>
@@ -344,7 +362,10 @@ export default function Cases({ theme = 'light' }) {
                             variant={currentPage === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 ${currentPage === pageNum ? 'bg-white text-black' : 'border-neutral-800 text-white hover:bg-neutral-800'}`}
+                            className={`w-10 ${currentPage === pageNum 
+                              ? (isDark ? 'bg-white text-black' : 'bg-gray-900 text-white')
+                              : (isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : '')
+                            }`}
                           >
                             {pageNum}
                           </Button>
@@ -356,7 +377,7 @@ export default function Cases({ theme = 'light' }) {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="border-neutral-800 text-white hover:bg-neutral-800"
+                      className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : ''}
                     >
                       Próxima
                     </Button>
