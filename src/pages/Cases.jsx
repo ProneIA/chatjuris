@@ -143,10 +143,15 @@ export default function Cases({ theme = 'light' }) {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
-  const handleSubmit = (data) => {
+  const handleSubmit = async (data) => {
+    console.log("handleSubmit chamado com:", data);
+    console.log("editingCase:", editingCase);
+    
     if (editingCase) {
+      console.log("Atualizando processo ID:", editingCase.id);
       updateCaseMutation.mutate({ id: editingCase.id, data });
     } else {
+      console.log("Criando novo processo");
       createCaseMutation.mutate(data);
     }
   };
