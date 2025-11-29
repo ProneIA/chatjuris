@@ -10,6 +10,7 @@ import CaseDetails from "../components/cases/CaseDetails";
 import FolderSidebar from "../components/cases/FolderSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
+import { toast } from "sonner";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -61,6 +62,11 @@ export default function Cases({ theme = 'light' }) {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
       setEditingCase(null);
+      toast.success("Processo criado com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao criar processo:", error);
+      toast.error("Erro ao criar processo. Verifique os dados e tente novamente.");
     },
   });
 
@@ -71,6 +77,11 @@ export default function Cases({ theme = 'light' }) {
       setShowForm(false);
       setEditingCase(null);
       setSelectedCase(null);
+      toast.success("Processo atualizado com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar processo:", error);
+      toast.error("Erro ao atualizar processo. Verifique os dados e tente novamente.");
     },
   });
 
