@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save, Loader2 } from "lucide-react";
+import { X, Save, Loader2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, isLoading }) {
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     case_number: "",
     client_id: "",
@@ -61,22 +63,33 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const newErrors = {};
     
-    // Validação básica
-    if (!formData.title.trim()) {
-      alert("Por favor, preencha o título do processo");
-      return;
+    if (!formData.title || !formData.title.trim()) {
+      newErrors.title = "Título é obrigatório";
     }
     
     if (!formData.client_id) {
-      alert("Por favor, selecione um cliente");
-      return;
+      newErrors.client_id = "Selecione um cliente";
     }
     
     if (!formData.area) {
-      alert("Por favor, selecione a área do direito");
+      newErrors.area = "Selecione a área do direito";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validação
+    if (!validateForm()) {
+      toast.error("Por favor, preencha todos os campos obrigatórios", {
+        description: "Verifique os campos marcados em vermelho"
+      });
       return;
     }
 
@@ -113,7 +126,7 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
       dataToSubmit.value = parseFloat(formData.value);
     }
     
-    console.log("Enviando dados do processo:", dataToSubmit);
+    console.log("CaseForm - Enviando dados:", dataToSubmit);
     onSubmit(dataToSubmit);
   };
 
@@ -131,13 +144,24 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Título do Processo *</Label>
+              <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
+                Título do Processo *
+              </Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleChange('title', e.target.value)}
+                onChange={(e) => {
+                  handleChange('title', e.target.value);
+                  if (errors.title) setErrors(prev => ({ ...prev, title: null }));
+                }}
                 placeholder="Ex: Ação de Cobrança"
+                className={errors.title ? 'border-red-500 focus:ring-red-500' : ''}
               />
+              {errors.title && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.title}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -151,9 +175,17 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client_id">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(v) => handleChange('client_id', v)}>
-                <SelectTrigger>
+              <Label htmlFor="client_id" className={errors.client_id ? 'text-red-500' : ''}>
+                Cliente *
+              </Label>
+              <Select 
+                value={formData.client_id} 
+                onValueChange={(v) => {
+                  handleChange('client_id', v);
+                  if (errors.client_id) setErrors(prev => ({ ...prev, client_id: null }));
+                }}
+              >
+                <SelectTrigger className={errors.client_id ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Selecione o cliente" />
                 </SelectTrigger>
                 <SelectContent>
@@ -170,15 +202,28 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
                   )}
                 </SelectContent>
               </Select>
+              {errors.client_id && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.client_id}
+                </p>
+              )}
               {(!clients || clients.length === 0) && (
                 <p className="text-xs text-amber-600">Cadastre um cliente primeiro</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="area">Área do Direito *</Label>
-              <Select value={formData.area} onValueChange={(v) => handleChange('area', v)}>
-                <SelectTrigger>
+              <Label htmlFor="area" className={errors.area ? 'text-red-500' : ''}>
+                Área do Direito *
+              </Label>
+              <Select 
+                value={formData.area} 
+                onValueChange={(v) => {
+                  handleChange('area', v);
+                  if (errors.area) setErrors(prev => ({ ...prev, area: null }));
+                }}
+              >
+                <SelectTrigger className={errors.area ? 'border-red-500' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -193,6 +238,11 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
                   <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.area && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.area}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
