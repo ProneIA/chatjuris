@@ -360,7 +360,7 @@ export default function ClientAccess() {
                           <p className="text-xs text-slate-500 mb-1">Início</p>
                           <p className="text-sm font-medium text-slate-900">
                             {caseItem.start_date 
-                              ? format(new Date(caseItem.start_date), "dd/MM/yyyy", { locale: ptBR })
+                              ? formatLocalDate(caseItem.start_date)
                               : '-'}
                           </p>
                         </div>
@@ -380,7 +380,7 @@ export default function ClientAccess() {
                           <div>
                             <p className="text-xs text-amber-600 font-medium">Próximo Prazo Importante</p>
                             <p className="text-sm text-amber-800">
-                              {format(new Date(caseItem.deadline), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                              {formatLocalDate(caseItem.deadline, "dd 'de' MMMM 'de' yyyy")}
                             </p>
                           </div>
                         </div>
@@ -428,7 +428,7 @@ export default function ClientAccess() {
                           <div className="flex items-start justify-between mb-1">
                             <h4 className="font-semibold text-slate-900">{update.title}</h4>
                             <span className="text-xs text-slate-500">
-                              {format(new Date(update.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                              {formatLocalDate(update.created_date)}
                             </span>
                           </div>
                           <p className="text-slate-600 text-sm">{update.content}</p>
@@ -488,7 +488,7 @@ export default function ClientAccess() {
                           <p className={`text-xs mt-2 ${
                             msg.sender_type === 'client' ? 'text-blue-200' : 'text-slate-400'
                           }`}>
-                            {format(new Date(msg.created_date), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                            {formatLocalDateTime(msg.created_date, "dd/MM 'às' HH:mm")}
                           </p>
                         </div>
                       </div>
