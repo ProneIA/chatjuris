@@ -185,12 +185,59 @@ Deno.serve(async (req) => {
         });
 
         const activeSubscription = subscriptions.find(s => s.status === "active");
+        const latestSubscription = subscriptions.sort((a, b) => 
+          new Date(b.created_date) - new Date(a.created_date)
+        )[0];
 
         return Response.json({
           has_active_subscription: !!activeSubscription,
-          subscription: activeSubscription || null,
+          subscription: activeSubscription || latestSubscription || null,
           all_subscriptions: subscriptions
         });
+      }
+
+      // Ação: Buscar histórico de pagamentos
+      if (action === "history") {
+        const user = await base44.auth.me();
+        if (!user) {
+          return Response.json({ error: "Não autorizado" }, { status: 401 });
+        }
+
+        const subscriptions = await base44.entities.Subscription.filter({
+          created_by: user.email
+        });
+
+        const activeSubscription = subscriptions.find(s => s.status === "active" && s.payment_external_id);
+        
+        if (!activeSubscription?.payment_external_id) {
+          return Response.json({ payments: [] });
+        }
+
+        // Busca pagamentos da assinatura no Mercado Pago
+        try {
+          const response = await fetch(
+            `${MP_API_BASE}/preapproval/${activeSubscription.payment_external_id}/search?status=authorized`,
+            {
+              headers: { "Authorization": `Bearer ${MP_ACCESS_TOKEN}` }
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const payments = (data.results || []).map(p => ({
+              id: p.id,
+              amount: p.transaction_amount,
+              status: p.status === "approved" ? "approved" : p.status,
+              date: p.date_created,
+              receipt_url: p.transaction_details?.external_resource_url
+            }));
+            return Response.json({ payments });
+          }
+        } catch (e) {
+          console.error("Erro ao buscar histórico:", e);
+        }
+
+        return Response.json({ payments: [] });
       }
     }
 

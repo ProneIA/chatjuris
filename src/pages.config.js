@@ -23,6 +23,7 @@ import LegalCalculator from './pages/LegalCalculator';
 import DiaryMonitor from './pages/DiaryMonitor';
 import Cases from './pages/Cases';
 import ClientAccess from './pages/ClientAccess';
+import MySubscription from './pages/MySubscription';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "DiaryMonitor": DiaryMonitor,
     "Cases": Cases,
     "ClientAccess": ClientAccess,
+    "MySubscription": MySubscription,
 }
 
 export const pagesConfig = {
