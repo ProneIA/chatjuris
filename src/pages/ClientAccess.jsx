@@ -25,8 +25,6 @@ import {
   Shield,
   Heart
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { formatLocalDate, formatLocalDateTime } from "@/components/common/DateFormatter";
 import { toast } from "sonner";
 
