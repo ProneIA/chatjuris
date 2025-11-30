@@ -3,13 +3,15 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Search, X, Save, Loader2 } from "lucide-react";
 import CaseCard from "../components/cases/CaseCard";
-import CaseForm from "../components/cases/CaseForm";
 import CaseDetails from "../components/cases/CaseDetails";
 import FolderSidebar from "../components/cases/FolderSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import PlanLimitGuard from "../components/common/PlanLimitGuard";
 import { toast } from "sonner";
 
 export default function Cases({ theme = 'light' }) {
@@ -21,12 +23,68 @@ export default function Cases({ theme = 'light' }) {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    client_id: "",
+    client_name: "",
+    area: "civil",
+    status: "new",
+    priority: "medium",
+    case_number: "",
+    court: "",
+    opposing_party: "",
+    description: "",
+    start_date: "",
+    deadline: "",
+    value: ""
+  });
+
   const casesPerPage = 12;
   const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Reset form when editing case changes
+  useEffect(() => {
+    if (editingCase) {
+      setFormData({
+        title: editingCase.title || "",
+        client_id: editingCase.client_id || "",
+        client_name: editingCase.client_name || "",
+        area: editingCase.area || "civil",
+        status: editingCase.status || "new",
+        priority: editingCase.priority || "medium",
+        case_number: editingCase.case_number || "",
+        court: editingCase.court || "",
+        opposing_party: editingCase.opposing_party || "",
+        description: editingCase.description || "",
+        start_date: editingCase.start_date || "",
+        deadline: editingCase.deadline || "",
+        value: editingCase.value ? String(editingCase.value) : ""
+      });
+    } else {
+      setFormData({
+        title: "",
+        client_id: "",
+        client_name: "",
+        area: "civil",
+        status: "new",
+        priority: "medium",
+        case_number: "",
+        court: "",
+        opposing_party: "",
+        description: "",
+        start_date: "",
+        deadline: "",
+        value: ""
+      });
+    }
+  }, [editingCase]);
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases'],
@@ -43,57 +101,71 @@ export default function Cases({ theme = 'light' }) {
     queryFn: () => base44.entities.Folder.list('order'),
   });
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      if (subs.length === 0) {
-        subs = await base44.entities.Subscription.filter({ user_id: user.email });
+  const handleClientChange = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    setFormData(prev => ({
+      ...prev,
+      client_id: clientId,
+      client_name: client ? client.name : ""
+    }));
+  };
+
+  const handleSaveCase = async () => {
+    // Validação
+    if (!formData.title.trim()) {
+      toast.error("Preencha o título do processo");
+      return;
+    }
+    if (!formData.client_id) {
+      toast.error("Selecione um cliente");
+      return;
+    }
+    if (!formData.area) {
+      toast.error("Selecione a área do direito");
+      return;
+    }
+
+    setIsSaving(true);
+
+    // Monta dados para salvar
+    const dataToSave = {
+      title: formData.title.trim(),
+      client_id: formData.client_id,
+      client_name: formData.client_name,
+      area: formData.area,
+      status: formData.status,
+      priority: formData.priority
+    };
+
+    if (formData.case_number?.trim()) dataToSave.case_number = formData.case_number.trim();
+    if (formData.court?.trim()) dataToSave.court = formData.court.trim();
+    if (formData.opposing_party?.trim()) dataToSave.opposing_party = formData.opposing_party.trim();
+    if (formData.description?.trim()) dataToSave.description = formData.description.trim();
+    if (formData.start_date) dataToSave.start_date = formData.start_date;
+    if (formData.deadline) dataToSave.deadline = formData.deadline;
+    if (formData.value?.trim() && !isNaN(parseFloat(formData.value))) {
+      dataToSave.value = parseFloat(formData.value);
+    }
+
+    try {
+      if (editingCase) {
+        await base44.entities.Case.update(editingCase.id, dataToSave);
+        toast.success("Processo atualizado com sucesso!");
+      } else {
+        await base44.entities.Case.create(dataToSave);
+        toast.success("Processo salvo com sucesso!");
       }
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
-  });
-
-  const createCaseMutation = useMutation({
-    mutationFn: (data) => base44.entities.Case.create(data),
-    onSuccess: (result) => {
-      console.log("Processo criado com sucesso:", result);
+      
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       setShowForm(false);
       setEditingCase(null);
-      toast.success("Processo salvo com sucesso!", {
-        style: { background: '#22c55e', color: 'white' }
-      });
-    },
-    onError: (error) => {
-      console.error("Erro ao criar processo:", error);
-      toast.error("Erro ao salvar processo. Verifique os campos e tente novamente.", {
-        style: { background: '#ef4444', color: 'white' }
-      });
-    },
-  });
-
-  const updateCaseMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Case.update(id, data),
-    onSuccess: (result) => {
-      console.log("Processo atualizado com sucesso:", result);
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-      setShowForm(false);
-      setEditingCase(null);
-      setSelectedCase(null);
-      toast.success("Processo atualizado com sucesso!", {
-        style: { background: '#22c55e', color: 'white' }
-      });
-    },
-    onError: (error) => {
-      console.error("Erro ao atualizar processo:", error);
-      toast.error("Erro ao atualizar processo. Verifique os campos e tente novamente.", {
-        style: { background: '#ef4444', color: 'white' }
-      });
-    },
-  });
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar processo: " + (error.message || "Tente novamente"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const createFolderMutation = useMutation({
     mutationFn: (data) => base44.entities.Folder.create(data),
@@ -148,15 +220,6 @@ export default function Cases({ theme = 'light' }) {
   const startIndex = (currentPage - 1) * casesPerPage;
   const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
-  const handleSubmit = (data) => {
-    console.log("handleSubmit - dados recebidos:", data);
-    if (editingCase) {
-      updateCaseMutation.mutate({ id: editingCase.id, data });
-    } else {
-      createCaseMutation.mutate(data);
-    }
-  };
-
   const handleEdit = (caseItem) => {
     setEditingCase(caseItem);
     setShowForm(true);
@@ -207,7 +270,6 @@ export default function Cases({ theme = 'light' }) {
               </h1>
               <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 {filteredCases.length} {filteredCases.length === 1 ? 'processo' : 'processos'}
-                {selectedFolder && ' nesta pasta'}
               </p>
             </div>
             <Button
@@ -255,23 +317,197 @@ export default function Cases({ theme = 'light' }) {
 
         <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showForm ? (
-            <PlanLimitGuard
-              subscription={subscription}
-              currentCount={cases.length}
-              limitCount={3}
-              entityName="processos"
-            >
-              <CaseForm
-                caseData={editingCase}
-                clients={clients}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingCase(null);
-                }}
-                isLoading={createCaseMutation.isPending || updateCaseMutation.isPending}
-              />
-            </PlanLimitGuard>
+            <Card className="max-w-3xl mx-auto border-none shadow-lg">
+              <CardHeader className="border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <CardTitle>{editingCase ? 'Editar Processo' : 'Novo Processo'}</CardTitle>
+                  <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingCase(null); }}>
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label>Título do Processo *</Label>
+                      <Input
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        placeholder="Ex: Ação de Cobrança"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Número do Processo</Label>
+                      <Input
+                        value={formData.case_number}
+                        onChange={(e) => setFormData({...formData, case_number: e.target.value})}
+                        placeholder="0000000-00.0000.0.00.0000"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Cliente *</Label>
+                      <Select value={formData.client_id} onValueChange={handleClientChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clients.length > 0 ? (
+                            clients.map(client => (
+                              <SelectItem key={client.id} value={client.id}>
+                                {client.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="_none" disabled>
+                              Nenhum cliente cadastrado
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {clients.length === 0 && (
+                        <p className="text-xs text-amber-600">Cadastre um cliente primeiro</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Área do Direito *</Label>
+                      <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="civil">Civil</SelectItem>
+                          <SelectItem value="criminal">Criminal</SelectItem>
+                          <SelectItem value="trabalhista">Trabalhista</SelectItem>
+                          <SelectItem value="tributario">Tributário</SelectItem>
+                          <SelectItem value="familia">Família</SelectItem>
+                          <SelectItem value="empresarial">Empresarial</SelectItem>
+                          <SelectItem value="consumidor">Consumidor</SelectItem>
+                          <SelectItem value="previdenciario">Previdenciário</SelectItem>
+                          <SelectItem value="outros">Outros</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new">Novo</SelectItem>
+                          <SelectItem value="in_progress">Em Andamento</SelectItem>
+                          <SelectItem value="waiting">Aguardando</SelectItem>
+                          <SelectItem value="closed">Encerrado</SelectItem>
+                          <SelectItem value="archived">Arquivado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Prioridade</Label>
+                      <Select value={formData.priority} onValueChange={(v) => setFormData({...formData, priority: v})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Baixa</SelectItem>
+                          <SelectItem value="medium">Média</SelectItem>
+                          <SelectItem value="high">Alta</SelectItem>
+                          <SelectItem value="urgent">Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Vara/Tribunal</Label>
+                      <Input
+                        value={formData.court}
+                        onChange={(e) => setFormData({...formData, court: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Parte Contrária</Label>
+                      <Input
+                        value={formData.opposing_party}
+                        onChange={(e) => setFormData({...formData, opposing_party: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Data de Início</Label>
+                      <Input
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Prazo Importante</Label>
+                      <Input
+                        type="date"
+                        value={formData.deadline}
+                        onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Valor da Causa (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.value}
+                        onChange={(e) => setFormData({...formData, value: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Descrição</Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => { setShowForm(false); setEditingCase(null); }} 
+                      disabled={isSaving}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleSaveCase}
+                      disabled={isSaving || clients.length === 0} 
+                      className="bg-gradient-to-r from-blue-600 to-purple-600"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          {editingCase ? 'Atualizar' : 'Salvar'} Processo
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3, 4].map(i => (
@@ -287,11 +523,7 @@ export default function Cases({ theme = 'light' }) {
                 Nenhum processo encontrado
               </h3>
               <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
-                {searchTerm 
-                  ? 'Tente ajustar os filtros de busca'
-                  : selectedFolder === 'unfiled'
-                  ? 'Não há processos sem pasta'
-                  : 'Crie um novo processo para começar'}
+                Crie um novo processo para começar
               </p>
             </div>
           ) : (
@@ -321,44 +553,14 @@ export default function Cases({ theme = 'light' }) {
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : ''}
                     >
                       Anterior
                     </Button>
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 ${currentPage === pageNum 
-                              ? (isDark ? 'bg-white text-black' : 'bg-gray-900 text-white')
-                              : (isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : '')
-                            }`}
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
-                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : ''}
                     >
                       Próxima
                     </Button>
