@@ -1,5 +1,11 @@
-import React from "react";
+import React, { createContext, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
+
+// Contexto para o fuso horário do usuário
+export const TimezoneContext = createContext({
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  formatDate: (date, formatStr) => format(new Date(date), formatStr, { locale: ptBR })
+});
 import { createPageUrl } from "@/utils";
 import { 
   Scale, 
