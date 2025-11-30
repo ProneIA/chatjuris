@@ -21,6 +21,7 @@ import DocumentsEnhanced from './pages/DocumentsEnhanced';
 import LegalResearchAI from './pages/LegalResearchAI';
 import LegalCalculator from './pages/LegalCalculator';
 import DiaryMonitor from './pages/DiaryMonitor';
+import Cases from './pages/Cases';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "LegalResearchAI": LegalResearchAI,
     "LegalCalculator": LegalCalculator,
     "DiaryMonitor": DiaryMonitor,
+    "Cases": Cases,
 }
 
 export const pagesConfig = {
