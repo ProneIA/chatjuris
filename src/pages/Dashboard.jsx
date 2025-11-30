@@ -45,13 +45,15 @@ export default function Dashboard({ theme = 'light' }) {
     queryFn: () => base44.entities.Case.list('-created_date'),
   });
 
-  // Normaliza os dados (alguns podem vir com dados dentro de 'data')
-  const cases = rawCases.map(c => {
-    if (c.data && c.data.title) {
-      return { id: c.id, created_date: c.created_date, created_by: c.created_by, ...c.data };
-    }
-    return c;
-  });
+  // Normaliza os dados - o SDK retorna os dados dentro de 'data'
+  const cases = rawCases
+    .filter(c => c && (c.title || (c.data && c.data.title)))
+    .map(c => {
+      if (c.data && c.data.title) {
+        return { id: c.id, created_date: c.created_date, created_by: c.created_by, ...c.data };
+      }
+      return c;
+    });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['tasks'],
