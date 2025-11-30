@@ -11,20 +11,19 @@ import {
   Scale,
   MessageSquare,
   FileText,
+  Bell,
+  Send,
   Clock,
   CheckCircle2,
   AlertCircle,
-  Send,
+  User,
   Phone,
   Mail,
-  User,
-  Briefcase,
   Calendar,
-  Shield,
-  Heart,
+  ChevronRight,
   Loader2,
-  ArrowRight,
-  Bell
+  Shield,
+  Heart
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,137 +31,181 @@ import { toast } from "sonner";
 
 export default function ClientAccess() {
   const [accessToken, setAccessToken] = useState(null);
+  const [portal, setPortal] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   const queryClient = useQueryClient();
 
-  // Pegar token da URL
+  // Extrair token da URL
   useEffect(() => {
     const pathParts = window.location.pathname.split('/');
     const token = pathParts[pathParts.length - 1];
     if (token && token !== 'ClientAccess') {
       setAccessToken(token);
+    } else {
+      // Tentar pegar do query param
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenParam = urlParams.get('token');
+      if (tokenParam) {
+        setAccessToken(tokenParam);
+      }
     }
+    setLoading(false);
   }, []);
 
   // Buscar dados do portal
-  const { data: portalAccess, isLoading: loadingPortal } = useQuery({
-    queryKey: ['client-access', accessToken],
-    queryFn: async () => {
-      const portals = await base44.entities.ClientPortalAccess.filter({ access_token: accessToken });
-      return portals[0] || null;
-    },
+  const { data: portals = [], isLoading: loadingPortal } = useQuery({
+    queryKey: ['client-portal-access', accessToken],
+    queryFn: () => base44.entities.ClientPortalAccess.filter({ access_token: accessToken }),
     enabled: !!accessToken,
   });
 
+  useEffect(() => {
+    if (portals.length > 0) {
+      setPortal(portals[0]);
+      // Atualizar último acesso
+      base44.entities.ClientPortalAccess.update(portals[0].id, {
+        last_access: new Date().toISOString()
+      });
+    }
+  }, [portals]);
+
   // Buscar casos do cliente
-  const { data: cases = [], isLoading: loadingCases } = useQuery({
-    queryKey: ['client-cases', portalAccess?.case_ids],
+  const { data: cases = [] } = useQuery({
+    queryKey: ['client-cases', portal?.case_ids],
     queryFn: async () => {
-      if (!portalAccess?.case_ids?.length) return [];
+      if (!portal?.case_ids?.length) return [];
       const allCases = [];
-      for (const caseId of portalAccess.case_ids) {
+      for (const caseId of portal.case_ids) {
         try {
           const caseData = await base44.entities.Case.filter({ id: caseId });
-          if (caseData[0]) allCases.push(caseData[0]);
+          if (caseData.length > 0) {
+            // Normalizar dados
+            const c = caseData[0];
+            if (c.data && c.data.title) {
+              allCases.push({ id: c.id, ...c.data });
+            } else if (c.title) {
+              allCases.push(c);
+            }
+          }
         } catch (e) {
-          console.error(e);
+          console.error('Erro ao buscar caso:', e);
         }
       }
       return allCases;
     },
-    enabled: !!portalAccess?.case_ids?.length,
-  });
-
-  // Buscar atualizações
-  const { data: updates = [] } = useQuery({
-    queryKey: ['client-updates', portalAccess?.case_ids],
-    queryFn: async () => {
-      if (!portalAccess?.case_ids?.length) return [];
-      const allUpdates = [];
-      for (const caseId of portalAccess.case_ids) {
-        const caseUpdates = await base44.entities.CaseUpdate.filter({ 
-          case_id: caseId, 
-          is_visible_to_client: true 
-        });
-        allUpdates.push(...caseUpdates);
-      }
-      return allUpdates.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    },
-    enabled: !!portalAccess?.case_ids?.length,
+    enabled: !!portal?.case_ids?.length,
   });
 
   // Buscar mensagens
   const { data: messages = [] } = useQuery({
-    queryKey: ['client-messages', portalAccess?.id],
-    queryFn: () => base44.entities.ClientMessage.filter({ client_portal_id: portalAccess.id }, 'created_date'),
-    enabled: !!portalAccess?.id,
+    queryKey: ['client-messages', portal?.id],
+    queryFn: () => base44.entities.ClientMessage.filter({ client_portal_id: portal.id }, 'created_date'),
+    enabled: !!portal?.id,
   });
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !portalAccess) return;
-    
-    setIsSending(true);
-    try {
-      await base44.entities.ClientMessage.create({
-        case_id: portalAccess.case_ids[0],
-        client_portal_id: portalAccess.id,
-        sender_type: "client",
-        sender_name: portalAccess.client_name,
-        sender_email: portalAccess.client_email,
-        content: newMessage.trim(),
-      });
-      setNewMessage("");
+  // Buscar atualizações
+  const { data: updates = [] } = useQuery({
+    queryKey: ['client-updates', portal?.case_ids],
+    queryFn: async () => {
+      if (!portal?.case_ids?.length) return [];
+      const allUpdates = [];
+      for (const caseId of portal.case_ids) {
+        try {
+          const caseUpdates = await base44.entities.CaseUpdate.filter({ 
+            case_id: caseId, 
+            is_visible_to_client: true 
+          });
+          allUpdates.push(...caseUpdates);
+        } catch (e) {
+          console.error('Erro ao buscar atualizações:', e);
+        }
+      }
+      return allUpdates.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    },
+    enabled: !!portal?.case_ids?.length,
+  });
+
+  // Enviar mensagem
+  const sendMessageMutation = useMutation({
+    mutationFn: (content) => base44.entities.ClientMessage.create({
+      case_id: portal.case_ids[0],
+      client_portal_id: portal.id,
+      sender_type: "client",
+      sender_name: portal.client_name,
+      sender_email: portal.client_email,
+      content,
+    }),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-messages'] });
+      setNewMessage("");
       toast.success("Mensagem enviada com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao enviar mensagem");
-    } finally {
-      setIsSending(false);
-    }
+    },
+  });
+
+  const statusLabels = {
+    new: { label: "Novo", color: "bg-emerald-100 text-emerald-700", icon: Clock },
+    in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-700", icon: Loader2 },
+    waiting: { label: "Aguardando", color: "bg-amber-100 text-amber-700", icon: Clock },
+    closed: { label: "Encerrado", color: "bg-gray-100 text-gray-700", icon: CheckCircle2 },
+    archived: { label: "Arquivado", color: "bg-gray-100 text-gray-500", icon: FileText },
   };
 
-  const getStatusInfo = (status) => {
-    const statusMap = {
-      new: { label: "Novo", color: "bg-emerald-100 text-emerald-800", icon: CheckCircle2 },
-      in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-800", icon: Clock },
-      waiting: { label: "Aguardando", color: "bg-amber-100 text-amber-800", icon: AlertCircle },
-      closed: { label: "Concluído", color: "bg-gray-100 text-gray-800", icon: CheckCircle2 },
-      archived: { label: "Arquivado", color: "bg-gray-100 text-gray-500", icon: FileText },
-    };
-    return statusMap[status] || statusMap.new;
-  };
-
-  // Loading state
-  if (loadingPortal) {
+  // Tela de carregamento
+  if (loading || loadingPortal) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando seu portal...</p>
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Scale className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-slate-600">Carregando seu portal...</p>
         </div>
       </div>
     );
   }
 
-  // Portal não encontrado ou inativo
-  if (!accessToken || !portalAccess || !portalAccess.is_active) {
+  // Tela de acesso inválido
+  if (!accessToken || (portals.length === 0 && !loadingPortal)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center p-8">
-          <Scale className="w-16 h-16 text-blue-600 mx-auto mb-6" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Portal do Cliente
-          </h1>
-          <p className="text-gray-600 mb-6">
-            {!accessToken 
-              ? "Por favor, utilize o link fornecido pelo seu advogado para acessar o portal."
-              : "Este acesso não está disponível. Entre em contato com seu advogado para obter um novo link."}
-          </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <Shield className="w-4 h-4" />
-            <span>Acesso seguro e confidencial</span>
-          </div>
+        <Card className="max-w-md w-full shadow-xl border-0">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Acesso Inválido</h2>
+            <p className="text-slate-600 mb-6">
+              O link de acesso que você está tentando usar não é válido ou expirou. 
+              Por favor, entre em contato com seu advogado para obter um novo link.
+            </p>
+            <div className="p-4 bg-slate-50 rounded-xl">
+              <p className="text-sm text-slate-500">
+                Se você acredita que isso é um erro, verifique se copiou o link completo.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Portal inativo
+  if (portal && !portal.is_active) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full shadow-xl border-0">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">Acesso Temporariamente Suspenso</h2>
+            <p className="text-slate-600">
+              Seu acesso ao portal está temporariamente suspenso. 
+              Entre em contato com seu advogado para mais informações.
+            </p>
+          </CardContent>
         </Card>
       </div>
     );
@@ -171,420 +214,357 @@ export default function ClientAccess() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
                 <Scale className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-semibold text-gray-900">Portal do Cliente</h1>
-                <p className="text-sm text-gray-500">Acompanhe seu processo</p>
+                <h1 className="font-semibold text-slate-900">Portal do Cliente</h1>
+                <p className="text-xs text-slate-500">Acompanhe seus processos</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="font-medium text-gray-900">{portalAccess.client_name}</p>
-              <p className="text-sm text-gray-500">{portalAccess.client_email}</p>
+            <div className="flex items-center gap-2">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium text-slate-900">{portal?.client_name}</p>
+                <p className="text-xs text-slate-500">{portal?.client_email}</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-600" />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Welcome Card */}
-        <Card className="mb-8 overflow-hidden border-0 shadow-lg">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <Heart className="w-7 h-7" />
-              </div>
+      <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Boas-vindas */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+            <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-xl font-semibold mb-2">
-                  Olá, {portalAccess.client_name?.split(' ')[0]}! 👋
+                <h2 className="text-2xl font-semibold mb-2">
+                  Olá, {portal?.client_name?.split(' ')[0]}! 👋
                 </h2>
-                <p className="text-blue-100 leading-relaxed">
-                  Seja bem-vindo(a) ao seu portal exclusivo. Aqui você pode acompanhar todas as atualizações 
-                  do seu processo e entrar em contato conosco de forma rápida e segura. Estamos trabalhando 
-                  para defender seus interesses da melhor forma possível.
+                <p className="text-blue-100 max-w-xl">
+                  Bem-vindo ao seu portal personalizado. Aqui você pode acompanhar o andamento 
+                  dos seus processos, receber atualizações e se comunicar diretamente com sua equipe jurídica.
                 </p>
+              </div>
+              <div className="hidden md:block">
+                <Heart className="w-12 h-12 text-blue-200 opacity-50" />
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-blue-500/30">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">{cases.length} processo(s)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                <span className="text-sm">{updates.length} atualização(ões)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span className="text-sm">{messages.length} mensagem(ns)</span>
               </div>
             </div>
           </div>
-        </Card>
-
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{cases.length}</p>
-                  <p className="text-sm text-gray-500">Processo(s) em acompanhamento</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                  <Bell className="w-6 h-6 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{updates.length}</p>
-                  <p className="text-sm text-gray-500">Atualização(ões) recentes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{messages.length}</p>
-                  <p className="text-sm text-gray-500">Mensagem(ns) trocadas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        <Tabs defaultValue="cases" className="space-y-6">
-          <TabsList className="bg-white border shadow-sm p-1">
-            <TabsTrigger value="cases" className="gap-2">
-              <Briefcase className="w-4 h-4" />
+        {/* Navegação por abas */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="bg-white/80 backdrop-blur-sm border border-slate-200 p-1 rounded-xl">
+            <TabsTrigger value="overview" className="rounded-lg">
+              <FileText className="w-4 h-4 mr-2" />
               Meus Processos
             </TabsTrigger>
-            <TabsTrigger value="updates" className="gap-2">
-              <Bell className="w-4 h-4" />
+            <TabsTrigger value="updates" className="rounded-lg">
+              <Bell className="w-4 h-4 mr-2" />
               Atualizações
+              {updates.length > 0 && (
+                <Badge className="ml-2 bg-blue-600">{updates.length}</Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="contact" className="gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Contato
+            <TabsTrigger value="messages" className="rounded-lg">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Mensagens
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Casos */}
-          <TabsContent value="cases">
-            <div className="space-y-4">
-              {loadingCases ? (
-                <Card className="border-0 shadow-md">
-                  <CardContent className="p-8 text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
-                    <p className="text-gray-500">Carregando processos...</p>
-                  </CardContent>
-                </Card>
-              ) : cases.length === 0 ? (
-                <Card className="border-0 shadow-md">
-                  <CardContent className="p-8 text-center">
-                    <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">Nenhum processo encontrado</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                cases.map((caseItem) => {
-                  const statusInfo = getStatusInfo(caseItem.status);
-                  const StatusIcon = statusInfo.icon;
-                  
-                  return (
-                    <Card key={caseItem.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shrink-0">
-                                <Scale className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                  {caseItem.title || caseItem.data?.title}
-                                </h3>
-                                {(caseItem.case_number || caseItem.data?.case_number) && (
-                                  <p className="text-sm text-gray-500 font-mono mb-2">
-                                    Nº {caseItem.case_number || caseItem.data?.case_number}
-                                  </p>
-                                )}
-                                <div className="flex flex-wrap gap-2">
-                                  <Badge className={statusInfo.color}>
-                                    <StatusIcon className="w-3 h-3 mr-1" />
-                                    {statusInfo.label}
-                                  </Badge>
-                                  <Badge variant="outline" className="capitalize">
-                                    {caseItem.area || caseItem.data?.area}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="md:text-right space-y-2">
-                            {(caseItem.court || caseItem.data?.court) && (
-                              <div className="flex items-center gap-2 md:justify-end text-sm text-gray-600">
-                                <Briefcase className="w-4 h-4" />
-                                {caseItem.court || caseItem.data?.court}
-                              </div>
-                            )}
-                            {caseItem.created_date && (
-                              <div className="flex items-center gap-2 md:justify-end text-sm text-gray-500">
-                                <Calendar className="w-4 h-4" />
-                                Desde {format(new Date(caseItem.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                              </div>
+          {/* Aba de Processos */}
+          <TabsContent value="overview" className="space-y-4">
+            {cases.length === 0 ? (
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-600">Nenhum processo vinculado ao seu portal ainda.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              cases.map((caseItem) => {
+                const status = statusLabels[caseItem.status] || statusLabels.new;
+                const StatusIcon = status.icon;
+                
+                return (
+                  <Card key={caseItem.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge className={status.color}>
+                              <StatusIcon className="w-3 h-3 mr-1" />
+                              {status.label}
+                            </Badge>
+                            {caseItem.priority === 'urgent' && (
+                              <Badge variant="destructive">Urgente</Badge>
                             )}
                           </div>
+                          <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                            {caseItem.title}
+                          </h3>
+                          {caseItem.case_number && (
+                            <p className="text-sm text-slate-500 font-mono">
+                              Nº {caseItem.case_number}
+                            </p>
+                          )}
                         </div>
-
-                        {(caseItem.description || caseItem.data?.description) && (
-                          <p className="mt-4 text-gray-600 text-sm bg-gray-50 rounded-lg p-4">
-                            {caseItem.description || caseItem.data?.description}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Tab: Atualizações */}
-          <TabsContent value="updates">
-            <Card className="border-0 shadow-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-blue-600" />
-                  Histórico de Atualizações
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {updates.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">Nenhuma atualização disponível ainda</p>
-                    <p className="text-sm text-gray-400 mt-1">
-                      Você será notificado quando houver novidades em seu processo
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {updates.map((update, index) => (
-                      <div 
-                        key={update.id} 
-                        className={`relative pl-6 pb-6 ${index !== updates.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
-                      >
-                        <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-600 border-2 border-white"></div>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-gray-900">{update.title}</h4>
-                            <span className="text-xs text-gray-500">
-                              {format(new Date(update.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                          <p className="text-gray-600 text-sm">{update.content}</p>
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                          <Scale className="w-6 h-6 text-blue-600" />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Tab: Contato */}
-          <TabsContent value="contact">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Chat */}
-              <Card className="border-0 shadow-md">
-                <CardHeader className="border-b">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <MessageSquare className="w-5 h-5 text-blue-600" />
-                    Enviar Mensagem
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {/* Messages List */}
-                  <div className="h-64 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                    {messages.length === 0 ? (
-                      <div className="h-full flex items-center justify-center text-center">
+                      {caseItem.description && (
+                        <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                          {caseItem.description}
+                        </p>
+                      )}
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl">
                         <div>
-                          <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500">Nenhuma mensagem ainda</p>
-                          <p className="text-xs text-gray-400">Envie sua primeira mensagem abaixo</p>
+                          <p className="text-xs text-slate-500 mb-1">Área</p>
+                          <p className="text-sm font-medium text-slate-900 capitalize">
+                            {caseItem.area || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Tribunal/Vara</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {caseItem.court || '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Início</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {caseItem.start_date 
+                              ? format(new Date(caseItem.start_date), "dd/MM/yyyy", { locale: ptBR })
+                              : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Valor da Causa</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {caseItem.value 
+                              ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caseItem.value)
+                              : '-'}
+                          </p>
                         </div>
                       </div>
-                    ) : (
-                      messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`flex ${msg.sender_type === 'client' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                            msg.sender_type === 'client'
-                              ? 'bg-blue-600 text-white rounded-br-md'
-                              : 'bg-white text-gray-900 border rounded-bl-md'
-                          }`}>
-                            <p className="text-sm">{msg.content}</p>
-                            <p className={`text-xs mt-1 ${
-                              msg.sender_type === 'client' ? 'text-blue-200' : 'text-gray-400'
-                            }`}>
-                              {format(new Date(msg.created_date), "dd/MM HH:mm")}
+
+                      {caseItem.deadline && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
+                          <Calendar className="w-5 h-5 text-amber-600" />
+                          <div>
+                            <p className="text-xs text-amber-600 font-medium">Próximo Prazo Importante</p>
+                            <p className="text-sm text-amber-800">
+                              {format(new Date(caseItem.deadline), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                             </p>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
 
-                  {/* Input */}
-                  <div className="p-4 border-t bg-white">
-                    <div className="flex gap-2">
+          {/* Aba de Atualizações */}
+          <TabsContent value="updates" className="space-y-4">
+            {updates.length === 0 ? (
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <Bell className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-600">Nenhuma atualização disponível no momento.</p>
+                  <p className="text-sm text-slate-400 mt-2">
+                    Você será notificado quando houver novidades nos seus processos.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {updates.map((update) => (
+                  <Card key={update.id} className="border-0 shadow-lg">
+                    <CardContent className="p-5">
+                      <div className="flex gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          update.update_type === 'milestone' ? 'bg-emerald-100' :
+                          update.update_type === 'deadline' ? 'bg-red-100' :
+                          update.update_type === 'hearing_scheduled' ? 'bg-purple-100' :
+                          'bg-blue-100'
+                        }`}>
+                          {update.update_type === 'milestone' ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                          ) : update.update_type === 'deadline' ? (
+                            <AlertCircle className="w-5 h-5 text-red-600" />
+                          ) : (
+                            <Bell className="w-5 h-5 text-blue-600" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-1">
+                            <h4 className="font-semibold text-slate-900">{update.title}</h4>
+                            <span className="text-xs text-slate-500">
+                              {format(new Date(update.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <p className="text-slate-600 text-sm">{update.content}</p>
+                          {update.author_name && (
+                            <p className="text-xs text-slate-400 mt-2">
+                              Por: {update.author_name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Aba de Mensagens */}
+          <TabsContent value="messages">
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="border-b border-slate-100">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                  Converse com sua Equipe Jurídica
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Área de mensagens */}
+                <div className="h-96 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                  {messages.length === 0 ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-slate-500">Nenhuma mensagem ainda</p>
+                        <p className="text-sm text-slate-400 mt-1">
+                          Envie uma mensagem para iniciar a conversa
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.sender_type === 'client' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[75%] ${
+                          msg.sender_type === 'client'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-br-md'
+                            : 'bg-white text-slate-900 rounded-2xl rounded-bl-md shadow-sm border border-slate-100'
+                        } p-4`}>
+                          {msg.sender_type !== 'client' && (
+                            <p className="text-xs font-medium text-blue-600 mb-1">
+                              {msg.sender_name || 'Equipe Jurídica'}
+                            </p>
+                          )}
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          <p className={`text-xs mt-2 ${
+                            msg.sender_type === 'client' ? 'text-blue-200' : 'text-slate-400'
+                          }`}>
+                            {format(new Date(msg.created_date), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Campo de envio */}
+                {portal?.permissions?.send_messages !== false && (
+                  <div className="p-4 border-t border-slate-100 bg-white">
+                    <div className="flex gap-3">
                       <Textarea
                         placeholder="Digite sua mensagem aqui..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         className="min-h-[60px] resize-none"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
+                          if (e.key === 'Enter' && !e.shiftKey && newMessage.trim()) {
                             e.preventDefault();
-                            handleSendMessage();
+                            sendMessageMutation.mutate(newMessage);
                           }
                         }}
                       />
-                      <Button 
-                        onClick={handleSendMessage}
-                        disabled={!newMessage.trim() || isSending}
-                        className="bg-blue-600 hover:bg-blue-700 px-6"
+                      <Button
+                        onClick={() => newMessage.trim() && sendMessageMutation.mutate(newMessage)}
+                        disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-6"
                       >
-                        {isSending ? (
+                        {sendMessageMutation.isPending ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <Send className="w-4 h-4" />
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-slate-400 mt-2">
                       Pressione Enter para enviar ou Shift+Enter para nova linha
                     </p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Info Card */}
-              <div className="space-y-4">
-                <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                        <User className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">Seu Advogado</h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                          Estamos à disposição para esclarecer qualquer dúvida sobre seu processo.
-                        </p>
-                        <div className="space-y-2">
-                          <a 
-                            href="mailto:contato@escritorio.com"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-                          >
-                            <Mail className="w-4 h-4" />
-                            Enviar email
-                          </a>
-                          <a 
-                            href="tel:+5511999999999"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-                          >
-                            <Phone className="w-4 h-4" />
-                            Ligar agora
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-md">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-emerald-600" />
-                      Seu processo está seguro
-                    </h3>
-                    <ul className="space-y-3 text-sm text-gray-600">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>Acompanhamos cada etapa do seu processo</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>Você será notificado de todas as movimentações importantes</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>Seus dados são protegidos com sigilo profissional</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>Atendimento humanizado e personalizado</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-md bg-amber-50">
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-5 h-5" />
-                      Dúvidas frequentes?
-                    </h3>
-                    <p className="text-sm text-amber-700 mb-3">
-                      Se tiver alguma dúvida sobre o andamento do seu processo, não hesite em nos contatar. 
-                      Estamos aqui para ajudar!
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="border-amber-300 text-amber-800 hover:bg-amber-100"
-                      onClick={() => {
-                        const tabsElement = document.querySelector('[data-state="active"]');
-                        if (tabsElement) {
-                          setNewMessage("Olá, gostaria de tirar uma dúvida sobre meu processo.");
-                        }
-                      }}
-                    >
-                      Enviar mensagem
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
-      </main>
 
-      {/* Footer */}
-      <footer className="mt-12 border-t bg-white/80 backdrop-blur-sm py-6">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Scale className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-900">Portal do Cliente</span>
-          </div>
-          <p className="text-sm text-gray-500">
-            Seu acesso seguro e confidencial para acompanhar seu processo jurídico
-          </p>
-          <p className="text-xs text-gray-400 mt-2">
-            © {new Date().getFullYear()} - Todos os direitos reservados
-          </p>
+        {/* Rodapé com contato */}
+        <div className="mt-12 mb-6">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Precisa de ajuda?</h3>
+                  <p className="text-slate-300 text-sm">
+                    Nossa equipe está pronta para atendê-lo. Entre em contato!
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" className="border-slate-600 text-white hover:bg-slate-700">
+                    <Phone className="w-4 h-4 mr-2" />
+                    Ligar
+                  </Button>
+                  <Button variant="outline" className="border-slate-600 text-white hover:bg-slate-700">
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </footer>
+
+        {/* Copyright */}
+        <div className="text-center py-6 text-sm text-slate-400">
+          <p>Portal seguro • Seus dados estão protegidos</p>
+          <p className="mt-1">© {new Date().getFullYear()} Juris - Todos os direitos reservados</p>
+        </div>
+      </main>
     </div>
   );
 }
