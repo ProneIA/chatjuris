@@ -63,6 +63,7 @@ const ferramentasItems = [
 const colaboracaoItems = [
   { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
   { title: "Área de Trabalho", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
+  { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
 ];
 
 export default function Layout({ children, currentPageName }) {
