@@ -5,21 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Crown,
-  Calendar,
-  CreditCard,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ExternalLink,
-  Loader2,
-  RefreshCw,
-  Star,
-  Zap,
-  Shield
-} from "lucide-react";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,35 +12,50 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { 
+  Crown, 
+  Calendar, 
+  CreditCard, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  AlertTriangle,
+  Loader2,
+  ExternalLink,
+  RefreshCw,
+  Star
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const statusConfig = {
-  active: { label: "Ativa", color: "bg-green-500/20 text-green-400 border-green-500/30", icon: CheckCircle2 },
-  pending: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: Clock },
-  cancelled: { label: "Cancelada", color: "bg-red-500/20 text-red-400 border-red-500/30", icon: XCircle },
-  expired: { label: "Expirada", color: "bg-gray-500/20 text-gray-400 border-gray-500/30", icon: AlertCircle },
-  trial: { label: "Teste", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: Star },
+  active: { label: "Ativa", color: "bg-green-500", icon: CheckCircle },
+  pending: { label: "Pendente", color: "bg-yellow-500", icon: Clock },
+  cancelled: { label: "Cancelada", color: "bg-red-500", icon: XCircle },
+  expired: { label: "Expirada", color: "bg-gray-500", icon: AlertTriangle },
+  trial: { label: "Trial", color: "bg-blue-500", icon: Star },
 };
 
 const paymentStatusConfig = {
-  paid: { label: "Pago", color: "bg-green-500/20 text-green-400" },
-  pending: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400" },
-  failed: { label: "Falhou", color: "bg-red-500/20 text-red-400" },
-  cancelled: { label: "Cancelado", color: "bg-gray-500/20 text-gray-400" },
+  paid: { label: "Pago", color: "text-green-600 bg-green-50" },
+  pending: { label: "Pendente", color: "text-yellow-600 bg-yellow-50" },
+  failed: { label: "Falhou", color: "text-red-600 bg-red-50" },
+  cancelled: { label: "Cancelado", color: "text-gray-600 bg-gray-50" },
 };
 
 export default function MySubscription({ theme = 'light' }) {
   const isDark = theme === 'dark';
-  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const { data: subscription, isLoading } = useQuery({
+  const { data: subscription, isLoading, refetch } = useQuery({
     queryKey: ['subscription', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -65,16 +65,37 @@ export default function MySubscription({ theme = 'light' }) {
     enabled: !!user?.id
   });
 
+  const { data: paymentHistory, isLoading: loadingHistory } = useQuery({
+    queryKey: ['payment-history', subscription?.id],
+    queryFn: async () => {
+      if (!subscription?.cakto_customer_id) return [];
+      try {
+        const response = await base44.functions.invoke('caktoSubscription', {
+          action: 'history',
+          customerId: subscription.cakto_customer_id
+        });
+        return response.data?.payments || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!subscription?.cakto_customer_id
+  });
+
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      if (!subscription) return;
+      if (subscription?.cakto_order_id) {
+        await base44.functions.invoke('caktoSubscription', {
+          action: 'cancel',
+          orderId: subscription.cakto_order_id
+        });
+      }
       
-      // Atualiza status para cancelado
       return base44.entities.Subscription.update(subscription.id, {
-        status: "cancelled",
-        plan: "free",
+        status: 'cancelled',
+        plan: 'free',
         daily_actions_limit: 5,
-        end_date: new Date().toISOString().split('T')[0]
+        daily_actions_used: 0
       });
     },
     onSuccess: () => {
@@ -84,8 +105,7 @@ export default function MySubscription({ theme = 'light' }) {
   });
 
   const isPro = subscription?.plan === 'pro' && subscription?.status === 'active';
-  const statusInfo = statusConfig[subscription?.status] || statusConfig.pending;
-  const StatusIcon = statusInfo.icon;
+  const StatusIcon = statusConfig[subscription?.status]?.icon || Clock;
 
   if (isLoading) {
     return (
@@ -105,67 +125,58 @@ export default function MySubscription({ theme = 'light' }) {
               Minha Assinatura
             </h1>
             <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-              Gerencie seu plano e pagamentos
+              Gerencie sua assinatura e pagamentos
             </p>
           </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['subscription'] })}
-            className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-900' : ''}
+            onClick={() => refetch()}
+            className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Atualizar
           </Button>
         </div>
 
-        {/* Plano Atual */}
-        <Card className={`border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <CardHeader className="pb-4">
+        {/* Subscription Card */}
+        <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
+          <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Plano Atual
-              </CardTitle>
-              <Badge className={statusInfo.color}>
-                <StatusIcon className="w-3 h-3 mr-1" />
-                {statusInfo.label}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                  isPro ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-gray-200'
+                }`}>
+                  <Crown className={`w-6 h-6 ${isPro ? 'text-white' : 'text-gray-500'}`} />
+                </div>
+                <div>
+                  <CardTitle className={isDark ? 'text-white' : ''}>
+                    Plano {isPro ? 'Profissional' : 'Gratuito'}
+                  </CardTitle>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className={`${statusConfig[subscription?.status || 'active']?.color} text-white`}>
+                      <StatusIcon className="w-3 h-3 mr-1" />
+                      {statusConfig[subscription?.status || 'active']?.label}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              {isPro && (
+                <div className={`text-right ${isDark ? 'text-white' : ''}`}>
+                  <p className="text-2xl font-light">R$ 49,99</p>
+                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
+                </div>
+              )}
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                isPro ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-neutral-800'
-              }`}>
-                {isPro ? (
-                  <Crown className="w-7 h-7 text-white" />
-                ) : (
-                  <Star className="w-7 h-7 text-neutral-400" />
-                )}
-              </div>
-              <div>
-                <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {isPro ? 'Plano Profissional' : 'Plano Gratuito'}
-                </h3>
-                <p className={isDark ? 'text-neutral-400' : 'text-gray-500'}>
-                  {isPro ? 'Acesso ilimitado a todos os recursos' : '5 ações de IA por dia'}
-                </p>
-              </div>
-              <div className="ml-auto text-right">
-                <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  R$ {isPro ? '49,99' : '0,00'}
-                </p>
-                <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                  /mês
-                </p>
-              </div>
-            </div>
-
-            {/* Info Grid */}
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
+          
+          <CardContent className="space-y-6">
+            {/* Subscription Details */}
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                     Início
                   </span>
@@ -173,13 +184,14 @@ export default function MySubscription({ theme = 'light' }) {
                 <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {subscription?.start_date 
                     ? format(new Date(subscription.start_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : '-'}
+                    : '-'
+                  }
                 </p>
               </div>
 
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <RefreshCw className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <RefreshCw className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                     Próxima Renovação
                   </span>
@@ -187,75 +199,70 @@ export default function MySubscription({ theme = 'light' }) {
                 <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {subscription?.next_billing_date 
                     ? format(new Date(subscription.next_billing_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : isPro ? 'Mensal' : '-'}
+                    : isPro ? 'Renovação automática' : '-'
+                  }
                 </p>
               </div>
 
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <Zap className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <CreditCard className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Ações Hoje
+                    Pagamento
                   </span>
                 </div>
                 <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {subscription?.daily_actions_used || 0} / {isPro ? '∞' : (subscription?.daily_actions_limit || 5)}
+                  {subscription?.payment_method === 'pix' ? 'PIX' : 
+                   subscription?.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                   subscription?.payment_method || 'Não definido'}
                 </p>
               </div>
             </div>
 
-            {/* Benefícios */}
-            {isPro && (
-              <div className={`p-4 rounded-lg mb-6 ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
-                <h4 className={`font-medium mb-3 ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
-                  Seus Benefícios Pro
-                </h4>
-                <div className="grid md:grid-cols-2 gap-2">
-                  {[
-                    'Ações de IA ilimitadas',
-                    'Clientes ilimitados',
-                    'Processos ilimitados',
-                    'Documentos ilimitados',
-                    'Todos os modos de IA',
-                    'Análise de documentos LEXIA',
-                    'Jurisprudência completa',
-                    'Suporte prioritário'
-                  ].map((benefit, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
-                      <span className={`text-sm ${isDark ? 'text-amber-200' : 'text-amber-800'}`}>{benefit}</span>
-                    </div>
-                  ))}
+            {/* Usage Info for Free Plan */}
+            {!isPro && (
+              <div className={`p-4 rounded-lg border ${isDark ? 'border-neutral-700 bg-neutral-800/50' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className={isDark ? 'text-white' : 'text-gray-900'}>Uso Diário de IA</span>
+                  <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {subscription?.daily_actions_used || 0} / {subscription?.daily_actions_limit || 5}
+                  </span>
                 </div>
+                <div className={`w-full h-2 rounded-full ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`}>
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
+                    style={{ width: `${((subscription?.daily_actions_used || 0) / (subscription?.daily_actions_limit || 5)) * 100}%` }}
+                  />
+                </div>
+                <p className={`text-sm mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                  Resets diariamente à meia-noite
+                </p>
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {!isPro ? (
-                <Button 
-                  className="bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700"
-                  onClick={() => window.location.href = '/Pricing'}
-                >
-                  <Crown className="w-4 h-4 mr-2" />
-                  Fazer Upgrade para Pro
-                </Button>
+                <Link to={createPageUrl('Pricing')}>
+                  <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Fazer Upgrade para Pro
+                  </Button>
+                </Link>
               ) : (
                 <>
                   {subscription?.payment_external_url && (
-                    <Button
-                      variant="outline"
-                      onClick={() => window.open(subscription.payment_external_url, '_blank')}
-                      className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Gerenciar no Cakto
-                    </Button>
+                    <a href={subscription.payment_external_url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}>
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Gerenciar no Cakto
+                      </Button>
+                    </a>
                   )}
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
+                    className="text-red-500 border-red-200 hover:bg-red-50"
                     onClick={() => setShowCancelDialog(true)}
-                    className="text-red-500 border-red-500/30 hover:bg-red-500/10"
                   >
                     Cancelar Assinatura
                   </Button>
@@ -265,147 +272,121 @@ export default function MySubscription({ theme = 'light' }) {
           </CardContent>
         </Card>
 
-        {/* Histórico de Pagamentos */}
-        <Card className={`border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              <CreditCard className="w-5 h-5 inline mr-2" />
-              Informações de Pagamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {subscription?.cakto_order_id ? (
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Assinatura Mensal - Juris Pro
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                        ID: {subscription.cakto_order_id}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className={paymentStatusConfig[subscription.payment_status]?.color || 'bg-gray-500/20 text-gray-400'}>
-                        {paymentStatusConfig[subscription.payment_status]?.label || 'Pendente'}
-                      </Badge>
-                      <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                        R$ 49,99/mês
-                      </p>
-                    </div>
-                  </div>
+        {/* Payment History */}
+        {isPro && (
+          <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
+            <CardHeader>
+              <CardTitle className={isDark ? 'text-white' : ''}>Histórico de Pagamentos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                 </div>
-
-                <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-gray-50 border-gray-200'}`}>
-                  <div className="flex items-start gap-3">
-                    <Shield className={`w-5 h-5 mt-0.5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
-                    <div>
-                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Pagamento Seguro
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                        Seus pagamentos são processados de forma segura através da plataforma Cakto.
-                        Você pode gerenciar sua assinatura, ver faturas e atualizar método de pagamento
-                        diretamente no painel do Cakto.
-                      </p>
+              ) : paymentHistory && paymentHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {paymentHistory.map((payment, index) => (
+                    <div 
+                      key={index}
+                      className={`flex items-center justify-between p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <CreditCard className={`w-5 h-5 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
+                        <div>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            R$ {payment.amount?.toFixed(2).replace('.', ',')}
+                          </p>
+                          <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                            {payment.date ? format(new Date(payment.date), "dd/MM/yyyy", { locale: ptBR }) : '-'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={paymentStatusConfig[payment.status]?.color || 'bg-gray-100'}>
+                          {paymentStatusConfig[payment.status]?.label || payment.status}
+                        </Badge>
+                        {payment.invoice_url && (
+                          <a href={payment.invoice_url} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              </div>
-            ) : (
-              <div className={`text-center py-8 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Nenhum pagamento registrado</p>
-                <p className="text-sm mt-1">
-                  Faça upgrade para o plano Pro para começar
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className={`text-center py-8 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                  <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhum pagamento registrado</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        {/* FAQ */}
-        <Card className={`border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <CardHeader>
-            <CardTitle className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Perguntas Frequentes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Como funciona a cobrança?
-              </h4>
-              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                A cobrança é mensal e automática. Você será cobrado no mesmo dia de cada mês.
-              </p>
-            </div>
-            <div>
-              <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Posso cancelar a qualquer momento?
-              </h4>
-              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                Sim! Você pode cancelar sua assinatura a qualquer momento. O acesso Pro continua até o final do período pago.
-              </p>
-            </div>
-            <div>
-              <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                O que acontece se o pagamento falhar?
-              </h4>
-              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                Se o pagamento falhar, você receberá uma notificação e terá alguns dias para regularizar. Após esse período, sua assinatura será suspensa automaticamente.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Pro Benefits */}
+        {isPro && (
+          <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
+            <CardHeader>
+              <CardTitle className={isDark ? 'text-white' : ''}>Seus Benefícios Pro</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  'Ações de IA ilimitadas',
+                  'Clientes ilimitados',
+                  'Processos ilimitados',
+                  'Documentos ilimitados',
+                  'Equipes e Workspace',
+                  'Jurisprudência completa',
+                  'Templates ilimitados',
+                  'Calendário inteligente',
+                  'Análise de documentos LEXIA',
+                  'Suporte prioritário'
+                ].map((benefit, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Dialog de Cancelamento */}
+      {/* Cancel Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
           <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>
-              Cancelar Assinatura
-            </DialogTitle>
+            <DialogTitle className={isDark ? 'text-white' : ''}>Cancelar Assinatura</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja cancelar sua assinatura Pro? Você perderá acesso a:
+              Tem certeza que deseja cancelar sua assinatura Pro? Você perderá acesso a todos os recursos premium e voltará para o plano gratuito com limite de 5 ações de IA por dia.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-2 py-4">
-            {[
-              'Ações de IA ilimitadas',
-              'Análise de documentos LEXIA',
-              'Jurisprudência completa',
-              'Templates ilimitados',
-              'Calendário inteligente',
-              'Suporte prioritário'
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-red-500" />
-                <span className={isDark ? 'text-neutral-300' : 'text-gray-600'}>{item}</span>
-              </div>
-            ))}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
+          <DialogFooter className="gap-2">
+            <Button 
+              variant="outline" 
               onClick={() => setShowCancelDialog(false)}
-              className={isDark ? 'border-neutral-700' : ''}
+              className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
             >
               Manter Assinatura
             </Button>
-            <Button
+            <Button 
               variant="destructive"
               onClick={() => cancelMutation.mutate()}
               disabled={cancelMutation.isPending}
             >
               {cancelMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
-              Confirmar Cancelamento
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Cancelando...
+                </>
+              ) : (
+                'Confirmar Cancelamento'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
