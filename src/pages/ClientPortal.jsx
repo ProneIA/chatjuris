@@ -131,7 +131,7 @@ export default function ClientPortal({ theme = 'light' }) {
   );
 
   const copyPortalLink = (portal) => {
-    const link = `${window.location.origin}/client-access/${portal.access_token}`;
+    const link = `${window.location.origin}/ClientAccess?token=${portal.access_token}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copiado!");
   };
