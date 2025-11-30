@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Users,
   Plus,
@@ -21,8 +23,15 @@ import {
   Paperclip,
   Check,
   X,
-  RefreshCw
+  RefreshCw,
+  Phone,
+  Edit2,
+  Trash2,
+  Clock,
+  Shield,
+  MessageCircle
 } from "lucide-react";
+import SendMessageDialog from "@/components/portal/SendMessageDialog";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +55,8 @@ export default function ClientPortal({ theme = 'light' }) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState(null);
   const [newMessage, setNewMessage] = useState("");
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [editingPortal, setEditingPortal] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -123,6 +134,24 @@ export default function ClientPortal({ theme = 'light' }) {
   const togglePortalMutation = useMutation({
     mutationFn: ({ id, is_active }) => base44.entities.ClientPortalAccess.update(id, { is_active }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['client-portals'] }),
+  });
+
+  const updatePortalMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ClientPortalAccess.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-portals'] });
+      setEditingPortal(null);
+      toast.success("Portal atualizado!");
+    },
+  });
+
+  const deletePortalMutation = useMutation({
+    mutationFn: (id) => base44.entities.ClientPortalAccess.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-portals'] });
+      setSelectedPortal(null);
+      toast.success("Portal excluído!");
+    },
   });
 
   const filteredPortals = portals.filter(p =>
@@ -229,9 +258,28 @@ export default function ClientPortal({ theme = 'light' }) {
                         <DropdownMenuItem onClick={() => copyPortalLink(portal)}>
                           <Copy className="w-4 h-4 mr-2" /> Copiar Link
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedPortal(portal);
+                          setShowSendDialog(true);
+                        }}>
+                          <Send className="w-4 h-4 mr-2" /> Enviar Mensagem
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingPortal(portal)}>
+                          <Edit2 className="w-4 h-4 mr-2" /> Editar
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => togglePortalMutation.mutate({ id: portal.id, is_active: !portal.is_active })}>
                           {portal.is_active ? <X className="w-4 h-4 mr-2" /> : <Check className="w-4 h-4 mr-2" />}
                           {portal.is_active ? "Desativar" : "Ativar"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            if (confirm("Tem certeza que deseja excluir este portal?")) {
+                              deletePortalMutation.mutate(portal.id);
+                            }
+                          }}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> Excluir
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -350,22 +398,109 @@ export default function ClientPortal({ theme = 'light' }) {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="settings" className="p-4">
+                <TabsContent value="settings" className="p-4 space-y-6">
+                  {/* Informações do Cliente */}
                   <div className="space-y-4">
-                    <h3 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Permissões</h3>
-                    {Object.entries(selectedPortal.permissions || {}).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between">
+                    <h3 className={`font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <Users className="w-4 h-4" />
+                      Informações do Cliente
+                    </h3>
+                    <div className={`rounded-lg p-4 space-y-3 ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+                      <div className="flex items-center gap-2">
+                        <Mail className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                         <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                          {key === 'view_documents' && 'Visualizar documentos'}
-                          {key === 'view_updates' && 'Visualizar atualizações'}
-                          {key === 'send_messages' && 'Enviar mensagens'}
-                          {key === 'upload_documents' && 'Enviar documentos'}
+                          {selectedPortal.client_email}
                         </span>
-                        <Badge variant={value ? "default" : "secondary"}>
-                          {value ? "Permitido" : "Bloqueado"}
-                        </Badge>
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        <Phone className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
+                        <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          {selectedPortal.client_phone || "Não cadastrado"}
+                        </span>
+                      </div>
+                      {selectedPortal.last_access && (
+                        <div className="flex items-center gap-2">
+                          <Clock className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
+                          <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                            Último acesso: {new Date(selectedPortal.last_access).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Permissões */}
+                  <div className="space-y-4">
+                    <h3 className={`font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <Shield className="w-4 h-4" />
+                      Permissões
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        { key: 'view_documents', label: 'Visualizar documentos', desc: 'Cliente pode ver documentos do processo' },
+                        { key: 'view_updates', label: 'Visualizar atualizações', desc: 'Cliente recebe atualizações do processo' },
+                        { key: 'send_messages', label: 'Enviar mensagens', desc: 'Cliente pode enviar mensagens' },
+                        { key: 'upload_documents', label: 'Enviar documentos', desc: 'Cliente pode fazer upload de arquivos' },
+                      ].map(({ key, label, desc }) => (
+                        <div key={key} className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+                          <div>
+                            <p className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{label}</p>
+                            <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{desc}</p>
+                          </div>
+                          <Switch
+                            checked={selectedPortal.permissions?.[key] ?? false}
+                            onCheckedChange={(checked) => {
+                              updatePortalMutation.mutate({
+                                id: selectedPortal.id,
+                                data: {
+                                  permissions: {
+                                    ...selectedPortal.permissions,
+                                    [key]: checked
+                                  }
+                                }
+                              });
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Ações Rápidas */}
+                  <div className="space-y-4">
+                    <h3 className={`font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <Send className="w-4 h-4" />
+                      Ações Rápidas
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSendDialog(true)}
+                        className="gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSendDialog(true)}
+                        className="gap-2"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Email
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyPortalLink(selectedPortal)}
+                        className="gap-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copiar Link
+                      </Button>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -397,6 +532,33 @@ export default function ClientPortal({ theme = 'light' }) {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Edit Portal Dialog */}
+      <Dialog open={!!editingPortal} onOpenChange={() => setEditingPortal(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Portal - {editingPortal?.client_name}</DialogTitle>
+          </DialogHeader>
+          {editingPortal && (
+            <EditPortalForm
+              portal={editingPortal}
+              cases={cases}
+              onSubmit={(data) => updatePortalMutation.mutate({ id: editingPortal.id, data })}
+              onCancel={() => setEditingPortal(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Message Dialog */}
+      <SendMessageDialog
+        open={showSendDialog}
+        onClose={() => setShowSendDialog(false)}
+        portal={selectedPortal}
+        cases={cases}
+        user={user}
+        onMessageSent={() => queryClient.invalidateQueries({ queryKey: ['client-messages'] })}
+      />
     </div>
   );
 }
@@ -405,6 +567,7 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     client_id: "",
     client_email: "",
+    client_phone: "",
     client_name: "",
     case_ids: []
   });
@@ -415,7 +578,8 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
     if (selectedClient) {
       setFormData(prev => ({
         ...prev,
-        client_email: selectedClient.email,
+        client_email: selectedClient.email || "",
+        client_phone: selectedClient.phone || "",
         client_name: selectedClient.name
       }));
     }
@@ -426,7 +590,7 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Cliente</label>
+        <Label className="text-sm font-medium">Cliente</Label>
         <select
           value={formData.client_id}
           onChange={(e) => setFormData({ ...formData, client_id: e.target.value, case_ids: [] })}
@@ -442,7 +606,7 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
       {formData.client_id && (
         <>
           <div>
-            <label className="text-sm font-medium">Email de acesso</label>
+            <Label className="text-sm font-medium">Email de acesso</Label>
             <Input
               value={formData.client_email}
               onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
@@ -451,10 +615,19 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Casos com acesso</label>
-            <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+            <Label className="text-sm font-medium">Telefone (WhatsApp)</Label>
+            <Input
+              value={formData.client_phone}
+              onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+              placeholder="(11) 99999-9999"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Casos com acesso</Label>
+            <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-lg p-2">
               {clientCases.map(c => (
-                <label key={c.id} className="flex items-center gap-2">
+                <label key={c.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-neutral-800 rounded cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.case_ids.includes(c.id)}
@@ -465,12 +638,13 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
                         setFormData({ ...formData, case_ids: formData.case_ids.filter(id => id !== c.id) });
                       }
                     }}
+                    className="rounded"
                   />
                   <span className="text-sm">{c.title}</span>
                 </label>
               ))}
               {clientCases.length === 0 && (
-                <p className="text-sm text-gray-500">Nenhum caso encontrado para este cliente</p>
+                <p className="text-sm text-gray-500 p-2">Nenhum caso encontrado para este cliente</p>
               )}
             </div>
           </div>
@@ -484,6 +658,71 @@ function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
           disabled={!formData.client_id || !formData.client_email || formData.case_ids.length === 0}
         >
           Criar Portal
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function EditPortalForm({ portal, cases, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState({
+    client_email: portal.client_email || "",
+    client_phone: portal.client_phone || "",
+    case_ids: portal.case_ids || []
+  });
+
+  const clientCases = cases.filter(c => c.client_id === portal.client_id);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="text-sm font-medium">Email de acesso</Label>
+        <Input
+          value={formData.client_email}
+          onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+          placeholder="email@cliente.com"
+        />
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Telefone (WhatsApp)</Label>
+        <Input
+          value={formData.client_phone}
+          onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+          placeholder="(11) 99999-9999"
+        />
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Casos com acesso</Label>
+        <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded-lg p-2">
+          {clientCases.map(c => (
+            <label key={c.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-neutral-800 rounded cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.case_ids.includes(c.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setFormData({ ...formData, case_ids: [...formData.case_ids, c.id] });
+                  } else {
+                    setFormData({ ...formData, case_ids: formData.case_ids.filter(id => id !== c.id) });
+                  }
+                }}
+                className="rounded"
+              />
+              <span className="text-sm">{c.title}</span>
+            </label>
+          ))}
+          {clientCases.length === 0 && (
+            <p className="text-sm text-gray-500 p-2">Nenhum caso encontrado para este cliente</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+        <Button onClick={() => onSubmit(formData)}>
+          Salvar Alterações
         </Button>
       </div>
     </div>
