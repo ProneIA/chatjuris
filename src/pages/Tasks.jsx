@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Search, CheckSquare, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, CheckSquare, Calendar, Plus, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function Tasks({ theme = 'light' }) {
   const isDark = theme === 'dark';
