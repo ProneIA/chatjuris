@@ -84,7 +84,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section 
-        className="min-h-screen w-full relative"
+        className="min-h-screen w-full relative overflow-hidden"
         style={{
           backgroundImage: `url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png')`,
           backgroundSize: 'cover',
@@ -132,7 +132,7 @@ export default function LandingPage() {
             <div className="flex md:hidden items-center gap-2">
               <button 
                 onClick={handleLogin}
-                className="px-4 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
               >
                 Entrar
               </button>
@@ -147,7 +147,7 @@ export default function LandingPage() {
 
           {/* Título centralizado */}
           <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
-            <div className="text-center max-w-3xl">
+            <div className="text-center max-w-4xl mx-auto">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight">
                 Direito Tradicional.
               </h1>
@@ -159,7 +159,7 @@ export default function LandingPage() {
 
               <button 
                 onClick={goToPricing}
-                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all active:scale-95"
               >
                 Assinar agora
               </button>
@@ -167,9 +167,9 @@ export default function LandingPage() {
           </div>
 
           {/* Indicador de scroll */}
-          <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
             <button onClick={scrollToSection} className="text-white/70 hover:text-white transition-colors">
-              <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8" />
+              <ChevronDown className="w-8 h-8" />
             </button>
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function LandingPage() {
               return (
                 <div 
                   key={index}
-                  className="p-5 sm:p-8 border border-gray-800 rounded-lg hover:border-gray-600 transition-all group"
+                  className="p-6 sm:p-8 border border-gray-800 rounded-lg hover:border-gray-600 transition-all group active:scale-[0.98]"
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-4 sm:mb-6 group-hover:border-white transition-colors">
                     <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -225,14 +225,14 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button 
                 onClick={goToPricing}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 Começar agora
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={handleLogin}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-700 text-white rounded-md hover:border-white transition-all"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-700 text-white rounded-md hover:border-white transition-all active:scale-95"
               >
                 Já tenho conta
               </button>
@@ -273,7 +273,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="border border-gray-800 rounded-lg p-6 sm:p-10">
+            <div className="border border-gray-800 rounded-lg p-6 sm:p-8 lg:p-10">
               <div className="text-center">
                 <p className="text-gray-500 text-xs sm:text-sm mb-2">A partir de</p>
                 <p className="text-4xl sm:text-5xl font-light text-white mb-2">
@@ -283,12 +283,12 @@ export default function LandingPage() {
                 
                 <button 
                   onClick={goToPricing}
-                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all active:scale-95"
                 >
                   Ver planos
                 </button>
                 
-                <p className="text-gray-600 text-xs sm:text-sm mt-4">
+                <p className="text-gray-600 text-xs sm:text-sm mt-3 sm:mt-4">
                   Cancele quando quiser. Sem multas.
                 </p>
               </div>
@@ -299,16 +299,16 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 bg-black border-t border-gray-900">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 text-center sm:text-left">
           <span className="text-lg sm:text-xl font-semibold text-white tracking-tight">
             Juris
           </span>
-          <p className="text-gray-600 text-xs sm:text-sm text-center">
+          <p className="text-gray-600 text-xs sm:text-sm order-3 sm:order-2">
             © 2024 Juris. Todos os direitos reservados.
           </p>
           <Link 
             to={createPageUrl("Contact")}
-            className="text-gray-500 hover:text-white text-xs sm:text-sm transition-colors"
+            className="text-gray-500 hover:text-white text-sm transition-colors order-2 sm:order-3"
           >
             Contato
           </Link>
