@@ -16,7 +16,7 @@ import {
 
 export default function LandingPage() {
   const handleLogin = () => {
-    window.location.href = createPageUrl("Login");
+    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   const scrollToSection = () => {
