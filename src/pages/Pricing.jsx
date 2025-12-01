@@ -6,9 +6,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
-import PaymentModal from "../components/subscription/PaymentModal";
-import CaktoCheckoutModal from "../components/subscription/CaktoCheckoutModal";
-import MercadoPagoCheckout from "../components/subscription/MercadoPagoCheckout";
+import PaymentModal from "@/components/subscription/PaymentModal";
+import CaktoCheckoutModal from "@/components/subscription/CaktoCheckoutModal";
+import MercadoPagoCheckout from "@/components/subscription/MercadoPagoCheckout";
 
 const plans = [
   {
