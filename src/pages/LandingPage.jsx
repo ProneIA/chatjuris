@@ -150,12 +150,12 @@ export default function LandingPage() {
               
               <div className="w-20 h-0.5 bg-white mx-auto mt-8" />
 
-              <Link 
-                to={createPageUrl("Plans")}
+              <button 
+                onClick={handleSubscribe}
                 className="inline-block mt-10 px-8 py-3.5 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
               >
                 Assinar agora
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -216,13 +216,13 @@ export default function LandingPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                to={createPageUrl("Plans")}
+              <button 
+                onClick={handleSubscribe}
                 className="px-8 py-3.5 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all flex items-center gap-2"
               >
                 Começar agora
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
               <button 
                 onClick={handleLogin}
                 className="px-8 py-3.5 text-base font-medium border border-gray-700 text-white rounded-md hover:border-white transition-all"
@@ -274,12 +274,12 @@ export default function LandingPage() {
                 </p>
                 <p className="text-gray-500 text-sm mb-8">/mês</p>
                 
-                <Link 
-                  to={createPageUrl("Plans")}
+                <button 
+                  onClick={handleSubscribe}
                   className="inline-block w-full px-8 py-4 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
                 >
                   Ver planos
-                </Link>
+                </button>
                 
                 <p className="text-gray-600 text-sm mt-4">
                   Cancele quando quiser. Sem multas.
