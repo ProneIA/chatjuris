@@ -32,7 +32,32 @@ export default function Dashboard({ theme = 'light' }) {
   
   const [user, setUser] = React.useState(null);
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    const initUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+        
+        // Verificar/criar subscription Free para novos usuários
+        if (userData) {
+          const subs = await base44.entities.Subscription.filter({ user_id: userData.id });
+          if (subs.length === 0) {
+            await base44.entities.Subscription.create({
+              user_id: userData.id,
+              plan: 'free',
+              status: 'active',
+              daily_actions_limit: 5,
+              daily_actions_used: 0,
+              price: 0,
+              start_date: new Date().toISOString().split('T')[0],
+              last_reset_date: new Date().toISOString().split('T')[0]
+            });
+          }
+        }
+      } catch (e) {
+        console.log('Usuário não logado');
+      }
+    };
+    initUser();
   }, []);
 
   const { data: clients = [], isLoading: loadingClients } = useQuery({
