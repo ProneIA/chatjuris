@@ -29,10 +29,20 @@ Deno.serve(async (req) => {
 
     // Validar o segredo do webhook
     const webhookSecret = Deno.env.get("CAKTO_WEBHOOK_SECRET");
-    if (!webhookSecret || body.secret !== webhookSecret) {
-      console.log('Invalid webhook secret');
-      return new Response('Forbidden', { status: 403, headers: corsHeaders });
+    const receivedSecret = body.secret;
+    
+    console.log('Webhook secret validation:', { 
+      received: receivedSecret ? receivedSecret.substring(0, 8) + '...' : 'none',
+      configured: webhookSecret ? webhookSecret.substring(0, 8) + '...' : 'none',
+      match: receivedSecret === webhookSecret
+    });
+    
+    if (!webhookSecret || !receivedSecret || receivedSecret.trim() !== webhookSecret.trim()) {
+      console.log('Invalid webhook secret - access denied');
+      return Response.json({ error: 'Forbidden - invalid secret' }, { status: 403, headers: corsHeaders });
     }
+    
+    console.log('Webhook secret validated successfully');
 
     // Extrair dados do webhook - suporta vários formatos
     const {
