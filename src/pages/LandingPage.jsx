@@ -19,8 +19,8 @@ export default function LandingPage() {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
-  const handleSubscribe = () => {
-    base44.auth.redirectToLogin(createPageUrl("Pricing"));
+  const goToPricing = () => {
+    window.location.href = createPageUrl("Pricing");
   };
 
   const scrollToSection = () => {
@@ -151,7 +151,7 @@ export default function LandingPage() {
               <div className="w-20 h-0.5 bg-white mx-auto mt-8" />
 
               <button 
-                onClick={handleSubscribe}
+                onClick={goToPricing}
                 className="inline-block mt-10 px-8 py-3.5 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
               >
                 Assinar agora
@@ -217,7 +217,7 @@ export default function LandingPage() {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button 
-                onClick={handleSubscribe}
+                onClick={goToPricing}
                 className="px-8 py-3.5 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all flex items-center gap-2"
               >
                 Começar agora
@@ -275,7 +275,7 @@ export default function LandingPage() {
                 <p className="text-gray-500 text-sm mb-8">/mês</p>
                 
                 <button 
-                  onClick={handleSubscribe}
+                  onClick={goToPricing}
                   className="inline-block w-full px-8 py-4 text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
                 >
                   Ver planos
