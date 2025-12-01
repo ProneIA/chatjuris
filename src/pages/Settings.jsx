@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { User, Bell, Palette, Keyboard, Save, Loader2 } from "lucide-react";
+import { User, Bell, Palette, Keyboard, Save, Loader2, Pencil, X, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Settings({ theme = 'light' }) {
@@ -31,7 +31,7 @@ export default function Settings({ theme = 'light' }) {
   useEffect(() => {
     base44.auth.me().then((userData) => {
       setUser(userData);
-      setNewName(userData.full_name || "");
+      setNewName(userData?.full_name || "");
       if (userData.preferences) {
         setPreferences({ ...preferences, ...userData.preferences });
       }
@@ -58,14 +58,9 @@ export default function Settings({ theme = 'light' }) {
       return;
     }
     setLoading(true);
-    try {
-      await base44.auth.updateMe({ full_name: newName.trim() });
-      setUser({ ...user, full_name: newName.trim() });
-      setEditingName(false);
-      toast.success("Nome atualizado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao atualizar nome");
-    }
+    await updatePreferencesMutation.mutateAsync({ full_name: newName.trim() });
+    setUser({ ...user, full_name: newName.trim() });
+    setEditingName(false);
     setLoading(false);
   };
 
@@ -135,25 +130,27 @@ export default function Settings({ theme = 'light' }) {
                       <Input
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
-                        className="bg-neutral-900 border-neutral-800 text-white"
-                        placeholder="Seu nome completo"
+                        className="bg-neutral-900 border-neutral-800 text-white flex-1"
+                        placeholder="Digite seu nome"
                       />
                       <Button
+                        size="icon"
                         onClick={handleSaveName}
                         disabled={loading}
-                        className="bg-white text-black hover:bg-gray-100"
+                        className="bg-green-600 hover:bg-green-700"
                       >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                       </Button>
                       <Button
+                        size="icon"
                         variant="outline"
                         onClick={() => {
                           setEditingName(false);
                           setNewName(user?.full_name || "");
                         }}
-                        className="border-neutral-700 text-white hover:bg-neutral-800"
+                        className="border-neutral-700"
                       >
-                        Cancelar
+                        <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ) : (
@@ -161,14 +158,15 @@ export default function Settings({ theme = 'light' }) {
                       <Input
                         value={user?.full_name || ""}
                         disabled
-                        className="bg-neutral-900 border-neutral-800 text-white"
+                        className="bg-neutral-900 border-neutral-800 text-white flex-1"
                       />
                       <Button
+                        size="icon"
                         variant="outline"
                         onClick={() => setEditingName(true)}
-                        className="border-neutral-700 text-white hover:bg-neutral-800"
+                        className="border-neutral-700 hover:bg-neutral-800"
                       >
-                        Editar
+                        <Pencil className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
@@ -362,10 +360,10 @@ export default function Settings({ theme = 'light' }) {
                 <p className="text-sm text-neutral-500">Use atalhos para navegar mais rápido</p>
               </div>
 
-              <div className="flex items-center justify-between py-3 border-b border-neutral-800">
+              <div className="flex items-center justify-between py-3 border-b border-neutral-800 mb-4">
                 <div>
-                  <p className="text-white">Atalhos de Teclado</p>
-                  <p className="text-sm text-neutral-500">Habilitar navegação por atalhos</p>
+                  <p className="text-white">Ativar Atalhos de Teclado</p>
+                  <p className="text-sm text-neutral-500">Habilita ou desabilita os atalhos de navegação</p>
                 </div>
                 <Switch
                   checked={preferences.keyboard_shortcuts_enabled}
@@ -375,21 +373,7 @@ export default function Settings({ theme = 'light' }) {
                 />
               </div>
 
-              <Button onClick={handleSavePreferences} disabled={loading} className="w-full bg-white text-black hover:bg-gray-100 mb-4">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar Preferências
-                  </>
-                )}
-              </Button>
-
-              <div className={`space-y-2 ${!preferences.keyboard_shortcuts_enabled ? 'opacity-50' : ''}`}>
+              <div className={`space-y-2 ${!preferences.keyboard_shortcuts_enabled ? 'opacity-50 pointer-events-none' : ''}`}>
                 {shortcuts.map((shortcut, index) => (
                   <div
                     key={index}
@@ -419,6 +403,20 @@ export default function Settings({ theme = 'light' }) {
                   em qualquer página para ver os atalhos disponíveis.
                 </p>
               </div>
+
+              <Button onClick={handleSavePreferences} disabled={loading} className="w-full bg-white text-black hover:bg-gray-100">
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Salvar Preferências
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>
