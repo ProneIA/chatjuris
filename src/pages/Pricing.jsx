@@ -127,7 +127,16 @@ export default function Pricing({ theme = 'light' }) {
     }
   });
 
-  const handleSelectPlan = (planId) => {
+  const handleSelectPlan = async (planId) => {
+    // Verifica se o usuário está logado
+    const isAuthenticated = await base44.auth.isAuthenticated();
+    
+    if (!isAuthenticated) {
+      // Redireciona para login e volta para Pricing
+      base44.auth.redirectToLogin(createPageUrl("Pricing"));
+      return;
+    }
+
     if (planId === "free") {
       subscribeMutation.mutate(planId);
       return;
