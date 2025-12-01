@@ -19,6 +19,10 @@ export default function LandingPage() {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
+  const handleSubscribe = () => {
+    base44.auth.redirectToLogin(createPageUrl("Pricing"));
+  };
+
   const scrollToSection = () => {
     document.getElementById('vantagens')?.scrollIntoView({ behavior: 'smooth' });
   };
