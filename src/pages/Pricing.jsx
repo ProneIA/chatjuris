@@ -8,7 +8,6 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import PaymentModal from "@/components/subscription/PaymentModal";
 import CaktoCheckoutModal from "@/components/subscription/CaktoCheckoutModal";
-import MercadoPagoCheckout from "@/components/subscription/MercadoPagoCheckout";
 
 const plans = [
   {
@@ -80,7 +79,6 @@ export default function Pricing({ theme = 'light' }) {
   const [user, setUser] = React.useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCaktoCheckout, setShowCaktoCheckout] = useState(false);
-  const [showMPCheckout, setShowMPCheckout] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   React.useEffect(() => {
@@ -136,7 +134,7 @@ export default function Pricing({ theme = 'light' }) {
     }
 
     if (planId === "pro") {
-      setShowMPCheckout(true);
+      setShowCaktoCheckout(true);
       return;
     }
 
@@ -433,18 +431,6 @@ export default function Pricing({ theme = 'light' }) {
           onClose={() => setShowCaktoCheckout(false)}
         />
       )}
-
-      {/* Mercado Pago Checkout */}
-      <MercadoPagoCheckout
-        open={showMPCheckout}
-        onOpenChange={setShowMPCheckout}
-        planName="Juris Pro"
-        amount={49.99}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['subscription'] });
-          navigate(createPageUrl('PaymentSuccess'));
-        }}
-      />
     </div>
   );
 }
