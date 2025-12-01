@@ -81,7 +81,87 @@ export default function Tasks({ theme = 'light' }) {
           <h1 className="text-2xl font-light text-white">Tarefas e Prazos</h1>
           <p className="text-neutral-500 mt-1">Gerencie suas tarefas e compromissos</p>
         </div>
+        <Button 
+          onClick={() => setShowForm(!showForm)}
+          className="bg-white text-black hover:bg-gray-100"
+        >
+          {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+          {showForm ? "Cancelar" : "Nova Tarefa"}
+        </Button>
       </div>
+
+      {showForm && (
+        <div className="border border-neutral-800 rounded-lg p-6 bg-neutral-900 space-y-4">
+          <h3 className="text-lg font-medium text-white mb-4">Criar Nova Tarefa</h3>
+          <Input
+            placeholder="Título da tarefa *"
+            value={newTask.title}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            className="bg-black border-neutral-700 text-white placeholder:text-neutral-600"
+          />
+          <Input
+            placeholder="Descrição (opcional)"
+            value={newTask.description}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            className="bg-black border-neutral-700 text-white placeholder:text-neutral-600"
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm text-neutral-400 mb-2 block">Data de vencimento *</label>
+              <Input
+                type="date"
+                value={newTask.due_date}
+                onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                className="bg-black border-neutral-700 text-white"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-neutral-400 mb-2 block">Prioridade</label>
+              <select
+                value={newTask.priority}
+                onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                className="w-full p-2 bg-black border border-neutral-700 rounded-md text-white"
+              >
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm text-neutral-400 mb-2 block">Tipo</label>
+              <select
+                value={newTask.type}
+                onChange={(e) => setNewTask({ ...newTask, type: e.target.value })}
+                className="w-full p-2 bg-black border border-neutral-700 rounded-md text-white"
+              >
+                <option value="hearing">Audiência</option>
+                <option value="deadline">Prazo</option>
+                <option value="meeting">Reunião</option>
+                <option value="document">Documento</option>
+                <option value="research">Pesquisa</option>
+                <option value="other">Outro</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={() => createMutation.mutate(newTask)}
+              disabled={!newTask.title || !newTask.due_date || createMutation.isPending}
+              className="bg-white text-black hover:bg-gray-100"
+            >
+              {createMutation.isPending ? "Criando..." : "Criar Tarefa"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowForm(false)}
+              className="border-neutral-700 text-white hover:bg-neutral-800"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-4 gap-4">
         <div className="border border-neutral-800 rounded-lg p-4 bg-black">
