@@ -8,7 +8,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import PaymentModal from "@/components/subscription/PaymentModal";
 import CaktoCheckoutModal from "@/components/subscription/CaktoCheckoutModal";
-import MercadoPagoCheckout from "@/components/subscription/MercadoPagoCheckout.js";
+import MercadoPagoCheckout from "@/components/subscription/MercadoPagoCheckout.jsx";
 
 const plans = [
   {
