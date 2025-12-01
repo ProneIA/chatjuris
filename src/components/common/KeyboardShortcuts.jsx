@@ -1,13 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 export default function KeyboardShortcuts() {
   const navigate = useNavigate();
+  const [shortcutsEnabled, setShortcutsEnabled] = useState(true);
+
+  useEffect(() => {
+    base44.auth.me().then((user) => {
+      if (user?.preferences?.keyboard_shortcuts_enabled === false) {
+        setShortcutsEnabled(false);
+      } else {
+        setShortcutsEnabled(true);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
+      // Verificar se atalhos estão desativados
+      if (!shortcutsEnabled) return;
+
       // Ignorar se estiver digitando em input/textarea
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
         return;
@@ -78,7 +93,7 @@ export default function KeyboardShortcuts() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [navigate]);
+  }, [navigate, shortcutsEnabled]);
 
   const showShortcutsHelp = () => {
     toast(
