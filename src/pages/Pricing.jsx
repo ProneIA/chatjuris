@@ -167,46 +167,47 @@ export default function Pricing({ theme = 'light' }) {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 py-16">
+      <div className="relative max-w-6xl mx-auto px-4 py-8 sm:py-16">
         {/* Hero Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-full px-4 py-2 mb-6">
-            <Gift className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-purple-300">Oferta por tempo limitado: 50% OFF no Pro</span>
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
+            <Gift className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
+            <span className="text-xs sm:text-sm text-purple-300">Oferta limitada: 50% OFF no Pro</span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-            Transforme sua Advocacia<br />com Inteligência Artificial
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent leading-tight px-2">
+            Transforme sua Advocacia<br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>com Inteligência Artificial
           </h1>
           
-          <p className="text-xl text-neutral-400 max-w-2xl mx-auto mb-8">
+          <p className="text-base sm:text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
             Junte-se a <span className="text-white font-semibold">+2.500 advogados</span> que já economizam 
             <span className="text-green-400 font-semibold"> 15+ horas por semana</span> com o Juris
           </p>
 
           {/* Social Proof Stats */}
-          <div className="flex flex-wrap justify-center gap-8 mb-12">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">2.500+</div>
-              <div className="text-sm text-neutral-500">Advogados Ativos</div>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12">
+            <div className="text-center min-w-[80px]">
+              <div className="text-2xl sm:text-3xl font-bold text-white">2.500+</div>
+              <div className="text-xs sm:text-sm text-neutral-500">Advogados Ativos</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">50.000+</div>
-              <div className="text-sm text-neutral-500">Documentos Gerados</div>
+            <div className="text-center min-w-[80px]">
+              <div className="text-2xl sm:text-3xl font-bold text-white">50.000+</div>
+              <div className="text-xs sm:text-sm text-neutral-500">Documentos Gerados</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white">4.9/5</div>
-              <div className="text-sm text-neutral-500">Avaliação Média</div>
+            <div className="text-center min-w-[80px]">
+              <div className="text-2xl sm:text-3xl font-bold text-white">4.9/5</div>
+              <div className="text-xs sm:text-sm text-neutral-500">Avaliação Média</div>
             </div>
           </div>
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-20">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id;
@@ -243,35 +244,35 @@ export default function Pricing({ theme = 'light' }) {
                   </div>
                 )}
 
-                <div className="p-8">
+                <div className="p-5 sm:p-8">
                   {/* Plan Header */}
-                  <div className="mb-6 mt-4">
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
+                  <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
+                    <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center mb-3 sm:mb-4 ${
                       isPro ? "bg-gradient-to-br from-purple-500 to-blue-500" : "bg-neutral-800"
                     }`}>
-                      <Icon className="w-7 h-7 text-white" />
+                      <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                     </div>
                     
-                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                    <p className="text-neutral-400">{plan.description}</p>
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">{plan.name}</h3>
+                    <p className="text-sm sm:text-base text-neutral-400">{plan.description}</p>
                   </div>
 
                   {/* Price */}
-                  <div className="mb-8">
-                    <div className="flex items-baseline gap-2">
+                  <div className="mb-6 sm:mb-8">
+                    <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
                       {plan.originalPrice && (
-                        <span className="text-lg text-neutral-500 line-through">
+                        <span className="text-sm sm:text-lg text-neutral-500 line-through">
                           R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
                         </span>
                       )}
-                      <span className={`text-5xl font-bold ${isPro ? "text-white" : "text-white"}`}>
+                      <span className={`text-3xl sm:text-5xl font-bold ${isPro ? "text-white" : "text-white"}`}>
                         R$ {plan.price.toFixed(2).replace('.', ',')}
                       </span>
-                      <span className="text-neutral-500">{plan.period}</span>
+                      <span className="text-neutral-500 text-sm sm:text-base">{plan.period}</span>
                     </div>
                     {isPro && (
-                      <p className="text-sm text-green-400 mt-2 flex items-center gap-1">
-                        <TrendingUp className="w-4 h-4" />
+                      <p className="text-xs sm:text-sm text-green-400 mt-2 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                         Economia de R$ 600/ano
                       </p>
                     )}
@@ -281,7 +282,7 @@ export default function Pricing({ theme = 'light' }) {
                   <Button
                     onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
                     disabled={isCurrentPlan || subscribeMutation.isPending}
-                    className={`w-full py-7 text-lg font-semibold rounded-xl mb-8 transition-all transform hover:scale-[1.02] ${
+                    className={`w-full py-5 sm:py-7 text-base sm:text-lg font-semibold rounded-xl mb-6 sm:mb-8 transition-all transform active:scale-95 hover:scale-[1.02] ${
                       isCurrentPlan
                         ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                         : isPro
@@ -291,36 +292,36 @@ export default function Pricing({ theme = 'light' }) {
                   >
                     {isCurrentPlan ? (
                       <span className="flex items-center justify-center gap-2">
-                        <Check className="w-5 h-5" />
+                        <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                         Plano Atual
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
                         {isPro ? "🚀 Começar Agora" : "Começar Grátis"}
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </span>
                     )}
                   </Button>
 
                   {/* Features List */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">
+                  <div className="space-y-2.5 sm:space-y-3">
+                    <p className="text-xs sm:text-sm font-medium text-neutral-500 uppercase tracking-wider mb-3 sm:mb-4">
                       {isPro ? "Tudo incluso:" : "Inclui:"}
                     </p>
                     {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
+                      <div key={idx} className="flex items-start gap-2 sm:gap-3">
+                        <div className={`shrink-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center mt-0.5 ${
                           feature.included 
                             ? isPro ? "bg-purple-500/20" : "bg-green-500/20"
                             : "bg-neutral-800"
                         }`}>
                           {feature.included ? (
-                            <Check className={`w-3 h-3 ${isPro ? "text-purple-400" : "text-green-400"}`} />
+                            <Check className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isPro ? "text-purple-400" : "text-green-400"}`} />
                           ) : (
-                            <X className="w-3 h-3 text-neutral-600" />
+                            <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-neutral-600" />
                           )}
                         </div>
-                        <span className={`text-sm ${
+                        <span className={`text-xs sm:text-sm ${
                           feature.highlight && feature.included
                             ? "font-semibold text-white"
                             : feature.included 
@@ -343,23 +344,23 @@ export default function Pricing({ theme = 'light' }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mb-20"
+          className="mb-12 sm:mb-20"
         >
-          <h2 className="text-2xl font-bold text-center mb-10">
+          <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-10">
             O que dizem nossos usuários
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((t, i) => (
-              <div key={i} className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6">
-                <div className="flex gap-1 mb-4">
+              <div key={i} className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 sm:p-6">
+                <div className="flex gap-1 mb-3 sm:mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-500 text-yellow-500" />
                   ))}
                 </div>
-                <p className="text-neutral-300 mb-4 italic">"{t.text}"</p>
+                <p className="text-sm sm:text-base text-neutral-300 mb-3 sm:mb-4 italic">"{t.text}"</p>
                 <div>
-                  <p className="font-semibold text-white">{t.name}</p>
-                  <p className="text-sm text-neutral-500">{t.role}</p>
+                  <p className="font-semibold text-white text-sm sm:text-base">{t.name}</p>
+                  <p className="text-xs sm:text-sm text-neutral-500">{t.role}</p>
                 </div>
               </div>
             ))}
@@ -371,30 +372,30 @@ export default function Pricing({ theme = 'light' }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="grid md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-16"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10 sm:mb-16"
         >
-          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5 text-center">
-            <Shield className="w-8 h-8 text-green-400 mx-auto mb-3" />
-            <p className="font-semibold text-white mb-1">100% Seguro</p>
-            <p className="text-xs text-neutral-500">Dados criptografados</p>
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 sm:p-5 text-center">
+            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-green-400 mx-auto mb-2 sm:mb-3" />
+            <p className="font-semibold text-white text-sm sm:text-base mb-0.5 sm:mb-1">100% Seguro</p>
+            <p className="text-[10px] sm:text-xs text-neutral-500">Dados criptografados</p>
           </div>
 
-          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5 text-center">
-            <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-            <p className="font-semibold text-white mb-1">PIX Instantâneo</p>
-            <p className="text-xs text-neutral-500">Aprovação imediata</p>
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 sm:p-5 text-center">
+            <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 mx-auto mb-2 sm:mb-3" />
+            <p className="font-semibold text-white text-sm sm:text-base mb-0.5 sm:mb-1">PIX Instantâneo</p>
+            <p className="text-[10px] sm:text-xs text-neutral-500">Aprovação imediata</p>
           </div>
 
-          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5 text-center">
-            <Clock className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-            <p className="font-semibold text-white mb-1">7 Dias Grátis</p>
-            <p className="text-xs text-neutral-500">Teste sem compromisso</p>
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 sm:p-5 text-center">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400 mx-auto mb-2 sm:mb-3" />
+            <p className="font-semibold text-white text-sm sm:text-base mb-0.5 sm:mb-1">7 Dias Grátis</p>
+            <p className="text-[10px] sm:text-xs text-neutral-500">Teste sem compromisso</p>
           </div>
 
-          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-5 text-center">
-            <Users className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-            <p className="font-semibold text-white mb-1">Suporte 24/7</p>
-            <p className="text-xs text-neutral-500">Equipe especializada</p>
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-4 sm:p-5 text-center">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400 mx-auto mb-2 sm:mb-3" />
+            <p className="font-semibold text-white text-sm sm:text-base mb-0.5 sm:mb-1">Suporte 24/7</p>
+            <p className="text-[10px] sm:text-xs text-neutral-500">Equipe especializada</p>
           </div>
         </motion.div>
 
@@ -403,22 +404,22 @@ export default function Pricing({ theme = 'light' }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="text-center bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-2xl p-10 max-w-3xl mx-auto"
+          className="text-center bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-2xl p-6 sm:p-10 max-w-3xl mx-auto"
         >
-          <Rocket className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">
+          <Rocket className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-3 sm:mb-4" />
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 px-2">
             Pronto para Revolucionar sua Prática?
           </h2>
-          <p className="text-neutral-400 mb-6">
+          <p className="text-sm sm:text-base text-neutral-400 mb-5 sm:mb-6 px-2">
             Comece hoje e veja a diferença em minutos. Sem cartão de crédito necessário.
           </p>
           <Button
             onClick={() => handleSelectPlan("pro")}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-10 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30 transform hover:scale-105 transition-all"
+            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 sm:px-10 py-5 sm:py-6 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30 transform active:scale-95 hover:scale-105 transition-all"
           >
             🚀 Começar com o Pro - 50% OFF
           </Button>
-          <p className="text-xs text-neutral-500 mt-4">
+          <p className="text-[10px] sm:text-xs text-neutral-500 mt-3 sm:mt-4">
             Cancele a qualquer momento. Sem taxas ocultas.
           </p>
         </motion.div>
