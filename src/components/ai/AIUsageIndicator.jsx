@@ -82,7 +82,7 @@ export default function AIUsageIndicator({ compact = false }) {
         </div>
 
         {(isOut || isLow) && (
-          <Link to={createPageUrl("Plans")}>
+          <Link to={createPageUrl("Pricing")}>
             <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <Crown className="w-3 h-3 mr-1" />
               Upgrade
