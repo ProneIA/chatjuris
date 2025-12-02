@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createHmac } from 'node:crypto';
 
 Deno.serve(async (req) => {
   const headers = {
@@ -20,16 +21,39 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Use POST' }), { status: 200, headers });
   }
 
+  // Validar assinatura do webhook (se configurada)
+  const webhookSecret = Deno.env.get('CAKTO_WEBHOOK_SECRET');
+  const signature = req.headers.get('x-cakto-signature') || req.headers.get('x-webhook-signature');
+  
+  let bodyText;
+  try {
+    bodyText = await req.text();
+  } catch (e) {
+    return new Response(JSON.stringify({ received: true, parse_error: true }), { status: 200, headers });
+  }
+
+  // Verificar assinatura se o secret estiver configurado
+  if (webhookSecret && signature) {
+    const expectedSignature = createHmac('sha256', webhookSecret)
+      .update(bodyText)
+      .digest('hex');
+    
+    if (signature !== expectedSignature && signature !== `sha256=${expectedSignature}`) {
+      console.error('Assinatura inválida do webhook');
+      return new Response(JSON.stringify({ error: 'Invalid signature' }), { status: 401, headers });
+    }
+  }
+
   let body;
   try {
-    body = await req.json();
+    body = JSON.parse(bodyText);
   } catch (e) {
     return new Response(JSON.stringify({ received: true, parse_error: true }), { status: 200, headers });
   }
 
   console.log('=== WEBHOOK CAKTO ===');
   console.log('Evento:', body.event);
-  console.log('Body:', JSON.stringify(body));
+  // Não logar dados sensíveis em produção
 
   const event = body.event || '';
   const data = body.data || {};
