@@ -53,6 +53,7 @@ const gestaoItems = [
 ];
 
 const ferramentasItems = [
+  { title: "Gerador de Peças", url: createPageUrl("DocumentGenerator"), icon: FileText, badge: "IA" },
   { title: "Calculadora Jurídica", url: createPageUrl("LegalCalculator"), icon: Calculator },
   { title: "Monitor de Diários", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
   { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },

@@ -23,6 +23,7 @@ import DiaryMonitor from './pages/DiaryMonitor';
 import Cases from './pages/Cases';
 import ClientAccess from './pages/ClientAccess';
 import MySubscription from './pages/MySubscription';
+import DocumentGenerator from './pages/DocumentGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "Cases": Cases,
     "ClientAccess": ClientAccess,
     "MySubscription": MySubscription,
+    "DocumentGenerator": DocumentGenerator,
 }
 
 export const pagesConfig = {
