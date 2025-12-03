@@ -33,8 +33,8 @@ export default function ContactPublic() {
 
         <div className="grid md:grid-cols-2 gap-6 mb-16">
           {/* Email */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors rounded-none">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6 rounded-none">
               <Mail className="w-5 h-5 text-gray-700" />
             </div>
             <h3 className="text-lg font-medium mb-2">Email</h3>
@@ -48,8 +48,8 @@ export default function ContactPublic() {
           </div>
 
           {/* Telefone */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors rounded-none">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6 rounded-none">
               <Phone className="w-5 h-5 text-gray-700" />
             </div>
             <h3 className="text-lg font-medium mb-2">Telefone</h3>
@@ -63,8 +63,8 @@ export default function ContactPublic() {
           </div>
 
           {/* Horário */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors rounded-none">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6 rounded-none">
               <Clock className="w-5 h-5 text-gray-700" />
             </div>
             <h3 className="text-lg font-medium mb-2">Horário de Atendimento</h3>
@@ -72,8 +72,8 @@ export default function ContactPublic() {
           </div>
 
           {/* Endereço */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors rounded-none">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6 rounded-none">
               <MapPin className="w-5 h-5 text-gray-700" />
             </div>
             <h3 className="text-lg font-medium mb-2">Localização</h3>
