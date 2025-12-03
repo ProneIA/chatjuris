@@ -75,14 +75,19 @@ export default function Layout({ children, currentPageName }) {
       base44.auth.logout();
     };
 
-    // Public pages - no layout
+    // Public pages - no layout (always, even if logged in)
     const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing"];
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
     }
 
-    // If not logged in and not a public page, show nothing (will redirect)
-    if (!isLoading && !user) {
+    // If still loading, show nothing
+    if (isLoading) {
+      return <>{children}</>;
+    }
+
+    // If not logged in and not a public page, show without layout
+    if (!user) {
       return <>{children}</>;
     }
 
