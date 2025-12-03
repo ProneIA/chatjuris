@@ -95,7 +95,7 @@ export default function LandingPage() {
       <section 
         className="min-h-screen w-full relative overflow-hidden"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop')`,
+          backgroundImage: `url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2612&auto=format&fit=crop')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
