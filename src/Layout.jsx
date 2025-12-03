@@ -101,8 +101,9 @@ export default function Layout({ children, currentPageName }) {
     const isLandingPage = currentPageName === "LandingPage";
     const isQuemSomos = currentPageName === "QuemSomos";
     const isFuncionalidades = currentPageName === "Funcionalidades";
+    const isContactPublic = currentPageName === "ContactPublic";
 
-    if (isLandingPage || isQuemSomos || isFuncionalidades) {
+    if (isLandingPage || isQuemSomos || isFuncionalidades || isContactPublic) {
       return <>{children}</>;
     }
 
