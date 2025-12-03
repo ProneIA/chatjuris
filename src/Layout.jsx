@@ -42,29 +42,9 @@ const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
-];
-
-const gestaoItems = [
-  { title: "Clientes", url: createPageUrl("Clients"), icon: Users },
-  { title: "Portal do Cliente", url: createPageUrl("ClientPortal"), icon: Users2 },
-  { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
-  { title: "Documentos", url: createPageUrl("DocumentsEnhanced"), icon: FileText },
-  { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
-];
-
-const ferramentasItems = [
-  { title: "Gerador de Peças", url: createPageUrl("DocumentGenerator"), icon: FileText, badge: "IA" },
-  { title: "Calculadora Jurídica", url: createPageUrl("LegalCalculator"), icon: Calculator },
-  { title: "Monitor de Diários", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
-  { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
-  { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
-  { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
-];
-
-const colaboracaoItems = [
-  { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
-  { title: "Área de Trabalho", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
-  { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
+  { title: "Gestão", url: createPageUrl("Gestao"), icon: FolderOpen },
+  { title: "Ferramentas", url: createPageUrl("Ferramentas"), icon: Scale },
+  { title: "Colaboração", url: createPageUrl("Colaboracao"), icon: Users2 },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -113,8 +93,8 @@ export default function Layout({ children, currentPageName }) {
         onClick={() => mobile && setIsMobileMenuOpen(false)}
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === item.url
-            ? 'bg-white text-black font-medium'
-            : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+            ? 'text-white font-bold'
+            : 'text-neutral-400 hover:text-white'
         }`}
       >
         <item.icon className="w-4 h-4" />
@@ -122,74 +102,20 @@ export default function Layout({ children, currentPageName }) {
         {item.proBadge && (
           <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
             location.pathname === item.url
-              ? 'bg-gray-200 text-gray-600'
-              : 'bg-neutral-700 text-neutral-400'
+              ? 'bg-neutral-800 text-white'
+              : 'bg-neutral-800 text-neutral-400'
           }`}>PRO</span>
         )}
         {item.badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">
             {item.badge}
           </span>
         )}
       </Link>
     );
 
-    const DropdownNavMenu = ({ label, items, icon: Icon }) => {
-      const [isOpen, setIsOpen] = React.useState(false);
+    // Dropdown menu removed
 
-      return (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800">
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-              <ChevronDown className={`w-3 h-3 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="center" 
-            sideOffset={8}
-            className="w-screen max-w-none left-0 right-0 bg-neutral-900 border-neutral-800 border-t-0 rounded-none p-0"
-            style={{ 
-              position: 'fixed',
-              left: 0,
-              right: 0,
-              width: '100vw',
-              marginLeft: 'calc(-50vw + 50%)',
-              marginRight: 'calc(-50vw + 50%)'
-            }}
-          >
-            <div className="max-w-[1800px] mx-auto px-4 py-4 flex flex-wrap gap-2">
-              {items.map((item) => (
-                <Link
-                  key={item.title}
-                  to={item.url}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                    location.pathname === item.url 
-                      ? 'bg-white text-black font-medium' 
-                      : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.title}</span>
-                  {item.proBadge && (
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                      location.pathname === item.url ? 'bg-gray-200 text-gray-600' : 'bg-neutral-700 text-neutral-400'
-                    }`}>PRO</span>
-                  )}
-                  {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    };
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
@@ -216,13 +142,10 @@ export default function Layout({ children, currentPageName }) {
               </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-4">
               {navigationItems.map((item) => (
                 <NavLink key={item.title} item={item} />
               ))}
-              <DropdownNavMenu label="Gestão" items={gestaoItems} icon={FolderOpen} />
-              <DropdownNavMenu label="Ferramentas" items={ferramentasItems} icon={Scale} />
-              <DropdownNavMenu label="Colaboração" items={colaboracaoItems} icon={Users2} />
             </nav>
           </div>
 
@@ -320,30 +243,9 @@ export default function Layout({ children, currentPageName }) {
               >
               <nav className="p-4 space-y-1">
                 <p className="text-xs font-medium uppercase tracking-wider mb-2 px-3 text-neutral-500">
-                  Principal
+                  Menu
                 </p>
                 {navigationItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Gestão
-                </p>
-                {gestaoItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Ferramentas
-                </p>
-                {ferramentasItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Colaboração
-                </p>
-                {colaboracaoItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
               </nav>
