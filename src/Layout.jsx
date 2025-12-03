@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
 import NotificationPanel from "@/components/collaboration/NotificationPanel";
 import InstallAppBanner from "@/components/common/InstallAppBanner";
+import PWAHead from "@/components/common/PWAHead";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -105,6 +106,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <PWAHead />
       <KeyboardShortcuts />
       <InstallAppBanner theme={theme} />
       
