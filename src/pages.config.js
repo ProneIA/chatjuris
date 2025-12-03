@@ -25,6 +25,9 @@ import ClientAccess from './pages/ClientAccess';
 import MySubscription from './pages/MySubscription';
 import DocumentGenerator from './pages/DocumentGenerator';
 import ContactPublic from './pages/ContactPublic';
+import GestaoHub from './pages/GestaoHub';
+import FerramentasHub from './pages/FerramentasHub';
+import ColaboracaoHub from './pages/ColaboracaoHub';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +59,9 @@ export const PAGES = {
     "MySubscription": MySubscription,
     "DocumentGenerator": DocumentGenerator,
     "ContactPublic": ContactPublic,
+    "GestaoHub": GestaoHub,
+    "FerramentasHub": FerramentasHub,
+    "ColaboracaoHub": ColaboracaoHub,
 }
 
 export const pagesConfig = {
