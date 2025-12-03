@@ -8,7 +8,6 @@ import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
-import SophisticatedLoader from "@/components/common/SophisticatedLoader";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -100,7 +99,7 @@ export default function Clients({ theme = 'light' }) {
                 setEditingClient(null);
                 setSelectedClient(null);
               }}
-              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
+              className="bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Cliente
@@ -109,18 +108,18 @@ export default function Clients({ theme = 'light' }) {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+            <div className={`border rounded-none p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
               <p className={`text-sm mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total Ativos</p>
               <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeClients}</p>
             </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+            <div className={`border rounded-none p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
               <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 <UserIcon className="w-4 h-4" />
                 <p className="text-sm">Pessoas Físicas</p>
               </div>
               <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{individualClients}</p>
             </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+            <div className={`border rounded-none p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
               <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
                 <Building2 className="w-4 h-4" />
                 <p className="text-sm">Pessoas Jurídicas</p>
