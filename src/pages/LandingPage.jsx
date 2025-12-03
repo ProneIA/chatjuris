@@ -131,7 +131,7 @@ export default function LandingPage() {
               </button>
               <button 
                 onClick={handleLogin}
-                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-black hover:bg-gray-100 transition-all"
+                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
               >
                 Teste grátis
               </button>
@@ -147,7 +147,7 @@ export default function LandingPage() {
               </button>
               <button 
                 onClick={goToPricing}
-                className="px-4 py-2 text-sm font-medium bg-white text-black hover:bg-gray-100 transition-all"
+                className="px-4 py-2 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
               >
                 Assinar
               </button>
@@ -168,7 +168,7 @@ export default function LandingPage() {
 
               <button 
                 onClick={goToPricing}
-                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black hover:bg-gray-100 transition-all active:scale-95"
+                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
               >
                 Assinar agora
               </button>
@@ -234,14 +234,14 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button 
                 onClick={goToPricing}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
               >
                 Começar agora
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={handleLogin}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 hover:border-gray-900 transition-all active:scale-95"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 rounded-none hover:border-gray-900 transition-all"
               >
                 Já tenho conta
               </button>
@@ -292,7 +292,7 @@ export default function LandingPage() {
                 
                 <button 
                   onClick={goToPricing}
-                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all active:scale-95"
+                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
                 >
                   Ver planos
                 </button>
