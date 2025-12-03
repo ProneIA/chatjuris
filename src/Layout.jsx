@@ -92,6 +92,8 @@ export default function Layout({ children, currentPageName }) {
         }
       } else if (isIOS) {
         alert('Para instalar no iOS:\n1. Toque no botão de compartilhar\n2. Selecione "Adicionar à Tela de Início"');
+      } else {
+        alert('Para instalar o aplicativo:\n1. Abra o menu do navegador (três pontos)\n2. Selecione "Instalar aplicativo" ou "Adicionar à tela inicial"');
       }
     };
 
@@ -190,15 +192,15 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center gap-2">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
-              {!isStandalone && (deferredPrompt || isIOS) && (
+              {!isStandalone && (
                 <Button
-                  variant="ghost"
+                  variant="default"
                   size="sm"
                   onClick={handleInstallApp}
-                  className="hidden md:flex items-center gap-2 text-neutral-400 hover:text-white mr-2"
+                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white mr-2 border border-purple-500/20 shadow-sm"
                 >
                   <Download className="w-4 h-4" />
-                  <span className="hidden lg:inline">Instalar App</span>
+                  <span>Instalar App</span>
                 </Button>
               )}
               <Link
@@ -292,13 +294,13 @@ export default function Layout({ children, currentPageName }) {
                 {navigationItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
-                {!isStandalone && (deferredPrompt || isIOS) && (
+                {!isStandalone && (
                   <button
                     onClick={() => {
                       handleInstallApp();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-400 hover:text-white w-full text-left mt-2 border-t border-neutral-800 pt-3"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full text-left mt-2 border-t border-neutral-800 pt-3"
                   >
                     <Download className="w-4 h-4" />
                     <span>Instalar Aplicativo</span>
