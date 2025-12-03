@@ -4,13 +4,7 @@ import { createPageUrl } from "@/utils";
 import { 
   Scale, 
   LayoutDashboard, 
-  Users, 
-  FolderOpen, 
-  FileText, 
-  BookTemplate,
-  CheckSquare,
   Sparkles,
-  CalendarDays,
   BookOpen,
   LogOut,
   MessageSquare,
@@ -18,17 +12,16 @@ import {
   X,
   Settings,
   Crown,
-  Users2,
   Moon,
   Sun,
-  ChevronDown,
-  Calculator,
-  Newspaper
+  FolderOpen,
+  Users2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
 import NotificationPanel from "@/components/collaboration/NotificationPanel";
+import InstallAppBanner from "@/components/common/InstallAppBanner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -42,34 +35,15 @@ const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
-];
-
-const gestaoItems = [
-  { title: "Clientes", url: createPageUrl("Clients"), icon: Users },
-  { title: "Portal do Cliente", url: createPageUrl("ClientPortal"), icon: Users2 },
-  { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
-  { title: "Documentos", url: createPageUrl("DocumentsEnhanced"), icon: FileText },
-  { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
-];
-
-const ferramentasItems = [
-  { title: "Gerador de Peças", url: createPageUrl("DocumentGenerator"), icon: FileText, badge: "IA" },
-  { title: "Calculadora Jurídica", url: createPageUrl("LegalCalculator"), icon: Calculator },
-  { title: "Monitor de Diários", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
-  { title: "Jurisprudência", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
-  { title: "Templates", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
-  { title: "Calendário", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
-];
-
-const colaboracaoItems = [
-  { title: "Equipes", url: createPageUrl("Teams"), icon: Users2, proBadge: true },
-  { title: "Área de Trabalho", url: createPageUrl("TeamWorkspace"), icon: FolderOpen, proBadge: true },
-  { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
+  { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
+  { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
+  { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
 ];
 
 export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [theme, setTheme] = React.useState(() => {
       if (typeof window !== 'undefined') {
@@ -79,7 +53,10 @@ export default function Layout({ children, currentPageName }) {
     });
 
     React.useEffect(() => {
-      base44.auth.me().then(setUser).catch(() => {});
+      base44.auth.me()
+        .then(setUser)
+        .catch(() => setUser(null))
+        .finally(() => setIsLoading(false));
     }, []);
 
     React.useEffect(() => {
@@ -97,103 +74,39 @@ export default function Layout({ children, currentPageName }) {
       base44.auth.logout();
     };
 
-    const isOnAIPage = location.pathname === createPageUrl("AIAssistant");
-    const isLandingPage = currentPageName === "LandingPage";
-    const isQuemSomos = currentPageName === "QuemSomos";
-    const isFuncionalidades = currentPageName === "Funcionalidades";
-    const isContactPublic = currentPageName === "ContactPublic";
-
-    if (isLandingPage || isQuemSomos || isFuncionalidades || isContactPublic) {
+    // Public pages - no layout
+    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing"];
+    if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
     }
 
-    const NavLink = ({ item, mobile = false }) => (
-      <Link
-        to={item.url}
-        onClick={() => mobile && setIsMobileMenuOpen(false)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-          location.pathname === item.url
-            ? 'bg-white text-black font-medium'
-            : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
-        }`}
-      >
-        <item.icon className="w-4 h-4" />
-        <span>{item.title}</span>
-        {item.proBadge && (
-          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-            location.pathname === item.url
-              ? 'bg-gray-200 text-gray-600'
-              : 'bg-neutral-700 text-neutral-400'
-          }`}>PRO</span>
-        )}
-        {item.badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
-            {item.badge}
-          </span>
-        )}
-      </Link>
-    );
+    // If not logged in and not a public page, show nothing (will redirect)
+    if (!isLoading && !user) {
+      return <>{children}</>;
+    }
 
-    const DropdownNavMenu = ({ label, items, icon: Icon }) => {
-      const [isOpen, setIsOpen] = React.useState(false);
-
+    const NavLink = ({ item, mobile = false }) => {
+      const isActive = location.pathname === item.url;
       return (
-        <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800">
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-              <ChevronDown className={`w-3 h-3 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="center" 
-            sideOffset={8}
-            className="w-screen max-w-none left-0 right-0 bg-neutral-900 border-neutral-800 border-t-0 rounded-none p-0"
-            style={{ 
-              position: 'fixed',
-              left: 0,
-              right: 0,
-              width: '100vw',
-              marginLeft: 'calc(-50vw + 50%)',
-              marginRight: 'calc(-50vw + 50%)'
-            }}
-          >
-            <div className="max-w-[1800px] mx-auto px-4 py-4 flex flex-wrap gap-2">
-              {items.map((item) => (
-                <Link
-                  key={item.title}
-                  to={item.url}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                    location.pathname === item.url 
-                      ? 'bg-white text-black font-medium' 
-                      : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.title}</span>
-                  {item.proBadge && (
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                      location.pathname === item.url ? 'bg-gray-200 text-gray-600' : 'bg-neutral-700 text-neutral-400'
-                    }`}>PRO</span>
-                  )}
-                  {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Link
+          to={item.url}
+          onClick={() => mobile && setIsMobileMenuOpen(false)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+            isActive
+              ? 'text-white font-bold'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          <item.icon className="w-4 h-4" />
+          <span>{item.title}</span>
+        </Link>
       );
     };
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <KeyboardShortcuts />
+      <InstallAppBanner theme={theme} />
       
       <style>{`
         ::-webkit-scrollbar { width: 6px; }
@@ -203,26 +116,25 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
 
       {/* Top Navigation Bar */}
-              <header className="fixed top-0 left-0 right-0 h-14 bg-black border-b border-neutral-800 z-50">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-black border-b border-neutral-800 z-50">
         <div className="h-full max-w-[1800px] mx-auto px-4 flex items-center justify-between">
           {/* Left - Logo & Nav */}
           <div className="flex items-center gap-6">
             <Link 
-                to={createPageUrl("Dashboard")} 
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-              >
-                <Scale className="w-5 h-5 text-white" />
-                <span className="text-lg font-semibold tracking-tight text-white">Juris</span>
-              </Link>
+              to={createPageUrl("Dashboard")} 
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                <Scale className="w-4 h-4 text-black" />
+              </div>
+              <span className="text-lg font-semibold tracking-tight text-white">Juris</span>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
               {navigationItems.map((item) => (
                 <NavLink key={item.title} item={item} />
               ))}
-              <DropdownNavMenu label="Gestão" items={gestaoItems} icon={FolderOpen} />
-              <DropdownNavMenu label="Ferramentas" items={ferramentasItems} icon={Scale} />
-              <DropdownNavMenu label="Colaboração" items={colaboracaoItems} icon={Users2} />
             </nav>
           </div>
 
@@ -231,72 +143,71 @@ export default function Layout({ children, currentPageName }) {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
               <Link
-                    to={createPageUrl("Pricing")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors text-amber-400 hover:bg-neutral-800"
-                  >
-                    <Crown className="w-4 h-4" />
-                    <span>Pro</span>
-                  </Link>
+                to={createPageUrl("Pricing")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
+              >
+                <Crown className="w-4 h-4" />
+                <span className="font-bold">Pro</span>
+              </Link>
             </div>
 
             <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="h-9 w-9 text-white hover:bg-neutral-800"
-              >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9 text-white hover:bg-neutral-800"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
 
             {user && <NotificationPanel user={user} />}
 
             {/* User Menu */}
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-neutral-800">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center bg-white">
-                      <span className="font-medium text-xs text-black">
-                        {user?.full_name?.[0]?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <ChevronDown className="w-3 h-3 hidden sm:block text-neutral-400" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-neutral-900 border-neutral-800">
-                  <div className="px-3 py-2">
-                    <p className="font-medium text-sm text-white">
-                      {user?.full_name || 'Usuário'}
-                    </p>
-                    <p className="text-xs text-neutral-500">{user?.email}</p>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:opacity-80">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-white">
+                    <span className="font-medium text-xs text-black">
+                      {user?.full_name?.[0]?.toUpperCase() || 'U'}
+                    </span>
                   </div>
-                  <DropdownMenuSeparator className="bg-neutral-800" />
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Settings")} className="flex items-center gap-2 cursor-pointer">
-                      <Settings className="w-4 h-4" />
-                      <span>Preferências</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Contact")} className="flex items-center gap-2 cursor-pointer">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Contato</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-neutral-800" />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-500">
-                    <LogOut className="w-4 h-4" />
-                    <span>Sair</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white border-gray-200">
+                <div className="px-3 py-2">
+                  <p className="font-medium text-sm text-gray-900">
+                    {user?.full_name || 'Usuário'}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+                <DropdownMenuSeparator className="bg-gray-200" />
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("Settings")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                    <Settings className="w-4 h-4" />
+                    <span>Preferências</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("Contact")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Contato</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-200" />
+                <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-600">
+                  <LogOut className="w-4 h-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Mobile Menu Button */}
             <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-neutral-800 text-white"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-neutral-800 text-white"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </header>
@@ -313,37 +224,13 @@ export default function Layout({ children, currentPageName }) {
               className="lg:hidden fixed inset-0 bg-black/50 z-40 pt-14"
             />
             <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="lg:hidden fixed top-14 left-0 right-0 bg-neutral-900 z-40 border-b border-neutral-800 max-h-[80vh] overflow-y-auto"
-              >
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="lg:hidden fixed top-14 left-0 right-0 bg-neutral-900 z-40 border-b border-neutral-800 max-h-[80vh] overflow-y-auto"
+            >
               <nav className="p-4 space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 px-3 text-neutral-500">
-                  Principal
-                </p>
                 {navigationItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Gestão
-                </p>
-                {gestaoItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Ferramentas
-                </p>
-                {ferramentasItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
-
-                <p className="text-xs font-medium uppercase tracking-wider mb-2 mt-4 px-3 text-neutral-500">
-                  Colaboração
-                </p>
-                {colaboracaoItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
               </nav>

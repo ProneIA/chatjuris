@@ -59,11 +59,12 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("list");
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showVersionDialog, setShowVersionDialog] = useState(false);
   const [showTagDialog, setShowTagDialog] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [filterTags, setFilterTags] = useState([]);
   const [filterType, setFilterType] = useState("all");
   const queryClient = useQueryClient();
@@ -93,6 +94,11 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     queryKey: ['cases'],
     queryFn: () => base44.entities.Case.list(),
   });
+
+  const handleSelectDoc = (doc) => {
+    setSelectedDoc(doc);
+    setShowDetails(true);
+  };
 
   const uploadDocMutation = useMutation({
     mutationFn: async (data) => {
@@ -172,32 +178,32 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
           <div>
-            <h1 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-xl sm:text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Documentos
             </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              Gerencie seus documentos jurídicos com controle de versão
+            <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+              Gerencie seus documentos jurídicos
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowTagDialog(true)}>
-              <Tag className="w-4 h-4 mr-2" />
-              Tags
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={() => setShowTagDialog(true)} className="flex-1 sm:flex-none">
+              <Tag className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Tags</span>
             </Button>
-            <Button onClick={() => setShowUploadDialog(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload
+            <Button size="sm" onClick={() => setShowUploadDialog(true)} className="flex-1 sm:flex-none">
+              <Upload className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Upload</span>
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
           {[
             { label: "Total", value: documents.length, icon: FileText },
             { label: "Rascunhos", value: documents.filter(d => d.status === 'draft').length, icon: Edit },
