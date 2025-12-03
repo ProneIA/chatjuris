@@ -46,18 +46,18 @@ const plans = [
     popular: true,
     discount: 50,
     features: [
-      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true, bold: true },
-      { text: "Clientes ILIMITADOS", included: true, highlight: true, bold: true },
-      { text: "Processos ILIMITADOS", included: true, highlight: true, bold: true },
-      { text: "Documentos ILIMITADOS", included: true, highlight: true, bold: true },
-      { text: "Todos os modos de IA", included: true, bold: true },
-      { text: "Equipes e Workspace", included: true, bold: true },
-      { text: "Jurisprudência completa", included: true, bold: true },
-      { text: "Templates ilimitados", included: true, bold: true },
-      { text: "Calendário inteligente", included: true, bold: true },
-      { text: "Análise de documentos LEXIA", included: true, bold: true },
-      { text: "Gerador de imagens IA", included: true, bold: true },
-      { text: "Suporte prioritário 24/7", included: true, bold: true },
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Templates ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
+      { text: "Gerador de imagens IA", included: true },
+      { text: "Suporte prioritário 24/7", included: true },
     ],
     limits: {
       daily_actions_limit: 999999,
@@ -70,6 +70,13 @@ const testimonials = [
   { name: "Dr. Ricardo M.", role: "Advogado Criminalista", text: "Economizo 3 horas por dia com o Juris. A IA é impressionante." },
   { name: "Dra. Carla S.", role: "Advogada Trabalhista", text: "A melhor ferramenta que já usei. Indico para todos os colegas." },
   { name: "Dr. Fernando L.", role: "Advogado Empresarial", text: "O ROI foi imediato. Paga-se sozinho no primeiro mês." },
+];
+
+const highlightedFeatures = [
+  "IA ILIMITADA - sem restrições",
+  "Clientes ILIMITADOS",
+  "Processos ILIMITADOS",
+  "Documentos ILIMITADOS",
 ];
 
 export default function Pricing({ theme = 'light' }) {
@@ -323,9 +330,9 @@ export default function Pricing({ theme = 'light' }) {
                         </div>
                         <span className={`text-xs sm:text-sm ${
                           feature.highlight && feature.included
-                            ? "font-semibold text-white"
+                            ? "font-bold text-white"
                             : feature.included 
-                            ? feature.bold ? "text-white font-semibold" : "text-neutral-300"
+                            ? "text-neutral-300 font-medium" 
                             : "text-neutral-600 line-through"
                         }`}>
                           {feature.text}

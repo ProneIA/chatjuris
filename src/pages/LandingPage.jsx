@@ -22,8 +22,8 @@ export default function LandingPage() {
   // Verificar se usuário já está logado e redirecionar
   React.useEffect(() => {
     const checkAuth = async () => {
-      const isAuthenticated = await base44.auth.isAuthenticated();
-      if (isAuthenticated) {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (isAuth) {
         window.location.href = createPageUrl("Dashboard");
       }
     };
