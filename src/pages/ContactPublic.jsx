@@ -12,31 +12,11 @@ export default function ContactPublic() {
           <Scale className="w-6 h-6 text-gray-900" />
           <span className="text-xl font-semibold tracking-tight">Juris</span>
         </Link>
-        <div className="hidden md:flex items-center gap-8">
-          <Link 
-            to={createPageUrl("QuemSomos")}
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Quem somos
-          </Link>
-          <Link 
-            to={createPageUrl("Funcionalidades")}
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Funcionalidades
-          </Link>
-          <Link 
-            to={createPageUrl("Pricing")}
-            className="px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 transition-colors hover:bg-gray-800"
-          >
-            Começar
-          </Link>
-        </div>
         <Link 
           to={createPageUrl("LandingPage")}
-          className="md:hidden text-sm text-gray-600 hover:text-gray-900"
+          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
         >
-          Voltar
+          ← Voltar
         </Link>
       </nav>
 
