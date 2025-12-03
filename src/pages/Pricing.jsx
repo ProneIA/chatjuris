@@ -209,7 +209,7 @@ export default function Pricing({ theme = 'light' }) {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative overflow-hidden ${
+                className={`relative overflow-hidden rounded-none ${
                   isPro 
                     ? "bg-gray-900 text-white border-2 border-gray-900" 
                     : "bg-white border border-gray-200"
@@ -277,7 +277,7 @@ export default function Pricing({ theme = 'light' }) {
                   <button
                     onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
                     disabled={isCurrentPlan || subscribeMutation.isPending}
-                    className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 ${
+                    className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 rounded-none border-0 ${
                       isCurrentPlan
                         ? isPro ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : isPro
@@ -349,7 +349,7 @@ export default function Pricing({ theme = 'light' }) {
           <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-10" />
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((t, i) => (
-              <div key={i} className="border border-gray-200 p-4 sm:p-6">
+              <div key={i} className="border border-gray-200 p-4 sm:p-6 rounded-none">
                 <div className="flex gap-1 mb-3 sm:mb-4">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-gray-900 text-gray-900" />
@@ -372,25 +372,25 @@ export default function Pricing({ theme = 'light' }) {
           transition={{ delay: 0.4 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10 sm:mb-16"
         >
-          <div className="border border-gray-200 p-4 sm:p-5 text-center">
+          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">100% Seguro</p>
             <p className="text-[10px] sm:text-xs text-gray-500">Dados criptografados</p>
           </div>
 
-          <div className="border border-gray-200 p-4 sm:p-5 text-center">
+          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">PIX Instantâneo</p>
             <p className="text-[10px] sm:text-xs text-gray-500">Aprovação imediata</p>
           </div>
 
-          <div className="border border-gray-200 p-4 sm:p-5 text-center">
+          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">7 Dias Grátis</p>
             <p className="text-[10px] sm:text-xs text-gray-500">Teste sem compromisso</p>
           </div>
 
-          <div className="border border-gray-200 p-4 sm:p-5 text-center">
+          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Suporte 24/7</p>
             <p className="text-[10px] sm:text-xs text-gray-500">Equipe especializada</p>
@@ -402,7 +402,7 @@ export default function Pricing({ theme = 'light' }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="text-center bg-gray-900 text-white p-6 sm:p-10 max-w-3xl mx-auto"
+          className="text-center bg-gray-900 text-white p-6 sm:p-10 max-w-3xl mx-auto rounded-none"
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-light mb-3 sm:mb-4">
             Pronto para Revolucionar sua Prática?
@@ -412,7 +412,7 @@ export default function Pricing({ theme = 'light' }) {
           </p>
           <button
             onClick={() => handleSelectPlan("pro")}
-            className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto"
+            className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto rounded-none border-0"
           >
             Começar com o Pro - 50% OFF
             <ArrowRight className="w-4 h-4" />
