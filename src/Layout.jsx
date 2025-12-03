@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       <Link
         to={item.url}
         onClick={() => mobile && setIsMobileMenuOpen(false)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+        className={`flex items-center gap-2 px-3 py-2 rounded-none text-sm transition-colors ${
           location.pathname === item.url
             ? isDark ? 'bg-white text-black font-medium' : 'bg-gray-900 text-white font-medium'
             : isDark ? 'text-neutral-300 hover:text-white hover:bg-neutral-800' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -136,7 +136,7 @@ export default function Layout({ children, currentPageName }) {
     const DropdownNavMenu = ({ label, items, icon: Icon }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+          <button className={`flex items-center gap-1.5 px-3 py-2 rounded-none text-sm transition-colors ${
             isDark ? 'text-neutral-300 hover:text-white hover:bg-neutral-800' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
           }`}>
             <Icon className="w-4 h-4" />
@@ -213,7 +213,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="hidden md:flex items-center gap-2">
               <Link
                 to={createPageUrl("Pricing")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-sm transition-colors ${
                   isDark ? 'text-amber-400 hover:bg-neutral-800' : 'text-amber-600 hover:bg-gray-100'
                 }`}
               >
@@ -236,10 +236,10 @@ export default function Layout({ children, currentPageName }) {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors ${
+                <button className={`flex items-center gap-2 px-2 py-1.5 rounded-none transition-colors ${
                   isDark ? 'hover:bg-neutral-800' : 'hover:bg-gray-100'
                 }`}>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark ? 'bg-white' : 'bg-gray-900'}`}>
+                  <div className={`w-7 h-7 rounded-none flex items-center justify-center ${isDark ? 'bg-white' : 'bg-gray-900'}`}>
                     <span className={`font-medium text-xs ${isDark ? 'text-black' : 'text-white'}`}>
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </span>
@@ -278,7 +278,7 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`lg:hidden p-2 rounded-lg ${isDark ? 'hover:bg-neutral-800 text-white' : 'hover:bg-gray-100 text-gray-900'}`}
+              className={`lg:hidden p-2 rounded-none ${isDark ? 'hover:bg-neutral-800 text-white' : 'hover:bg-gray-100 text-gray-900'}`}
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
