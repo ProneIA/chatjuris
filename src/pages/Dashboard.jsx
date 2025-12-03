@@ -22,6 +22,7 @@ import {
   FileSearch
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import SophisticatedLoader from "@/components/common/SophisticatedLoader";
 import { Button } from "@/components/ui/button";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -263,8 +264,10 @@ export default function Dashboard({ theme = 'light' }) {
                         </p>
                         <div className="flex items-baseline gap-2 mt-1">
                           {isLoading ? (
-                            <Skeleton className={`h-8 w-12 ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
-                          ) : (
+                                        <div className="h-8 flex items-center">
+                                          <SophisticatedLoader size="small" text="" />
+                                        </div>
+                                      ) : (
                             <>
                               <span className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {stat.value}
