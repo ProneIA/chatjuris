@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       <Link
         to={item.url}
         onClick={() => mobile && setIsMobileMenuOpen(false)}
-        className={`flex items-center gap-2 px-4 py-2.5 text-sm transition-colors ${
+        className={`flex items-center gap-2 px-4 py-2 rounded-none text-sm transition-colors ${
           location.pathname === item.url
             ? 'bg-white text-black font-medium'
             : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
@@ -119,14 +119,14 @@ export default function Layout({ children, currentPageName }) {
         <item.icon className="w-4 h-4" />
         <span>{item.title}</span>
         {item.proBadge && (
-          <span className={`text-[9px] font-medium px-1.5 py-0.5 ${
+          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-none ${
             location.pathname === item.url
               ? 'bg-gray-200 text-gray-600'
               : 'bg-neutral-700 text-neutral-400'
           }`}>PRO</span>
         )}
         {item.badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 bg-purple-500 text-white">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-none bg-purple-500 text-white">
             {item.badge}
           </span>
         )}
@@ -136,12 +136,12 @@ export default function Layout({ children, currentPageName }) {
     const DropdownNavMenu = ({ label, items, icon: Icon, menuId }) => {
       const [isOpen, setIsOpen] = React.useState(false);
       const triggerRef = React.useRef(null);
-      const [triggerLeft, setTriggerLeft] = React.useState(0);
+      const [triggerPosition, setTriggerPosition] = React.useState(0);
 
       React.useEffect(() => {
         if (isOpen && triggerRef.current) {
           const rect = triggerRef.current.getBoundingClientRect();
-          setTriggerLeft(rect.left);
+          setTriggerPosition(rect.left);
         }
       }, [isOpen]);
 
@@ -150,7 +150,7 @@ export default function Layout({ children, currentPageName }) {
           <DropdownMenuTrigger asChild>
             <button 
               ref={triggerRef}
-              className="flex items-center gap-1.5 px-4 py-2.5 text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-none text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800"
             >
               <Icon className="w-4 h-4" />
               <span>{label}</span>
@@ -160,22 +160,23 @@ export default function Layout({ children, currentPageName }) {
           <DropdownMenuContent 
             align="start" 
             sideOffset={0}
-            className="w-screen max-w-none bg-black border-neutral-800 border-t border-l-0 border-r-0 border-b rounded-none p-0"
+            className="w-screen max-w-none bg-neutral-900 border-neutral-800 border-t border-l-0 border-r-0 rounded-none p-0"
             style={{ 
               position: 'fixed',
+              top: '56px',
               left: 0,
               right: 0,
-              width: '100vw',
-              top: '56px'
+              width: '100vw'
             }}
           >
-            <div className="max-w-[1800px] mx-auto px-4 py-3 flex flex-wrap gap-1" style={{ paddingLeft: `${triggerLeft}px` }}>
+            <div className="max-w-[1800px] mx-auto px-4 py-3 flex flex-wrap gap-1">
+              <div style={{ width: triggerPosition - 16 }} className="shrink-0" />
               {items.map((item) => (
                 <Link
                   key={item.title}
                   to={item.url}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-none text-sm transition-colors ${
                     location.pathname === item.url 
                       ? 'bg-white text-black font-medium' 
                       : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
@@ -184,12 +185,12 @@ export default function Layout({ children, currentPageName }) {
                   <item.icon className="w-4 h-4" />
                   <span>{item.title}</span>
                   {item.proBadge && (
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 ${
+                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-none ${
                       location.pathname === item.url ? 'bg-gray-200 text-gray-600' : 'bg-neutral-700 text-neutral-400'
                     }`}>PRO</span>
                   )}
                   {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 bg-purple-500 text-white">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-none bg-purple-500 text-white">
                       {item.badge}
                     </span>
                   )}
