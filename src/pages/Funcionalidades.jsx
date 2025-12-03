@@ -94,7 +94,7 @@ export default function Funcionalidades() {
             </button>
             <button 
               onClick={handleLogin} 
-              className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+              className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
             >
               Teste grátis
             </button>
@@ -115,7 +115,7 @@ export default function Funcionalidades() {
           </p>
           <button 
             onClick={handleLogin} 
-            className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+            className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
           >
             Começar teste grátis
             <ArrowRight className="w-4 h-4" />
@@ -192,13 +192,13 @@ export default function Funcionalidades() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={handleLogin} 
-              className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 hover:bg-gray-100 transition-all"
+              className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
             >
               Criar conta grátis
             </button>
             <Link 
               to={createPageUrl("Pricing")}
-              className="px-8 py-3.5 text-base font-medium border border-white text-white hover:bg-white/10 transition-all text-center"
+              className="px-8 py-3.5 text-base font-medium border border-white text-white rounded-none hover:bg-white/10 transition-all text-center"
             >
               Ver planos
             </Link>

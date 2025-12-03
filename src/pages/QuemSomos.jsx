@@ -81,22 +81,22 @@ export default function QuemSomos() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
                 <Target className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Foco no Cliente</h3>
                 <p className="text-sm text-gray-600">Desenvolvemos soluções pensadas nas necessidades reais dos advogados.</p>
               </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
                 <Sparkles className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Inovação</h3>
                 <p className="text-sm text-gray-600">Utilizamos as mais avançadas tecnologias de IA do mercado.</p>
               </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
                 <Users className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Colaboração</h3>
                 <p className="text-sm text-gray-600">Facilitamos o trabalho em equipe com ferramentas colaborativas.</p>
               </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
                 <Award className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Excelência</h3>
                 <p className="text-sm text-gray-600">Comprometidos com a qualidade em cada detalhe.</p>
