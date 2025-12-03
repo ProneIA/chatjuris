@@ -22,8 +22,6 @@ export default function Settings({ theme = 'light' }) {
     compact_view: false,
     show_avatars: true,
     keyboard_shortcuts_enabled: true,
-    alert_timing: '24h',
-    min_priority: 'medium',
   });
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
@@ -243,37 +241,6 @@ export default function Settings({ theme = 'light' }) {
                     }
                   />
                 </div>
-
-                {preferences.deadline_alerts && (
-                  <div className="pl-4 border-l-2 border-neutral-800 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-white">Antecedência do Alerta</Label>
-                      <select
-                        value={preferences.alert_timing}
-                        onChange={(e) => setPreferences({ ...preferences, alert_timing: e.target.value })}
-                        className="w-full bg-neutral-900 border-neutral-800 text-white rounded-md p-2"
-                      >
-                        <option value="1h">1 hora antes</option>
-                        <option value="24h">24 horas antes (1 dia)</option>
-                        <option value="48h">48 horas antes (2 dias)</option>
-                        <option value="1w">1 semana antes</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-white">Prioridade Mínima</Label>
-                      <select
-                        value={preferences.min_priority}
-                        onChange={(e) => setPreferences({ ...preferences, min_priority: e.target.value })}
-                        className="w-full bg-neutral-900 border-neutral-800 text-white rounded-md p-2"
-                      >
-                        <option value="low">Todas (Baixa ou superior)</option>
-                        <option value="medium">Média ou superior</option>
-                        <option value="high">Alta ou superior</option>
-                        <option value="urgent">Apenas Urgentes</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
 
                 <div className="flex items-center justify-between py-3">
                   <div>

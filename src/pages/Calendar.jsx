@@ -22,11 +22,6 @@ export default function Calendar({ theme = 'light' }) {
     queryFn: () => base44.entities.CalendarEvent.list('-start_time'),
   });
 
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['calendar-tasks'],
-    queryFn: () => base44.entities.Task.filter({ status: { $in: ['pending', 'in_progress'] } }),
-  });
-
   const { data: connections = [] } = useQuery({
     queryKey: ['calendar-connections'],
     queryFn: () => base44.entities.CalendarConnection.list('-created_date'),
@@ -77,22 +72,7 @@ export default function Calendar({ theme = 'light' }) {
   };
 
   const hasActiveConnection = connections.some(c => c.is_active);
-  // Merge events and tasks for display
-  const allCalendarItems = [
-    ...events,
-    ...tasks.filter(t => t.due_date).map(t => ({
-      id: t.id,
-      title: t.title,
-      start_time: `${t.due_date}T09:00:00`, // Default to 9 AM for tasks without time
-      end_time: `${t.due_date}T10:00:00`,
-      event_type: 'deadline',
-      description: t.description,
-      priority: t.priority,
-      is_task: true
-    }))
-  ];
-
-  const todayEvents = allCalendarItems.filter(e => {
+  const todayEvents = events.filter(e => {
     const eventDate = new Date(e.start_time);
     const today = new Date();
     return eventDate.toDateString() === today.toDateString();
@@ -193,14 +173,8 @@ export default function Calendar({ theme = 'light' }) {
 
       <div className="flex-1 overflow-y-auto p-6">
         <CalendarView
-          events={allCalendarItems}
+          events={events}
           onEventClick={(event) => {
-            if (event.is_task) {
-              // Could navigate to task details, for now just show basic info or ignore
-              // Or ideally open a Task Details modal. 
-              // Since we don't have a task modal ready here, we'll just ignore or treat as read-only event
-              return; 
-            }
             setSelectedEvent(event);
             setShowEventForm(true);
           }}
