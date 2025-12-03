@@ -40,6 +40,7 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 // Categorias de peças jurídicas por área
 const legalAreas = {
@@ -609,9 +610,7 @@ IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.
                 <ScrollArea className="h-[500px] sm:h-[600px]">
                   {isGenerating ? (
                     <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                      <Loader2 className="w-12 h-12 text-purple-500 animate-spin mb-4" />
-                      <p className="text-gray-600 font-medium">Gerando documento...</p>
-                      <p className="text-sm text-gray-400 mt-1">Isso pode levar alguns segundos</p>
+                      <LoadingSpinner size="large" text="Gerando documento..." />
                     </div>
                   ) : generatedContent ? (
                     <div className="p-4 sm:p-6 prose prose-sm max-w-none">
