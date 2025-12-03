@@ -38,7 +38,7 @@ export default function QuemSomos() {
           </button>
           <button 
             onClick={handleLogin}
-            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
           >
             Teste grátis
           </button>
@@ -47,7 +47,7 @@ export default function QuemSomos() {
         {/* Mobile */}
         <button 
           onClick={handleLogin}
-          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
         >
           Entrar
         </button>
@@ -136,7 +136,7 @@ export default function QuemSomos() {
           </p>
           <button 
             onClick={handleLogin} 
-            className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 hover:bg-gray-100 transition-all"
+            className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
           >
             Começar gratuitamente
           </button>
