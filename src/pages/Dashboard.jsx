@@ -22,7 +22,7 @@ import {
   FileSearch
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import SophisticatedLoader from "@/components/common/SophisticatedLoader";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -264,10 +264,8 @@ export default function Dashboard({ theme = 'light' }) {
                         </p>
                         <div className="flex items-baseline gap-2 mt-1">
                           {isLoading ? (
-                                        <div className="h-8 flex items-center">
-                                          <SophisticatedLoader size="small" text="" />
-                                        </div>
-                                      ) : (
+                            <Skeleton className={`h-8 w-12 ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
+                          ) : (
                             <>
                               <span className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {stat.value}
@@ -328,7 +326,9 @@ export default function Dashboard({ theme = 'light' }) {
             <div className="p-4">
               {loadingTasks ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className={`h-16 w-full rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-slate-100'}`} />)}
+                  <div className="flex items-center justify-center py-8">
+                    <LoadingSpinner size="default" text="Carregando tarefas..." />
+                  </div>
                 </div>
               ) : upcomingTasks.length === 0 ? (
                 <div className="text-center py-12">
@@ -447,7 +447,9 @@ export default function Dashboard({ theme = 'light' }) {
           <div className="p-4">
             {loadingCases ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map(i => <Skeleton key={i} className={`h-28 w-full rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-slate-100'}`} />)}
+                <div className="flex items-center justify-center py-8 col-span-full">
+                  <LoadingSpinner size="default" text="Carregando processos..." />
+                </div>
               </div>
             ) : recentCases.length === 0 ? (
               <div className="text-center py-12">
