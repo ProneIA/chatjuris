@@ -19,7 +19,6 @@ export default function LandingPage() {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
-  // Verificar se usuário já está logado e redirecionar
   React.useEffect(() => {
     const checkAuth = async () => {
       const isAuth = await base44.auth.isAuthenticated();
@@ -72,8 +71,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-black">
-      {/* Custom Scrollbar Styles */}
+    <div className="min-h-screen w-full bg-white">
       <style>{`
         html {
           scroll-behavior: smooth;
@@ -82,14 +80,14 @@ export default function LandingPage() {
           width: 8px;
         }
         ::-webkit-scrollbar-track {
-          background: #0a0a0a;
+          background: #f5f5f5;
         }
         ::-webkit-scrollbar-thumb {
-          background: #333;
+          background: #d4d4d4;
           border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-          background: #555;
+          background: #a3a3a3;
         }
       `}</style>
 
@@ -133,7 +131,7 @@ export default function LandingPage() {
               </button>
               <button 
                 onClick={handleLogin}
-                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-black hover:bg-gray-100 transition-all"
               >
                 Teste grátis
               </button>
@@ -149,7 +147,7 @@ export default function LandingPage() {
               </button>
               <button 
                 onClick={goToPricing}
-                className="px-4 py-2 text-sm font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all"
+                className="px-4 py-2 text-sm font-medium bg-white text-black hover:bg-gray-100 transition-all"
               >
                 Assinar
               </button>
@@ -170,7 +168,7 @@ export default function LandingPage() {
 
               <button 
                 onClick={goToPricing}
-                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all active:scale-95"
+                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black hover:bg-gray-100 transition-all active:scale-95"
               >
                 Assinar agora
               </button>
@@ -187,18 +185,18 @@ export default function LandingPage() {
       </section>
 
       {/* Seção de Vantagens */}
-      <section id="vantagens" className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-black">
+      <section id="vantagens" className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-white">
         <div className="max-w-6xl mx-auto">
           {/* Header da seção */}
           <div className="text-center mb-12 sm:mb-20">
             <p className="text-gray-500 uppercase tracking-widest text-xs sm:text-sm mb-3 sm:mb-4">
               Por que escolher o Juris
             </p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white mb-4 sm:mb-6 px-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-4 sm:mb-6 px-2">
               Tudo que seu escritório precisa.
               <span className="block font-semibold mt-1 sm:mt-2">Em uma única plataforma.</span>
             </h2>
-            <div className="w-12 sm:w-16 h-0.5 bg-white mx-auto" />
+            <div className="w-12 sm:w-16 h-0.5 bg-gray-900 mx-auto" />
           </div>
 
           {/* Grid de vantagens */}
@@ -208,15 +206,15 @@ export default function LandingPage() {
               return (
                 <div 
                   key={index}
-                  className="p-6 sm:p-8 border border-gray-800 rounded-lg hover:border-gray-600 transition-all group active:scale-[0.98]"
+                  className="p-6 sm:p-8 border border-gray-200 hover:border-gray-400 transition-all group active:scale-[0.98]"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-4 sm:mb-6 group-hover:border-white transition-colors">
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gray-900 transition-colors">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-medium text-white mb-2 sm:mb-3">
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2 sm:mb-3">
                     {vantagem.titulo}
                   </h3>
-                  <p className="text-sm sm:text-base text-gray-400 leading-relaxed">
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
                     {vantagem.descricao}
                   </p>
                 </div>
@@ -225,25 +223,25 @@ export default function LandingPage() {
           </div>
 
           {/* CTA Section */}
-          <div className="border border-gray-800 rounded-lg p-6 sm:p-10 lg:p-12 text-center">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-light text-white mb-3 sm:mb-4">
+          <div className="border border-gray-200 p-6 sm:p-10 lg:p-12 text-center">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-light text-gray-900 mb-3 sm:mb-4">
               Pronto para transformar seu escritório?
             </h3>
-            <p className="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
               Junte-se a milhares de advogados que já economizam tempo e aumentam sua produtividade com o Juris.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button 
                 onClick={goToPricing}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 Começar agora
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={handleLogin}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-700 text-white rounded-md hover:border-white transition-all active:scale-95"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 hover:border-gray-900 transition-all active:scale-95"
               >
                 Já tenho conta
               </button>
@@ -253,18 +251,18 @@ export default function LandingPage() {
       </section>
 
       {/* Seção de Benefícios */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-neutral-950">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
               <p className="text-gray-500 uppercase tracking-widest text-xs sm:text-sm mb-3 sm:mb-4">
                 Solução Completa
               </p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-light text-white mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-light text-gray-900 mb-4 sm:mb-6">
                 Do primeiro atendimento
                 <span className="block font-semibold mt-1 sm:mt-2">até a sentença final.</span>
               </h2>
-              <p className="text-sm sm:text-base text-gray-400 leading-relaxed mb-6 sm:mb-8">
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-6 sm:mb-8">
                 O Juris foi desenvolvido por advogados, para advogados. Entendemos as dores do dia a dia e criamos uma ferramenta que realmente resolve seus problemas.
               </p>
               
@@ -276,30 +274,30 @@ export default function LandingPage() {
                   "Pesquisa de jurisprudência com IA",
                   "Calendário integrado com lembretes"
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-gray-300">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0 mt-0.5" />
+                  <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-gray-700">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900 flex-shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="border border-gray-800 rounded-lg p-6 sm:p-8 lg:p-10">
+            <div className="border border-gray-200 bg-white p-6 sm:p-8 lg:p-10">
               <div className="text-center">
                 <p className="text-gray-500 text-xs sm:text-sm mb-2">A partir de</p>
-                <p className="text-4xl sm:text-5xl font-light text-white mb-2">
+                <p className="text-4xl sm:text-5xl font-light text-gray-900 mb-2">
                   R$ 49<span className="text-xl sm:text-2xl">,99</span>
                 </p>
                 <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8">/mês</p>
                 
                 <button 
                   onClick={goToPricing}
-                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-white text-black rounded-md hover:bg-gray-100 transition-all active:scale-95"
+                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all active:scale-95"
                 >
                   Ver planos
                 </button>
                 
-                <p className="text-gray-600 text-xs sm:text-sm mt-3 sm:mt-4">
+                <p className="text-gray-500 text-xs sm:text-sm mt-3 sm:mt-4">
                   Cancele quando quiser. Sem multas.
                 </p>
               </div>
@@ -309,17 +307,17 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 bg-black border-t border-gray-900">
+      <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 bg-white border-t border-gray-200">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 text-center sm:text-left">
-          <span className="text-lg sm:text-xl font-semibold text-white tracking-tight">
+          <span className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
             Juris
           </span>
-          <p className="text-gray-600 text-xs sm:text-sm order-3 sm:order-2">
+          <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-2">
             © 2024 Juris. Todos os direitos reservados.
           </p>
           <Link 
             to={createPageUrl("ContactPublic")}
-            className="text-gray-500 hover:text-white text-sm transition-colors order-2 sm:order-3"
+            className="text-gray-600 hover:text-gray-900 text-sm transition-colors order-2 sm:order-3"
           >
             Contato
           </Link>

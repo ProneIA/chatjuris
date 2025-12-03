@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Scale, Users, Target, Award, ArrowLeft, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Scale, Users, Target, Award, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function QuemSomos() {
@@ -13,7 +12,7 @@ export default function QuemSomos() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between bg-white border-b border-gray-100">
+      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between bg-white border-b border-gray-200">
         <Link to={createPageUrl("LandingPage")} className="text-2xl font-semibold text-gray-900 tracking-tight">
           Juris
         </Link>
@@ -39,7 +38,7 @@ export default function QuemSomos() {
           </button>
           <button 
             onClick={handleLogin}
-            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-all"
+            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
           >
             Teste grátis
           </button>
@@ -48,7 +47,7 @@ export default function QuemSomos() {
         {/* Mobile */}
         <button 
           onClick={handleLogin}
-          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-all"
+          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
         >
           Entrar
         </button>
@@ -57,9 +56,11 @@ export default function QuemSomos() {
       {/* Hero */}
       <section className="pt-16 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
+          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Sobre nós</p>
           <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-6">
             Transformando a advocacia com inteligência artificial
           </h1>
+          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
           <p className="text-xl text-gray-600 leading-relaxed">
             Somos uma equipe apaixonada por tecnologia e direito, dedicada a criar ferramentas que simplificam o trabalho jurídico.
           </p>
@@ -80,23 +81,23 @@ export default function QuemSomos() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <Target className="w-8 h-8 text-gray-900 mb-4" />
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+                <Target className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Foco no Cliente</h3>
                 <p className="text-sm text-gray-600">Desenvolvemos soluções pensadas nas necessidades reais dos advogados.</p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <Sparkles className="w-8 h-8 text-gray-900 mb-4" />
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+                <Sparkles className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Inovação</h3>
                 <p className="text-sm text-gray-600">Utilizamos as mais avançadas tecnologias de IA do mercado.</p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <Users className="w-8 h-8 text-gray-900 mb-4" />
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+                <Users className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Colaboração</h3>
                 <p className="text-sm text-gray-600">Facilitamos o trabalho em equipe com ferramentas colaborativas.</p>
               </div>
-              <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <Award className="w-8 h-8 text-gray-900 mb-4" />
+              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors">
+                <Award className="w-8 h-8 text-gray-700 mb-4" />
                 <h3 className="font-medium text-gray-900 mb-2">Excelência</h3>
                 <p className="text-sm text-gray-600">Comprometidos com a qualidade em cada detalhe.</p>
               </div>
@@ -109,6 +110,7 @@ export default function QuemSomos() {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-light text-gray-900 mb-8 text-center">Nossa História</h2>
+          <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-8" />
           <div className="space-y-6 text-gray-600 leading-relaxed">
             <p>
               O Juris nasceu da percepção de que o setor jurídico brasileiro precisava de uma solução tecnológica que realmente entendesse as particularidades do direito nacional.
@@ -132,9 +134,12 @@ export default function QuemSomos() {
           <p className="text-gray-400 mb-8">
             Comece gratuitamente e descubra como a IA pode ajudar no seu dia a dia.
           </p>
-          <Button onClick={handleLogin} size="lg" className="bg-white text-gray-900 hover:bg-gray-100">
+          <button 
+            onClick={handleLogin} 
+            className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 hover:bg-gray-100 transition-all"
+          >
             Começar gratuitamente
-          </Button>
+          </button>
         </div>
       </section>
 

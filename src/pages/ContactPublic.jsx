@@ -1,108 +1,133 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Mail, Phone, MapPin, Clock, Scale, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mail, Phone, MapPin, Clock, Scale, ArrowRight } from "lucide-react";
 
 export default function ContactPublic() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
-      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between border-b border-gray-900">
+      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between border-b border-gray-200">
         <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-          <Scale className="w-6 h-6" />
+          <Scale className="w-6 h-6 text-gray-900" />
           <span className="text-xl font-semibold tracking-tight">Juris</span>
         </Link>
-        <Link to={createPageUrl("LandingPage")}>
-          <Button variant="outline" className="border-gray-700 text-white hover:bg-gray-900">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
+        <div className="hidden md:flex items-center gap-8">
+          <Link 
+            to={createPageUrl("QuemSomos")}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Quem somos
+          </Link>
+          <Link 
+            to={createPageUrl("Funcionalidades")}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Funcionalidades
+          </Link>
+          <Link 
+            to={createPageUrl("Pricing")}
+            className="px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded transition-colors hover:bg-gray-800"
+          >
+            Começar
+          </Link>
+        </div>
+        <Link 
+          to={createPageUrl("LandingPage")}
+          className="md:hidden text-sm text-gray-600 hover:text-gray-900"
+        >
+          Voltar
         </Link>
       </nav>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
+      <div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
+        <div className="text-center mb-16">
+          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Contato</p>
           <h1 className="text-3xl md:text-4xl font-light mb-4">Entre em Contato</h1>
-          <p className="text-gray-400 max-w-xl mx-auto">
-            Estamos aqui para ajudar. Entre em contato conosco através dos canais abaixo.
+          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
+          <p className="text-gray-600 max-w-xl mx-auto">
+            Estamos aqui para ajudar. Entre em contato através dos canais abaixo.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 mb-16">
           {/* Email */}
-          <div className="border border-gray-800 rounded-lg p-8 hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-6">
-              <Mail className="w-6 h-6" />
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+              <Mail className="w-5 h-5 text-gray-700" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Email</h3>
-            <p className="text-gray-400 mb-4">Resposta em até 24 horas úteis</p>
+            <h3 className="text-lg font-medium mb-2">Email</h3>
+            <p className="text-gray-500 text-sm mb-4">Resposta em até 24 horas úteis</p>
             <a 
-              href="mailto:contato@juris.com.br" 
-              className="text-white hover:text-gray-300 transition-colors font-medium"
+              href="mailto:juris.ia.tech@gmail.com" 
+              className="text-gray-900 hover:text-gray-600 transition-colors font-medium"
             >
-              contato@juris.com.br
+              juris.ia.tech@gmail.com
             </a>
           </div>
 
           {/* Telefone */}
-          <div className="border border-gray-800 rounded-lg p-8 hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-6">
-              <Phone className="w-6 h-6" />
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+              <Phone className="w-5 h-5 text-gray-700" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Telefone</h3>
-            <p className="text-gray-400 mb-4">Segunda a sexta, 9h às 18h</p>
+            <h3 className="text-lg font-medium mb-2">Telefone</h3>
+            <p className="text-gray-500 text-sm mb-4">Segunda a Sexta, 9h às 18h</p>
             <a 
-              href="tel:+551140028922" 
-              className="text-white hover:text-gray-300 transition-colors font-medium"
+              href="tel:+5586999931754" 
+              className="text-gray-900 hover:text-gray-600 transition-colors font-medium"
             >
-              (11) 4002-8922
+              (86) 99993-1754
             </a>
           </div>
 
           {/* Horário */}
-          <div className="border border-gray-800 rounded-lg p-8 hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-6">
-              <Clock className="w-6 h-6" />
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+              <Clock className="w-5 h-5 text-gray-700" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Horário de Atendimento</h3>
-            <p className="text-gray-400 mb-2">Segunda a Sexta: 9h às 18h</p>
-            <p className="text-gray-400">Sábado: 9h às 12h</p>
+            <h3 className="text-lg font-medium mb-2">Horário de Atendimento</h3>
+            <p className="text-gray-600 mb-1">Segunda a Sexta: 9h às 18h</p>
           </div>
 
           {/* Endereço */}
-          <div className="border border-gray-800 rounded-lg p-8 hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 border border-gray-700 rounded-lg flex items-center justify-center mb-6">
-              <MapPin className="w-6 h-6" />
+          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
+            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
+              <MapPin className="w-5 h-5 text-gray-700" />
             </div>
-            <h3 className="text-xl font-medium mb-2">Endereço</h3>
-            <p className="text-gray-400">
-              Av. Paulista, 1000 - Bela Vista<br />
-              São Paulo - SP, 01310-100
+            <h3 className="text-lg font-medium mb-2">Localização</h3>
+            <p className="text-gray-600">
+              Piripiri, PI<br />
+              Brasil
             </p>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center border border-gray-800 rounded-lg p-10">
+        <div className="border border-gray-200 p-10 md:p-12 text-center">
           <h3 className="text-2xl font-light mb-4">Pronto para começar?</h3>
-          <p className="text-gray-400 mb-6">
-            Crie sua conta e transforme sua prática jurídica com IA.
+          <p className="text-gray-600 mb-8 max-w-lg mx-auto">
+            Crie sua conta e transforme sua prática jurídica com inteligência artificial.
           </p>
-          <Link to={createPageUrl("Pricing")}>
-            <Button className="bg-white text-black hover:bg-gray-100 px-8 py-3">
-              Criar Conta Grátis
-            </Button>
+          <Link 
+            to={createPageUrl("Pricing")}
+            className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+          >
+            Criar Conta Grátis
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-gray-900 py-8 px-6 mt-16">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-          <span className="text-lg font-semibold tracking-tight">Juris</span>
-          <p className="text-gray-600 text-sm">© 2024 Juris. Todos os direitos reservados.</p>
+      <footer className="border-t border-gray-200 py-8 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-gray-900" />
+            <span className="font-medium">Juris</span>
+          </Link>
+          <p className="text-gray-500 text-sm">© 2024 Juris. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

@@ -13,9 +13,9 @@ import {
   BookTemplate,
   Search,
   Zap,
-  Shield
+  Shield,
+  ArrowRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 
 const features = [
@@ -69,13 +69,13 @@ const features = [
 
 export default function Funcionalidades() {
   const handleLogin = () => {
-    base44.auth.redirectToLogin();
+    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
             <Scale className="w-7 h-7 text-gray-900" />
@@ -92,26 +92,34 @@ export default function Funcionalidades() {
             <button onClick={handleLogin} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               Entrar
             </button>
-            <Button onClick={handleLogin} className="bg-gray-900 text-white hover:bg-gray-800">
+            <button 
+              onClick={handleLogin} 
+              className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+            >
               Teste grátis
-            </Button>
+            </button>
           </nav>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-gray-50 to-white">
+      <section className="pt-32 pb-20 px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto text-center">
+          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Funcionalidades</p>
           <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-6">
             Tudo que você precisa para sua prática jurídica
           </h1>
+          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
           <p className="text-xl text-gray-600 leading-relaxed mb-8">
             Ferramentas poderosas de IA combinadas com gestão completa do escritório em uma única plataforma.
           </p>
-          <Button onClick={handleLogin} size="lg" className="bg-gray-900 text-white hover:bg-gray-800">
-            <Zap className="w-5 h-5 mr-2" />
+          <button 
+            onClick={handleLogin} 
+            className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
+          >
             Começar teste grátis
-          </Button>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 
@@ -122,13 +130,13 @@ export default function Funcionalidades() {
             {features.map((feature, index) => (
               <div 
                 key={index} 
-                className={`p-6 rounded-xl border transition-all hover:shadow-lg ${
+                className={`p-6 border transition-all hover:border-gray-400 ${
                   feature.highlight 
                     ? 'bg-gray-900 text-white border-gray-900' 
-                    : 'bg-white border-gray-200 hover:border-gray-300'
+                    : 'bg-white border-gray-200'
                 }`}
               >
-                <feature.icon className={`w-10 h-10 mb-4 ${feature.highlight ? 'text-white' : 'text-gray-900'}`} />
+                <feature.icon className={`w-10 h-10 mb-4 ${feature.highlight ? 'text-white' : 'text-gray-700'}`} />
                 <h3 className={`text-lg font-medium mb-2 ${feature.highlight ? 'text-white' : 'text-gray-900'}`}>
                   {feature.title}
                 </h3>
@@ -144,24 +152,25 @@ export default function Funcionalidades() {
       {/* Highlights */}
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-light text-gray-900 mb-12 text-center">Por que escolher o Juris?</h2>
+          <h2 className="text-3xl font-light text-gray-900 mb-4 text-center">Por que escolher o Juris?</h2>
+          <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-12" />
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Rápido e Eficiente</h3>
               <p className="text-gray-600">Economize horas de trabalho com automação inteligente de tarefas repetitivas.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Seguro e Confiável</h3>
               <p className="text-gray-600">Seus dados protegidos com criptografia e infraestrutura de nível empresarial.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">IA Especializada</h3>
@@ -181,13 +190,17 @@ export default function Funcionalidades() {
             Comece com 5 ações de IA grátis por dia. Sem cartão de crédito.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={handleLogin} size="lg" className="bg-white text-gray-900 hover:bg-gray-100">
+            <button 
+              onClick={handleLogin} 
+              className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 hover:bg-gray-100 transition-all"
+            >
               Criar conta grátis
-            </Button>
-            <Link to={createPageUrl("Pricing")}>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Ver planos
-              </Button>
+            </button>
+            <Link 
+              to={createPageUrl("Pricing")}
+              className="px-8 py-3.5 text-base font-medium border border-white text-white hover:bg-white/10 transition-all text-center"
+            >
+              Ver planos
             </Link>
           </div>
         </div>
