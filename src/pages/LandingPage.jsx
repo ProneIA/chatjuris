@@ -19,6 +19,17 @@ export default function LandingPage() {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
+  // Verificar se usuário já está logado e redirecionar
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (isAuthenticated) {
+        window.location.href = createPageUrl("Dashboard");
+      }
+    };
+    checkAuth();
+  }, []);
+
   const goToPricing = () => {
     window.location.href = createPageUrl("Pricing");
   };

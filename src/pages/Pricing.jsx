@@ -46,18 +46,18 @@ const plans = [
     popular: true,
     discount: 50,
     features: [
-      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
-      { text: "Clientes ILIMITADOS", included: true, highlight: true },
-      { text: "Processos ILIMITADOS", included: true, highlight: true },
-      { text: "Documentos ILIMITADOS", included: true, highlight: true },
-      { text: "Todos os modos de IA", included: true },
-      { text: "Equipes e Workspace", included: true },
-      { text: "Jurisprudência completa", included: true },
-      { text: "Templates ilimitados", included: true },
-      { text: "Calendário inteligente", included: true },
-      { text: "Análise de documentos LEXIA", included: true },
-      { text: "Gerador de imagens IA", included: true },
-      { text: "Suporte prioritário 24/7", included: true },
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true, bold: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true, bold: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true, bold: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true, bold: true },
+      { text: "Todos os modos de IA", included: true, bold: true },
+      { text: "Equipes e Workspace", included: true, bold: true },
+      { text: "Jurisprudência completa", included: true, bold: true },
+      { text: "Templates ilimitados", included: true, bold: true },
+      { text: "Calendário inteligente", included: true, bold: true },
+      { text: "Análise de documentos LEXIA", included: true, bold: true },
+      { text: "Gerador de imagens IA", included: true, bold: true },
+      { text: "Suporte prioritário 24/7", included: true, bold: true },
     ],
     limits: {
       daily_actions_limit: 999999,
@@ -185,18 +185,18 @@ export default function Pricing({ theme = 'light' }) {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-            Junte-se a <span className="text-white font-semibold">+2.500 advogados</span> que já economizam 
+            Junte-se a <span className="text-white font-semibold">+500 advogados</span> que já economizam 
             <span className="text-green-400 font-semibold"> 15+ horas por semana</span> com o Juris
           </p>
 
           {/* Social Proof Stats */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 sm:mb-12">
             <div className="text-center min-w-[80px]">
-              <div className="text-2xl sm:text-3xl font-bold text-white">2.500+</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">500+</div>
               <div className="text-xs sm:text-sm text-neutral-500">Advogados Ativos</div>
             </div>
             <div className="text-center min-w-[80px]">
-              <div className="text-2xl sm:text-3xl font-bold text-white">50.000+</div>
+              <div className="text-2xl sm:text-3xl font-bold text-white">10.000+</div>
               <div className="text-xs sm:text-sm text-neutral-500">Documentos Gerados</div>
             </div>
             <div className="text-center min-w-[80px]">
@@ -297,7 +297,7 @@ export default function Pricing({ theme = 'light' }) {
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
-                        {isPro ? "🚀 Começar Agora" : "Começar Grátis"}
+                        {isPro ? "Começar Agora" : "Começar Grátis"}
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </span>
                     )}
@@ -325,7 +325,7 @@ export default function Pricing({ theme = 'light' }) {
                           feature.highlight && feature.included
                             ? "font-semibold text-white"
                             : feature.included 
-                            ? "text-neutral-300" 
+                            ? feature.bold ? "text-white font-semibold" : "text-neutral-300"
                             : "text-neutral-600 line-through"
                         }`}>
                           {feature.text}
@@ -417,7 +417,7 @@ export default function Pricing({ theme = 'light' }) {
             onClick={() => handleSelectPlan("pro")}
             className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 sm:px-10 py-5 sm:py-6 text-base sm:text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30 transform active:scale-95 hover:scale-105 transition-all"
           >
-            🚀 Começar com o Pro - 50% OFF
+            Começar com o Pro - 50% OFF
           </Button>
           <p className="text-[10px] sm:text-xs text-neutral-500 mt-3 sm:mt-4">
             Cancele a qualquer momento. Sem taxas ocultas.
