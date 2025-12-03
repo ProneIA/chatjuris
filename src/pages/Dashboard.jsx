@@ -198,7 +198,7 @@ export default function Dashboard({ theme = 'light' }) {
           </div>
           <div className="flex items-center gap-2">
             <Link to={createPageUrl("AIAssistant")}>
-              <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2">
+              <Button className="bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none gap-2">
                 <Sparkles className="w-4 h-4" />
                 Assistente IA
               </Button>
@@ -218,10 +218,10 @@ export default function Dashboard({ theme = 'light' }) {
             const colors = colorClasses[action.color];
             return (
               <Link key={i} to={action.url}>
-                <div className={`relative p-4 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-lg group ${
+                <div className={`relative p-4 rounded-none border transition-all hover:scale-[1.02] hover:shadow-lg group ${
                   isDark ? 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-700' : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}>
-                  <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center mb-3`}>
+                  <div className={`w-10 h-10 rounded-none ${colors.bg} flex items-center justify-center mb-3`}>
                     <Icon className={`w-5 h-5 ${colors.text}`} />
                   </div>
                   <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{action.title}</p>
@@ -250,11 +250,11 @@ export default function Dashboard({ theme = 'light' }) {
             
             return (
               <Link key={index} to={stat.link}>
-                <div className={`relative p-5 rounded-xl border transition-all hover:shadow-lg group overflow-hidden ${
+                <div className={`relative p-5 rounded-none border transition-all hover:shadow-lg group overflow-hidden ${
                   isDark ? 'bg-neutral-900/80 border-neutral-800 hover:border-neutral-700' : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}>
                   {/* Background glow */}
-                  <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full opacity-20 blur-2xl ${colors.bg}`} />
+                  <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-none opacity-20 blur-2xl ${colors.bg}`} />
                   
                   <div className="relative">
                     <div className="flex items-start justify-between mb-4">
@@ -280,16 +280,16 @@ export default function Dashboard({ theme = 'light' }) {
                         </div>
                         <p className={`text-xs mt-1 ${colors.text}`}>{stat.subtitle}</p>
                       </div>
-                      <div className={`w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center`}>
+                      <div className={`w-11 h-11 rounded-none ${colors.bg} flex items-center justify-center`}>
                         <Icon className={`w-5 h-5 ${colors.text}`} />
                       </div>
                     </div>
                     
                     {/* Progress bar for cases */}
                     {stat.showProgress && stat.total > 0 && (
-                      <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-neutral-800' : 'bg-slate-100'}`}>
+                      <div className={`h-1.5 rounded-none overflow-hidden ${isDark ? 'bg-neutral-800' : 'bg-slate-100'}`}>
                         <div 
-                          className={`h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all`}
+                          className={`h-full rounded-none bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all`}
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -308,13 +308,13 @@ export default function Dashboard({ theme = 'light' }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className={`lg:col-span-2 rounded-xl border overflow-hidden ${
+            className={`lg:col-span-2 rounded-none border overflow-hidden ${
               isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'
             }`}
           >
             <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClasses.orange.bg}`}>
+                <div className={`w-8 h-8 rounded-none flex items-center justify-center ${colorClasses.orange.bg}`}>
                   <Clock className={`w-4 h-4 ${colorClasses.orange.text}`} />
                 </div>
                 <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Prazos e Tarefas</h2>
@@ -332,7 +332,7 @@ export default function Dashboard({ theme = 'light' }) {
                 </div>
               ) : upcomingTasks.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${colorClasses.emerald.bg}`}>
+                  <div className={`w-16 h-16 rounded-none mx-auto mb-4 flex items-center justify-center ${colorClasses.emerald.bg}`}>
                     <CheckSquare className={`w-8 h-8 ${colorClasses.emerald.text}`} />
                   </div>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Tudo em dia!</p>
@@ -344,17 +344,17 @@ export default function Dashboard({ theme = 'light' }) {
                     const urgency = getTaskUrgency(task);
                     const urgencyColors = colorClasses[urgency.color];
                     return (
-                      <div key={task.id} className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-sm ${
+                      <div key={task.id} className={`flex items-center gap-4 p-4 rounded-none border transition-all hover:shadow-sm ${
                         isDark ? 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/50' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
                       }`}>
-                        <div className={`w-2 h-2 rounded-full ${urgencyColors.bg.replace('/10', '')}`} />
+                        <div className={`w-2 h-2 rounded-none ${urgencyColors.bg.replace('/10', '')}`} />
                         <div className="flex-1 min-w-0">
                           <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{task.title}</p>
                           <p className={`text-xs mt-0.5 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
                             {task.due_date && format(new Date(task.due_date), "dd 'de' MMMM", { locale: ptBR })}
                           </p>
                         </div>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${urgencyColors.bg} ${urgencyColors.text}`}>
+                        <span className={`text-xs font-medium px-2.5 py-1 rounded-none ${urgencyColors.bg} ${urgencyColors.text}`}>
                           {urgency.label}
                         </span>
                       </div>
@@ -374,10 +374,10 @@ export default function Dashboard({ theme = 'light' }) {
           >
             {/* Calculadora Jurídica Promo */}
             <Link to={createPageUrl("LegalCalculator")}>
-              <div className={`p-5 rounded-xl border transition-all hover:shadow-lg group relative overflow-hidden ${
+              <div className={`p-5 rounded-none border transition-all hover:shadow-lg group relative overflow-hidden ${
                 isDark ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-800/50 hover:border-blue-700' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300'
               }`}>
-                <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-blue-500/10 blur-2xl" />
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-none bg-blue-500/10 blur-2xl" />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -400,10 +400,10 @@ export default function Dashboard({ theme = 'light' }) {
 
             {/* Pesquisa Jurídica Promo */}
             <Link to={createPageUrl("LegalResearchAI")}>
-              <div className={`p-5 rounded-xl border transition-all hover:shadow-lg group relative overflow-hidden ${
+              <div className={`p-5 rounded-none border transition-all hover:shadow-lg group relative overflow-hidden ${
                 isDark ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-800/50 hover:border-amber-700' : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300'
               }`}>
-                <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-amber-500/10 blur-2xl" />
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-none bg-amber-500/10 blur-2xl" />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-3">
                     <FileSearch className={`w-5 h-5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
@@ -431,11 +431,11 @@ export default function Dashboard({ theme = 'light' }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className={`rounded-xl border overflow-hidden ${isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'}`}
+          className={`rounded-none border overflow-hidden ${isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'}`}
         >
           <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClasses.emerald.bg}`}>
+              <div className={`w-8 h-8 rounded-none flex items-center justify-center ${colorClasses.emerald.bg}`}>
                 <FolderOpen className={`w-4 h-4 ${colorClasses.emerald.text}`} />
               </div>
               <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Processos Recentes</h2>
@@ -456,7 +456,7 @@ export default function Dashboard({ theme = 'light' }) {
                 <FolderOpen className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
                 <p className={isDark ? 'text-neutral-500' : 'text-slate-500'}>Nenhum processo cadastrado</p>
                 <Link to={createPageUrl("Cases")}>
-                  <Button variant="outline" className="mt-4">
+                  <Button variant="outline" className="mt-4 bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none">
                     <Plus className="w-4 h-4 mr-2" />
                     Criar primeiro processo
                   </Button>
@@ -475,7 +475,7 @@ export default function Dashboard({ theme = 'light' }) {
                   
                   return (
                     <Link key={caseItem.id} to={createPageUrl("Cases")}>
-                      <div className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
+                      <div className={`p-4 rounded-none border transition-all hover:shadow-sm ${
                         isDark ? 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/50' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
                       }`}>
                         <div className="flex items-start justify-between mb-2">
