@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
       <Link
         to={item.url}
         onClick={() => mobile && setIsMobileMenuOpen(false)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-none text-sm transition-colors ${
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
           location.pathname === item.url
             ? 'bg-white text-black font-medium'
             : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
@@ -119,64 +119,52 @@ export default function Layout({ children, currentPageName }) {
         <item.icon className="w-4 h-4" />
         <span>{item.title}</span>
         {item.proBadge && (
-          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-none ${
+          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
             location.pathname === item.url
               ? 'bg-gray-200 text-gray-600'
               : 'bg-neutral-700 text-neutral-400'
           }`}>PRO</span>
         )}
         {item.badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-none bg-purple-500 text-white">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
             {item.badge}
           </span>
         )}
       </Link>
     );
 
-    const DropdownNavMenu = ({ label, items, icon: Icon, menuId }) => {
+    const DropdownNavMenu = ({ label, items, icon: Icon }) => {
       const [isOpen, setIsOpen] = React.useState(false);
-      const triggerRef = React.useRef(null);
-      const [triggerPosition, setTriggerPosition] = React.useState(0);
-
-      React.useEffect(() => {
-        if (isOpen && triggerRef.current) {
-          const rect = triggerRef.current.getBoundingClientRect();
-          setTriggerPosition(rect.left);
-        }
-      }, [isOpen]);
 
       return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
-            <button 
-              ref={triggerRef}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-none text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800"
-            >
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800">
               <Icon className="w-4 h-4" />
               <span>{label}</span>
               <ChevronDown className={`w-3 h-3 opacity-50 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
-            align="start" 
-            sideOffset={0}
-            className="w-screen max-w-none bg-neutral-900 border-neutral-800 border-t border-l-0 border-r-0 rounded-none p-0"
+            align="center" 
+            sideOffset={8}
+            className="w-screen max-w-none left-0 right-0 bg-neutral-900 border-neutral-800 border-t-0 rounded-none p-0"
             style={{ 
               position: 'fixed',
-              top: '56px',
               left: 0,
               right: 0,
-              width: '100vw'
+              width: '100vw',
+              marginLeft: 'calc(-50vw + 50%)',
+              marginRight: 'calc(-50vw + 50%)'
             }}
           >
-            <div className="max-w-[1800px] mx-auto px-4 py-3 flex flex-wrap gap-1">
-              <div style={{ width: triggerPosition - 16 }} className="shrink-0" />
+            <div className="max-w-[1800px] mx-auto px-4 py-4 flex flex-wrap gap-2">
               {items.map((item) => (
                 <Link
                   key={item.title}
                   to={item.url}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-none text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-colors ${
                     location.pathname === item.url 
                       ? 'bg-white text-black font-medium' 
                       : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
@@ -185,12 +173,12 @@ export default function Layout({ children, currentPageName }) {
                   <item.icon className="w-4 h-4" />
                   <span>{item.title}</span>
                   {item.proBadge && (
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-none ${
+                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
                       location.pathname === item.url ? 'bg-gray-200 text-gray-600' : 'bg-neutral-700 text-neutral-400'
                     }`}>PRO</span>
                   )}
                   {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-none bg-purple-500 text-white">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
                       {item.badge}
                     </span>
                   )}

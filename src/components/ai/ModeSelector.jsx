@@ -24,14 +24,14 @@ const modes = [
     emoji: "⚖️"
   },
   {
-    id: "document_summary",
-    name: "Resumo de Peças",
+    id: "document_summarizer",
+    name: "Resumo de Documentos",
     icon: BookOpen,
-    description: "Resumo detalhado de documentos",
-    color: "from-orange-500 via-orange-600 to-red-600",
-    lightBg: "from-orange-50 to-red-50",
+    description: "Análise detalhada de peças jurídicas",
+    color: "from-orange-500 via-amber-600 to-yellow-600",
+    lightBg: "from-orange-50 to-amber-50",
     iconColor: "text-orange-600",
-    emoji: "📋"
+    emoji: "📚"
   },
   {
     id: "legal_document_generator",
@@ -61,7 +61,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-          <label className="text-sm font-semibold text-slate-900 dark:text-white">
+          <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Escolha o Modo IA
           </label>
         </div>
@@ -99,6 +99,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                   }
                 `}
               >
+                {/* Background Pattern */}
                 {isSelected && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -108,12 +109,13 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                 )}
 
                 <div className="relative flex items-center gap-3">
+                  {/* Icon Container */}
                   <motion.div 
                     className={`
                       shrink-0 w-12 h-12 rounded-xl flex items-center justify-center relative
                       ${isSelected 
                         ? "bg-white/20 backdrop-blur-sm" 
-                        : `bg-gradient-to-br ${mode.lightBg} dark:bg-slate-700/50`
+                        : `bg-gradient-to-br ${mode.lightBg} dark:bg-slate-700`
                       }
                     `}
                     whileHover={{ rotate: [0, -5, 5, -5, 0] }}
@@ -121,8 +123,9 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                   >
                     <Icon className={`w-6 h-6 ${isSelected ? "text-white" : mode.iconColor + " dark:text-slate-300"}`} />
                     
+                    {/* Emoji Badge */}
                     <motion.span 
-                      className="absolute -top-1 -right-1 text-xs bg-white dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
+                      className="absolute -top-1 -right-1 text-xs bg-white dark:bg-slate-800 rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: index * 0.1 + 0.2 }}
@@ -131,12 +134,14 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                     </motion.span>
                   </motion.div>
 
+                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`text-sm font-bold ${isSelected ? "text-white" : "text-slate-900 dark:text-white"}`}>
+                      <h3 className={`text-sm font-bold ${isSelected ? "text-white" : "text-slate-900 dark:text-slate-100"}`}>
                         {mode.name}
                       </h3>
                       
+                      {/* Selected Check */}
                       <AnimatePresence>
                         {isSelected && (
                           <motion.div
@@ -156,6 +161,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                     </p>
                   </div>
 
+                  {/* Glow Effect on Hover */}
                   {!isSelected && (
                     <motion.div
                       className={`absolute inset-0 bg-gradient-to-r ${mode.color} opacity-0 rounded-xl`}
@@ -165,6 +171,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
                   )}
                 </div>
 
+                {/* Bottom Accent Line */}
                 {isSelected && (
                   <motion.div
                     className="absolute bottom-0 left-0 right-0 h-1 bg-white/30"
@@ -179,6 +186,7 @@ export default function ModeSelector({ selectedMode, setSelectedMode }) {
         </AnimatePresence>
       </div>
 
+      {/* Info Footer */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

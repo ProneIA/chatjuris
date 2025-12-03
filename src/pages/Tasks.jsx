@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, CheckSquare, Calendar, Plus, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import SophisticatedLoader from "@/components/common/SophisticatedLoader";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
