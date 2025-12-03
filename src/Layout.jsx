@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
 import NotificationPanel from "@/components/collaboration/NotificationPanel";
 import InstallAppBanner from "@/components/common/InstallAppBanner";
+import InstallInstructionsDialog from "@/components/common/InstallInstructionsDialog";
 import PWAHead from "@/components/common/PWAHead";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +51,7 @@ export default function Layout({ children, currentPageName }) {
     const [deferredPrompt, setDeferredPrompt] = React.useState(null);
     const [isIOS, setIsIOS] = React.useState(false);
     const [isStandalone, setIsStandalone] = React.useState(false);
+    const [showInstallModal, setShowInstallModal] = React.useState(false);
     const [theme, setTheme] = React.useState(() => {
       if (typeof window !== 'undefined') {
         return localStorage.getItem('juris-theme') || 'light';
@@ -90,10 +92,8 @@ export default function Layout({ children, currentPageName }) {
         if (outcome === 'accepted') {
           setDeferredPrompt(null);
         }
-      } else if (isIOS) {
-        alert('Para instalar no iOS:\n1. Toque no botão de compartilhar\n2. Selecione "Adicionar à Tela de Início"');
       } else {
-        alert('Para instalar o aplicativo:\n1. Abra o menu do navegador (três pontos)\n2. Selecione "Instalar aplicativo" ou "Adicionar à tela inicial"');
+        setShowInstallModal(true);
       }
     };
 
@@ -156,6 +156,12 @@ export default function Layout({ children, currentPageName }) {
         isIOS={isIOS}
         isStandalone={isStandalone}
         onInstall={handleInstallApp}
+      />
+
+      <InstallInstructionsDialog 
+        open={showInstallModal} 
+        onOpenChange={setShowInstallModal} 
+        isIOS={isIOS} 
       />
       
       <style>{`
