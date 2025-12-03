@@ -15,7 +15,8 @@ import {
   Moon,
   Sun,
   FolderOpen,
-  Users2
+  Users2,
+  Download
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,6 +53,41 @@ export default function Layout({ children, currentPageName }) {
       }
       return 'light';
     });
+
+    // PWA Logic
+    const [deferredPrompt, setDeferredPrompt] = React.useState(null);
+    const [isIOS, setIsIOS] = React.useState(false);
+    const [isStandalone, setIsStandalone] = React.useState(false);
+
+    React.useEffect(() => {
+      if (typeof window === 'undefined') return;
+
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      setIsStandalone(standalone);
+
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      setIsIOS(iOS);
+
+      const handleBeforeInstall = (e) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    }, []);
+
+    const handleInstallClick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setDeferredPrompt(null);
+        }
+      } else if (isIOS) {
+        alert('Para instalar no iOS: toque em Compartilhar (ícone quadrado com seta) e selecione "Adicionar à Tela de Início"');
+      }
+    };
 
     React.useEffect(() => {
       base44.auth.me()
@@ -113,7 +149,13 @@ export default function Layout({ children, currentPageName }) {
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <PWAHead />
       <KeyboardShortcuts />
-      <InstallAppBanner theme={theme} />
+      <InstallAppBanner 
+        theme={theme} 
+        deferredPrompt={deferredPrompt}
+        isIOS={isIOS}
+        isStandalone={isStandalone}
+        handleInstall={handleInstallClick}
+      />
       
       <style>{`
         ::-webkit-scrollbar { width: 6px; }
@@ -149,6 +191,19 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center gap-2">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
+              {/* PWA Install Button (Desktop) */}
+              {(!isStandalone && (deferredPrompt || isIOS)) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleInstallClick}
+                  className="h-9 hidden lg:flex border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800 gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden xl:inline">Instalar App</span>
+                </Button>
+              )}
+
               <Link
                 to={createPageUrl("Pricing")}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
@@ -188,6 +243,15 @@ export default function Layout({ children, currentPageName }) {
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator className="bg-gray-200" />
+                
+                {/* Install Option in Menu for Mobile/Tablet */}
+                {(!isStandalone && (deferredPrompt || isIOS)) && (
+                  <DropdownMenuItem onClick={handleInstallClick} className="flex items-center gap-2 cursor-pointer text-gray-700 lg:hidden">
+                    <Download className="w-4 h-4" />
+                    <span>Instalar App</span>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuItem asChild>
                   <Link to={createPageUrl("Settings")} className="flex items-center gap-2 cursor-pointer text-gray-700">
                     <Settings className="w-4 h-4" />

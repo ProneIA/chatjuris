@@ -3,57 +3,27 @@ import { Download, X, Smartphone, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function InstallAppBanner({ theme = 'light' }) {
+export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIOS, isStandalone, handleInstall }) {
   const isDark = theme === 'dark';
   const [showBanner, setShowBanner] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    setIsStandalone(standalone);
-
-    // Check if iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    setIsIOS(iOS);
-
     // Check if banner was dismissed
     const dismissed = localStorage.getItem('install-banner-dismissed');
     if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
       return; // Don't show for 7 days after dismissal
     }
 
-    // Listen for beforeinstallprompt event (Chrome/Edge/Android)
-    const handleBeforeInstall = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowBanner(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-
-    // Show banner for iOS after delay
-    if (iOS && !standalone) {
-      setTimeout(() => setShowBanner(true), 3000);
+    if (deferredPrompt || (isIOS && !isStandalone)) {
+       // Delay only for iOS to be less intrusive? Or just show it.
+       // The previous logic had a 3s delay for iOS.
+       if (isIOS) {
+         setTimeout(() => setShowBanner(true), 3000);
+       } else {
+         setShowBanner(true);
+       }
     }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-    };
-  }, []);
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowBanner(false);
-      }
-      setDeferredPrompt(null);
-    }
-  };
+  }, [deferredPrompt, isIOS, isStandalone]);
 
   const handleDismiss = () => {
     setShowBanner(false);
