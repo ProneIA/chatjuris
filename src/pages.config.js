@@ -24,6 +24,7 @@ import Cases from './pages/Cases';
 import ClientAccess from './pages/ClientAccess';
 import MySubscription from './pages/MySubscription';
 import DocumentGenerator from './pages/DocumentGenerator';
+import ContactPublic from './pages/ContactPublic';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "ClientAccess": ClientAccess,
     "MySubscription": MySubscription,
     "DocumentGenerator": DocumentGenerator,
+    "ContactPublic": ContactPublic,
 }
 
 export const pagesConfig = {

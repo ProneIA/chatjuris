@@ -318,7 +318,7 @@ export default function LandingPage() {
             © 2024 Juris. Todos os direitos reservados.
           </p>
           <Link 
-            to={createPageUrl("Contact")}
+            to={createPageUrl("ContactPublic")}
             className="text-gray-500 hover:text-white text-sm transition-colors order-2 sm:order-3"
           >
             Contato
