@@ -210,14 +210,14 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
             { label: "Aprovados", value: documents.filter(d => d.status === 'approved').length, icon: Check },
             { label: "Tags", value: tags.length, icon: Tag },
           ].map((stat, i) => (
-            <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                  <stat.icon className={`w-5 h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
+            <div key={i} className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                  <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
                 </div>
                 <div>
-                  <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
-                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{stat.label}</p>
+                  <p className={`text-lg sm:text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
+                  <p className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -225,146 +225,166 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
         </div>
 
         {/* Filters & Search */}
-        <div className={`p-4 rounded-xl border mb-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+        <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border mb-4 sm:mb-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+          <div className="flex flex-col gap-3">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Buscar documentos..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-sm"
               />
             </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
-            >
-              <option value="all">Todos os tipos</option>
-              {docTypes.map(type => (
-                <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
-              ))}
-            </select>
-            <div className="flex gap-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setViewMode("grid")}
+            <div className="flex gap-2">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className={`flex-1 px-3 py-2 text-sm rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
               >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="w-4 h-4" />
-              </Button>
+                <option value="all">Todos os tipos</option>
+                {docTypes.map(type => (
+                  <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                ))}
+              </select>
+              <div className="flex gap-1">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid")}
+                  className="h-9 w-9"
+                >
+                  <Grid className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("list")}
+                  className="h-9 w-9"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Document Grid/List */}
-          <div className="lg:col-span-2">
-            {viewMode === "grid" ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {filteredDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    onClick={() => setSelectedDoc(doc)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      selectedDoc?.id === doc.id
-                        ? 'ring-2 ring-blue-500'
-                        : ''
-                    } ${isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                        <FileText className={`w-5 h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
-                      </div>
-                      <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'} className="text-xs">
-                        {doc.status === 'draft' && 'Rascunho'}
-                        {doc.status === 'review' && 'Revisão'}
-                        {doc.status === 'approved' && 'Aprovado'}
-                        {doc.status === 'sent' && 'Enviado'}
-                        {doc.status === 'archived' && 'Arquivado'}
-                      </Badge>
+        {/* Document List - Full Width on Mobile */}
+        <div className="space-y-4">
+          {viewMode === "grid" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {filteredDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  onClick={() => handleSelectDoc(doc)}
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border cursor-pointer transition-all active:scale-[0.98] ${
+                    selectedDoc?.id === doc.id
+                      ? 'ring-2 ring-blue-500'
+                      : ''
+                  } ${isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'bg-white border-gray-200 hover:border-gray-300'}`}
+                >
+                  <div className="flex items-start justify-between mb-2 sm:mb-3">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                      <FileText className={`w-4 h-4 sm:w-5 sm:h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
                     </div>
-                    <h3 className={`font-medium mb-1 line-clamp-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {doc.title}
-                    </h3>
-                    <p className={`text-sm mb-3 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                      {doc.type?.charAt(0).toUpperCase() + doc.type?.slice(1)}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                        {new Date(doc.created_date).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
+                    <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs">
+                      {doc.status === 'draft' && 'Rascunho'}
+                      {doc.status === 'review' && 'Revisão'}
+                      {doc.status === 'approved' && 'Aprovado'}
+                      {doc.status === 'sent' && 'Enviado'}
+                      {doc.status === 'archived' && 'Arquivado'}
+                    </Badge>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className={`rounded-xl border divide-y ${isDark ? 'bg-neutral-900 border-neutral-800 divide-neutral-800' : 'bg-white border-gray-200 divide-gray-200'}`}>
-                {filteredDocs.map((doc) => (
-                  <div
-                    key={doc.id}
-                    onClick={() => setSelectedDoc(doc)}
-                    className={`p-4 cursor-pointer transition-colors ${
-                      selectedDoc?.id === doc.id
-                        ? isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                        : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <FileText className={`w-5 h-5 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{doc.title}</h3>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{doc.type}</p>
+                  <h3 className={`font-medium text-sm sm:text-base mb-1 line-clamp-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {doc.title}
+                  </h3>
+                  <p className={`text-xs sm:text-sm mb-2 sm:mb-3 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    {doc.type?.charAt(0).toUpperCase() + doc.type?.slice(1)}
+                  </p>
+                  <span className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                    {new Date(doc.created_date).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={`rounded-lg sm:rounded-xl border divide-y ${isDark ? 'bg-neutral-900 border-neutral-800 divide-neutral-800' : 'bg-white border-gray-200 divide-gray-200'}`}>
+              {filteredDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  onClick={() => handleSelectDoc(doc)}
+                  className={`p-3 sm:p-4 cursor-pointer transition-colors active:bg-opacity-80 ${
+                    selectedDoc?.id === doc.id
+                      ? isDark ? 'bg-neutral-800' : 'bg-gray-100'
+                      : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-medium text-sm sm:text-base truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{doc.title}</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className={`text-xs sm:text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{doc.type}</p>
+                        <span className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          • {new Date(doc.created_date).toLocaleDateString('pt-BR')}
+                        </span>
                       </div>
-                      <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'}>{doc.status}</Badge>
-                      <span className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                        {new Date(doc.created_date).toLocaleDateString('pt-BR')}
-                      </span>
                     </div>
+                    <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs shrink-0">
+                      {doc.status === 'draft' && 'Rascunho'}
+                      {doc.status === 'review' && 'Revisão'}
+                      {doc.status === 'approved' && 'Aprovado'}
+                      {doc.status === 'sent' && 'Enviado'}
+                      {doc.status === 'archived' && 'Arquivado'}
+                    </Badge>
+                    <ChevronRight className={`w-4 h-4 shrink-0 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-          {/* Document Details */}
-          <div className={`rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-            {selectedDoc ? (
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDoc.title}</h2>
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{selectedDoc.type}</p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {selectedDoc.file_url && (
-                        <DropdownMenuItem onClick={() => window.open(selectedDoc.file_url, '_blank')}>
-                          <Download className="w-4 h-4 mr-2" /> Download
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => setShowVersionDialog(true)}>
-                        <Upload className="w-4 h-4 mr-2" /> Nova Versão
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => deleteDocMutation.mutate(selectedDoc.id)} className="text-red-500">
-                        <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          {filteredDocs.length === 0 && (
+            <div className={`text-center py-12 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+              <FileText className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+              <p className={`${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Nenhum documento encontrado</p>
+            </div>
+          )}
+        </div>
+
+        {/* Document Details Sheet - Full Screen on Mobile */}
+        <Dialog open={showDetails} onOpenChange={setShowDetails}>
+          <DialogContent className="max-w-lg sm:max-w-xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between pr-8">
+                <span className="truncate">{selectedDoc?.title}</span>
+              </DialogTitle>
+            </DialogHeader>
+            {selectedDoc && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant={selectedDoc.status === 'approved' ? 'default' : 'secondary'}>
+                    {selectedDoc.status === 'draft' && 'Rascunho'}
+                    {selectedDoc.status === 'review' && 'Revisão'}
+                    {selectedDoc.status === 'approved' && 'Aprovado'}
+                    {selectedDoc.status === 'sent' && 'Enviado'}
+                    {selectedDoc.status === 'archived' && 'Arquivado'}
+                  </Badge>
+                  <span className="text-sm text-gray-500">{selectedDoc.type}</span>
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  {selectedDoc.file_url && (
+                    <Button size="sm" variant="outline" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setShowVersionDialog(true)}>
+                    <Upload className="w-4 h-4 mr-2" /> Nova Versão
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => { deleteDocMutation.mutate(selectedDoc.id); setShowDetails(false); }}>
+                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                  </Button>
                 </div>
 
                 <Tabs defaultValue="details">
@@ -375,19 +395,13 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
 
                   <TabsContent value="details" className="mt-4 space-y-4">
                     <div>
-                      <label className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Status</label>
-                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedDoc.status}</p>
-                    </div>
-                    <div>
-                      <label className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Criado em</label>
-                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {new Date(selectedDoc.created_date).toLocaleString('pt-BR')}
-                      </p>
+                      <label className="text-xs text-gray-500">Criado em</label>
+                      <p className="font-medium">{new Date(selectedDoc.created_date).toLocaleString('pt-BR')}</p>
                     </div>
                     {selectedDoc.notes && (
                       <div>
-                        <label className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Observações</label>
-                        <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{selectedDoc.notes}</p>
+                        <label className="text-xs text-gray-500">Observações</label>
+                        <p className="text-sm text-gray-700">{selectedDoc.notes}</p>
                       </div>
                     )}
                   </TabsContent>
@@ -395,46 +409,29 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                   <TabsContent value="versions" className="mt-4">
                     <div className="space-y-3">
                       {versions.map((ver) => (
-                        <div key={ver.id} className={`p-3 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                        <div key={ver.id} className="p-3 rounded-lg bg-gray-100">
                           <div className="flex items-center justify-between mb-1">
-                            <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              Versão {ver.version_number}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(ver.file_url, '_blank')}
-                            >
+                            <span className="font-medium">Versão {ver.version_number}</span>
+                            <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')}>
                               <Download className="w-4 h-4" />
                             </Button>
                           </div>
-                          <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                            {ver.changes_description}
-                          </p>
-                          <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          <p className="text-sm text-gray-600">{ver.changes_description}</p>
+                          <p className="text-xs mt-1 text-gray-400">
                             {ver.author_name} • {new Date(ver.created_date).toLocaleDateString('pt-BR')}
                           </p>
                         </div>
                       ))}
                       {versions.length === 0 && (
-                        <p className={`text-center py-4 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                          Nenhuma versão encontrada
-                        </p>
+                        <p className="text-center py-4 text-sm text-gray-500">Nenhuma versão encontrada</p>
                       )}
                     </div>
                   </TabsContent>
                 </Tabs>
               </div>
-            ) : (
-              <div className="h-96 flex items-center justify-center">
-                <div className="text-center">
-                  <FileText className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Selecione um documento</p>
-                </div>
-              </div>
             )}
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Upload Dialog */}
