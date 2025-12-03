@@ -12,6 +12,7 @@ import CaseCard from "../components/cases/CaseCard";
 import CaseDetails from "../components/cases/CaseDetails";
 import FolderSidebar from "../components/cases/FolderSidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import SophisticatedLoader from "@/components/common/SophisticatedLoader";
 import { toast } from "sonner";
 
 export default function Cases({ theme = 'light' }) {
@@ -519,10 +520,8 @@ export default function Cases({ theme = 'light' }) {
               </CardContent>
             </Card>
           ) : isLoading ? (
-            <div className="grid gap-4">
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
-              ))}
+            <div className="flex items-center justify-center py-20">
+              <SophisticatedLoader text="Carregando processos..." />
             </div>
           ) : filteredCases.length === 0 ? (
             <div className="text-center py-12">
