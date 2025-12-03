@@ -130,7 +130,7 @@ export default function Funcionalidades() {
             {features.map((feature, index) => (
               <div 
                 key={index} 
-                className={`p-6 border transition-all hover:border-gray-400 ${
+                className={`p-6 border transition-all hover:border-gray-400 rounded-none ${
                   feature.highlight 
                     ? 'bg-gray-900 text-white border-gray-900' 
                     : 'bg-white border-gray-200'
@@ -156,21 +156,21 @@ export default function Funcionalidades() {
           <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-12" />
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4 rounded-none">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Rápido e Eficiente</h3>
               <p className="text-gray-600">Economize horas de trabalho com automação inteligente de tarefas repetitivas.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4 rounded-none">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Seguro e Confiável</h3>
               <p className="text-gray-600">Seus dados protegidos com criptografia e infraestrutura de nível empresarial.</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gray-900 flex items-center justify-center mx-auto mb-4 rounded-none">
                 <Search className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">IA Especializada</h3>

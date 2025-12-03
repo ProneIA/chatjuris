@@ -27,7 +27,7 @@ export default function ContactPublic() {
           </Link>
           <Link 
             to={createPageUrl("Pricing")}
-            className="px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded transition-colors hover:bg-gray-800"
+            className="px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 transition-colors hover:bg-gray-800"
           >
             Começar
           </Link>
@@ -112,7 +112,7 @@ export default function ContactPublic() {
           </p>
           <Link 
             to={createPageUrl("Pricing")}
-            className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-colors"
           >
             Criar Conta Grátis
             <ArrowRight className="w-4 h-4" />
