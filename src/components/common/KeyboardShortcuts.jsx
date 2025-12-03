@@ -12,16 +12,16 @@ export default function KeyboardShortcuts() {
     base44.auth.me().then((user) => {
       if (user?.preferences?.keyboard_shortcuts_enabled === false) {
         setShortcutsEnabled(false);
-      } else {
-        setShortcutsEnabled(true);
       }
     }).catch(() => {});
   }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
-      // Verificar se atalhos estão desativados
-      if (!shortcutsEnabled) return;
+      // Verificar se atalhos estão desabilitados
+      if (!shortcutsEnabled) {
+        return;
+      }
 
       // Ignorar se estiver digitando em input/textarea
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
