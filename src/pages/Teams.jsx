@@ -119,16 +119,16 @@ export default function Teams({ theme = 'light' }) {
             <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Equipes</h1>
             <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie equipes e colaboradores</p>
           </div>
-          <Button onClick={() => setShowNewTeamForm(true)} className="bg-gray-900 text-white hover:bg-gray-800 rounded-none">
+          <Button onClick={() => setShowNewTeamForm(true)} className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}>
                         <Plus className="w-4 h-4 mr-2" />
             Nova Equipe
           </Button>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="border border-neutral-800 rounded-none p-6 bg-black">
+          <div className="border border-neutral-800 rounded-lg p-6 bg-black">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 border border-neutral-800 rounded-none flex items-center justify-center">
+              <div className="w-12 h-12 border border-neutral-800 rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -138,9 +138,9 @@ export default function Teams({ theme = 'light' }) {
             </div>
           </div>
 
-          <div className="border border-neutral-800 rounded-none p-6 bg-black">
+          <div className="border border-neutral-800 rounded-lg p-6 bg-black">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 border border-neutral-800 rounded-none flex items-center justify-center">
+              <div className="w-12 h-12 border border-neutral-800 rounded-lg flex items-center justify-center">
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -152,9 +152,9 @@ export default function Teams({ theme = 'light' }) {
             </div>
           </div>
 
-          <div className="border border-neutral-800 rounded-none p-6 bg-black">
+          <div className="border border-neutral-800 rounded-lg p-6 bg-black">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 border border-neutral-800 rounded-none flex items-center justify-center">
+              <div className="w-12 h-12 border border-neutral-800 rounded-lg flex items-center justify-center">
                 <UserPlus className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -180,7 +180,7 @@ export default function Teams({ theme = 'light' }) {
         </div>
 
         {showNewTeamForm && (
-          <div className="mb-6 border border-neutral-800 rounded-none p-6 bg-black">
+          <div className="mb-6 border border-neutral-800 rounded-lg p-6 bg-black">
             <h3 className="text-lg font-medium text-white mb-4">Nova Equipe</h3>
             <div className="space-y-4">
               <Input
@@ -196,10 +196,10 @@ export default function Teams({ theme = 'light' }) {
                 className="bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600"
               />
               <div className="flex gap-2">
-                <Button onClick={handleCreateTeam} disabled={createTeamMutation.isPending} className="bg-white text-black hover:bg-gray-100 rounded-none border border-gray-300">
+                <Button onClick={handleCreateTeam} disabled={createTeamMutation.isPending} className="bg-white text-black hover:bg-gray-100">
                   Criar Equipe
                 </Button>
-                <Button variant="outline" onClick={() => setShowNewTeamForm(false)} className="bg-white text-black hover:bg-gray-100 rounded-none border border-gray-300">
+                <Button variant="outline" onClick={() => setShowNewTeamForm(false)} className="border-neutral-800 text-white hover:bg-neutral-800">
                   Cancelar
                 </Button>
               </div>
@@ -209,7 +209,7 @@ export default function Teams({ theme = 'light' }) {
 
         <div className="grid md:grid-cols-2 gap-6">
           {filteredTeams.map((team) => (
-            <div key={team.id} className="border border-neutral-800 rounded-none p-6 bg-black hover:border-neutral-700 transition-colors">
+            <div key={team.id} className="border border-neutral-800 rounded-lg p-6 bg-black hover:border-neutral-700 transition-colors">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -227,7 +227,7 @@ export default function Teams({ theme = 'light' }) {
                     onClick={() => navigate(createPageUrl('TeamWorkspace') + `?team=${team.id}`)}
                     variant="outline"
                     size="sm"
-                    className="bg-white text-black hover:bg-gray-100 rounded-none border border-gray-300"
+                    className="border-neutral-800 text-white hover:bg-neutral-800"
                   >
                     Abrir Workspace
                     <ArrowRight className="w-3 h-3 ml-2" />
@@ -257,7 +257,7 @@ export default function Teams({ theme = 'light' }) {
                   {team.members?.map((memberEmail) => (
                     <div
                       key={memberEmail}
-                      className="flex items-center justify-between p-2 border border-neutral-800 rounded-none"
+                      className="flex items-center justify-between p-2 border border-neutral-800 rounded-lg"
                     >
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-neutral-600" />
@@ -295,7 +295,7 @@ export default function Teams({ theme = 'light' }) {
                       size="sm"
                       onClick={() => handleAddMember(team)}
                       disabled={updateTeamMutation.isPending}
-                      className="bg-white text-black hover:bg-gray-100 rounded-none border border-gray-300"
+                      className="bg-white text-black hover:bg-gray-100"
                     >
                       <UserPlus className="w-4 h-4" />
                     </Button>
@@ -307,7 +307,7 @@ export default function Teams({ theme = 'light' }) {
         </div>
 
         {filteredTeams.length === 0 && (
-          <div className="border border-neutral-800 rounded-none p-12 text-center bg-black">
+          <div className="border border-neutral-800 rounded-lg p-12 text-center bg-black">
             <Users className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
             <p className="text-neutral-400 mb-2">Nenhuma equipe encontrada</p>
             <p className="text-sm text-neutral-600">Crie sua primeira equipe para começar a colaborar</p>

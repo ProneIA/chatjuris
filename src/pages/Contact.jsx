@@ -125,7 +125,7 @@ export default function Contact() {
             transition={{ duration: 3, repeat: Infinity }}
             className="inline-block mb-6">
 
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-none flex items-center justify-center shadow-2xl">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl">
               <MessageSquare className="w-10 h-10 text-white" />
             </div>
           </motion.div>
@@ -148,14 +148,14 @@ export default function Contact() {
             transition={{ delay: 0.2 }}
             className="lg:col-span-2">
 
-            <Card className="p-8 bg-white shadow-xl border-2 border-slate-200 rounded-none">
+            <Card className="p-8 bg-white shadow-xl border-2 border-slate-200 rounded-2xl">
               {submitted ?
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-12">
 
-                  <div className="w-20 h-20 bg-green-100 rounded-none flex items-center justify-center mx-auto mb-6">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="w-10 h-10 text-green-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-slate-900 mb-3">
@@ -236,7 +236,7 @@ export default function Contact() {
                   <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-6 text-lg font-bold bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none transition-colors">
+                  className="w-full py-6 text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity">
 
                     {isSubmitting ?
                   <>
@@ -263,8 +263,8 @@ export default function Contact() {
             className="space-y-6">
 
             {/* Support Card */}
-            <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-none">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-none flex items-center justify-center mb-4">
+            <Card className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center mb-4">
                 <HeadphonesIcon className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-bold text-slate-900 text-lg mb-2">
@@ -276,7 +276,7 @@ export default function Contact() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none"
+                className="w-full border-blue-300 hover:bg-blue-100"
                 onClick={() => window.location.href = '/pricing'}>
 
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -286,9 +286,9 @@ export default function Contact() {
 
             {/* Contact Methods */}
             <div className="space-y-4">
-              <Card className="p-5 bg-white border-2 border-slate-200 rounded-none hover:shadow-lg transition-shadow">
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-none flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
@@ -303,9 +303,9 @@ export default function Contact() {
                 </div>
               </Card>
 
-              <Card className="p-5 bg-white border-2 border-slate-200 rounded-none hover:shadow-lg transition-shadow">
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-none flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
                     <Phone className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
@@ -323,9 +323,9 @@ export default function Contact() {
                 </div>
               </Card>
 
-              <Card className="p-5 bg-white border-2 border-slate-200 rounded-none hover:shadow-lg transition-shadow">
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-none flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
                     <Clock className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
@@ -340,9 +340,9 @@ export default function Contact() {
                 </div>
               </Card>
 
-              <Card className="p-5 bg-white border-2 border-slate-200 rounded-none hover:shadow-lg transition-shadow">
+              <Card className="p-5 bg-white border-2 border-slate-200 rounded-xl hover:shadow-lg transition-shadow">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-orange-100 rounded-none flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
@@ -359,7 +359,7 @@ export default function Contact() {
             </div>
 
             {/* FAQ Link */}
-            <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-none text-center">
+            <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl text-center">
               <h3 className="font-bold text-slate-900 mb-2">
                 Perguntas Frequentes
               </h3>
@@ -369,7 +369,7 @@ export default function Contact() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none"
+                className="w-full border-purple-300 hover:bg-purple-100"
                 onClick={() => window.location.href = '/pricing#faq'}>
 
                 Ver FAQ

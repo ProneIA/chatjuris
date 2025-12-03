@@ -144,7 +144,7 @@ export default function MySubscription({ theme = 'light' }) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-none flex items-center justify-center ${
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                   isPro ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-gray-200'
                 }`}>
                   <Crown className={`w-6 h-6 ${isPro ? 'text-white' : 'text-gray-500'}`} />
@@ -174,7 +174,7 @@ export default function MySubscription({ theme = 'light' }) {
           <CardContent className="space-y-6">
             {/* Subscription Details */}
             <div className="grid md:grid-cols-3 gap-4">
-              <div className={`p-4 rounded-none ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
@@ -189,7 +189,7 @@ export default function MySubscription({ theme = 'light' }) {
                 </p>
               </div>
 
-              <div className={`p-4 rounded-none ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <RefreshCw className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
@@ -204,7 +204,7 @@ export default function MySubscription({ theme = 'light' }) {
                 </p>
               </div>
 
-              <div className={`p-4 rounded-none ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <CreditCard className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
                   <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
@@ -221,16 +221,16 @@ export default function MySubscription({ theme = 'light' }) {
 
             {/* Usage Info for Free Plan */}
             {!isPro && (
-              <div className={`p-4 rounded-none border ${isDark ? 'border-neutral-700 bg-neutral-800/50' : 'border-gray-200 bg-gray-50'}`}>
+              <div className={`p-4 rounded-lg border ${isDark ? 'border-neutral-700 bg-neutral-800/50' : 'border-gray-200 bg-gray-50'}`}>
                 <div className="flex items-center justify-between mb-3">
                   <span className={isDark ? 'text-white' : 'text-gray-900'}>Uso Diário de IA</span>
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {subscription?.daily_actions_used || 0} / {subscription?.daily_actions_limit || 5}
                   </span>
                 </div>
-                <div className={`w-full h-2 rounded-none ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`}>
+                <div className={`w-full h-2 rounded-full ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`}>
                   <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-none transition-all"
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
                     style={{ width: `${((subscription?.daily_actions_used || 0) / (subscription?.daily_actions_limit || 5)) * 100}%` }}
                   />
                 </div>
@@ -244,7 +244,7 @@ export default function MySubscription({ theme = 'light' }) {
             <div className="flex flex-wrap gap-3">
               {!isPro ? (
                 <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-white text-black border border-gray-300 hover:bg-gray-100 rounded-none">
+                  <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
                     <Crown className="w-4 h-4 mr-2" />
                     Fazer Upgrade para Pro
                   </Button>
@@ -288,7 +288,7 @@ export default function MySubscription({ theme = 'light' }) {
                   {paymentHistory.map((payment, index) => (
                     <div 
                       key={index}
-                      className={`flex items-center justify-between p-4 rounded-none ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}
+                      className={`flex items-center justify-between p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}
                     >
                       <div className="flex items-center gap-3">
                         <CreditCard className={`w-5 h-5 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
