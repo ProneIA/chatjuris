@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Download, X, Smartphone, Monitor } from "lucide-react";
+import { Download, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIOS, isStandalone, handleInstall }) {
+export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIOS, isStandalone, onInstall }) {
   const isDark = theme === 'dark';
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Check if banner was dismissed
-    const dismissed = localStorage.getItem('install-banner-dismissed');
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
-      return; // Don't show for 7 days after dismissal
+    if (isStandalone) {
+      setShowBanner(false);
+      return;
     }
 
-    if (deferredPrompt || (isIOS && !isStandalone)) {
-       // Delay only for iOS to be less intrusive? Or just show it.
-       // The previous logic had a 3s delay for iOS.
-       if (isIOS) {
-         setTimeout(() => setShowBanner(true), 3000);
-       } else {
-         setShowBanner(true);
-       }
+    // Check if banner was dismissed recently
+    const dismissed = localStorage.getItem('install-banner-dismissed');
+    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) {
+      return;
+    }
+
+    // Show banner if prompt is available or if iOS
+    if (deferredPrompt) {
+      setShowBanner(true);
+    } else if (isIOS) {
+      // Delay for iOS to not be intrusive immediately
+      const timer = setTimeout(() => setShowBanner(true), 3000);
+      return () => clearTimeout(timer);
     }
   }, [deferredPrompt, isIOS, isStandalone]);
 
@@ -30,7 +34,7 @@ export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIO
     localStorage.setItem('install-banner-dismissed', Date.now().toString());
   };
 
-  if (isStandalone || !showBanner) return null;
+  if (!showBanner) return null;
 
   return (
     <AnimatePresence>
@@ -64,14 +68,14 @@ export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIO
               </h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                 {isIOS 
-                  ? 'Toque em "Compartilhar" e depois "Adicionar à Tela de Início"'
+                  ? 'Instale o app para acesso rápido'
                   : 'Instale o app para acesso rápido no seu dispositivo'
                 }
               </p>
             </div>
           </div>
 
-          {!isIOS && deferredPrompt && (
+          {!isIOS && (
             <div className="flex gap-2 mt-4">
               <Button
                 variant="outline"
@@ -83,7 +87,7 @@ export default function InstallAppBanner({ theme = 'light', deferredPrompt, isIO
               </Button>
               <Button
                 size="sm"
-                onClick={handleInstall}
+                onClick={onInstall}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
                 <Download className="w-4 h-4 mr-2" />

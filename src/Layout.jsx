@@ -47,6 +47,9 @@ export default function Layout({ children, currentPageName }) {
     const [user, setUser] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+    const [deferredPrompt, setDeferredPrompt] = React.useState(null);
+    const [isIOS, setIsIOS] = React.useState(false);
+    const [isStandalone, setIsStandalone] = React.useState(false);
     const [theme, setTheme] = React.useState(() => {
       if (typeof window !== 'undefined') {
         return localStorage.getItem('juris-theme') || 'light';
@@ -54,14 +57,14 @@ export default function Layout({ children, currentPageName }) {
       return 'light';
     });
 
-    // PWA Logic
-    const [deferredPrompt, setDeferredPrompt] = React.useState(null);
-    const [isIOS, setIsIOS] = React.useState(false);
-    const [isStandalone, setIsStandalone] = React.useState(false);
+    React.useEffect(() => {
+      base44.auth.me()
+        .then(setUser)
+        .catch(() => setUser(null))
+        .finally(() => setIsLoading(false));
+    }, []);
 
     React.useEffect(() => {
-      if (typeof window === 'undefined') return;
-
       const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       setIsStandalone(standalone);
 
@@ -74,10 +77,13 @@ export default function Layout({ children, currentPageName }) {
       };
 
       window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      };
     }, []);
 
-    const handleInstallClick = async () => {
+    const handleInstallApp = async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -85,16 +91,9 @@ export default function Layout({ children, currentPageName }) {
           setDeferredPrompt(null);
         }
       } else if (isIOS) {
-        alert('Para instalar no iOS: toque em Compartilhar (ícone quadrado com seta) e selecione "Adicionar à Tela de Início"');
+        alert('Para instalar no iOS:\n1. Toque no botão de compartilhar\n2. Selecione "Adicionar à Tela de Início"');
       }
     };
-
-    React.useEffect(() => {
-      base44.auth.me()
-        .then(setUser)
-        .catch(() => setUser(null))
-        .finally(() => setIsLoading(false));
-    }, []);
 
     React.useEffect(() => {
       document.documentElement.setAttribute('data-theme', theme);
@@ -154,7 +153,7 @@ export default function Layout({ children, currentPageName }) {
         deferredPrompt={deferredPrompt}
         isIOS={isIOS}
         isStandalone={isStandalone}
-        handleInstall={handleInstallClick}
+        onInstall={handleInstallApp}
       />
       
       <style>{`
@@ -191,19 +190,17 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center gap-2">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
-              {/* PWA Install Button (Desktop) */}
-              {(!isStandalone && (deferredPrompt || isIOS)) && (
+              {!isStandalone && (deferredPrompt || isIOS) && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  onClick={handleInstallClick}
-                  className="h-9 hidden lg:flex border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800 gap-2"
+                  onClick={handleInstallApp}
+                  className="hidden md:flex items-center gap-2 text-neutral-400 hover:text-white mr-2"
                 >
                   <Download className="w-4 h-4" />
-                  <span className="hidden xl:inline">Instalar App</span>
+                  <span className="hidden lg:inline">Instalar App</span>
                 </Button>
               )}
-
               <Link
                 to={createPageUrl("Pricing")}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
@@ -243,15 +240,6 @@ export default function Layout({ children, currentPageName }) {
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator className="bg-gray-200" />
-                
-                {/* Install Option in Menu for Mobile/Tablet */}
-                {(!isStandalone && (deferredPrompt || isIOS)) && (
-                  <DropdownMenuItem onClick={handleInstallClick} className="flex items-center gap-2 cursor-pointer text-gray-700 lg:hidden">
-                    <Download className="w-4 h-4" />
-                    <span>Instalar App</span>
-                  </DropdownMenuItem>
-                )}
-
                 <DropdownMenuItem asChild>
                   <Link to={createPageUrl("Settings")} className="flex items-center gap-2 cursor-pointer text-gray-700">
                     <Settings className="w-4 h-4" />
@@ -304,6 +292,18 @@ export default function Layout({ children, currentPageName }) {
                 {navigationItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
+                {!isStandalone && (deferredPrompt || isIOS) && (
+                  <button
+                    onClick={() => {
+                      handleInstallApp();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-neutral-400 hover:text-white w-full text-left mt-2 border-t border-neutral-800 pt-3"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Instalar Aplicativo</span>
+                  </button>
+                )}
               </nav>
             </motion.div>
           </>
