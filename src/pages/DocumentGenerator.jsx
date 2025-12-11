@@ -110,9 +110,8 @@ export default function DocumentGenerator() {
     queryKey: ['my-generated-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filtra documentos onde o usuário é o criador
-      const docs = await base44.entities.LegalDocument.list('-created_date');
-      return docs.filter(d => d.created_by === user.email);
+      // Uses filter instead of list for reliable retrieval of user's documents
+      return await base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
     },
     enabled: !!user?.email
   });
@@ -124,11 +123,11 @@ export default function DocumentGenerator() {
       
       return await base44.entities.LegalDocument.create({
         title: documentTitle,
-        type: "outros", // Simplificando para evitar erro de enum se o tipo não bater exato
+        type: "outros",
         content: generatedContent,
         status: "draft",
-        notes: `Gerado via IA - Área: ${selectedArea.name} - Tipo: ${selectedDocType}`,
-        created_by: user.email // Garante ownership explícito
+        notes: `Gerado via IA - Área: ${selectedArea.name} - Tipo: ${selectedDocType}`
+        // created_by is a system field and automatically set by the backend
       });
     },
     onSuccess: () => {

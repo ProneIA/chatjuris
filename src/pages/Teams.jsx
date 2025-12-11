@@ -45,16 +45,9 @@ export default function Teams({ theme = 'light' }) {
     queryKey: ['teams-list', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      
-      // Busca TODAS as equipes e filtra no frontend para garantir visibilidade imediata
-      // Isso resolve o problema de "criei e não apareceu" se o RLS tiver delay ou cache
-      const allTeams = await base44.entities.Team.list('-created_date');
-      
-      return allTeams.filter(team => {
-        const isOwner = team.owner_email === user.email;
-        const isMember = Array.isArray(team.members) && team.members.includes(user.email);
-        return isOwner || isMember;
-      });
+      // Rely on RLS (Row Level Security) to return only teams the user has access to
+      // fetching with a filter for safety where possible, or just listing as RLS enforces visibility
+      return await base44.entities.Team.list('-created_date');
     },
     enabled: !!user?.email
   });
@@ -64,12 +57,12 @@ export default function Teams({ theme = 'light' }) {
     mutationFn: async () => {
       if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
       
-      // Criação explícita garantindo que o criador é owner e membro
+      // Explicit creation ensuring creator is owner and member
       return await base44.entities.Team.create({
         name: newTeamName,
         description: newTeamDesc,
         owner_email: user.email,
-        members: [user.email], // Importante: incluir a si mesmo como membro
+        members: [user.email], 
         is_active: true
       });
     },
