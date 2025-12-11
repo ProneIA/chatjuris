@@ -9,7 +9,6 @@ import Jurisprudence from './pages/Jurisprudence';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Settings from './pages/Settings';
-import Teams from './pages/Teams';
 import TeamWorkspace from './pages/TeamWorkspace';
 import PaymentSuccess from './pages/PaymentSuccess';
 import LandingPage from './pages/LandingPage';
@@ -28,6 +27,7 @@ import ContactPublic from './pages/ContactPublic';
 import GestaoHub from './pages/GestaoHub';
 import FerramentasHub from './pages/FerramentasHub';
 import ColaboracaoHub from './pages/ColaboracaoHub';
+import Teams from './pages/Teams';
 import __Layout from './Layout.jsx';
 
 
@@ -43,7 +43,6 @@ export const PAGES = {
     "Pricing": Pricing,
     "Contact": Contact,
     "Settings": Settings,
-    "Teams": Teams,
     "TeamWorkspace": TeamWorkspace,
     "PaymentSuccess": PaymentSuccess,
     "LandingPage": LandingPage,
@@ -62,6 +61,7 @@ export const PAGES = {
     "GestaoHub": GestaoHub,
     "FerramentasHub": FerramentasHub,
     "ColaboracaoHub": ColaboracaoHub,
+    "Teams": Teams,
 }
 
 export const pagesConfig = {

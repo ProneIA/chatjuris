@@ -4,9 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
+import ClientPayments from "../components/clients/ClientPayments";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Clients({ theme = 'light' }) {
@@ -16,6 +18,7 @@ export default function Clients({ theme = 'light' }) {
   const [selectedClient, setSelectedClient] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("list");
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -140,32 +143,47 @@ export default function Clients({ theme = 'light' }) {
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-          {showForm ? (
-            <PlanLimitGuard
-              subscription={subscription}
-              currentCount={clients.length}
-              limitCount={3}
-              entityName="clientes"
-            >
-              <ClientForm
-                client={editingClient}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingClient(null);
-                }}
-                isLoading={createMutation.isPending || updateMutation.isPending}
-              />
-            </PlanLimitGuard>
-          ) : (
-            <ClientList
-              clients={filteredClients}
-              isLoading={isLoading}
-              onSelectClient={setSelectedClient}
-              selectedClient={selectedClient}
-            />
-          )}
+        <div className={`flex-1 overflow-y-auto ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+            <div className={`px-6 pt-4 border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+              <TabsList className={isDark ? 'bg-neutral-900' : 'bg-white'}>
+                <TabsTrigger value="list">Clientes</TabsTrigger>
+                <TabsTrigger value="payments">Honorários e Pagamentos</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="list" className="p-6 mt-0">
+              {showForm ? (
+                <PlanLimitGuard
+                  subscription={subscription}
+                  currentCount={clients.length}
+                  limitCount={3}
+                  entityName="clientes"
+                >
+                  <ClientForm
+                    client={editingClient}
+                    onSubmit={handleSubmit}
+                    onCancel={() => {
+                      setShowForm(false);
+                      setEditingClient(null);
+                    }}
+                    isLoading={createMutation.isPending || updateMutation.isPending}
+                  />
+                </PlanLimitGuard>
+              ) : (
+                <ClientList
+                  clients={filteredClients}
+                  isLoading={isLoading}
+                  onSelectClient={setSelectedClient}
+                  selectedClient={selectedClient}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="payments" className="p-6 mt-0">
+              <ClientPayments clients={clients} theme={theme} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
@@ -175,7 +193,6 @@ export default function Clients({ theme = 'light' }) {
           client={selectedClient}
           onClose={() => setSelectedClient(null)}
           onEdit={handleEdit}
-          theme={theme}
         />
       )}
     </div>

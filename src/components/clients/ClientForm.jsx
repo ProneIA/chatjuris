@@ -127,14 +127,14 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
               <Label htmlFor="marital_status">Estado Civil</Label>
               <Select value={formData.marital_status} onValueChange={(v) => handleChange('marital_status', v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
+                  <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="single">Solteiro(a)</SelectItem>
                   <SelectItem value="married">Casado(a)</SelectItem>
                   <SelectItem value="divorced">Divorciado(a)</SelectItem>
                   <SelectItem value="widowed">Viúvo(a)</SelectItem>
-                  <SelectItem value="common_law">União Estável</SelectItem>
+                  <SelectItem value="stable_union">União Estável</SelectItem>
                 </SelectContent>
               </Select>
             </div>
