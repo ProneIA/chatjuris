@@ -130,6 +130,7 @@ export default function ClientDetails({ client, onClose, onEdit, theme = 'light'
               {client.created_by && <p>Por: {client.created_by}</p>}
             </div>
           </div>
+        </div>
         </TabsContent>
 
         <TabsContent value="finances" className="p-6">
