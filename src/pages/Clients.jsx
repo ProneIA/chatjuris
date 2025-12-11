@@ -8,7 +8,6 @@ import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
 import PlanLimitGuard from "../components/common/PlanLimitGuard";
-import SophisticatedLoader from "@/components/common/SophisticatedLoader";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -176,6 +175,7 @@ export default function Clients({ theme = 'light' }) {
           client={selectedClient}
           onClose={() => setSelectedClient(null)}
           onEdit={handleEdit}
+          theme={theme}
         />
       )}
     </div>

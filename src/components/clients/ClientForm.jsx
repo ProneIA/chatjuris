@@ -14,6 +14,7 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
     email: "",
     phone: "",
     address: "",
+    marital_status: "",
     type: "individual",
     status: "active",
     notes: ""
@@ -26,7 +27,7 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (!formData.name || !formData.phone) {
       alert("⚠️ Preencha todos os campos obrigatórios");
       return;
     }
@@ -35,7 +36,9 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
     
     // Limpar campos vazios
     if (!dataToSubmit.cpf_cnpj || dataToSubmit.cpf_cnpj === "") delete dataToSubmit.cpf_cnpj;
+    if (!dataToSubmit.email || dataToSubmit.email === "") delete dataToSubmit.email;
     if (!dataToSubmit.address || dataToSubmit.address === "") delete dataToSubmit.address;
+    if (!dataToSubmit.marital_status || dataToSubmit.marital_status === "") delete dataToSubmit.marital_status;
     if (!dataToSubmit.notes || dataToSubmit.notes === "") delete dataToSubmit.notes;
     
     onSubmit(dataToSubmit);
@@ -101,13 +104,12 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                required
               />
             </div>
 
@@ -119,6 +121,22 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
                 onChange={(e) => handleChange('phone', e.target.value)}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="marital_status">Estado Civil</Label>
+              <Select value={formData.marital_status} onValueChange={(v) => handleChange('marital_status', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="single">Solteiro(a)</SelectItem>
+                  <SelectItem value="married">Casado(a)</SelectItem>
+                  <SelectItem value="divorced">Divorciado(a)</SelectItem>
+                  <SelectItem value="widowed">Viúvo(a)</SelectItem>
+                  <SelectItem value="common_law">União Estável</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

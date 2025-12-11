@@ -333,11 +333,11 @@ Formate a resposta em Markdown para melhor visualização.`;
                     </label>
                     <Input
                       type="number"
-                      placeholder="Ex: 2024"
+                      placeholder="Ex: 2025"
                       value={maxYear}
                       onChange={(e) => setMaxYear(e.target.value)}
                       min="1900"
-                      max={new Date().getFullYear()}
+                      max="2025"
                     />
                   </div>
                 </div>
