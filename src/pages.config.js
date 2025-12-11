@@ -27,6 +27,7 @@ import ContactPublic from './pages/ContactPublic';
 import GestaoHub from './pages/GestaoHub';
 import FerramentasHub from './pages/FerramentasHub';
 import ColaboracaoHub from './pages/ColaboracaoHub';
+import DocumentGeneratorChat from './pages/DocumentGeneratorChat';
 import Teams from './pages/Teams';
 import __Layout from './Layout.jsx';
 
@@ -61,6 +62,7 @@ export const PAGES = {
     "GestaoHub": GestaoHub,
     "FerramentasHub": FerramentasHub,
     "ColaboracaoHub": ColaboracaoHub,
+    "DocumentGeneratorChat": DocumentGeneratorChat,
     "Teams": Teams,
 }
 
