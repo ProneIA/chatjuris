@@ -27,7 +27,12 @@ export default function Teams({ theme = 'light' }) {
     queryKey: ['teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Team.list('-created_date');
+      const allTeams = await base44.entities.Team.list('-created_date');
+      // Filtrar apenas equipes que o usuário possui ou é membro
+      return allTeams.filter(t => 
+        t.owner_email === user.email || 
+        (t.members && t.members.includes(user.email))
+      );
     },
     enabled: !!user?.email
   });

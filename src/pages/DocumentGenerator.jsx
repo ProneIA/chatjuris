@@ -251,6 +251,7 @@ export default function DocumentGenerator() {
     try {
       const isUpdating = generatedContent !== "";
       
+      // Adicionar mensagem do usuário ao histórico
       const userMessage = {
         role: 'user',
         content: additionalInfo
@@ -341,6 +342,7 @@ IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.
         add_context_from_internet: !isUpdating,
       });
 
+      // Adicionar resposta ao histórico
       const assistantMessage = {
         role: 'assistant',
         content: response
