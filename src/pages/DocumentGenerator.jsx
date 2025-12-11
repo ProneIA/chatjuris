@@ -182,6 +182,7 @@ export default function DocumentGenerator() {
   const [generatedContent, setGeneratedContent] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [documentTitle, setDocumentTitle] = useState("");
+  const [conversationHistory, setConversationHistory] = useState([]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -230,6 +231,11 @@ export default function DocumentGenerator() {
       return;
     }
 
+    if (!additionalInfo.trim()) {
+      toast.error("Digite as informações ou alterações desejadas");
+      return;
+    }
+
     // Verificar limite de uso
     if (subscription?.plan === "free") {
       const used = subscription.daily_actions_used || 0;
@@ -241,30 +247,61 @@ export default function DocumentGenerator() {
     }
 
     setIsGenerating(true);
-    setGeneratedContent("");
 
     try {
-      // Montar contexto com dados do sistema
-      let context = `
+      const isUpdating = generatedContent !== "";
+      
+      // Adicionar mensagem do usuário ao histórico
+      const userMessage = {
+        role: 'user',
+        content: additionalInfo
+      };
+
+      const updatedHistory = [...conversationHistory, userMessage];
+
+      let prompt;
+      
+      if (isUpdating) {
+        // Modo de atualização - refinar documento existente
+        prompt = `Você é um advogado brasileiro especializado. 
+
+DOCUMENTO ATUAL:
+${generatedContent}
+
+O usuário solicitou as seguintes modificações ou adições:
+${additionalInfo}
+
+TAREFA: ATUALIZE o documento existente incorporando as novas informações ou modificações solicitadas.
+
+IMPORTANTE:
+- NÃO crie um documento novo do zero
+- Mantenha a estrutura e formatação jurídica existente
+- Integre as mudanças de forma natural e coerente
+- Se for adicionar informações, insira no local apropriado
+- Se for modificar, substitua apenas o necessário
+- Retorne o documento COMPLETO atualizado`;
+      } else {
+        // Modo de geração inicial
+        let context = `
 TIPO DE DOCUMENTO: ${selectedDocument.name}
 DESCRIÇÃO: ${selectedDocument.description}
 ÁREA DO DIREITO: ${selectedArea?.name}
 `;
 
-      if (selectedClientData) {
-        context += `
+        if (selectedClientData) {
+          context += `
 DADOS DO CLIENTE:
 - Nome: ${selectedClientData.name}
 - CPF/CNPJ: ${selectedClientData.cpf_cnpj || "Não informado"}
-- Email: ${selectedClientData.email}
+- Email: ${selectedClientData.email || "Não informado"}
 - Telefone: ${selectedClientData.phone}
 - Endereço: ${selectedClientData.address || "Não informado"}
 - Tipo: ${selectedClientData.type === "individual" ? "Pessoa Física" : "Pessoa Jurídica"}
 `;
-      }
+        }
 
-      if (selectedCaseData) {
-        context += `
+        if (selectedCaseData) {
+          context += `
 DADOS DO PROCESSO:
 - Número: ${selectedCaseData.case_number || "Não informado"}
 - Título: ${selectedCaseData.title}
@@ -277,18 +314,14 @@ DADOS DO PROCESSO:
 - Data de Início: ${selectedCaseData.start_date || "Não informado"}
 - Prazo: ${selectedCaseData.deadline || "Não informado"}
 `;
-      }
+        }
 
-      if (additionalInfo) {
-        context += `
-INFORMAÇÕES ADICIONAIS DO USUÁRIO:
-${additionalInfo}
-`;
-      }
-
-      const prompt = `Você é um advogado brasileiro altamente experiente e especializado em ${selectedArea?.name}.
+        prompt = `Você é um advogado brasileiro altamente experiente e especializado em ${selectedArea?.name}.
 
 ${context}
+
+INFORMAÇÕES E SOLICITAÇÃO DO USUÁRIO:
+${additionalInfo}
 
 TAREFA: Gere uma peça jurídica completa do tipo "${selectedDocument.name}" com base nas informações fornecidas.
 
@@ -302,14 +335,28 @@ DIRETRIZES:
 7. Se alguma informação estiver faltando, indique com [COMPLETAR]
 
 IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.`;
+      }
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
-        add_context_from_internet: true,
+        add_context_from_internet: !isUpdating,
       });
 
+      // Adicionar resposta ao histórico
+      const assistantMessage = {
+        role: 'assistant',
+        content: response
+      };
+
+      setConversationHistory([...updatedHistory, assistantMessage]);
       setGeneratedContent(response);
-      setDocumentTitle(`${selectedDocument.name} - ${selectedClientData?.name || "Novo"}`);
+      
+      if (!isUpdating) {
+        setDocumentTitle(`${selectedDocument.name} - ${selectedClientData?.name || "Novo"}`);
+      }
+
+      // Limpar campo de input
+      setAdditionalInfo("");
 
       // Atualizar contador de uso
       if (subscription?.plan === "free") {
@@ -318,12 +365,21 @@ IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.
         });
         queryClient.invalidateQueries({ queryKey: ["subscription"] });
       }
+
+      toast.success(isUpdating ? "Documento atualizado!" : "Documento gerado com sucesso!");
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao gerar documento. Tente novamente.");
+      toast.error("Erro ao processar documento. Tente novamente.");
     }
 
     setIsGenerating(false);
+  };
+
+  const handleReset = () => {
+    setGeneratedContent("");
+    setConversationHistory([]);
+    setAdditionalInfo("");
+    setDocumentTitle("");
   };
 
   const handleSave = async () => {
@@ -527,12 +583,16 @@ IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.
                       </div>
 
                       <div>
-                        <Label className="text-sm">Informações Adicionais</Label>
+                        <Label className="text-sm">
+                          {generatedContent ? "Adicionar ou Modificar Informações" : "Informações do Documento"}
+                        </Label>
                         <Textarea
                           value={additionalInfo}
                           onChange={(e) => setAdditionalInfo(e.target.value)}
-                          placeholder="Descreva detalhes específicos, argumentos, fatos relevantes..."
-                          className="mt-1 min-h-[100px]"
+                          placeholder={generatedContent 
+                            ? "Digite aqui para adicionar informações ou solicitar modificações no documento..."
+                            : "Descreva detalhes específicos, argumentos, fatos relevantes para o documento..."}
+                          className="mt-1 min-h-[120px]"
                         />
                       </div>
                     </CardContent>
@@ -541,25 +601,36 @@ IMPORTANTE: Gere o documento completo, pronto para uso, em formato profissional.
               )}
             </AnimatePresence>
 
-            {/* Botão Gerar */}
+            {/* Botões de Ação */}
             {selectedDocument && (
-              <Button
-                onClick={handleGenerate}
-                disabled={isGenerating}
-                className="w-full py-6 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Gerando documento...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Gerar com IA
-                  </>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !additionalInfo.trim()}
+                  className="w-full py-6 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      {generatedContent ? "Atualizando..." : "Gerando..."}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      {generatedContent ? "Atualizar Documento" : "Gerar com IA"}
+                    </>
+                  )}
+                </Button>
+                {generatedContent && (
+                  <Button
+                    onClick={handleReset}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Nova Peça
+                  </Button>
                 )}
-              </Button>
+              </div>
             )}
           </div>
 
