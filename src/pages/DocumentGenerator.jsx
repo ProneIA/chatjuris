@@ -4,210 +4,122 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  FileText,
-  Sparkles,
-  Loader2,
-  Download,
-  Copy,
-  Save,
-  Scale,
-  Briefcase,
-  Heart,
-  Building2,
-  ShoppingCart,
-  Gavel,
-  FileSearch,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  History,
-  Trash2
-} from "lucide-react";
+import { Loader2, Save, Sparkles, FileText, Trash2, Copy, Download, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
-// Configuração das Áreas e Documentos
-const legalAreas = [
-  { 
-    id: "civil", 
-    name: "Cível", 
-    icon: Scale, 
-    color: "text-blue-600 bg-blue-50 border-blue-200",
-    docs: ["Petição Inicial", "Contestação", "Réplica", "Recurso de Apelação", "Agravo de Instrumento", "Embargos de Declaração", "Contrato de Prestação de Serviços", "Notificação Extrajudicial"] 
-  },
-  { 
-    id: "trabalhista", 
-    name: "Trabalhista", 
-    icon: Briefcase, 
-    color: "text-orange-600 bg-orange-50 border-orange-200",
-    docs: ["Reclamação Trabalhista", "Contestação Trabalhista", "Recurso Ordinário", "Acordo Extrajudicial", "Contrato de Trabalho"] 
-  },
-  { 
-    id: "criminal", 
-    name: "Criminal", 
-    icon: Gavel, 
-    color: "text-red-600 bg-red-50 border-red-200",
-    docs: ["Habeas Corpus", "Resposta à Acusação", "Pedido de Liberdade Provisória", "Alegações Finais", "Apelação Criminal"] 
-  },
-  { 
-    id: "familia", 
-    name: "Família", 
-    icon: Heart, 
-    color: "text-pink-600 bg-pink-50 border-pink-200",
-    docs: ["Ação de Alimentos", "Divórcio Consensual", "Divórcio Litigioso", "Regulamentação de Guarda", "Investigação de Paternidade"] 
-  },
-  { 
-    id: "empresarial", 
-    name: "Empresarial", 
-    icon: Building2, 
-    color: "text-purple-600 bg-purple-50 border-purple-200",
-    docs: ["Contrato Social", "Acordo de Sócios", "Alteração Contratual", "Memorando de Entendimento (MoU)"] 
-  },
-  { 
-    id: "consumidor", 
-    name: "Consumidor", 
-    icon: ShoppingCart, 
-    color: "text-green-600 bg-green-50 border-green-200",
-    docs: ["Ação Indenizatória", "Reclamação Procon", "Defesa do Fornecedor"] 
-  },
+const DOCUMENT_TYPES = [
+  { value: "peticao", label: "Petição Inicial" },
+  { value: "contestacao", label: "Contestação" },
+  { value: "recurso", label: "Recurso" },
+  { value: "contrato", label: "Contrato" },
+  { value: "procuracao", label: "Procuração" },
+  { value: "parecer", label: "Parecer Jurídico" },
+  { value: "memorando", label: "Memorando" },
+  { value: "notificacao", label: "Notificação Extrajudicial" },
+  { value: "outros", label: "Outros" },
 ];
 
 export default function DocumentGenerator() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
-  
-  // Estado do Formulário
-  const [step, setStep] = useState(1);
-  const [selectedArea, setSelectedArea] = useState(null);
-  const [selectedDocType, setSelectedDocType] = useState(null);
-  const [documentTitle, setDocumentTitle] = useState("");
-  const [contextData, setContextData] = useState("");
-  
-  // Estado da Geração
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState("");
-  const [conversationHistory, setConversationHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState("generator");
 
+  // Generator State
+  const [docType, setDocType] = useState("peticao");
+  const [title, setTitle] = useState("");
+  const [context, setContext] = useState("");
+  const [generatedContent, setGeneratedContent] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Auth Check
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Buscar documentos gerados pelo usuário
-  const { data: myDocuments = [] } = useQuery({
-    queryKey: ['my-generated-documents', user?.email],
+  // Fetch Documents
+  const { data: documents = [], isLoading: isLoadingDocs } = useQuery({
+    queryKey: ['my-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Uses filter instead of list for reliable retrieval of user's documents
+      // Explicitly fetch documents created by the user to ensure visibility
       return await base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
     },
     enabled: !!user?.email
   });
 
-  // Mutação para salvar documento
+  // Create/Save Document Mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!documentTitle || !generatedContent) throw new Error("Dados incompletos");
+      if (!title.trim() || !generatedContent.trim()) {
+        throw new Error("Título e conteúdo são obrigatórios");
+      }
       
       return await base44.entities.LegalDocument.create({
-        title: documentTitle,
-        type: "outros",
+        title: title,
+        type: docType,
         content: generatedContent,
         status: "draft",
-        notes: `Gerado via IA - Área: ${selectedArea.name} - Tipo: ${selectedDocType}`
-        // created_by is a system field and automatically set by the backend
+        notes: "Gerado via IA",
+        // 'created_by' is set automatically by the backend system
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-generated-documents'] });
-      toast.success("Documento salvo com sucesso! Veja na aba 'Meus Documentos'.");
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast.success("Documento salvo com sucesso!");
+      setActiveTab("list");
+      // Optional: Clear form
+      // setGeneratedContent("");
+      // setTitle("");
+      // setContext("");
     },
-    onError: (err) => {
-      console.error(err);
-      toast.error("Erro ao salvar documento. Tente novamente.");
+    onError: (error) => {
+      console.error(error);
+      toast.error("Erro ao salvar documento.");
     }
   });
 
-  // Mutação para excluir documento
+  // Delete Mutation
   const deleteMutation = useMutation({
     mutationFn: async (id) => await base44.entities.LegalDocument.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-generated-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
       toast.success("Documento excluído.");
     }
   });
 
   const handleGenerate = async () => {
-    if (!contextData.trim() && !generatedContent) {
-      toast.error("Por favor, forneça as informações para o documento.");
+    if (!context.trim()) {
+      toast.error("Por favor, descreva o caso ou o documento.");
       return;
     }
 
     setIsGenerating(true);
-
     try {
-      const isRefining = !!generatedContent;
-      const currentPrompt = contextData;
+      const prompt = `
+      Você é um assistente jurídico sênior.
+      Tarefa: Redigir um documento do tipo "${docType}".
+      Título/Assunto: "${title}".
+      Contexto/Detalhes: "${context}".
       
-      let systemPrompt = "";
-      
-      if (isRefining) {
-        systemPrompt = `Você é um advogado especialista.
-        
-DOCUMENTO ATUAL:
-${generatedContent}
-
-SOLICITAÇÃO DE ALTERAÇÃO:
-${currentPrompt}
-
-TAREFA: Reescreva o documento incorporando as alterações solicitadas. Mantenha a formatação Markdown. Retorne APENAS o documento atualizado.`;
-      } else {
-        systemPrompt = `Você é um advogado especialista em Direito ${selectedArea?.name || 'Brasileiro'}.
-        
-TAREFA: Redigir um(a) ${selectedDocType} completo(a) e profissional.
-
-INFORMAÇÕES DO CASO:
-${currentPrompt}
-
-DIRETRIZES:
-1. Use linguagem jurídica formal e técnica.
-2. Estruture com qualificação, fatos, direito, pedidos e fechamento.
-3. Cite leis e artigos pertinentes (CF, CC, CPC, CLT, etc).
-4. Use formatação Markdown (títulos #, negrito **, listas -).
-5. Deixe espaços como [COMPLETAR] para dados faltantes.
-
-Retorne APENAS o conteúdo do documento.`;
-      }
-
-      // Adicionar ao histórico local
-      const newHistory = [...conversationHistory, { role: 'user', content: currentPrompt }];
-      setConversationHistory(newHistory);
+      Diretrizes:
+      - Use linguagem jurídica formal (PT-BR).
+      - Estruture corretamente (Qualificação, Fatos, Direito, Pedidos, etc.).
+      - Use Markdown para formatação.
+      - Retorne APENAS o conteúdo do documento.
+      `;
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: systemPrompt,
-        add_context_from_internet: !isRefining
+        prompt: prompt,
+        add_context_from_internet: true
       });
 
       setGeneratedContent(response);
-      setContextData(""); // Limpa o input
-      
-      // Se for a primeira vez, sugere um título
-      if (!documentTitle) {
-        setDocumentTitle(`${selectedDocType} - ${new Date().toLocaleDateString()}`);
-      }
-
+      toast.success("Documento gerado!");
     } catch (error) {
       console.error(error);
       toast.error("Erro na geração. Tente novamente.");
@@ -216,161 +128,95 @@ Retorne APENAS o conteúdo do documento.`;
     }
   };
 
-  const resetGenerator = () => {
-    setStep(1);
-    setSelectedArea(null);
-    setSelectedDocType(null);
-    setGeneratedContent("");
-    setDocumentTitle("");
-    setContextData("");
-    setConversationHistory([]);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerador de Peças Jurídicas</h1>
-            <p className="text-gray-500">Crie, edite e salve documentos jurídicos com Inteligência Artificial</p>
-          </div>
-          {step > 1 && (
-            <Button variant="outline" onClick={resetGenerator}>
-              Novo Documento
-            </Button>
-          )}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900">Gerador de Peças Jurídicas</h1>
         </div>
 
-        <Tabs defaultValue="generator" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="generator">Gerador IA</TabsTrigger>
-            <TabsTrigger value="history">Meus Documentos Salvos</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+            <TabsTrigger value="generator">Novo Documento</TabsTrigger>
+            <TabsTrigger value="list">Meus Documentos</TabsTrigger>
           </TabsList>
 
-          {/* TAB GERADOR */}
-          <TabsContent value="generator" className="mt-6">
-            <div className="grid lg:grid-cols-12 gap-6">
+          {/* GENERATOR TAB */}
+          <TabsContent value="generator" className="space-y-6">
+            <div className="grid lg:grid-cols-2 gap-6">
               
-              {/* Coluna da Esquerda: Configuração e Chat */}
-              <div className="lg:col-span-5 space-y-6">
-                
-                {/* Passo 1: Seleção de Área */}
-                {step === 1 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>1. Selecione a Área do Direito</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 gap-3">
-                      {legalAreas.map((area) => (
-                        <button
-                          key={area.id}
-                          onClick={() => {
-                            setSelectedArea(area);
-                            setStep(2);
-                          }}
-                          className={`p-4 rounded-xl border text-left transition-all hover:shadow-md flex flex-col items-center justify-center gap-2 ${area.color}`}
-                        >
-                          <area.icon className="w-6 h-6" />
-                          <span className="font-medium">{area.name}</span>
-                        </button>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+              {/* Input Section */}
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle>Configuração</CardTitle>
+                  <CardDescription>Defina os parâmetros para a IA gerar sua peça.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tipo de Peça</label>
+                    <Select value={docType} onValueChange={setDocType}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DOCUMENT_TYPES.map(t => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Passo 2: Tipo de Documento */}
-                {step === 2 && (
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle>2. Tipo de Peça ({selectedArea?.name})</CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => setStep(1)}>Voltar</Button>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {selectedArea?.docs.map((doc, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setSelectedDocType(doc);
-                            setStep(3);
-                          }}
-                          className="w-full p-3 text-left rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors flex items-center justify-between group"
-                        >
-                          <span>{doc}</span>
-                          <CheckCircle2 className="w-4 h-4 text-gray-300 group-hover:text-green-500 opacity-0 group-hover:opacity-100 transition-all" />
-                        </button>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Título do Documento</label>
+                    <Input 
+                      placeholder="Ex: Ação de Cobrança - Silva vs Souza" 
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </div>
 
-                {/* Passo 3: Input de Dados (Chat) */}
-                {step === 3 && (
-                  <Card className="h-full border-indigo-100 shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-indigo-600" />
-                        {generatedContent ? "Refinar Documento" : "Dados do Documento"}
-                      </CardTitle>
-                      <CardDescription>
-                        {generatedContent 
-                          ? "Peça ajustes, correções ou adicione novas informações." 
-                          : `Descreva os fatos, partes e detalhes para gerar: ${selectedDocType}`}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <Textarea
-                        value={contextData}
-                        onChange={(e) => setContextData(e.target.value)}
-                        placeholder={generatedContent 
-                          ? "Ex: Adicione um tópico sobre danos morais..." 
-                          : "Ex: Cliente João Silva, CPF..., contra Empresa X, motivo: cobrança indevida de R$ 500,00..."}
-                        className="min-h-[150px] text-base p-4 resize-none focus-visible:ring-indigo-500"
-                      />
-                      
-                      <Button 
-                        onClick={handleGenerate} 
-                        disabled={isGenerating || !contextData.trim()}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-lg"
-                      >
-                        {isGenerating ? (
-                          <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            {generatedContent ? "Atualizando..." : "Gerando..."}
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-5 h-5 mr-2" />
-                            {generatedContent ? "Atualizar Documento" : "Gerar Documento"}
-                          </>
-                        )}
-                      </Button>
-                      
-                      <Button variant="ghost" onClick={() => setStep(2)} className="w-full text-gray-500">
-                        Voltar / Trocar Tipo
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Fatos e Contexto</label>
+                    <Textarea 
+                      placeholder="Descreva os fatos, partes envolvidas, valores e fundamentos jurídicos desejados..."
+                      className="min-h-[200px]"
+                      value={context}
+                      onChange={(e) => setContext(e.target.value)}
+                    />
+                  </div>
 
-              {/* Coluna da Direita: Preview e Ações */}
-              <div className="lg:col-span-7">
-                {generatedContent ? (
-                  <Card className="h-full flex flex-col border-indigo-200 shadow-md overflow-hidden">
-                    <div className="p-4 border-b bg-gray-50 flex items-center justify-between gap-4">
-                      <Input
-                        value={documentTitle}
-                        onChange={(e) => setDocumentTitle(e.target.value)}
-                        placeholder="Título do Documento"
-                        className="font-semibold bg-white border-gray-300"
-                      />
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Button variant="outline" size="icon" onClick={() => {
-                          navigator.clipboard.writeText(generatedContent);
-                          toast.success("Copiado!");
-                        }} title="Copiar">
+                  <Button 
+                    onClick={handleGenerate} 
+                    disabled={isGenerating || !context.trim()}
+                    className="w-full"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Gerar Documento
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Preview Section */}
+              <Card className="flex flex-col h-[800px]">
+                <CardHeader className="flex flex-row items-center justify-between py-4 border-b">
+                  <CardTitle>Pré-visualização</CardTitle>
+                  <div className="flex gap-2">
+                    {generatedContent && (
+                      <>
+                         <Button variant="outline" size="icon" onClick={() => {
+                            navigator.clipboard.writeText(generatedContent);
+                            toast.success("Copiado!");
+                          }}>
                           <Copy className="w-4 h-4" />
                         </Button>
                         <Button 
@@ -381,90 +227,107 @@ Retorne APENAS o conteúdo do documento.`;
                           {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                           Salvar
                         </Button>
-                      </div>
-                    </div>
-                    
-                    <ScrollArea className="flex-1 bg-white p-6 h-[600px]">
-                      <div className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-700">
+                      </>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 p-0 overflow-hidden bg-white">
+                  <ScrollArea className="h-full p-6">
+                    {generatedContent ? (
+                      <div className="prose prose-sm max-w-none">
                         <ReactMarkdown>{generatedContent}</ReactMarkdown>
                       </div>
-                    </ScrollArea>
-                  </Card>
-                ) : (
-                  <div className="h-full min-h-[400px] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 text-center p-8">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-                      <FileText className="w-10 h-10 text-gray-300" />
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">Aguardando Geração</h3>
-                    <p className="text-gray-500 max-w-sm">
-                      Selecione a área, o tipo de documento e forneça as informações ao lado para começar.
-                    </p>
-                  </div>
-                )}
-              </div>
-
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <FileText className="w-16 h-16 mb-4 opacity-20" />
+                        <p>O documento gerado aparecerá aqui.</p>
+                      </div>
+                    )}
+                  </ScrollArea>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
-          {/* TAB MEUS DOCUMENTOS */}
-          <TabsContent value="history" className="mt-6">
+          {/* LIST TAB */}
+          <TabsContent value="list">
             <Card>
               <CardHeader>
-                <CardTitle>Meus Documentos Salvos</CardTitle>
-                <CardDescription>
-                  Histórico de todas as peças jurídicas geradas e salvas por você.
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Meus Documentos Salvos</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => queryClient.invalidateQueries(['my-documents'])}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {myDocuments.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <History className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>Nenhum documento salvo ainda.</p>
+                {isLoadingDocs ? (
+                  <div className="text-center py-12">Carregando...</div>
+                ) : documents.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 border-2 border-dashed rounded-lg">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                    <p>Você ainda não tem documentos salvos.</p>
+                    <Button variant="link" onClick={() => setActiveTab("generator")}>
+                      Criar meu primeiro documento
+                    </Button>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {myDocuments.map((doc) => (
-                      <Card key={doc.id} className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-indigo-500">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-bold text-gray-800 line-clamp-1">{doc.title}</h3>
+                    {documents.map((doc) => (
+                      <Card key={doc.id} className="hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-base line-clamp-1" title={doc.title}>
+                              {doc.title || "Sem título"}
+                            </CardTitle>
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-6 w-6 text-red-400 hover:text-red-600 -mr-2 -mt-1"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if(confirm("Excluir este documento permanentemente?")) deleteMutation.mutate(doc.id);
+                              className="h-6 w-6 text-red-400 hover:text-red-600 -mr-2 -mt-2"
+                              onClick={() => {
+                                if(confirm("Excluir documento?")) deleteMutation.mutate(doc.id);
                               }}
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
-                          <p className="text-xs text-gray-500 mb-4 line-clamp-2">
-                            {doc.notes || "Sem descrição"}
+                          <CardDescription className="text-xs">
+                            {new Date(doc.created_date).toLocaleDateString()} • {doc.type}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-500 line-clamp-3 mb-4 min-h-[60px]">
+                            {doc.content}
                           </p>
-                          <div className="flex items-center justify-between text-xs text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {new Date(doc.created_date).toLocaleDateString()}
-                            </span>
-                            <Badge variant="outline">{doc.type}</Badge>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="secondary" 
+                              className="w-full text-xs"
+                              onClick={() => {
+                                setGeneratedContent(doc.content);
+                                setTitle(doc.title);
+                                setDocType(doc.type || "peticao");
+                                setActiveTab("generator");
+                              }}
+                            >
+                              Abrir / Editar
+                            </Button>
+                            <Button 
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const blob = new Blob([doc.content], { type: 'text/plain' });
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${doc.title}.txt`;
+                                a.click();
+                              }}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
                           </div>
-                          <Button 
-                            variant="secondary" 
-                            className="w-full mt-4 text-xs h-8"
-                            onClick={() => {
-                              setGeneratedContent(doc.content);
-                              setDocumentTitle(doc.title);
-                              setStep(3); // Vai para o modo edição
-                              // Tenta inferir área/tipo das notas ou define genérico
-                              setSelectedArea(legalAreas[0]); 
-                              setSelectedDocType("Documento Carregado");
-                              document.querySelector('[value="generator"]').click(); // Muda a tab
-                            }}
-                          >
-                            Abrir / Editar
-                          </Button>
                         </CardContent>
                       </Card>
                     ))}
@@ -477,8 +340,4 @@ Retorne APENAS o conteúdo do documento.`;
       </div>
     </div>
   );
-}
-
-function Badge({ children, variant }) {
-  return <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold">{children}</span>;
 }
