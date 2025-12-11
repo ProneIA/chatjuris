@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Users, Plus, Trash2, Mail, Shield, UserPlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Users, Plus, Loader2, Trash2, Mail, Shield, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -16,65 +16,61 @@ export default function Teams() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   
-  // UI State
+  // Create Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamDesc, setNewTeamDesc] = useState("");
-  const [memberToAdd, setMemberToAdd] = useState("");
-  const [selectedTeamId, setSelectedTeamId] = useState(null); // ID of team being edited
 
+  // Add Member State
+  const [memberEmail, setMemberEmail] = useState("");
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+
+  // Auth
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Fetch Teams
+  // QUERY: Fetch My Teams
+  // We rely on RLS: read allows owner OR member.
   const { data: teams = [], isLoading } = useQuery({
-    queryKey: ['my-teams', user?.email],
+    queryKey: ['my-teams'],
     queryFn: async () => {
-      if (!user?.email) return [];
-      // Fetch all teams - RLS (Row Level Security) should automatically filter 
-      // to show only teams where user is owner OR member.
+      // Just listing. The backend security rules (RLS) filter what I can see.
       return await base44.entities.Team.list('-created_date');
     },
-    enabled: !!user?.email
+    enabled: !!user
   });
 
-  // Create Mutation
+  // MUTATION: Create Team
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!newTeamName.trim()) throw new Error("Nome da equipe é obrigatório");
-      
+      if (!user?.email) throw new Error("Usuário não autenticado");
+
       return await base44.entities.Team.create({
         name: newTeamName,
         description: newTeamDesc,
         owner_email: user.email,
-        members: [user.email], // CRITICAL: Explicitly add creator to members list
+        members: [user.email], // Essential: Add creator as member immediately
         is_active: true
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-teams'] });
-      toast.success("Equipe criada!");
       setIsCreateOpen(false);
       setNewTeamName("");
       setNewTeamDesc("");
+      toast.success("Equipe criada com sucesso!");
     },
-    onError: () => toast.error("Erro ao criar equipe.")
-  });
-
-  // Delete Mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => await base44.entities.Team.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
-      toast.success("Equipe excluída.");
+    onError: (err) => {
+      console.error(err);
+      toast.error("Erro ao criar equipe.");
     }
   });
 
-  // Add Member Mutation
+  // MUTATION: Add Member
   const addMemberMutation = useMutation({
     mutationFn: async ({ team, email }) => {
-      if (!email || !email.includes("@")) throw new Error("Email inválido");
       const currentMembers = team.members || [];
       if (currentMembers.includes(email)) throw new Error("Usuário já está na equipe");
 
@@ -84,19 +80,27 @@ export default function Teams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-teams'] });
-      toast.success("Membro adicionado!");
-      setMemberToAdd("");
+      setMemberEmail("");
       setSelectedTeamId(null);
+      toast.success("Membro adicionado!");
     },
-    onError: (e) => toast.error(e.message || "Erro ao adicionar membro")
+    onError: (err) => toast.error(err.message || "Erro ao adicionar membro")
   });
 
-  // Remove Member Mutation
+  // MUTATION: Delete Team
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Team.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      toast.success("Equipe excluída.");
+    }
+  });
+
+  // MUTATION: Remove Member
   const removeMemberMutation = useMutation({
     mutationFn: async ({ team, email }) => {
-      const currentMembers = team.members || [];
       return await base44.entities.Team.update(team.id, {
-        members: currentMembers.filter(m => m !== email)
+        members: team.members.filter(m => m !== email)
       });
     },
     onSuccess: () => {
@@ -106,199 +110,160 @@ export default function Teams() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Equipes</h1>
-            <p className="text-gray-500">Colabore em processos e documentos.</p>
-          </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Nova Equipe
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nova Equipe</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nome</label>
-                  <Input 
-                    value={newTeamName} 
-                    onChange={(e) => setNewTeamName(e.target.value)}
-                    placeholder="Ex: Departamento Jurídico"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Descrição</label>
-                  <Textarea 
-                    value={newTeamDesc} 
-                    onChange={(e) => setNewTeamDesc(e.target.value)}
-                    placeholder="Ex: Equipe responsável por casos trabalhistas..."
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-                <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Criando..." : "Criar Equipe"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+    <div className="p-6 max-w-6xl mx-auto space-y-8 min-h-screen bg-gray-50">
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Minhas Equipes</h1>
+          <p className="text-gray-500">Gerencie seus times e colaboradores.</p>
         </div>
+        
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Nova Equipe
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Criar Nova Equipe</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nome</label>
+                <Input 
+                  value={newTeamName} 
+                  onChange={(e) => setNewTeamName(e.target.value)} 
+                  placeholder="Ex: Departamento Jurídico" 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Descrição</label>
+                <Textarea 
+                  value={newTeamDesc} 
+                  onChange={(e) => setNewTeamDesc(e.target.value)} 
+                  placeholder="Descrição da equipe..." 
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Criando..." : "Criar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        {/* Content */}
-        {isLoading ? (
-          <div className="text-center py-20">Carregando equipes...</div>
-        ) : teams.length === 0 ? (
-          <Card className="text-center py-16 border-dashed">
-            <CardContent>
-              <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-medium text-gray-900">Nenhuma equipe encontrada</h3>
-              <p className="text-gray-500 mb-6 mt-2">Crie sua primeira equipe para começar.</p>
-              <Button onClick={() => setIsCreateOpen(true)}>Criar Equipe</Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team) => {
-              const isOwner = user?.email === team.owner_email;
-              const memberCount = team.members?.length || 0;
-
-              return (
-                <Card key={team.id} className="flex flex-col hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg font-bold text-gray-900">{team.name}</CardTitle>
-                        <CardDescription className="line-clamp-1 mt-1">
-                          {team.description || "Sem descrição"}
-                        </CardDescription>
-                      </div>
-                      {isOwner && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-gray-400 hover:text-red-500 -mr-2 -mt-2"
-                          onClick={() => {
-                            if(confirm("Excluir esta equipe permanentemente?")) deleteMutation.mutate(team.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
+      {/* Teams Grid */}
+      {isLoading ? (
+        <div className="text-center py-20 text-gray-500">Carregando equipes...</div>
+      ) : teams.length === 0 ? (
+        <div className="text-center py-20 border-2 border-dashed border-gray-200 rounded-xl bg-white">
+          <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+          <h3 className="text-xl font-medium text-gray-900">Você não possui equipes</h3>
+          <p className="text-gray-500 mb-6">Crie uma equipe para começar a colaborar.</p>
+          <Button onClick={() => setIsCreateOpen(true)} variant="outline">
+            Criar Equipe
+          </Button>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {teams.map((team) => {
+            const isOwner = team.owner_email === user?.email;
+            
+            return (
+              <Card key={team.id} className="flex flex-col border-t-4 border-t-indigo-500 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg">{team.name}</CardTitle>
+                      <CardDescription className="line-clamp-1 mt-1">
+                        {team.description || "Sem descrição"}
+                      </CardDescription>
                     </div>
-                  </CardHeader>
-                  
-                  <CardContent className="flex-1 space-y-4">
-                    {/* Stats & Role */}
-                    <div className="flex items-center gap-3 text-sm text-gray-500 bg-gray-50 p-2 rounded-md">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{memberCount} Membro(s)</span>
-                      </div>
-                      {isOwner && (
-                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded font-medium border border-yellow-200">
-                          Proprietário
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Members List */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-gray-400 uppercase">Membros</p>
-                      <ScrollArea className="h-32 pr-2">
-                        <div className="space-y-2">
-                          {team.members?.map((memberEmail) => (
-                            <div key={memberEmail} className="flex items-center justify-between text-sm group">
-                              <div className="flex items-center gap-2 truncate">
-                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold shrink-0">
-                                  {memberEmail[0].toUpperCase()}
-                                </div>
-                                <span className="truncate max-w-[140px]" title={memberEmail}>
-                                  {memberEmail}
-                                </span>
-                                {memberEmail === team.owner_email && (
-                                  <Shield className="w-3 h-3 text-yellow-500 shrink-0" />
-                                )}
-                              </div>
-                              
-                              {isOwner && memberEmail !== user.email && (
-                                <button 
-                                  onClick={() => removeMemberMutation.mutate({ team, email: memberEmail })}
-                                  className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-
-                    {/* Add Member Action */}
                     {isOwner && (
-                      <div className="pt-2 border-t">
-                        {selectedTeamId === team.id ? (
-                          <div className="flex gap-2 animate-in fade-in slide-in-from-top-1">
-                            <Input 
-                              placeholder="email@exemplo.com" 
-                              className="h-8 text-sm"
-                              value={memberToAdd}
-                              onChange={(e) => setMemberToAdd(e.target.value)}
-                            />
-                            <Button 
-                              size="sm" 
-                              className="h-8 px-3"
-                              onClick={() => addMemberMutation.mutate({ team, email: memberToAdd })}
-                              disabled={addMemberMutation.isPending}
-                            >
-                              Add
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="h-8 px-2"
-                              onClick={() => setSelectedTeamId(null)}
-                            >
-                              X
-                            </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-gray-400 hover:text-red-500 -mt-2 -mr-2"
+                        onClick={() => {
+                          if (confirm("Apagar esta equipe permanentemente?")) deleteMutation.mutate(team.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="flex-1 flex flex-col gap-4">
+                  {/* Members List */}
+                  <div className="bg-gray-50 rounded-lg p-3 flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Membros</span>
+                      <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">{team.members?.length || 0}</span>
+                    </div>
+                    <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                      {team.members?.map((member) => (
+                        <div key={member} className="flex items-center justify-between text-sm group">
+                          <div className="flex items-center gap-2 truncate">
+                            <div className={`w-2 h-2 rounded-full ${member === team.owner_email ? 'bg-amber-400' : 'bg-green-400'}`} />
+                            <span className="truncate max-w-[150px]" title={member}>{member}</span>
                           </div>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full h-8 border-dashed text-gray-500 hover:text-gray-800"
-                            onClick={() => setSelectedTeamId(team.id)}
-                          >
-                            <UserPlus className="w-3 h-3 mr-2" />
-                            Adicionar Membro
-                          </Button>
-                        )}
+                          {isOwner && member !== user.email && (
+                            <button 
+                              onClick={() => removeMemberMutation.mutate({ team, email: member })}
+                              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="space-y-2">
+                    {isOwner && (
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Convidar email..." 
+                          className="h-9 text-sm"
+                          value={selectedTeamId === team.id ? memberEmail : ""}
+                          onChange={(e) => {
+                            setSelectedTeamId(team.id);
+                            setMemberEmail(e.target.value);
+                          }}
+                        />
+                        <Button 
+                          size="sm" 
+                          className="h-9 w-9 p-0"
+                          onClick={() => addMemberMutation.mutate({ team, email: memberEmail })}
+                          disabled={selectedTeamId !== team.id || !memberEmail || addMemberMutation.isPending}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
                       </div>
                     )}
-
+                    
                     <Button 
-                      className="w-full bg-gray-900 text-white hover:bg-black mt-2"
+                      className="w-full" 
+                      variant="outline"
                       onClick={() => navigate(createPageUrl('TeamWorkspace') + `?team=${team.id}`)}
                     >
                       Abrir Workspace
                     </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
