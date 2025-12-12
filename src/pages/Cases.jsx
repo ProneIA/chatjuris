@@ -5,77 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Plus,
-  Search,
-  Folder,
-  FileText,
-  Calendar,
-  DollarSign,
-  User,
-  Clock,
-  AlertCircle,
-  Loader2,
-  X
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FolderOpen, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
-
-const areas = [
-  { value: "civil", label: "Civil" },
-  { value: "criminal", label: "Criminal" },
-  { value: "trabalhista", label: "Trabalhista" },
-  { value: "tributario", label: "Tributário" },
-  { value: "familia", label: "Família" },
-  { value: "empresarial", label: "Empresarial" },
-  { value: "consumidor", label: "Consumidor" },
-  { value: "previdenciario", label: "Previdenciário" },
-  { value: "outros", label: "Outros" },
-];
-
-const statusColors = {
-  new: "bg-blue-100 text-blue-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  waiting: "bg-orange-100 text-orange-800",
-  closed: "bg-green-100 text-green-800",
-  archived: "bg-gray-100 text-gray-800",
-};
-
-const priorityColors = {
-  low: "bg-gray-100 text-gray-700",
-  medium: "bg-blue-100 text-blue-700",
-  high: "bg-orange-100 text-orange-700",
-  urgent: "bg-red-100 text-red-700",
-};
+import CaseCard from "@/components/cases/CaseCard";
+import CaseDetails from "@/components/cases/CaseDetails";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingCase, setEditingCase] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
-
   const [formData, setFormData] = useState({
     title: "",
+    client_id: "",
     client_name: "",
-    case_number: "",
-    area: "",
+    area: "civil",
     status: "new",
     priority: "medium",
     description: "",
     court: "",
     opposing_party: "",
     start_date: "",
-    deadline: "",
+    deadline: ""
   });
 
   useEffect(() => {
@@ -86,68 +44,55 @@ export default function Cases({ theme = 'light' }) {
     queryKey: ['cases'],
     queryFn: async () => {
       const result = await base44.entities.Case.list('-created_date');
-      console.log("⚖️ Processos carregados:", result.length);
       return result;
-    },
-    enabled: !!user
+    }
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
-    enabled: !!user
+    queryFn: () => base44.entities.Client.list()
   });
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!formData.title.trim() || !formData.area) {
-        throw new Error("Título e área são obrigatórios");
+    mutationFn: async (data) => {
+      if (!data.title?.trim() || !data.client_id) {
+        throw new Error("Título e cliente são obrigatórios");
       }
 
-      const dataToSave = {
-        title: formData.title.trim(),
-        client_name: formData.client_name.trim() || "Não informado",
-        case_number: formData.case_number.trim(),
-        area: formData.area,
-        status: formData.status,
-        priority: formData.priority,
-        description: formData.description.trim(),
-        court: formData.court.trim(),
-        opposing_party: formData.opposing_party.trim(),
-        start_date: formData.start_date || null,
-        deadline: formData.deadline || null,
-        client_id: "" // optional
+      const cleanData = {
+        title: data.title.trim(),
+        client_id: data.client_id,
+        client_name: data.client_name || "",
+        area: data.area,
+        status: data.status,
+        priority: data.priority,
+        description: data.description || "",
+        court: data.court || "",
+        opposing_party: data.opposing_party || "",
+        start_date: data.start_date || "",
+        deadline: data.deadline || ""
       };
 
-      console.log("💾 Salvando processo:", dataToSave);
-
-      if (selectedCase) {
-        const result = await base44.entities.Case.update(selectedCase.id, dataToSave);
-        console.log("✅ Processo atualizado:", result.id);
-        return result;
-      } else {
-        const result = await base44.entities.Case.create(dataToSave);
-        console.log("✅ Processo criado:", result.id);
-        return result;
+      if (editingCase) {
+        return await base44.entities.Case.update(editingCase.id, cleanData);
       }
+      return await base44.entities.Case.create(cleanData);
     },
     onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cases'] });
       await refetch();
+      toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
       setShowForm(false);
-      setSelectedCase(null);
+      setEditingCase(null);
       resetForm();
-      toast.success(selectedCase ? "Processo atualizado!" : "Processo criado!");
     },
-    onError: (e) => {
-      console.error("❌ Erro:", e);
-      toast.error("Erro ao salvar processo");
-    }
+    onError: (err) => toast.error(`Erro: ${err.message}`)
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Case.delete(id),
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
       setSelectedCase(null);
       toast.success("Processo excluído");
     }
@@ -156,311 +101,238 @@ export default function Cases({ theme = 'light' }) {
   const resetForm = () => {
     setFormData({
       title: "",
+      client_id: "",
       client_name: "",
-      case_number: "",
-      area: "",
+      area: "civil",
       status: "new",
       priority: "medium",
       description: "",
       court: "",
       opposing_party: "",
       start_date: "",
-      deadline: "",
+      deadline: ""
     });
   };
 
   const handleEdit = (caseItem) => {
-    setSelectedCase(caseItem);
+    setEditingCase(caseItem);
     setFormData({
       title: caseItem.title || "",
+      client_id: caseItem.client_id || "",
       client_name: caseItem.client_name || "",
-      case_number: caseItem.case_number || "",
-      area: caseItem.area || "",
+      area: caseItem.area || "civil",
       status: caseItem.status || "new",
       priority: caseItem.priority || "medium",
       description: caseItem.description || "",
       court: caseItem.court || "",
       opposing_party: caseItem.opposing_party || "",
       start_date: caseItem.start_date || "",
-      deadline: caseItem.deadline || "",
+      deadline: caseItem.deadline || ""
     });
     setShowForm(true);
   };
 
-  const filteredCases = cases.filter(c =>
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.case_number?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const stats = {
-    total: cases.length,
-    active: cases.filter(c => c.status === 'in_progress').length,
-    urgent: cases.filter(c => c.priority === 'urgent').length,
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate(formData);
   };
 
+  const filteredCases = cases.filter(c =>
+    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen p-8 ${isDark ? 'bg-neutral-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Processos
-            </h1>
-            <p className={`${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              {stats.total} total • {stats.active} em andamento • {stats.urgent} urgentes
-            </p>
+            <h1 className="text-3xl font-bold">Processos</h1>
+            <p className="text-gray-500 mt-1">Gerencie seus processos jurídicos</p>
           </div>
-          <Button
-            onClick={() => {
-              resetForm();
-              setSelectedCase(null);
-              setShowForm(true);
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
+          <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-indigo-600">
             <Plus className="w-4 h-4 mr-2" />
             Novo Processo
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6 max-w-md">
+        <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
+          <Input 
+            placeholder="Buscar processos..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar processos..."
             className="pl-10"
           />
         </div>
 
-        {/* Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle>{selectedCase ? "Editar Processo" : "Novo Processo"}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setShowForm(false);
-                    setSelectedCase(null);
-                  }}
-                >
-                  <X className="w-4 h-4" />
+        <div className="flex gap-6">
+          <div className="flex-1">
+            {filteredCases.length === 0 ? (
+              <div className="text-center py-20 border-2 border-dashed rounded-xl">
+                <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-medium">Nenhum processo encontrado</h3>
+                <p className="text-gray-500 mt-2 mb-6">Crie seu primeiro processo</p>
+                <Button variant="outline" onClick={() => setShowForm(true)}>
+                  Criar processo
                 </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Título *</Label>
-                    <Input
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="Ex: Ação de Cobrança"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Cliente</Label>
-                    <Input
-                      value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                      placeholder="Nome do cliente"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Nº do Processo</Label>
-                    <Input
-                      value={formData.case_number}
-                      onChange={(e) => setFormData({ ...formData, case_number: e.target.value })}
-                      placeholder="Ex: 0000000-00.0000.0.00.0000"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Área *</Label>
-                    <Select
-                      value={formData.area}
-                      onValueChange={(v) => setFormData({ ...formData, area: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {areas.map((a) => (
-                          <SelectItem key={a.value} value={a.value}>
-                            {a.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(v) => setFormData({ ...formData, status: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="new">Novo</SelectItem>
-                        <SelectItem value="in_progress">Em Andamento</SelectItem>
-                        <SelectItem value="waiting">Aguardando</SelectItem>
-                        <SelectItem value="closed">Encerrado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Prioridade</Label>
-                    <Select
-                      value={formData.priority}
-                      onValueChange={(v) => setFormData({ ...formData, priority: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baixa</SelectItem>
-                        <SelectItem value="medium">Média</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="urgent">Urgente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Vara/Tribunal</Label>
-                    <Input
-                      value={formData.court}
-                      onChange={(e) => setFormData({ ...formData, court: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Parte Contrária</Label>
-                    <Input
-                      value={formData.opposing_party}
-                      onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data de Início</Label>
-                    <Input
-                      type="date"
-                      value={formData.start_date}
-                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Prazo Importante</Label>
-                    <Input
-                      type="date"
-                      value={formData.deadline}
-                      onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                    />
-                  </div>
-                </div>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCases.map((caseItem) => (
+                  <CaseCard
+                    key={caseItem.id}
+                    caseData={caseItem}
+                    onClick={() => setSelectedCase(caseItem)}
+                    onEdit={() => handleEdit(caseItem)}
+                    theme={theme}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {selectedCase && (
+            <CaseDetails
+              caseData={selectedCase}
+              onClose={() => setSelectedCase(null)}
+              onEdit={() => handleEdit(selectedCase)}
+              onDelete={() => {
+                if (confirm("Excluir este processo?")) {
+                  deleteMutation.mutate(selectedCase.id);
+                }
+              }}
+              theme={theme}
+            />
+          )}
+        </div>
+
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingCase ? "Editar Processo" : "Novo Processo"}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 py-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={4}
+                  <Label>Título *</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
                   />
                 </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowForm(false);
-                      setSelectedCase(null);
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={() => saveMutation.mutate()}
-                    disabled={saveMutation.isPending}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    {saveMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    {selectedCase ? "Atualizar" : "Criar"}
-                  </Button>
+                <div className="space-y-2">
+                  <Label>Cliente *</Label>
+                  <Select value={formData.client_id} onValueChange={(v) => {
+                    const client = clients.find(c => c.id === v);
+                    setFormData({ ...formData, client_id: v, client_name: client?.name || "" });
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Cases Grid */}
-        {filteredCases.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed rounded-xl">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Nenhum processo encontrado</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCases.map((caseItem) => (
-              <Card
-                key={caseItem.id}
-                className="hover:shadow-lg transition cursor-pointer"
-                onClick={() => handleEdit(caseItem)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-lg line-clamp-1">{caseItem.title}</h3>
-                    <Badge className={priorityColors[caseItem.priority]}>
-                      {caseItem.priority}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
-                    {caseItem.client_name && (
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        {caseItem.client_name}
-                      </div>
-                    )}
-                    {caseItem.case_number && (
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        {caseItem.case_number}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Folder className="w-4 h-4" />
-                      {areas.find(a => a.value === caseItem.area)?.label}
-                    </div>
-                    {caseItem.deadline && (
-                      <div className="flex items-center gap-2 text-orange-600">
-                        <AlertCircle className="w-4 h-4" />
-                        Prazo: {new Date(caseItem.deadline).toLocaleDateString()}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t flex justify-between items-center">
-                    <Badge className={statusColors[caseItem.status]}>
-                      {caseItem.status === 'new' && 'Novo'}
-                      {caseItem.status === 'in_progress' && 'Em Andamento'}
-                      {caseItem.status === 'waiting' && 'Aguardando'}
-                      {caseItem.status === 'closed' && 'Encerrado'}
-                    </Badge>
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {new Date(caseItem.created_date).toLocaleDateString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                <div className="space-y-2">
+                  <Label>Área *</Label>
+                  <Select value={formData.area} onValueChange={(v) => setFormData({ ...formData, area: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="civil">Cível</SelectItem>
+                      <SelectItem value="criminal">Criminal</SelectItem>
+                      <SelectItem value="trabalhista">Trabalhista</SelectItem>
+                      <SelectItem value="tributario">Tributário</SelectItem>
+                      <SelectItem value="familia">Família</SelectItem>
+                      <SelectItem value="empresarial">Empresarial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">Novo</SelectItem>
+                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="waiting">Aguardando</SelectItem>
+                      <SelectItem value="closed">Encerrado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Vara/Tribunal</Label>
+                  <Input
+                    value={formData.court}
+                    onChange={(e) => setFormData({ ...formData, court: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Parte Contrária</Label>
+                  <Input
+                    value={formData.opposing_party}
+                    onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de Início</Label>
+                  <Input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prazo</Label>
+                  <Input
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Descrição</Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={4}
+                />
+              </div>
+            </form>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setShowForm(false); setEditingCase(null); }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? "Salvando..." : editingCase ? "Atualizar" : "Criar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
