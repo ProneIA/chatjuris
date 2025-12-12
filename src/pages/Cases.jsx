@@ -87,20 +87,14 @@ export default function Cases({ theme = 'light' }) {
     }
   }, [editingCase]);
 
-  const { data: rawCases = [], isLoading } = useQuery({
+  const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list('-created_date'),
+    queryFn: async () => {
+      const result = await base44.entities.Case.list('-created_date');
+      console.log("Processos carregados:", result);
+      return result;
+    },
   });
-
-  // Normaliza os dados - o SDK retorna os dados dentro de 'data'
-  const cases = rawCases
-    .filter(c => c && (c.title || (c.data && c.data.title)))
-    .map(c => {
-      if (c.data && c.data.title) {
-        return { id: c.id, created_date: c.created_date, created_by: c.created_by, ...c.data };
-      }
-      return c;
-    });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
@@ -123,16 +117,16 @@ export default function Cases({ theme = 'light' }) {
 
   const handleSaveCase = async () => {
     // Validação
-    if (!formData.title?.trim()) {
-      toast.error("⚠️ Preencha o título do processo");
+    if (!formData.title.trim()) {
+      toast.error("Preencha o título do processo");
       return;
     }
     if (!formData.client_id) {
-      toast.error("⚠️ Selecione um cliente");
+      toast.error("Selecione um cliente");
       return;
     }
     if (!formData.area) {
-      toast.error("⚠️ Selecione a área do direito");
+      toast.error("Selecione a área do direito");
       return;
     }
 
@@ -161,25 +155,22 @@ export default function Cases({ theme = 'light' }) {
     try {
       console.log("Salvando processo:", dataToSave);
       
-      let result;
       if (editingCase) {
-        result = await base44.entities.Case.update(editingCase.id, dataToSave);
+        const result = await base44.entities.Case.update(editingCase.id, dataToSave);
         console.log("Processo atualizado:", result);
-        toast.success("✅ Processo atualizado com sucesso!");
+        toast.success("Processo atualizado com sucesso!");
       } else {
-        result = await base44.entities.Case.create(dataToSave);
+        const result = await base44.entities.Case.create(dataToSave);
         console.log("Processo criado:", result);
-        toast.success("✅ Processo salvo com sucesso!");
+        toast.success("Processo salvo com sucesso!");
       }
       
-      // Invalida a query para forçar refresh
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
-      
       setShowForm(false);
       setEditingCase(null);
     } catch (error) {
-      console.error("Erro detalhado ao salvar:", error);
-      toast.error("❌ Erro ao salvar processo: " + (error.message || "Tente novamente"));
+      console.error("Erro ao salvar processo:", error);
+      toast.error(`Erro ao salvar: ${error.message || 'Tente novamente'}`);
     } finally {
       setIsSaving(false);
     }

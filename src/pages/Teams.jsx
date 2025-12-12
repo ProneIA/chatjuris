@@ -41,13 +41,18 @@ export default function Teams({ theme = 'light' }) {
   }, []);
 
   // QUERY: Buscar Equipes
-  const { data: teams = [], isLoading } = useQuery({
+  const { data: teams = [], isLoading, refetch: refetchTeams } = useQuery({
     queryKey: ['teams-list', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Rely on RLS (Row Level Security) to return only teams the user has access to
-      // fetching with a filter for safety where possible, or just listing as RLS enforces visibility
-      return await base44.entities.Team.list('-created_date');
+      console.log("Buscando equipes para:", user.email);
+      const allTeams = await base44.entities.Team.list('-created_date');
+      console.log("Equipes encontradas:", allTeams);
+      // Filter in frontend to ensure immediate visibility
+      return allTeams.filter(t => 
+        t.owner_email === user.email || 
+        (Array.isArray(t.members) && t.members.includes(user.email))
+      );
     },
     enabled: !!user?.email
   });
@@ -55,34 +60,33 @@ export default function Teams({ theme = 'light' }) {
   // MUTATION: Criar Equipe
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!newTeamName?.trim()) throw new Error("Nome é obrigatório");
-      if (!user?.email) throw new Error("Usuário não autenticado");
+      if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
       
-      console.log("Criando equipe:", { name: newTeamName, owner: user.email });
-      
-      const result = await base44.entities.Team.create({
+      const teamData = {
         name: newTeamName.trim(),
-        description: newTeamDesc?.trim() || "",
+        description: newTeamDesc.trim() || "",
         owner_email: user.email,
-        members: [user.email], 
+        members: [user.email],
         is_active: true
-      });
+      };
       
+      console.log("Criando equipe:", teamData);
+      const result = await base44.entities.Team.create(teamData);
       console.log("Equipe criada:", result);
       return result;
     },
     onSuccess: (data) => {
-      console.log("onSuccess equipe:", data);
+      console.log("Success callback, equipe criada com ID:", data?.id);
       queryClient.invalidateQueries({ queryKey: ['teams-list'] });
-      queryClient.invalidateQueries({ queryKey: ['teams'] }); // Invalida ambas as queries
-      toast.success("✅ Equipe criada com sucesso!");
+      refetchTeams(); // Force immediate refetch
+      toast.success("Equipe criada com sucesso!");
       setIsCreateModalOpen(false);
       setNewTeamName("");
       setNewTeamDesc("");
     },
     onError: (err) => {
       console.error("Erro ao criar equipe:", err);
-      toast.error("❌ Erro ao criar equipe: " + (err.message || "Tente novamente"));
+      toast.error(`Erro: ${err.message || 'Tente novamente'}`);
     }
   });
 
