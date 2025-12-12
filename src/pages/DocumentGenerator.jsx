@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { jsPDF } from "jspdf";
 
 // Configuração das Áreas e Documentos
 const legalAreas = [
@@ -88,6 +89,7 @@ const legalAreas = [
 export default function DocumentGenerator() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("generator");
   
   // Estado do Formulário
   const [step, setStep] = useState(1);
@@ -123,27 +125,45 @@ export default function DocumentGenerator() {
       if (!documentTitle || !generatedContent) throw new Error("Dados incompletos");
       
       const docData = {
-        title: documentTitle,
+        title: documentTitle.trim(),
         type: "outros",
         content: generatedContent,
         status: "draft",
         notes: `Gerado via IA - Área: ${selectedArea?.name || 'Geral'} - Tipo: ${selectedDocType}`
       };
       
-      console.log("Salvando documento:", docData);
+      console.log("=== SALVANDO DOCUMENTO ===");
+      console.log("Dados:", docData);
+      console.log("Usuário:", user?.email);
+      
       const result = await base44.entities.LegalDocument.create(docData);
-      console.log("Documento salvo:", result);
+      
+      console.log("=== DOCUMENTO CRIADO ===");
+      console.log("Resultado:", result);
+      console.log("ID:", result?.id);
+      
       return result;
     },
-    onSuccess: (data) => {
-      console.log("Success callback, documento criado com ID:", data?.id);
-      queryClient.invalidateQueries({ queryKey: ['my-generated-documents'] });
-      refetchDocs(); // Force immediate refetch
-      toast.success("Documento salvo! Verifique na aba 'Meus Documentos'.");
+    onSuccess: async (data) => {
+      console.log("=== SUCCESS CALLBACK ===");
+      console.log("Documento ID:", data?.id);
+      
+      // Invalidate and wait
+      await queryClient.invalidateQueries({ queryKey: ['my-generated-documents'] });
+      
+      // Force refetch
+      const refetched = await refetchDocs();
+      console.log("Documentos após refetch:", refetched.data);
+      
+      // Switch to history tab
+      setActiveTab("history");
+      
+      toast.success("✅ Documento salvo! Veja na aba 'Meus Documentos Salvos'.");
     },
     onError: (err) => {
-      console.error("Erro ao salvar documento:", err);
-      toast.error(`Erro ao salvar: ${err.message || 'Tente novamente'}`);
+      console.error("=== ERRO AO SALVAR ===");
+      console.error(err);
+      toast.error(`❌ Erro: ${err.message || 'Tente novamente'}`);
     }
   });
 
@@ -233,6 +253,41 @@ Retorne APENAS o conteúdo do documento.`;
     setConversationHistory([]);
   };
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Convert markdown to plain text (simple version)
+    const plainText = generatedContent.replace(/[#*_`]/g, '');
+    
+    doc.setFontSize(12);
+    const lines = doc.splitTextToSize(plainText, 180);
+    doc.text(lines, 15, 20);
+    
+    doc.save(`${documentTitle || 'documento'}.pdf`);
+    toast.success("PDF baixado!");
+  };
+
+  const handleDownloadWord = () => {
+    // Convert markdown to plain text for DOCX
+    const plainText = generatedContent.replace(/[#*_`]/g, '');
+    
+    const blob = new Blob(
+      ['\ufeff', plainText], // UTF-8 BOM + content
+      { type: 'application/msword;charset=utf-8' }
+    );
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${documentTitle || 'documento'}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success("Word baixado!");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -250,10 +305,10 @@ Retorne APENAS o conteúdo do documento.`;
           )}
         </div>
 
-        <Tabs defaultValue="generator" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="generator">Gerador IA</TabsTrigger>
-            <TabsTrigger value="history">Meus Documentos Salvos</TabsTrigger>
+            <TabsTrigger value="history">Meus Documentos Salvos ({myDocuments.length})</TabsTrigger>
           </TabsList>
 
           {/* TAB GERADOR */}
@@ -374,11 +429,29 @@ Retorne APENAS o conteúdo do documento.`;
                         className="font-semibold bg-white border-gray-300"
                       />
                       <div className="flex items-center gap-2 shrink-0">
-                        <Button variant="outline" size="icon" onClick={() => {
+                        <Button variant="outline" size="sm" onClick={() => {
                           navigator.clipboard.writeText(generatedContent);
                           toast.success("Copiado!");
                         }} title="Copiar">
                           <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadPDF}
+                          title="Baixar PDF"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          PDF
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadWord}
+                          title="Baixar Word"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Word
                         </Button>
                         <Button 
                           onClick={() => saveMutation.mutate()} 
@@ -423,10 +496,14 @@ Retorne APENAS o conteúdo do documento.`;
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="mb-4 text-sm text-gray-600">
+                  Total: {myDocuments.length} documento{myDocuments.length !== 1 ? 's' : ''} salvo{myDocuments.length !== 1 ? 's' : ''}
+                </div>
                 {myDocuments.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     <History className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <p>Nenhum documento salvo ainda.</p>
+                    <p className="text-xs mt-2">Gere e salve um documento para vê-lo aqui.</p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
