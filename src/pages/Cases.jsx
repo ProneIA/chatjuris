@@ -3,591 +3,465 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, X, Save, Loader2 } from "lucide-react";
-import CaseCard from "../components/cases/CaseCard";
-import CaseDetails from "../components/cases/CaseDetails";
-import FolderSidebar from "../components/cases/FolderSidebar";
-import { Skeleton } from "@/components/ui/skeleton";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Search,
+  Folder,
+  FileText,
+  Calendar,
+  DollarSign,
+  User,
+  Clock,
+  AlertCircle,
+  Loader2,
+  X
+} from "lucide-react";
 import { toast } from "sonner";
+
+const areas = [
+  { value: "civil", label: "Civil" },
+  { value: "criminal", label: "Criminal" },
+  { value: "trabalhista", label: "Trabalhista" },
+  { value: "tributario", label: "Tributário" },
+  { value: "familia", label: "Família" },
+  { value: "empresarial", label: "Empresarial" },
+  { value: "consumidor", label: "Consumidor" },
+  { value: "previdenciario", label: "Previdenciário" },
+  { value: "outros", label: "Outros" },
+];
+
+const statusColors = {
+  new: "bg-blue-100 text-blue-800",
+  in_progress: "bg-yellow-100 text-yellow-800",
+  waiting: "bg-orange-100 text-orange-800",
+  closed: "bg-green-100 text-green-800",
+  archived: "bg-gray-100 text-gray-800",
+};
+
+const priorityColors = {
+  low: "bg-gray-100 text-gray-700",
+  medium: "bg-blue-100 text-blue-700",
+  high: "bg-orange-100 text-orange-700",
+  urgent: "bg-red-100 text-red-700",
+};
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
+  const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
-  const [editingCase, setEditingCase] = useState(null);
-  const [selectedFolder, setSelectedFolder] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  
-  // Form state
+
   const [formData, setFormData] = useState({
     title: "",
-    client_id: "",
     client_name: "",
-    area: "civil",
+    case_number: "",
+    area: "",
     status: "new",
     priority: "medium",
-    case_number: "",
+    description: "",
     court: "",
     opposing_party: "",
-    description: "",
     start_date: "",
     deadline: "",
-    value: ""
   });
-
-  const casesPerPage = 12;
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Reset form when editing case changes
-  useEffect(() => {
-    if (editingCase) {
-      setFormData({
-        title: editingCase.title || "",
-        client_id: editingCase.client_id || "",
-        client_name: editingCase.client_name || "",
-        area: editingCase.area || "civil",
-        status: editingCase.status || "new",
-        priority: editingCase.priority || "medium",
-        case_number: editingCase.case_number || "",
-        court: editingCase.court || "",
-        opposing_party: editingCase.opposing_party || "",
-        description: editingCase.description || "",
-        start_date: editingCase.start_date || "",
-        deadline: editingCase.deadline || "",
-        value: editingCase.value ? String(editingCase.value) : ""
-      });
-    } else {
-      setFormData({
-        title: "",
-        client_id: "",
-        client_name: "",
-        area: "civil",
-        status: "new",
-        priority: "medium",
-        case_number: "",
-        court: "",
-        opposing_party: "",
-        description: "",
-        start_date: "",
-        deadline: "",
-        value: ""
-      });
-    }
-  }, [editingCase]);
-
-  const { data: cases = [], isLoading } = useQuery({
+  const { data: cases = [], refetch } = useQuery({
     queryKey: ['cases'],
     queryFn: async () => {
       const result = await base44.entities.Case.list('-created_date');
-      console.log("Processos carregados:", result);
+      console.log("⚖️ Processos carregados:", result.length);
       return result;
     },
+    enabled: !!user
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryFn: () => base44.entities.Client.list(),
+    enabled: !!user
   });
 
-  const { data: folders = [] } = useQuery({
-    queryKey: ['folders'],
-    queryFn: () => base44.entities.Folder.list('order'),
-  });
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!formData.title.trim() || !formData.area) {
+        throw new Error("Título e área são obrigatórios");
+      }
 
-  const handleClientChange = (clientId) => {
-    const client = clients.find(c => c.id === clientId);
-    setFormData(prev => ({
-      ...prev,
-      client_id: clientId,
-      client_name: client ? client.name : ""
-    }));
-  };
+      const dataToSave = {
+        title: formData.title.trim(),
+        client_name: formData.client_name.trim() || "Não informado",
+        case_number: formData.case_number.trim(),
+        area: formData.area,
+        status: formData.status,
+        priority: formData.priority,
+        description: formData.description.trim(),
+        court: formData.court.trim(),
+        opposing_party: formData.opposing_party.trim(),
+        start_date: formData.start_date || null,
+        deadline: formData.deadline || null,
+        client_id: "" // optional
+      };
 
-  const handleSaveCase = async () => {
-    // Validação
-    if (!formData.title.trim()) {
-      toast.error("Preencha o título do processo");
-      return;
-    }
-    if (!formData.client_id) {
-      toast.error("Selecione um cliente");
-      return;
-    }
-    if (!formData.area) {
-      toast.error("Selecione a área do direito");
-      return;
-    }
+      console.log("💾 Salvando processo:", dataToSave);
 
-    setIsSaving(true);
-
-    // Monta dados para salvar
-    const dataToSave = {
-      title: formData.title.trim(),
-      client_id: formData.client_id,
-      client_name: formData.client_name,
-      area: formData.area,
-      status: formData.status,
-      priority: formData.priority
-    };
-
-    if (formData.case_number?.trim()) dataToSave.case_number = formData.case_number.trim();
-    if (formData.court?.trim()) dataToSave.court = formData.court.trim();
-    if (formData.opposing_party?.trim()) dataToSave.opposing_party = formData.opposing_party.trim();
-    if (formData.description?.trim()) dataToSave.description = formData.description.trim();
-    if (formData.start_date) dataToSave.start_date = formData.start_date;
-    if (formData.deadline) dataToSave.deadline = formData.deadline;
-    if (formData.value?.trim() && !isNaN(parseFloat(formData.value))) {
-      dataToSave.value = parseFloat(formData.value);
-    }
-
-    try {
-      console.log("Salvando processo:", dataToSave);
-      
-      if (editingCase) {
-        const result = await base44.entities.Case.update(editingCase.id, dataToSave);
-        console.log("Processo atualizado:", result);
-        toast.success("Processo atualizado com sucesso!");
+      if (selectedCase) {
+        const result = await base44.entities.Case.update(selectedCase.id, dataToSave);
+        console.log("✅ Processo atualizado:", result.id);
+        return result;
       } else {
         const result = await base44.entities.Case.create(dataToSave);
-        console.log("Processo criado:", result);
-        toast.success("Processo salvo com sucesso!");
+        console.log("✅ Processo criado:", result.id);
+        return result;
       }
-      
-      await queryClient.invalidateQueries({ queryKey: ['cases'] });
+    },
+    onSuccess: async () => {
+      await refetch();
       setShowForm(false);
-      setEditingCase(null);
-    } catch (error) {
-      console.error("Erro ao salvar processo:", error);
-      toast.error(`Erro ao salvar: ${error.message || 'Tente novamente'}`);
-    } finally {
-      setIsSaving(false);
+      setSelectedCase(null);
+      resetForm();
+      toast.success(selectedCase ? "Processo atualizado!" : "Processo criado!");
+    },
+    onError: (e) => {
+      console.error("❌ Erro:", e);
+      toast.error("Erro ao salvar processo");
     }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Case.delete(id),
+    onSuccess: () => {
+      refetch();
+      setSelectedCase(null);
+      toast.success("Processo excluído");
+    }
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      client_name: "",
+      case_number: "",
+      area: "",
+      status: "new",
+      priority: "medium",
+      description: "",
+      court: "",
+      opposing_party: "",
+      start_date: "",
+      deadline: "",
+    });
   };
-
-  const createFolderMutation = useMutation({
-    mutationFn: (data) => base44.entities.Folder.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['folders'] });
-      toast.success("Pasta criada!");
-    },
-  });
-
-  const updateFolderMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Folder.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['folders'] }),
-  });
-
-  const deleteFolderMutation = useMutation({
-    mutationFn: (id) => base44.entities.Folder.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['folders'] });
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-      if (selectedFolder && typeof selectedFolder === 'string') {
-        setSelectedFolder(null);
-      }
-      toast.success("Pasta excluída!");
-    },
-  });
-
-  const moveCaseToFolderMutation = useMutation({
-    mutationFn: ({ caseId, folderId }) => base44.entities.Case.update(caseId, { folder_id: folderId || null }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-      toast.success("Processo movido!");
-    },
-  });
-
-  const filteredCases = cases.filter(caseItem => {
-    const matchesSearch = 
-      caseItem.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      caseItem.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      caseItem.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    let matchesFolder = true;
-    if (selectedFolder === 'unfiled') {
-      matchesFolder = !caseItem.folder_id;
-    } else if (selectedFolder) {
-      matchesFolder = caseItem.folder_id === selectedFolder;
-    }
-
-    return matchesSearch && matchesFolder;
-  });
-
-  const totalPages = Math.ceil(filteredCases.length / casesPerPage);
-  const startIndex = (currentPage - 1) * casesPerPage;
-  const paginatedCases = filteredCases.slice(startIndex, startIndex + casesPerPage);
 
   const handleEdit = (caseItem) => {
-    setEditingCase(caseItem);
+    setSelectedCase(caseItem);
+    setFormData({
+      title: caseItem.title || "",
+      client_name: caseItem.client_name || "",
+      case_number: caseItem.case_number || "",
+      area: caseItem.area || "",
+      status: caseItem.status || "new",
+      priority: caseItem.priority || "medium",
+      description: caseItem.description || "",
+      court: caseItem.court || "",
+      opposing_party: caseItem.opposing_party || "",
+      start_date: caseItem.start_date || "",
+      deadline: caseItem.deadline || "",
+    });
     setShowForm(true);
-    setSelectedCase(null);
   };
 
-  const handleMoveToFolder = (caseId, folderId) => {
-    moveCaseToFolderMutation.mutate({ caseId, folderId });
-  };
-
-  const caseCounts = {
-    total: cases.length,
-    unfiled: cases.filter(c => !c.folder_id).length
-  };
-  folders.forEach(folder => {
-    caseCounts[folder.id] = cases.filter(c => c.folder_id === folder.id).length;
-  });
+  const filteredCases = cases.filter(c =>
+    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.case_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const stats = {
     total: cases.length,
     active: cases.filter(c => c.status === 'in_progress').length,
-    new: cases.filter(c => c.status === 'new').length,
     urgent: cases.filter(c => c.priority === 'urgent').length,
   };
 
   return (
-    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <FolderSidebar
-        folders={folders}
-        selectedFolder={selectedFolder}
-        onSelectFolder={setSelectedFolder}
-        onCreateFolder={(data) => createFolderMutation.mutate(data)}
-        onUpdateFolder={(id, data) => updateFolderMutation.mutate({ id, data })}
-        onDeleteFolder={(id) => deleteFolderMutation.mutate(id)}
-        caseCounts={caseCounts}
-      />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {selectedFolder === 'unfiled' 
-                  ? 'Processos sem Pasta'
-                  : selectedFolder
-                  ? folders.find(f => f.id === selectedFolder)?.name || 'Processos'
-                  : 'Todos os Processos'}
-              </h1>
-              <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                {filteredCases.length} {filteredCases.length === 1 ? 'processo' : 'processos'}
-              </p>
-            </div>
-            <Button
-              onClick={() => {
-                setShowForm(true);
-                setEditingCase(null);
-                setSelectedCase(null);
-              }}
-              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Processo
-            </Button>
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Processos
+            </h1>
+            <p className={`${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+              {stats.total} total • {stats.active} em andamento • {stats.urgent} urgentes
+            </p>
           </div>
-
-          <div className="grid grid-cols-4 gap-4 mb-4">
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
-            </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Em Andamento</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.active}</p>
-            </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Novos</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.new}</p>
-            </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Urgentes</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.urgent}</p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-            <Input
-              placeholder="Buscar por título, número do processo ou cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
-            />
-          </div>
+          <Button
+            onClick={() => {
+              resetForm();
+              setSelectedCase(null);
+              setShowForm(true);
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Processo
+          </Button>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-          {showForm ? (
-            <Card className="max-w-3xl mx-auto border-none shadow-lg">
-              <CardHeader className="border-b border-slate-100">
-                <div className="flex items-center justify-between">
-                  <CardTitle>{editingCase ? 'Editar Processo' : 'Novo Processo'}</CardTitle>
-                  <Button variant="ghost" size="icon" onClick={() => { setShowForm(false); setEditingCase(null); }}>
-                    <X className="w-5 h-5" />
-                  </Button>
-                </div>
+        {/* Search */}
+        <div className="relative mb-6 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar processos..."
+            className="pl-10"
+          />
+        </div>
+
+        {/* Form Modal */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <CardHeader className="flex flex-row justify-between items-center">
+                <CardTitle>{selectedCase ? "Editar Processo" : "Novo Processo"}</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowForm(false);
+                    setSelectedCase(null);
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>Título do Processo *</Label>
-                      <Input
-                        value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                        placeholder="Ex: Ação de Cobrança"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Número do Processo</Label>
-                      <Input
-                        value={formData.case_number}
-                        onChange={(e) => setFormData({...formData, case_number: e.target.value})}
-                        placeholder="0000000-00.0000.0.00.0000"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Cliente *</Label>
-                      <Select value={formData.client_id} onValueChange={handleClientChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {clients.length > 0 ? (
-                            clients.map(client => (
-                              <SelectItem key={client.id} value={client.id}>
-                                {client.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="_none" disabled>
-                              Nenhum cliente cadastrado
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      {clients.length === 0 && (
-                        <p className="text-xs text-amber-600">Cadastre um cliente primeiro</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Área do Direito *</Label>
-                      <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="civil">Civil</SelectItem>
-                          <SelectItem value="criminal">Criminal</SelectItem>
-                          <SelectItem value="trabalhista">Trabalhista</SelectItem>
-                          <SelectItem value="tributario">Tributário</SelectItem>
-                          <SelectItem value="familia">Família</SelectItem>
-                          <SelectItem value="empresarial">Empresarial</SelectItem>
-                          <SelectItem value="consumidor">Consumidor</SelectItem>
-                          <SelectItem value="previdenciario">Previdenciário</SelectItem>
-                          <SelectItem value="outros">Outros</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Status</Label>
-                      <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="new">Novo</SelectItem>
-                          <SelectItem value="in_progress">Em Andamento</SelectItem>
-                          <SelectItem value="waiting">Aguardando</SelectItem>
-                          <SelectItem value="closed">Encerrado</SelectItem>
-                          <SelectItem value="archived">Arquivado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Prioridade</Label>
-                      <Select value={formData.priority} onValueChange={(v) => setFormData({...formData, priority: v})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Baixa</SelectItem>
-                          <SelectItem value="medium">Média</SelectItem>
-                          <SelectItem value="high">Alta</SelectItem>
-                          <SelectItem value="urgent">Urgente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Vara/Tribunal</Label>
-                      <Input
-                        value={formData.court}
-                        onChange={(e) => setFormData({...formData, court: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Parte Contrária</Label>
-                      <Input
-                        value={formData.opposing_party}
-                        onChange={(e) => setFormData({...formData, opposing_party: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Data de Início</Label>
-                      <Input
-                        type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Prazo Importante</Label>
-                      <Input
-                        type="date"
-                        value={formData.deadline}
-                        onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Valor da Causa (R$)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.value}
-                        onChange={(e) => setFormData({...formData, value: e.target.value})}
-                      />
-                    </div>
-                  </div>
-
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Descrição</Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      rows={4}
+                    <Label>Título *</Label>
+                    <Input
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Ex: Ação de Cobrança"
                     />
                   </div>
-
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => { setShowForm(false); setEditingCase(null); }} 
-                      disabled={isSaving}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      onClick={handleSaveCase}
-                      disabled={isSaving || clients.length === 0} 
-                      className="bg-gradient-to-r from-blue-600 to-purple-600"
-                    >
-                      {isSaving ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          {editingCase ? 'Atualizar' : 'Salvar'} Processo
-                        </>
-                      )}
-                    </Button>
+                  <div className="space-y-2">
+                    <Label>Cliente</Label>
+                    <Input
+                      value={formData.client_name}
+                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                      placeholder="Nome do cliente"
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Nº do Processo</Label>
+                    <Input
+                      value={formData.case_number}
+                      onChange={(e) => setFormData({ ...formData, case_number: e.target.value })}
+                      placeholder="Ex: 0000000-00.0000.0.00.0000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Área *</Label>
+                    <Select
+                      value={formData.area}
+                      onValueChange={(v) => setFormData({ ...formData, area: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {areas.map((a) => (
+                          <SelectItem key={a.value} value={a.value}>
+                            {a.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(v) => setFormData({ ...formData, status: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="new">Novo</SelectItem>
+                        <SelectItem value="in_progress">Em Andamento</SelectItem>
+                        <SelectItem value="waiting">Aguardando</SelectItem>
+                        <SelectItem value="closed">Encerrado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Prioridade</Label>
+                    <Select
+                      value={formData.priority}
+                      onValueChange={(v) => setFormData({ ...formData, priority: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="urgent">Urgente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Vara/Tribunal</Label>
+                    <Input
+                      value={formData.court}
+                      onChange={(e) => setFormData({ ...formData, court: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Parte Contrária</Label>
+                    <Input
+                      value={formData.opposing_party}
+                      onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data de Início</Label>
+                    <Input
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Prazo Importante</Label>
+                    <Input
+                      type="date"
+                      value={formData.deadline}
+                      onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={4}
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowForm(false);
+                      setSelectedCase(null);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => saveMutation.mutate()}
+                    disabled={saveMutation.isPending}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    {saveMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    {selectedCase ? "Atualizar" : "Criar"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          ) : isLoading ? (
-            <div className="grid gap-4">
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
-              ))}
-            </div>
-          ) : filteredCases.length === 0 ? (
-            <div className="text-center py-12">
-              <div className={`w-16 h-16 border rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'border-neutral-800' : 'border-gray-300'}`}>
-                <Search className={`w-8 h-8 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
-              </div>
-              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Nenhum processo encontrado
-              </h3>
-              <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
-                Crie um novo processo para começar
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-4">
-                {paginatedCases.map((caseItem) => (
-                <CaseCard
-                  key={caseItem.id}
-                  caseItem={caseItem}
-                  isSelected={selectedCase?.id === caseItem.id}
-                  onClick={() => setSelectedCase(caseItem)}
-                  folders={folders}
-                  currentFolderId={selectedFolder}
-                  onMoveToFolder={handleMoveToFolder}
-                />
-                ))}
-              </div>
+          </div>
+        )}
 
-              {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between">
-                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Mostrando {startIndex + 1}-{Math.min(startIndex + casesPerPage, filteredCases.length)} de {filteredCases.length}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Próxima
-                    </Button>
+        {/* Cases Grid */}
+        {filteredCases.length === 0 ? (
+          <div className="text-center py-20 border-2 border-dashed rounded-xl">
+            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">Nenhum processo encontrado</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCases.map((caseItem) => (
+              <Card
+                key={caseItem.id}
+                className="hover:shadow-lg transition cursor-pointer"
+                onClick={() => handleEdit(caseItem)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-lg line-clamp-1">{caseItem.title}</h3>
+                    <Badge className={priorityColors[caseItem.priority]}>
+                      {caseItem.priority}
+                    </Badge>
                   </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600">
+                    {caseItem.client_name && (
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {caseItem.client_name}
+                      </div>
+                    )}
+                    {caseItem.case_number && (
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        {caseItem.case_number}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Folder className="w-4 h-4" />
+                      {areas.find(a => a.value === caseItem.area)?.label}
+                    </div>
+                    {caseItem.deadline && (
+                      <div className="flex items-center gap-2 text-orange-600">
+                        <AlertCircle className="w-4 h-4" />
+                        Prazo: {new Date(caseItem.deadline).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
 
-      {selectedCase && !showForm && (
-        <CaseDetails
-          caseData={selectedCase}
-          onClose={() => setSelectedCase(null)}
-          onEdit={handleEdit}
-        />
-      )}
+                  <div className="mt-4 pt-3 border-t flex justify-between items-center">
+                    <Badge className={statusColors[caseItem.status]}>
+                      {caseItem.status === 'new' && 'Novo'}
+                      {caseItem.status === 'in_progress' && 'Em Andamento'}
+                      {caseItem.status === 'waiting' && 'Aguardando'}
+                      {caseItem.status === 'closed' && 'Encerrado'}
+                    </Badge>
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {new Date(caseItem.created_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
