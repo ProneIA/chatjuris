@@ -55,25 +55,35 @@ export default function Teams({ theme = 'light' }) {
   // MUTATION: Criar Equipe
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
+      if (!newTeamName?.trim()) throw new Error("Nome é obrigatório");
+      if (!user?.email) throw new Error("Usuário não autenticado");
       
-      // Explicit creation ensuring creator is owner and member
-      return await base44.entities.Team.create({
-        name: newTeamName,
-        description: newTeamDesc,
+      console.log("Criando equipe:", { name: newTeamName, owner: user.email });
+      
+      const result = await base44.entities.Team.create({
+        name: newTeamName.trim(),
+        description: newTeamDesc?.trim() || "",
         owner_email: user.email,
         members: [user.email], 
         is_active: true
       });
+      
+      console.log("Equipe criada:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("onSuccess equipe:", data);
       queryClient.invalidateQueries({ queryKey: ['teams-list'] });
-      toast.success("Equipe criada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['teams'] }); // Invalida ambas as queries
+      toast.success("✅ Equipe criada com sucesso!");
       setIsCreateModalOpen(false);
       setNewTeamName("");
       setNewTeamDesc("");
     },
-    onError: () => toast.error("Erro ao criar equipe.")
+    onError: (err) => {
+      console.error("Erro ao criar equipe:", err);
+      toast.error("❌ Erro ao criar equipe: " + (err.message || "Tente novamente"));
+    }
   });
 
   // MUTATION: Deletar Equipe

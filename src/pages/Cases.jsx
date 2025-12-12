@@ -123,16 +123,16 @@ export default function Cases({ theme = 'light' }) {
 
   const handleSaveCase = async () => {
     // Validação
-    if (!formData.title.trim()) {
-      toast.error("Preencha o título do processo");
+    if (!formData.title?.trim()) {
+      toast.error("⚠️ Preencha o título do processo");
       return;
     }
     if (!formData.client_id) {
-      toast.error("Selecione um cliente");
+      toast.error("⚠️ Selecione um cliente");
       return;
     }
     if (!formData.area) {
-      toast.error("Selecione a área do direito");
+      toast.error("⚠️ Selecione a área do direito");
       return;
     }
 
@@ -159,20 +159,27 @@ export default function Cases({ theme = 'light' }) {
     }
 
     try {
+      console.log("Salvando processo:", dataToSave);
+      
+      let result;
       if (editingCase) {
-        await base44.entities.Case.update(editingCase.id, dataToSave);
-        toast.success("Processo atualizado com sucesso!");
+        result = await base44.entities.Case.update(editingCase.id, dataToSave);
+        console.log("Processo atualizado:", result);
+        toast.success("✅ Processo atualizado com sucesso!");
       } else {
-        await base44.entities.Case.create(dataToSave);
-        toast.success("Processo salvo com sucesso!");
+        result = await base44.entities.Case.create(dataToSave);
+        console.log("Processo criado:", result);
+        toast.success("✅ Processo salvo com sucesso!");
       }
       
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      // Invalida a query para forçar refresh
+      await queryClient.invalidateQueries({ queryKey: ['cases'] });
+      
       setShowForm(false);
       setEditingCase(null);
     } catch (error) {
-      console.error("Erro ao salvar:", error);
-      toast.error("Erro ao salvar processo: " + (error.message || "Tente novamente"));
+      console.error("Erro detalhado ao salvar:", error);
+      toast.error("❌ Erro ao salvar processo: " + (error.message || "Tente novamente"));
     } finally {
       setIsSaving(false);
     }

@@ -110,8 +110,8 @@ export default function DocumentGenerator() {
     queryKey: ['my-generated-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Uses filter instead of list for reliable retrieval of user's documents
-      return await base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
+      // List all documents - RLS will handle filtering by user
+      return await base44.entities.LegalDocument.list('-created_date');
     },
     enabled: !!user?.email
   });
@@ -119,24 +119,32 @@ export default function DocumentGenerator() {
   // Mutação para salvar documento
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!documentTitle || !generatedContent) throw new Error("Dados incompletos");
+      if (!documentTitle?.trim() || !generatedContent?.trim()) {
+        throw new Error("Título e conteúdo são obrigatórios");
+      }
       
-      return await base44.entities.LegalDocument.create({
-        title: documentTitle,
+      console.log("Salvando documento:", { title: documentTitle, area: selectedArea?.name, type: selectedDocType });
+      
+      const result = await base44.entities.LegalDocument.create({
+        title: documentTitle.trim(),
         type: "outros",
         content: generatedContent,
         status: "draft",
-        notes: `Gerado via IA - Área: ${selectedArea.name} - Tipo: ${selectedDocType}`
-        // created_by is a system field and automatically set by the backend
+        notes: `Gerado via IA - Área: ${selectedArea?.name || 'Geral'} - Tipo: ${selectedDocType || 'Documento'}`
       });
+      
+      console.log("Documento salvo com sucesso:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("onSuccess chamado com data:", data);
       queryClient.invalidateQueries({ queryKey: ['my-generated-documents'] });
-      toast.success("Documento salvo com sucesso! Veja na aba 'Meus Documentos'.");
+      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Também invalida a query geral
+      toast.success("✅ Documento salvo com sucesso! Veja na aba 'Meus Documentos'.");
     },
     onError: (err) => {
-      console.error(err);
-      toast.error("Erro ao salvar documento. Tente novamente.");
+      console.error("Erro ao salvar documento:", err);
+      toast.error("❌ Erro ao salvar: " + (err.message || "Tente novamente"));
     }
   });
 
