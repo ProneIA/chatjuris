@@ -36,20 +36,25 @@ export default function Documents() {
       });
   }, []);
 
-  // 2. LEITURA ESTRITA: Apenas documentos CRIADOS pelo usuário atual
+  // 2. LEITURA ESTRITA: Apenas documentos SEM case_id (não vinculados a processos)
   const { data: documents = [], isLoading, refetch } = useQuery({
     queryKey: ['my-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      console.log("🔍 Buscando documentos de:", user.email);
-      // Filtro explícito no backend
-      const docs = await base44.entities.LegalDocument.filter({ 
+      console.log("🔍 Buscando documentos avulsos de:", user.email);
+      
+      // Busca TODOS os documentos do usuário
+      const allDocs = await base44.entities.LegalDocument.filter({ 
         created_by: user.email 
       }, '-created_date');
-      console.log("📄 Documentos encontrados:", docs.length);
-      return docs;
+      
+      // Filtra apenas os que NÃO têm case_id (documentos avulsos, não vinculados a processos)
+      const standaloneDocs = allDocs.filter(doc => !doc.case_id);
+      
+      console.log("📄 Total:", allDocs.length, "| Avulsos (sem processo):", standaloneDocs.length);
+      return standaloneDocs;
     },
-    enabled: !!user?.email // Só busca se tiver user
+    enabled: !!user?.email
   });
 
   // 3. CRIAÇÃO SEGURA
@@ -113,8 +118,8 @@ export default function Documents() {
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Meus Documentos (Reset & Rebuild)</h1>
-          <p className="text-gray-500 text-sm">Mostrando apenas documentos criados por: {user.email}</p>
+          <h1 className="text-2xl font-bold">Documentos Avulsos</h1>
+          <p className="text-gray-500 text-sm">Documentos não vinculados a processos. Para ver documentos de um processo, acesse a aba "Processos".</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => refetch()} title="Forçar recarregamento">
@@ -135,8 +140,8 @@ export default function Documents() {
         <Card className="border-dashed border-2">
           <CardContent className="py-10 text-center text-gray-500">
             <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p>Nenhum documento encontrado para sua conta.</p>
-            <p className="text-xs">Clique em "Novo Documento" para testar a persistência.</p>
+            <p>Nenhum documento avulso encontrado.</p>
+            <p className="text-xs">Documentos criados dentro de processos aparecem na aba "Processos".</p>
           </CardContent>
         </Card>
       ) : (

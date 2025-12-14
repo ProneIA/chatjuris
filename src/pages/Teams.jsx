@@ -97,8 +97,8 @@ export default function Teams() {
     <div className="p-8 max-w-5xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Minhas Equipes (Reset)</h1>
-          <p className="text-gray-500 text-sm">Gerencie equipes onde você é o proprietário.</p>
+          <h1 className="text-2xl font-bold">Minhas Equipes</h1>
+          <p className="text-gray-500 text-sm">Equipes que você criou ou das quais é membro.</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600">
           <Plus className="mr-2 w-4 h-4" /> Nova Equipe
@@ -111,7 +111,8 @@ export default function Teams() {
         <Card className="border-dashed border-2">
           <CardContent className="py-10 text-center text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p>Você não criou nenhuma equipe ainda.</p>
+            <p>Nenhuma equipe encontrada.</p>
+            <p className="text-xs mt-2">Crie uma equipe para começar a colaborar.</p>
           </CardContent>
         </Card>
       ) : (

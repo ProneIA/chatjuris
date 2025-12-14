@@ -164,7 +164,7 @@ export default function Cases({ theme = 'light' }) {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold">Processos</h1>
-            <p className="text-gray-500 mt-1">Gerencie seus processos jurídicos</p>
+            <p className="text-gray-500 mt-1">Processos criados por você. Documentos vinculados aparecem aqui.</p>
           </div>
           <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-indigo-600">
             <Plus className="w-4 h-4 mr-2" />
@@ -188,9 +188,9 @@ export default function Cases({ theme = 'light' }) {
               <div className="text-center py-20 border-2 border-dashed rounded-xl">
                 <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-medium">Nenhum processo encontrado</h3>
-                <p className="text-gray-500 mt-2 mb-6">Crie seu primeiro processo</p>
+                <p className="text-gray-500 mt-2 mb-6">Processos aparecem aqui após serem criados. Clique no processo para adicionar documentos.</p>
                 <Button variant="outline" onClick={() => setShowForm(true)}>
-                  Criar processo
+                  Criar primeiro processo
                 </Button>
               </div>
             ) : (
