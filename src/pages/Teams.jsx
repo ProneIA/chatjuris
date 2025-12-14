@@ -26,23 +26,24 @@ export default function Teams() {
       .catch(() => toast.error("Sessão inválida."));
   }, []);
 
-  // 2. LISTAGEM ESTRITA (Owner e Membro)
+  // 2. LISTAGEM CORRIGIDA - Busca TODAS as equipes e filtra no cliente
   const { data: myTeams = [], isLoading, refetch } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      console.log("🔍 Buscando equipes de:", user.email);
+      console.log("🔍 Buscando todas as equipes...");
       
-      // Busca todas as equipes que o usuário pode ver (dono ou membro)
+      // Busca TODAS as equipes (o RLS já filtra automaticamente)
       const allTeams = await base44.entities.Team.list('-created_date');
       
-      // Filtra no cliente para garantir visibilidade correta
-      const myVisibleTeams = allTeams.filter(t => 
+      // Filtro adicional no cliente para garantir visibilidade correta
+      const myTeams = allTeams.filter(t => 
         t.owner_email === user.email || t.members?.includes(user.email)
       );
       
-      console.log("👥 Total encontrado:", allTeams.length, "| Minhas equipes:", myVisibleTeams.length);
-      return myVisibleTeams;
+      console.log("👥 Total de equipes encontradas:", allTeams.length);
+      console.log("👥 Minhas equipes (dono ou membro):", myTeams.length);
+      return myTeams;
     },
     enabled: !!user?.email
   });
@@ -70,7 +71,8 @@ export default function Teams() {
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       await refetch();
-      toast.success(`✅ Equipe criada: ${data.name}`);
+      console.log("✅ Equipe criada com sucesso:", data);
+      toast.success(`✅ Equipe criada: ${data.name} (ID: ${data.id})`);
       setIsCreateOpen(false);
       setNewTeamName("");
     },
@@ -82,8 +84,9 @@ export default function Teams() {
     mutationFn: async (id) => {
       await base44.entities.Team.delete(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      await refetch();
       toast.success("Equipe removida.");
     }
   });

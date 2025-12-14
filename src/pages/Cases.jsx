@@ -41,11 +41,15 @@ export default function Cases({ theme = 'light' }) {
   }, []);
 
   const { data: cases = [], refetch } = useQuery({
-    queryKey: ['cases'],
+    queryKey: ['cases', user?.email],
     queryFn: async () => {
-      const result = await base44.entities.Case.list('-created_date');
+      if (!user?.email) return [];
+      console.log("🔍 Buscando processos criados por:", user.email);
+      const result = await base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+      console.log("📁 Processos encontrados:", result.length);
       return result;
-    }
+    },
+    enabled: !!user?.email
   });
 
   const { data: clients = [] } = useQuery({
@@ -55,6 +59,7 @@ export default function Cases({ theme = 'light' }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      if (!user?.email) throw new Error("Usuário não autenticado. Recarregue a página.");
       if (!data.title?.trim() || !data.client_id) {
         throw new Error("Título e cliente são obrigatórios");
       }
@@ -70,13 +75,23 @@ export default function Cases({ theme = 'light' }) {
         court: data.court || "",
         opposing_party: data.opposing_party || "",
         start_date: data.start_date || "",
-        deadline: data.deadline || ""
+        deadline: data.deadline || "",
+        created_by: user.email
       };
+
+      console.log("💾 Salvando processo...", cleanData);
 
       if (editingCase) {
         return await base44.entities.Case.update(editingCase.id, cleanData);
       }
-      return await base44.entities.Case.create(cleanData);
+      const newCase = await base44.entities.Case.create(cleanData);
+      
+      if (!newCase || !newCase.id) {
+        throw new Error("Falha ao salvar no banco de dados.");
+      }
+      
+      console.log("✅ Processo salvo com ID:", newCase.id);
+      return newCase;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
@@ -224,13 +239,13 @@ export default function Cases({ theme = 'light' }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Cliente * {clients.length === 0 && <span className="text-red-500 text-xs">(Cadastre um cliente primeiro)</span>}</Label>
+                  <Label>Cliente *</Label>
                   <Select value={formData.client_id} onValueChange={(v) => {
                     const client = clients.find(c => c.id === v);
                     setFormData({ ...formData, client_id: v, client_name: client?.name || "" });
                   }}>
-                    <SelectTrigger className={!formData.client_id ? "border-red-300" : ""}>
-                      <SelectValue placeholder="Selecione um cliente..." />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {clients.map((c) => (
@@ -238,7 +253,6 @@ export default function Cases({ theme = 'light' }) {
                       ))}
                     </SelectContent>
                   </Select>
-                  {!formData.client_id && <p className="text-xs text-red-500">Obrigatório selecionar um cliente</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Área *</Label>
