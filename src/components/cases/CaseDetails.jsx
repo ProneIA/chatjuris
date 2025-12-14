@@ -26,7 +26,6 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
     base44.auth.me().then(setUser);
   }, []);
 
-  // Buscar documentos vinculados a este processo
   const { data: caseDocuments = [] } = useQuery({
     queryKey: ['case-documents', caseData.id],
     queryFn: async () => {
@@ -37,7 +36,6 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
     }
   });
 
-  // Criar documento vinculado
   const createDocMutation = useMutation({
     mutationFn: async (data) => {
       if (!user?.email) throw new Error("Usuário não identificado.");
@@ -56,23 +54,24 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
       if (!doc || !doc.id) throw new Error("Erro ao salvar documento.");
       return doc;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['case-documents'] });
-      toast.success("Documento salvo no processo!");
+    onSuccess: async (doc) => {
+      await queryClient.invalidateQueries({ queryKey: ['case-documents'] });
+      console.log("✅ Documento do processo criado:", doc.id);
+      toast.success(`✅ Documento salvo no processo!`);
       setShowDocForm(false);
       setDocForm({ title: "", content: "" });
     },
     onError: (e) => toast.error(`Erro: ${e.message}`)
   });
 
-  // Excluir documento
   const deleteDocMutation = useMutation({
     mutationFn: (id) => base44.entities.LegalDocument.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['case-documents'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['case-documents'] });
       toast.success("Documento excluído");
       setSelectedDoc(null);
-    }
+    },
+    onError: (e) => toast.error(`Erro: ${e.message}`)
   });
   return (
     <motion.div
@@ -232,7 +231,6 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
           </div>
         )}
 
-        {/* SEÇÃO DE DOCUMENTOS DO PROCESSO */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -298,7 +296,6 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
         />
       )}
 
-      {/* Modal de Novo Documento */}
       <Dialog open={showDocForm} onOpenChange={setShowDocForm}>
         <DialogContent>
           <DialogHeader>
@@ -332,7 +329,6 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Visualização */}
       <Dialog open={!!selectedDoc} onOpenChange={() => setSelectedDoc(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
