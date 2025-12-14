@@ -44,15 +44,31 @@ export default function Teams({ theme = 'light' }) {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
+      // GUARDA DE SEGURANÇA REFORÇADA
+      if (!user || !user.email) {
+        throw new Error("Sessão expirada ou inválida. Recarregue a página.");
+      }
+      if (!newTeamName.trim()) throw new Error("Nome da equipe é obrigatório");
       
-      return await base44.entities.Team.create({
+      const teamData = {
         name: newTeamName.trim(),
         description: newTeamDesc.trim(),
-        owner_email: user.email,
-        members: [user.email],
+        owner_email: user.email, // Vínculo crítico
+        members: [user.email],   // Auto-inclusão crítica
         is_active: true
-      });
+      };
+
+      console.log("💾 Iniciando persistência de equipe...", teamData);
+      
+      const team = await base44.entities.Team.create(teamData);
+      
+      // Validação pós-criação
+      if (!team || !team.id) {
+        throw new Error("Erro de persistência: O banco não retornou o ID da equipe.");
+      }
+      
+      console.log(`✅ Equipe persistida com sucesso. ID: ${team.id}`);
+      return team;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['teams'] });
