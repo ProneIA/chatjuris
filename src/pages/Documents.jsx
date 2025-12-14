@@ -4,347 +4,219 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  FileText, 
-  Plus, 
-  Search, 
-  Clock, 
-  Trash2, 
-  Sparkles, 
-  Eye,
-  Download,
-  Filter,
-  RefreshCw
-} from "lucide-react";
+import { Plus, Trash2, FileText, Loader2, RefreshCw, Eye } from "lucide-react";
 import { toast } from "sonner";
-import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
-import { jsPDF } from "jspdf";
+import { createPageUrl } from "@/utils";
 
-const docTypes = [
-  "Petição Inicial", 
-  "Contestação", 
-  "Recurso", 
-  "Contrato", 
-  "Procuração", 
-  "Parecer", 
-  "Memorando",
-  "Outros"
-];
-
-export default function Documents({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+// PÁGINA RECONSTRUÍDA DO ZERO - Foco em persistência e segurança estrita
+export default function Documents() {
+  const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   
-  const [searchTerm, setSearchTerm] = useState("");
+  // Estado local para formulário
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
-  
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "Petição Inicial",
-    content: "",
-    notes: ""
-  });
+  const [formData, setFormData] = useState({ title: "", content: "", type: "outros" });
 
+  // 1. AUTENTICAÇÃO OBRIGATÓRIA
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(u => {
+        if (!u) throw new Error("Não autenticado");
+        setUser(u);
+      })
+      .catch(() => {
+        // Redirecionar ou mostrar erro bloqueante se não houver user
+        toast.error("Sessão inválida. Por favor, recarregue.");
+      });
   }, []);
 
+  // 2. LEITURA ESTRITA: Apenas documentos CRIADOS pelo usuário atual
   const { data: documents = [], isLoading, refetch } = useQuery({
-    queryKey: ['documents', user?.email],
+    queryKey: ['my-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filtra explicitamente pelo usuário criador para garantir visibilidade correta
-      // Mesmo que o RLS permita ver outros, o requisito pede "somente o que ele próprio criou"
-      const result = await base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
-      console.log("📄 Documentos carregados (meus):", result.length);
-      return result;
+      console.log("🔍 Buscando documentos de:", user.email);
+      // Filtro explícito no backend
+      const docs = await base44.entities.LegalDocument.filter({ 
+        created_by: user.email 
+      }, '-created_date');
+      console.log("📄 Documentos encontrados:", docs.length);
+      return docs;
     },
-    enabled: !!user?.email
+    enabled: !!user?.email // Só busca se tiver user
   });
 
+  // 3. CRIAÇÃO SEGURA
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      // GUARDA DE SEGURANÇA: Impede criação de registro órfão
-      if (!user || !user.email) {
-        throw new Error("Sessão inválida. Recarregue a página para autenticar novamente.");
-      }
-      if (!data.title.trim()) throw new Error("Título é obrigatório");
-      
-      console.log("💾 Iniciando transação segura de documento...");
-      
-      // Criação com vínculo explícito de usuário
-      const doc = await base44.entities.LegalDocument.create({
+      // Validação de segurança no frontend
+      if (!user?.email) throw new Error("Usuário não identificado. Recarregue a página.");
+      if (!data.title.trim()) throw new Error("Título é obrigatório.");
+
+      console.log("💾 Tentando salvar documento...", data);
+
+      // Insert com vínculo explícito
+      const newDoc = await base44.entities.LegalDocument.create({
         title: data.title.trim(),
-        type: data.type,
         content: data.content || "",
-        notes: data.notes || "",
+        type: data.type || "outros",
         status: "draft",
-        // Força vínculo explícito mesmo que o backend tenha default
-        created_by: user.email 
+        created_by: user.email // VÍNCULO OBRIGATÓRIO
       });
-      
-      if (!doc || !doc.id) {
-        throw new Error("Falha na confirmação do banco de dados. O ID não foi retornado.");
+
+      // Validação do retorno do banco
+      if (!newDoc || !newDoc.id) {
+        throw new Error("Erro crítico: Banco de dados não confirmou a criação.");
       }
 
-      console.log(`✅ Persistência confirmada. ID: ${doc.id}, Owner: ${user.email}`);
-      return doc;
-      console.log("✅ Documento salvo:", doc.id);
-      return doc;
+      console.log("✅ Documento persistido com sucesso ID:", newDoc.id);
+      return newDoc;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['documents'] });
-      await refetch();
-      toast.success("Documento criado com sucesso!");
-      setIsCreateOpen(false);
-      setFormData({ title: "", type: "Petição Inicial", content: "", notes: "" });
-    },
-    onError: (e) => toast.error(`Erro ao salvar: ${e.message}`)
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.LegalDocument.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
-      refetch();
-      setIsViewOpen(false);
-      toast.success("Documento excluído");
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast.success("Documento salvo e confirmado pelo banco.");
+      setIsCreateOpen(false);
+      setFormData({ title: "", content: "", type: "outros" });
+    },
+    onError: (err) => {
+      console.error("❌ Erro ao salvar:", err);
+      toast.error(`Falha ao salvar: ${err.message}`);
     }
   });
 
-  const handleDownload = (doc) => {
-    const pdf = new jsPDF();
-    const text = doc.content?.replace(/[#*_`]/g, '') || "Sem conteúdo";
-    const lines = pdf.splitTextToSize(text, 180);
-    pdf.text(lines, 15, 20);
-    pdf.save(`${doc.title}.pdf`);
-    toast.success("Download iniciado");
-  };
+  // 4. EXCLUSÃO (Apenas dono)
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      if (!user?.email) throw new Error("Sem permissão.");
+      // O RLS do banco já deve bloquear, mas validamos aqui também se possível
+      // Delete direto
+      await base44.entities.LegalDocument.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      toast.success("Documento excluído.");
+      setIsViewOpen(false);
+    },
+    onError: (err) => toast.error(`Erro ao excluir: ${err.message}`)
+  });
 
-  const filteredDocs = documents.filter(doc => 
-    doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Renderização de bloqueio se não houver user carregado (evita UI fantasma)
+  if (!user) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /> Carregando sessão...</div>;
 
   return (
-    <div className={`min-h-screen p-8 ${isDark ? 'bg-neutral-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Meus Documentos</h1>
-            <p className="text-gray-500 mt-1">Gerencie seus documentos jurídicos</p>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate(createPageUrl('DocumentGenerator'))}
-              className="gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-indigo-500" />
-              Gerar com IA
-            </Button>
-            <Button 
-              onClick={() => setIsCreateOpen(true)} 
-              className="bg-indigo-600 gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Manual
-            </Button>
-          </div>
+    <div className="p-8 max-w-6xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Meus Documentos (Reset & Rebuild)</h1>
+          <p className="text-gray-500 text-sm">Mostrando apenas documentos criados por: {user.email}</p>
         </div>
-
-        {/* Filters */}
-        <div className="flex gap-4 items-center bg-white p-4 rounded-xl border shadow-sm dark:bg-neutral-900 dark:border-neutral-800">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input 
-              placeholder="Buscar por título ou tipo..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => refetch()} title="Atualizar lista">
-            <RefreshCw className="w-4 h-4" />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => refetch()} title="Forçar recarregamento">
+            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar Lista
+          </Button>
+          <Button onClick={() => setIsCreateOpen(true)} className="bg-green-600 hover:bg-green-700">
+            <Plus className="w-4 h-4 mr-2" /> Novo Documento
+          </Button>
+          <Button onClick={() => navigate(createPageUrl('DocumentGenerator'))} variant="secondary">
+            Ir para Gerador IA
           </Button>
         </div>
-
-        {/* List */}
-        {isLoading ? (
-          <div className="text-center py-20">
-            <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-gray-500">Carregando documentos...</p>
-          </div>
-        ) : filteredDocs.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed rounded-xl">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium">Nenhum documento encontrado</h3>
-            <p className="text-gray-500 mt-2 mb-6">Crie um documento manual ou use a IA</p>
-            <div className="flex justify-center gap-3">
-              <Button variant="outline" onClick={() => navigate(createPageUrl('DocumentGenerator'))}>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Usar IA
-              </Button>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Manualmente
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredDocs.map((doc) => (
-              <Card key={doc.id} className="hover:shadow-lg transition-all cursor-pointer border-t-4 border-t-indigo-500">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <CardTitle className="line-clamp-1 text-lg">{doc.title}</CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        <span className="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs font-medium">
-                          {doc.type}
-                        </span>
-                        <span className="text-xs flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {new Date(doc.created_date).toLocaleDateString()}
-                        </span>
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500 line-clamp-3 min-h-[3rem] mb-4">
-                    {doc.content || doc.notes || "Sem conteúdo prévia..."}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1" 
-                      variant="secondary"
-                      onClick={() => { setSelectedDoc(doc); setIsViewOpen(true); }}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Visualizar
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => handleDownload(doc)}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Create Modal */}
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Novo Documento Manual</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Título *</Label>
-                  <Input 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Petição Inicial - Caso Silva"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tipo</Label>
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(v) => setFormData({...formData, type: v})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {docTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Conteúdo do Documento</Label>
-                <Textarea 
-                  value={formData.content}
-                  onChange={(e) => setFormData({...formData, content: e.target.value})}
-                  rows={10}
-                  placeholder="Digite ou cole o conteúdo do documento aqui..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Notas/Observações</Label>
-                <Input 
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  placeholder="Anotações internas..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
-              <Button onClick={() => createMutation.mutate(formData)} disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Salvando..." : "Salvar Documento"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* View Modal */}
-        <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedDoc?.title}</DialogTitle>
-              <CardDescription>
-                Criado em {selectedDoc && new Date(selectedDoc.created_date).toLocaleString()}
-              </CardDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm border">
-                {selectedDoc?.content || "Sem conteúdo"}
-              </div>
-              {selectedDoc?.notes && (
-                <div className="text-sm text-gray-500">
-                  <strong>Notas:</strong> {selectedDoc.notes}
-                </div>
-              )}
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="destructive" onClick={() => {
-                if(confirm("Tem certeza que deseja excluir?")) deleteMutation.mutate(selectedDoc.id);
-              }}>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => handleDownload(selectedDoc)}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Baixar PDF
-                </Button>
-                <Button onClick={() => setIsViewOpen(false)}>Fechar</Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
       </div>
+
+      {isLoading ? (
+        <div className="text-center py-10"><Loader2 className="animate-spin mx-auto" /> Buscando dados...</div>
+      ) : documents.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-10 text-center text-gray-500">
+            <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            <p>Nenhum documento encontrado para sua conta.</p>
+            <p className="text-xs">Clique em "Novo Documento" para testar a persistência.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {documents.map(doc => (
+            <Card key={doc.id} className="hover:border-green-500 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg truncate">{doc.title}</CardTitle>
+                <p className="text-xs text-gray-400">ID: {doc.id}</p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-gray-500 mb-4 line-clamp-3">
+                  {doc.content ? doc.content.substring(0, 100) + "..." : "Sem conteúdo"}
+                </p>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="ghost" onClick={() => { setSelectedDoc(doc); setIsViewOpen(true); }}>
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700" 
+                    onClick={() => {
+                      if(confirm("Confirmar exclusão definitiva?")) deleteMutation.mutate(doc.id);
+                    }}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* MODAL DE CRIAÇÃO SIMPLIFICADO */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Novo Documento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium">Título Obrigatório</label>
+              <Input 
+                value={formData.title} 
+                onChange={e => setFormData({...formData, title: e.target.value})}
+                placeholder="Ex: Contrato de Prestação de Serviços"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Conteúdo</label>
+              <Textarea 
+                value={formData.content} 
+                onChange={e => setFormData({...formData, content: e.target.value})}
+                placeholder="Conteúdo do documento..."
+                className="h-32"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button 
+              onClick={() => createMutation.mutate(formData)} 
+              disabled={createMutation.isPending || !formData.title.trim()}
+            >
+              {createMutation.isPending ? <Loader2 className="animate-spin w-4 h-4" /> : "Salvar no Banco"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL DE VISUALIZAÇÃO */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDoc?.title}</DialogTitle>
+            <p className="text-xs text-gray-400">Criado em: {selectedDoc?.created_date}</p>
+          </DialogHeader>
+          <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+            {selectedDoc?.content}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

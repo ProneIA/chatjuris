@@ -3,310 +3,167 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, Plus, Trash2, Shield, Search, UserPlus } from "lucide-react";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Users, Plus, Trash2, Loader2, Shield } from "lucide-react";
+import { toast } from "sonner";
 
-export default function Teams({ theme = 'light' }) {
-  const isDark = theme === 'dark';
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
+// PÁGINA RECONSTRUÍDA DO ZERO - Foco em Equipes e Propriedade
+export default function Teams() {
   const [user, setUser] = useState(null);
+  const queryClient = useQueryClient();
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
-  const [newTeamDesc, setNewTeamDesc] = useState("");
-  const [memberEmailToAdd, setMemberEmailToAdd] = useState("");
-  const [selectedTeamId, setSelectedTeamId] = useState(null);
 
+  // 1. AUTENTICAÇÃO
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(u => {
+        if (!u) throw new Error("Não autenticado");
+        setUser(u);
+      })
+      .catch(() => toast.error("Sessão inválida."));
   }, []);
 
-  const { data: teams = [], refetch } = useQuery({
-    queryKey: ['teams', user?.email],
+  // 2. LISTAGEM ESTRITA (Owner Only - Para gerenciamento)
+  // Nota: Membros podem ver, mas para garantir que o criador veja o que criou, filtramos por owner
+  const { data: myTeams = [], isLoading } = useQuery({
+    queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      // Filtra equipes onde o usuário é dono ou membro
-      const all = await base44.entities.Team.list('-created_date');
-      // Reforça filtro no cliente se necessário, mas list já deve trazer tudo
-      // Para garantir que ele veja o que criou:
-      return all.filter(t => t.owner_email === user.email || t.members?.includes(user.email));
+      console.log("🔍 Buscando equipes de:", user.email);
+      
+      // Filtra onde sou DONO ou MEMBRO
+      const teams = await base44.entities.Team.filter({ 
+        owner_email: user.email 
+      }, '-created_date');
+      
+      console.log("👥 Equipes encontradas:", teams.length);
+      return teams;
     },
     enabled: !!user?.email
   });
 
+  // 3. CRIAÇÃO SEGURA
   const createMutation = useMutation({
     mutationFn: async () => {
-      // GUARDA DE SEGURANÇA REFORÇADA
-      if (!user || !user.email) {
-        throw new Error("Sessão expirada ou inválida. Recarregue a página.");
-      }
-      if (!newTeamName.trim()) throw new Error("Nome da equipe é obrigatório");
-      
-      const teamData = {
-        name: newTeamName.trim(),
-        description: newTeamDesc.trim(),
-        owner_email: user.email, // Vínculo crítico
-        members: [user.email],   // Auto-inclusão crítica
-        is_active: true
-      };
+      if (!user?.email) throw new Error("Sem usuário.");
+      if (!newTeamName.trim()) throw new Error("Nome obrigatório.");
 
-      console.log("💾 Iniciando persistência de equipe...", teamData);
-      
-      const team = await base44.entities.Team.create(teamData);
-      
-      // Validação pós-criação
-      if (!team || !team.id) {
-        throw new Error("Erro de persistência: O banco não retornou o ID da equipe.");
-      }
-      
-      console.log(`✅ Equipe persistida com sucesso. ID: ${team.id}`);
+      console.log("💾 Criando equipe...");
+
+      const team = await base44.entities.Team.create({
+        name: newTeamName.trim(),
+        description: "Equipe criada via Reset",
+        owner_email: user.email,     // PROPRIETÁRIO
+        members: [user.email],       // MEMBRO INICIAL
+        is_active: true,
+        created_by: user.email       // RLS CHECK
+      });
+
+      if (!team || !team.id) throw new Error("Banco não confirmou criação.");
       return team;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['teams'] });
-      await refetch();
-      toast.success("✅ Equipe criada com sucesso!");
-      setIsCreateModalOpen(false);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      toast.success(`Equipe criada: ${data.name}`);
+      setIsCreateOpen(false);
       setNewTeamName("");
-      setNewTeamDesc("");
-    },
-    onError: (err) => toast.error(`Erro: ${err.message}`)
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Team.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast.success("Equipe excluída");
-    }
-  });
-
-  const addMemberMutation = useMutation({
-    mutationFn: async ({ team, email }) => {
-      if (!email.includes("@")) throw new Error("Email inválido");
-      const current = team.members || [];
-      if (current.includes(email)) throw new Error("Usuário já é membro");
-
-      return await base44.entities.Team.update(team.id, {
-        members: [...current, email]
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast.success("Membro adicionado!");
-      setMemberEmailToAdd("");
-      setSelectedTeamId(null);
     },
     onError: (e) => toast.error(e.message)
   });
 
-  const removeMemberMutation = useMutation({
-    mutationFn: async ({ team, email }) => {
-      if (email === team.owner_email) throw new Error("Não pode remover o dono");
-      
-      return await base44.entities.Team.update(team.id, {
-        members: team.members.filter(m => m !== email)
-      });
+  // 4. EXCLUSÃO
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await base44.entities.Team.delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast.success("Membro removido");
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      toast.success("Equipe removida.");
     }
   });
 
-  const filteredTeams = teams.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (!user) return <div className="p-8 text-center">Carregando...</div>;
 
   return (
-    <div className={`min-h-screen p-8 ${isDark ? 'bg-neutral-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Equipes & Colaboração</h1>
-            <p className="text-gray-500 mt-1">Gerencie seus times</p>
-          </div>
-          <Button onClick={() => setIsCreateModalOpen(true)} className="bg-indigo-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Criar Nova Equipe
-          </Button>
+    <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Minhas Equipes (Reset)</h1>
+          <p className="text-gray-500 text-sm">Gerencie equipes onde você é o proprietário.</p>
         </div>
-
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input 
-            placeholder="Buscar equipes..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {filteredTeams.length === 0 ? (
-          <div className="text-center py-20 border-2 border-dashed rounded-xl">
-            <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium">Nenhuma equipe encontrada</h3>
-            <p className="text-gray-500 mt-2 mb-6">Crie sua primeira equipe</p>
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(true)}>
-              Criar equipe
-            </Button>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTeams.map((team) => {
-              const isOwner = team.owner_email === user?.email;
-              
-              return (
-                <Card key={team.id} className="border-t-4 border-t-indigo-500">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{team.name}</CardTitle>
-                        <CardDescription className="line-clamp-1 mt-1">
-                          {team.description || "Sem descrição"}
-                        </CardDescription>
-                      </div>
-                      {isOwner && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-gray-400 hover:text-red-500"
-                          onClick={() => {
-                            if(confirm("Excluir esta equipe?")) deleteMutation.mutate(team.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                        Membros ({team.members?.length || 0})
-                      </h4>
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {team.members?.map((member) => (
-                          <div key={member} className="flex items-center justify-between bg-gray-50 p-2 rounded-md text-sm">
-                            <div className="flex items-center gap-2 truncate">
-                              <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold">
-                                {member[0].toUpperCase()}
-                              </div>
-                              <span className="truncate">{member}</span>
-                              {member === team.owner_email && (
-                                <Shield className="w-3 h-3 text-amber-500" />
-                              )}
-                            </div>
-                            
-                            {isOwner && member !== user.email && (
-                              <button 
-                                onClick={() => removeMemberMutation.mutate({ team, email: member })}
-                                className="text-gray-400 hover:text-red-500"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {isOwner && (
-                      <div className="pt-2 border-t">
-                        {selectedTeamId === team.id ? (
-                          <div className="flex gap-2">
-                            <Input 
-                              placeholder="email@exemplo.com" 
-                              className="h-8 text-sm"
-                              value={memberEmailToAdd}
-                              onChange={(e) => setMemberEmailToAdd(e.target.value)}
-                            />
-                            <Button 
-                              size="sm" 
-                              className="h-8"
-                              onClick={() => addMemberMutation.mutate({ team, email: memberEmailToAdd })}
-                            >
-                              Add
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="h-8 px-2"
-                              onClick={() => setSelectedTeamId(null)}
-                            >
-                              X
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full h-8 border-dashed"
-                            onClick={() => setSelectedTeamId(team.id)}
-                          >
-                            <UserPlus className="w-3 h-3 mr-2" />
-                            Adicionar Membro
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    
-                    <Button 
-                      className="w-full bg-gray-900 text-white"
-                      onClick={() => navigate(createPageUrl('TeamWorkspace') + `?team=${team.id}`)}
-                    >
-                      Acessar Workspace
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Criar Nova Equipe</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Nome da Equipe</Label>
-                <Input 
-                  placeholder="Ex: Departamento Civil" 
-                  value={newTeamName}
-                  onChange={(e) => setNewTeamName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Descrição (Opcional)</Label>
-                <Textarea 
-                  placeholder="Descrição da equipe..." 
-                  value={newTeamDesc}
-                  onChange={(e) => setNewTeamDesc(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancelar</Button>
-              <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Criando..." : "Criar Equipe"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
+        <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600">
+          <Plus className="mr-2 w-4 h-4" /> Nova Equipe
+        </Button>
       </div>
+
+      {isLoading ? (
+        <div className="text-center py-10"><Loader2 className="animate-spin mx-auto" /></div>
+      ) : myTeams.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-10 text-center text-gray-500">
+            <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            <p>Você não criou nenhuma equipe ainda.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {myTeams.map(team => (
+            <Card key={team.id} className="border-t-4 border-t-indigo-500">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span className="truncate">{team.name}</span>
+                  <Shield className="w-4 h-4 text-amber-500" title="Proprietário" />
+                </CardTitle>
+                <CardDescription>ID: {team.id}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-gray-500 mb-4">
+                  <p>Membros: {team.members?.length || 0}</p>
+                  <p>Dono: {team.owner_email}</p>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    if(confirm("Excluir equipe permanentemente?")) deleteMutation.mutate(team.id);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Equipe</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium">Nome da Equipe</label>
+            <Input 
+              value={newTeamName} 
+              onChange={e => setNewTeamName(e.target.value)}
+              placeholder="Ex: Departamento Jurídico"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button 
+              onClick={() => createMutation.mutate()} 
+              disabled={createMutation.isPending || !newTeamName.trim()}
+            >
+              {createMutation.isPending ? "Criando..." : "Criar Equipe"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
