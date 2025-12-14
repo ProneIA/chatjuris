@@ -57,7 +57,8 @@ export default function DocumentGenerator() {
     queryKey: ['legal-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const all = await base44.entities.LegalDocument.list('-created_date');
+      // Filtra apenas documentos criados pelo usuário logado
+      const all = await base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
       return all;
     },
     enabled: !!user?.email
@@ -168,80 +169,10 @@ Use linguagem jurídica formal, cite leis relevantes, estruture adequadamente e 
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="generator">Gerador IA</TabsTrigger>
-            <TabsTrigger value="manual">Manual</TabsTrigger>
-            <TabsTrigger value="history">Salvos ({documents.length})</TabsTrigger>
+            <TabsTrigger value="history">Meus Documentos ({documents.length})</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="manual" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Criação Manual de Documento</CardTitle>
-                <CardDescription>Escreva seu documento do zero ou cole de outra fonte.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Título do Documento</label>
-                  <Input 
-                    value={documentTitle}
-                    onChange={(e) => setDocumentTitle(e.target.value)}
-                    placeholder="Ex: Contrato de Prestação de Serviços"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Área</label>
-                    <select 
-                      className="w-full p-2 border rounded-md"
-                      onChange={(e) => {
-                        const area = legalAreas.find(a => a.id === e.target.value);
-                        setSelectedArea(area);
-                      }}
-                      value={selectedArea?.id || ""}
-                    >
-                      <option value="">Selecione...</option>
-                      {legalAreas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Tipo</label>
-                    <Input 
-                      value={selectedDocType}
-                      onChange={(e) => setSelectedDocType(e.target.value)}
-                      placeholder="Ex: Petição, Contrato..."
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Conteúdo</label>
-                  <Textarea 
-                    value={generatedContent}
-                    onChange={(e) => setGeneratedContent(e.target.value)}
-                    placeholder="Digite o conteúdo do documento aqui..."
-                    className="min-h-[400px] font-mono"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={reset}>Limpar</Button>
-                  <Button 
-                    onClick={() => saveMutation.mutate()} 
-                    disabled={saveMutation.isPending || !documentTitle || !generatedContent}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {saveMutation.isPending ? (
-                      <><Loader2 className="w-4 h-4 animate-spin mr-2" />Salvando...</>
-                    ) : (
-                      <><Save className="w-4 h-4 mr-2" />Salvar Documento</>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="generator" className="mt-6">
             <div className="grid lg:grid-cols-12 gap-6">

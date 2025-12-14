@@ -33,27 +33,26 @@ export default function Teams({ theme = 'light' }) {
     queryKey: ['teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
+      // Filtra equipes onde o usuário é dono ou membro
       const all = await base44.entities.Team.list('-created_date');
-      return all;
+      // Reforça filtro no cliente se necessário, mas list já deve trazer tudo
+      // Para garantir que ele veja o que criou:
+      return all.filter(t => t.owner_email === user.email || t.members?.includes(user.email));
     },
     enabled: !!user?.email
   });
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.email) throw new Error("Usuário não identificado. Recarregue a página.");
       if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
       
-      const teamData = {
+      return await base44.entities.Team.create({
         name: newTeamName.trim(),
         description: newTeamDesc.trim(),
         owner_email: user.email,
         members: [user.email],
         is_active: true
-      };
-
-      console.log("💾 Salvando equipe...", teamData);
-      return await base44.entities.Team.create(teamData);
+      });
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['teams'] });
