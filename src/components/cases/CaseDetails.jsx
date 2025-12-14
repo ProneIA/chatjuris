@@ -2,20 +2,78 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Edit, Calendar, Scale, User, DollarSign, Building, AlertCircle, Share2 } from "lucide-react";
+import { X, Edit, Calendar, Scale, User, DollarSign, Building, AlertCircle, Share2, FileText, Plus, Trash2, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import CommentSection from "@/components/collaboration/CommentSection";
 import ShareDialog from "@/components/collaboration/ShareDialog";
 import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 export default function CaseDetails({ caseData, onClose, onEdit }) {
   const [user, setUser] = useState(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showDocForm, setShowDocForm] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [docForm, setDocForm] = useState({ title: "", content: "" });
+  const queryClient = useQueryClient();
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
   }, []);
+
+  // Buscar documentos vinculados a este processo
+  const { data: caseDocuments = [] } = useQuery({
+    queryKey: ['case-documents', caseData.id],
+    queryFn: async () => {
+      const docs = await base44.entities.LegalDocument.filter({ 
+        case_id: caseData.id 
+      }, '-created_date');
+      return docs;
+    }
+  });
+
+  // Criar documento vinculado
+  const createDocMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!user?.email) throw new Error("Usuário não identificado.");
+      if (!data.title.trim()) throw new Error("Título é obrigatório.");
+
+      const doc = await base44.entities.LegalDocument.create({
+        title: data.title.trim(),
+        content: data.content || "",
+        type: "outros",
+        status: "draft",
+        case_id: caseData.id,
+        client_id: caseData.client_id,
+        created_by: user.email
+      });
+
+      if (!doc || !doc.id) throw new Error("Erro ao salvar documento.");
+      return doc;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['case-documents'] });
+      toast.success("Documento salvo no processo!");
+      setShowDocForm(false);
+      setDocForm({ title: "", content: "" });
+    },
+    onError: (e) => toast.error(`Erro: ${e.message}`)
+  });
+
+  // Excluir documento
+  const deleteDocMutation = useMutation({
+    mutationFn: (id) => base44.entities.LegalDocument.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['case-documents'] });
+      toast.success("Documento excluído");
+      setSelectedDoc(null);
+    }
+  });
   return (
     <motion.div
       initial={{ x: 400, opacity: 0 }}
@@ -174,6 +232,47 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
           </div>
         )}
 
+        {/* SEÇÃO DE DOCUMENTOS DO PROCESSO */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Documentos ({caseDocuments.length})
+            </p>
+            <Button size="sm" variant="outline" onClick={() => setShowDocForm(true)}>
+              <Plus className="w-3 h-3 mr-1" /> Novo
+            </Button>
+          </div>
+          
+          {caseDocuments.length === 0 ? (
+            <p className="text-sm text-slate-400 italic">Nenhum documento vinculado</p>
+          ) : (
+            <div className="space-y-2">
+              {caseDocuments.map(doc => (
+                <div key={doc.id} className="bg-slate-50 rounded p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <FileText className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900 truncate">{doc.title}</p>
+                      <p className="text-xs text-slate-500">{format(new Date(doc.created_date), "dd/MM/yyyy")}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => setSelectedDoc(doc)}>
+                      <Eye className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-red-500" 
+                      onClick={() => {
+                        if(confirm("Excluir este documento?")) deleteDocMutation.mutate(doc.id);
+                      }}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <CommentSection entityType="case" entityId={caseData.id} />
 
         <div>
@@ -198,6 +297,52 @@ export default function CaseDetails({ caseData, onClose, onEdit }) {
           user={user}
         />
       )}
+
+      {/* Modal de Novo Documento */}
+      <Dialog open={showDocForm} onOpenChange={setShowDocForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Documento do Processo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium">Título</label>
+              <Input 
+                value={docForm.title}
+                onChange={e => setDocForm({...docForm, title: e.target.value})}
+                placeholder="Ex: Petição Inicial"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Conteúdo</label>
+              <Textarea 
+                value={docForm.content}
+                onChange={e => setDocForm({...docForm, content: e.target.value})}
+                rows={6}
+                placeholder="Conteúdo do documento..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowDocForm(false)}>Cancelar</Button>
+            <Button onClick={() => createDocMutation.mutate(docForm)} disabled={createDocMutation.isPending}>
+              {createDocMutation.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Visualização */}
+      <Dialog open={!!selectedDoc} onOpenChange={() => setSelectedDoc(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedDoc?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
+            {selectedDoc?.content || "Sem conteúdo"}
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

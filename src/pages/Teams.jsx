@@ -26,21 +26,23 @@ export default function Teams() {
       .catch(() => toast.error("Sessão inválida."));
   }, []);
 
-  // 2. LISTAGEM ESTRITA (Owner Only - Para gerenciamento)
-  // Nota: Membros podem ver, mas para garantir que o criador veja o que criou, filtramos por owner
-  const { data: myTeams = [], isLoading } = useQuery({
+  // 2. LISTAGEM ESTRITA (Owner e Membro)
+  const { data: myTeams = [], isLoading, refetch } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
       console.log("🔍 Buscando equipes de:", user.email);
       
-      // Filtra onde sou DONO ou MEMBRO
-      const teams = await base44.entities.Team.filter({ 
-        owner_email: user.email 
-      }, '-created_date');
+      // Busca todas as equipes que o usuário pode ver (dono ou membro)
+      const allTeams = await base44.entities.Team.list('-created_date');
       
-      console.log("👥 Equipes encontradas:", teams.length);
-      return teams;
+      // Filtra no cliente para garantir visibilidade correta
+      const myVisibleTeams = allTeams.filter(t => 
+        t.owner_email === user.email || t.members?.includes(user.email)
+      );
+      
+      console.log("👥 Total encontrado:", allTeams.length, "| Minhas equipes:", myVisibleTeams.length);
+      return myVisibleTeams;
     },
     enabled: !!user?.email
   });
@@ -65,9 +67,10 @@ export default function Teams() {
       if (!team || !team.id) throw new Error("Banco não confirmou criação.");
       return team;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
-      toast.success(`Equipe criada: ${data.name}`);
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      await refetch();
+      toast.success(`✅ Equipe criada: ${data.name}`);
       setIsCreateOpen(false);
       setNewTeamName("");
     },
