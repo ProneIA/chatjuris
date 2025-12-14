@@ -41,15 +41,19 @@ export default function Teams({ theme = 'light' }) {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      if (!user?.email) throw new Error("Usuário não identificado. Recarregue a página.");
       if (!newTeamName.trim()) throw new Error("Nome é obrigatório");
       
-      return await base44.entities.Team.create({
+      const teamData = {
         name: newTeamName.trim(),
         description: newTeamDesc.trim(),
         owner_email: user.email,
         members: [user.email],
         is_active: true
-      });
+      };
+
+      console.log("💾 Salvando equipe...", teamData);
+      return await base44.entities.Team.create(teamData);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['teams'] });

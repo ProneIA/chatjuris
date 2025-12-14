@@ -224,13 +224,13 @@ export default function Cases({ theme = 'light' }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Cliente *</Label>
+                  <Label>Cliente * {clients.length === 0 && <span className="text-red-500 text-xs">(Cadastre um cliente primeiro)</span>}</Label>
                   <Select value={formData.client_id} onValueChange={(v) => {
                     const client = clients.find(c => c.id === v);
                     setFormData({ ...formData, client_id: v, client_name: client?.name || "" });
                   }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
+                    <SelectTrigger className={!formData.client_id ? "border-red-300" : ""}>
+                      <SelectValue placeholder="Selecione um cliente..." />
                     </SelectTrigger>
                     <SelectContent>
                       {clients.map((c) => (
@@ -238,6 +238,7 @@ export default function Cases({ theme = 'light' }) {
                       ))}
                     </SelectContent>
                   </Select>
+                  {!formData.client_id && <p className="text-xs text-red-500">Obrigatório selecionar um cliente</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Área *</Label>
