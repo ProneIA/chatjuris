@@ -73,16 +73,31 @@ export default function Documents({ theme = 'light' }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      // GUARDA DE SEGURANÇA: Impede criação de registro órfão
+      if (!user || !user.email) {
+        throw new Error("Sessão inválida. Recarregue a página para autenticar novamente.");
+      }
       if (!data.title.trim()) throw new Error("Título é obrigatório");
       
-      console.log("💾 Salvando documento manual...");
+      console.log("💾 Iniciando transação segura de documento...");
+      
+      // Criação com vínculo explícito de usuário
       const doc = await base44.entities.LegalDocument.create({
         title: data.title.trim(),
         type: data.type,
         content: data.content || "",
         notes: data.notes || "",
-        status: "draft"
+        status: "draft",
+        // Força vínculo explícito mesmo que o backend tenha default
+        created_by: user.email 
       });
+      
+      if (!doc || !doc.id) {
+        throw new Error("Falha na confirmação do banco de dados. O ID não foi retornado.");
+      }
+
+      console.log(`✅ Persistência confirmada. ID: ${doc.id}, Owner: ${user.email}`);
+      return doc;
       console.log("✅ Documento salvo:", doc.id);
       return doc;
     },

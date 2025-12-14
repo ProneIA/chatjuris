@@ -66,17 +66,30 @@ export default function DocumentGenerator() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // GUARDA DE SEGURANÇA
+      if (!user || !user.email) {
+        throw new Error("Erro crítico de autorização: Usuário não identificado.");
+      }
       if (!documentTitle.trim() || !generatedContent.trim()) {
         throw new Error("Título e conteúdo são obrigatórios");
       }
       
-      return await base44.entities.LegalDocument.create({
+      console.log("💾 Salvando documento IA com vínculo seguro...");
+      
+      const doc = await base44.entities.LegalDocument.create({
         title: documentTitle.trim(),
         type: "outros",
         content: generatedContent,
         status: "draft",
-        notes: `Área: ${selectedArea?.name || 'Geral'} - Tipo: ${selectedDocType}`
+        notes: `Área: ${selectedArea?.name || 'Geral'} - Tipo: ${selectedDocType}`,
+        created_by: user.email // Vínculo explícito obrigatório
       });
+
+      if (!doc || !doc.id) {
+        throw new Error("O banco de dados não confirmou a criação do registro.");
+      }
+      
+      return doc;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['legal-documents'] });
