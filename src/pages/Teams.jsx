@@ -58,11 +58,10 @@ export default function Teams() {
 
       const team = await base44.entities.Team.create({
         name: newTeamName.trim(),
-        description: "Equipe criada via Reset",
-        owner_email: user.email,     // PROPRIETÁRIO
-        members: [user.email],       // MEMBRO INICIAL
-        is_active: true,
-        created_by: user.email       // RLS CHECK
+        description: "",
+        owner_email: user.email,
+        members: [user.email],
+        is_active: true
       });
 
       if (!team || !team.id) throw new Error("Banco não confirmou criação.");
@@ -98,7 +97,7 @@ export default function Teams() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Minhas Equipes</h1>
-          <p className="text-gray-500 text-sm">Equipes que você criou ou das quais é membro.</p>
+          <p className="text-gray-500 text-sm">Equipes que você criou ou nas quais você é membro</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600">
           <Plus className="mr-2 w-4 h-4" /> Nova Equipe
@@ -111,8 +110,7 @@ export default function Teams() {
         <Card className="border-dashed border-2">
           <CardContent className="py-10 text-center text-gray-500">
             <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p>Nenhuma equipe encontrada.</p>
-            <p className="text-xs mt-2">Crie uma equipe para começar a colaborar.</p>
+            <p>Você não criou nenhuma equipe ainda.</p>
           </CardContent>
         </Card>
       ) : (

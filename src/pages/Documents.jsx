@@ -36,23 +36,23 @@ export default function Documents() {
       });
   }, []);
 
-  // 2. LEITURA ESTRITA: Apenas documentos SEM case_id (não vinculados a processos)
+  // 2. LEITURA ESTRITA: Apenas documentos GERAIS (sem case_id)
   const { data: documents = [], isLoading, refetch } = useQuery({
     queryKey: ['my-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      console.log("🔍 Buscando documentos avulsos de:", user.email);
+      console.log("🔍 Buscando documentos gerais de:", user.email);
       
-      // Busca TODOS os documentos do usuário
+      // Busca todos os documentos do usuário
       const allDocs = await base44.entities.LegalDocument.filter({ 
         created_by: user.email 
       }, '-created_date');
       
-      // Filtra apenas os que NÃO têm case_id (documentos avulsos, não vinculados a processos)
-      const standaloneDocs = allDocs.filter(doc => !doc.case_id);
+      // Filtra apenas documentos SEM case_id (documentos gerais)
+      const generalDocs = allDocs.filter(doc => !doc.case_id);
       
-      console.log("📄 Total:", allDocs.length, "| Avulsos (sem processo):", standaloneDocs.length);
-      return standaloneDocs;
+      console.log("📄 Total:", allDocs.length, "| Documentos gerais:", generalDocs.length);
+      return generalDocs;
     },
     enabled: !!user?.email
   });
@@ -83,9 +83,10 @@ export default function Documents() {
       console.log("✅ Documento persistido com sucesso ID:", newDoc.id);
       return newDoc;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
-      toast.success("Documento salvo e confirmado pelo banco.");
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      await refetch();
+      toast.success("✅ Documento salvo com sucesso!");
       setIsCreateOpen(false);
       setFormData({ title: "", content: "", type: "outros" });
     },
@@ -103,10 +104,12 @@ export default function Documents() {
       // Delete direto
       await base44.entities.LegalDocument.delete(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      await refetch();
       toast.success("Documento excluído.");
       setIsViewOpen(false);
+      setSelectedDoc(null);
     },
     onError: (err) => toast.error(`Erro ao excluir: ${err.message}`)
   });
@@ -118,8 +121,8 @@ export default function Documents() {
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">Documentos Avulsos</h1>
-          <p className="text-gray-500 text-sm">Documentos não vinculados a processos. Para ver documentos de um processo, acesse a aba "Processos".</p>
+          <h1 className="text-2xl font-bold">Documentos Gerais</h1>
+          <p className="text-gray-500 text-sm">Documentos não vinculados a processos específicos</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => refetch()} title="Forçar recarregamento">
@@ -140,8 +143,8 @@ export default function Documents() {
         <Card className="border-dashed border-2">
           <CardContent className="py-10 text-center text-gray-500">
             <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p>Nenhum documento avulso encontrado.</p>
-            <p className="text-xs">Documentos criados dentro de processos aparecem na aba "Processos".</p>
+            <p>Nenhum documento geral encontrado.</p>
+            <p className="text-xs">Documentos vinculados a processos aparecem dentro de cada processo.</p>
           </CardContent>
         </Card>
       ) : (

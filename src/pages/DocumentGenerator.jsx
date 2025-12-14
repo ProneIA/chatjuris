@@ -89,7 +89,7 @@ export default function DocumentGenerator() {
           <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
         </Button>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Sparkles className="text-purple-600" /> Gerador IA (Reset)
+          <Sparkles className="text-purple-600" /> Gerador de Documentos IA
         </h1>
       </div>
 
