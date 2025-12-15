@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import CaseDetails from "@/components/cases/CaseDetails";
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,13 +96,17 @@ export default function Cases({ theme = 'light' }) {
       console.log("✅ Processo salvo com ID:", newCase.id);
       return newCase;
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
       await refetch();
       toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
       setShowForm(false);
       setEditingCase(null);
       resetForm();
+
+      if (data && data.id && !editingCase) {
+        navigate(createPageUrl("CaseDetails") + "?id=" + data.id);
+      }
     },
     onError: (err) => toast.error(`Erro: ${err.message}`)
   });
