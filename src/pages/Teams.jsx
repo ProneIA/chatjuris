@@ -21,12 +21,20 @@ export default function Teams() {
 
   // 1. AUTENTICAÇÃO
   useEffect(() => {
+    console.log("🔐 [TEAMS] Iniciando autenticação...");
     base44.auth.me()
       .then(u => {
-        if (!u) throw new Error("Não autenticado");
+        if (!u) {
+          console.error("❌ [TEAMS] Usuário não autenticado");
+          throw new Error("Não autenticado");
+        }
+        console.log("✅ [TEAMS] Usuário autenticado:", u.email);
         setUser(u);
       })
-      .catch(() => toast.error("Sessão inválida."));
+      .catch((err) => {
+        console.error("❌ [TEAMS] Erro ao carregar sessão:", err);
+        toast.error("Sessão inválida.");
+      });
   }, []);
 
   // 2. LISTAGEM CORRIGIDA - Busca TODAS as equipes e filtra no cliente
@@ -54,34 +62,60 @@ export default function Teams() {
   // 3. CRIAÇÃO SEGURA
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.email) throw new Error("Sem usuário.");
-      if (!newTeamName.trim()) throw new Error("Nome obrigatório.");
+      console.log("🚀 [TEAMS] INICIANDO CRIAÇÃO");
+      console.log("👤 [TEAMS] Usuário:", user?.email);
+      console.log("📝 [TEAMS] Nome:", newTeamName);
+      
+      if (!user?.email) {
+        console.error("❌ [TEAMS] Usuário não identificado");
+        throw new Error("Sem usuário.");
+      }
+      if (!newTeamName.trim()) {
+        console.error("❌ [TEAMS] Nome vazio");
+        throw new Error("Nome obrigatório.");
+      }
 
-      console.log("💾 Criando equipe...");
-
-      const team = await base44.entities.Team.create({
+      const payload = {
         name: newTeamName.trim(),
         description: "",
         owner_email: user.email,
         members: [user.email],
         is_active: true
-      });
+      };
 
-      if (!team || !team.id) throw new Error("Banco não confirmou criação.");
+      console.log("📤 [TEAMS] Enviando para banco:", payload);
+
+      const team = await base44.entities.Team.create(payload);
+
+      console.log("📥 [TEAMS] Resposta do banco:", team);
+
+      if (!team || !team.id) {
+        console.error("❌ [TEAMS] Banco não retornou ID");
+        throw new Error("Banco não confirmou criação.");
+      }
+      
+      console.log("✅ [TEAMS] SUCESSO! Team ID:", team.id);
       return team;
     },
     onSuccess: async (data) => {
+      console.log("🎉 [TEAMS] onSuccess disparado para ID:", data.id);
+      console.log("🔄 [TEAMS] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      console.log("🔄 [TEAMS] Fazendo refetch...");
       await refetch();
-      console.log("✅ Equipe criada com sucesso:", data);
+      console.log("✅ [TEAMS] Refetch completo!");
       toast.success(`✅ Equipe criada: ${data.name}`);
       setIsCreateOpen(false);
       setNewTeamName("");
       
-      // REDIRECIONAR PARA WORKSPACE
+      console.log("➡️ [TEAMS] Redirecionando para workspace:", data.id);
       navigate(createPageUrl("TeamWorkspace") + "?team=" + data.id);
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => {
+      console.error("❌ [TEAMS] MUTATION ERROR:", e);
+      console.error("❌ [TEAMS] Stack:", e.stack);
+      toast.error(e.message);
+    }
   });
 
   // 4. EXCLUSÃO

@@ -25,13 +25,18 @@ export default function Documents() {
 
   // 1. AUTENTICAÇÃO OBRIGATÓRIA
   useEffect(() => {
+    console.log("🔐 Iniciando autenticação...");
     base44.auth.me()
       .then(u => {
-        if (!u) throw new Error("Não autenticado");
+        if (!u) {
+          console.error("❌ Usuário não autenticado");
+          throw new Error("Não autenticado");
+        }
+        console.log("✅ Usuário autenticado:", u.email);
         setUser(u);
       })
-      .catch(() => {
-        // Redirecionar ou mostrar erro bloqueante se não houver user
+      .catch((err) => {
+        console.error("❌ Erro ao carregar sessão:", err);
         toast.error("Sessão inválida. Por favor, recarregue.");
       });
   }, []);
@@ -60,38 +65,58 @@ export default function Documents() {
   // 3. CRIAÇÃO SEGURA
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      console.log("🚀 INICIANDO CRIAÇÃO DE DOCUMENTO");
+      console.log("👤 Usuário:", user?.email);
+      console.log("📝 Dados do formulário:", data);
+      
       // Validação de segurança no frontend
-      if (!user?.email) throw new Error("Usuário não identificado. Recarregue a página.");
-      if (!data.title.trim()) throw new Error("Título é obrigatório.");
+      if (!user?.email) {
+        console.error("❌ ERRO: Usuário não identificado");
+        throw new Error("Usuário não identificado. Recarregue a página.");
+      }
+      if (!data.title.trim()) {
+        console.error("❌ ERRO: Título vazio");
+        throw new Error("Título é obrigatório.");
+      }
 
-      console.log("💾 Tentando salvar documento...", data);
-
-      // Insert com vínculo explícito
-      const newDoc = await base44.entities.LegalDocument.create({
+      const payload = {
         title: data.title.trim(),
         content: data.content || "",
         type: data.type || "outros",
         status: "draft",
-        created_by: user.email // VÍNCULO OBRIGATÓRIO
-      });
+        created_by: user.email
+      };
+      
+      console.log("📤 Enviando para o banco:", payload);
+
+      // Insert com vínculo explícito
+      const newDoc = await base44.entities.LegalDocument.create(payload);
+
+      console.log("📥 Resposta do banco:", newDoc);
 
       // Validação do retorno do banco
       if (!newDoc || !newDoc.id) {
+        console.error("❌ ERRO CRÍTICO: Banco não retornou ID");
         throw new Error("Erro crítico: Banco de dados não confirmou a criação.");
       }
 
-      console.log("✅ Documento persistido com sucesso ID:", newDoc.id);
+      console.log("✅ SUCESSO! Documento ID:", newDoc.id);
       return newDoc;
     },
-    onSuccess: async () => {
+    onSuccess: async (doc) => {
+      console.log("🎉 Mutation onSuccess disparada para doc ID:", doc.id);
+      console.log("🔄 Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
+      console.log("🔄 Fazendo refetch...");
       await refetch();
+      console.log("✅ Refetch completo!");
       toast.success("✅ Documento salvo com sucesso!");
       setIsCreateOpen(false);
       setFormData({ title: "", content: "", type: "outros" });
     },
     onError: (err) => {
-      console.error("❌ Erro ao salvar:", err);
+      console.error("❌ MUTATION ERROR:", err);
+      console.error("❌ Stack:", err.stack);
       toast.error(`Falha ao salvar: ${err.message}`);
     }
   });

@@ -40,7 +40,15 @@ export default function Cases({ theme = 'light' }) {
   });
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    console.log("🔐 [CASES] Iniciando autenticação...");
+    base44.auth.me()
+      .then(u => {
+        console.log("✅ [CASES] Usuário autenticado:", u.email);
+        setUser(u);
+      })
+      .catch((err) => {
+        console.error("❌ [CASES] Erro ao carregar sessão:", err);
+      });
   }, []);
 
   const { data: cases = [], refetch } = useQuery({
@@ -62,8 +70,16 @@ export default function Cases({ theme = 'light' }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (!user?.email) throw new Error("Usuário não autenticado. Recarregue a página.");
+      console.log("🚀 [CASES] INICIANDO CRIAÇÃO/ATUALIZAÇÃO");
+      console.log("👤 [CASES] Usuário:", user?.email);
+      console.log("📝 [CASES] Dados:", data);
+      
+      if (!user?.email) {
+        console.error("❌ [CASES] Usuário não autenticado");
+        throw new Error("Usuário não autenticado. Recarregue a página.");
+      }
       if (!data.title?.trim() || !data.client_id) {
+        console.error("❌ [CASES] Dados inválidos");
         throw new Error("Título e cliente são obrigatórios");
       }
 
@@ -82,33 +98,48 @@ export default function Cases({ theme = 'light' }) {
         created_by: user.email
       };
 
-      console.log("💾 Salvando processo...", cleanData);
+      console.log("📤 [CASES] Enviando para banco:", cleanData);
 
       if (editingCase) {
+        console.log("✏️ [CASES] Modo: ATUALIZAÇÃO");
         return await base44.entities.Case.update(editingCase.id, cleanData);
       }
+      
+      console.log("➕ [CASES] Modo: CRIAÇÃO");
       const newCase = await base44.entities.Case.create(cleanData);
       
+      console.log("📥 [CASES] Resposta do banco:", newCase);
+      
       if (!newCase || !newCase.id) {
+        console.error("❌ [CASES] Banco não retornou ID");
         throw new Error("Falha ao salvar no banco de dados.");
       }
       
-      console.log("✅ Processo salvo com ID:", newCase.id);
+      console.log("✅ [CASES] SUCESSO! Processo ID:", newCase.id);
       return newCase;
     },
     onSuccess: async (data) => {
+      console.log("🎉 [CASES] onSuccess disparado para ID:", data.id);
+      console.log("🔄 [CASES] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
+      console.log("🔄 [CASES] Fazendo refetch...");
       await refetch();
+      console.log("✅ [CASES] Refetch completo!");
       toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
       setShowForm(false);
       setEditingCase(null);
       resetForm();
 
       if (data && data.id && !editingCase) {
+        console.log("➡️ [CASES] Redirecionando para:", data.id);
         navigate(createPageUrl("CaseDetails") + "?id=" + data.id);
       }
     },
-    onError: (err) => toast.error(`Erro: ${err.message}`)
+    onError: (err) => {
+      console.error("❌ [CASES] MUTATION ERROR:", err);
+      console.error("❌ [CASES] Stack:", err.stack);
+      toast.error(`Erro: ${err.message}`);
+    }
   });
 
   const deleteMutation = useMutation({
