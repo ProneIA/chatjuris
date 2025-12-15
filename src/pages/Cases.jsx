@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { FolderOpen, Plus, Search, X } from "lucide-react";
+import { FolderOpen, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import CaseCard from "@/components/cases/CaseCard";
-import CaseDetails from "@/components/cases/CaseDetails";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -24,7 +23,6 @@ export default function Cases({ theme = 'light' }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingCase, setEditingCase] = useState(null);
-  const [selectedCase, setSelectedCase] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     client_id: "",
@@ -43,7 +41,11 @@ export default function Cases({ theme = 'light' }) {
     console.log("🔐 [CASES] Iniciando autenticação...");
     base44.auth.me()
       .then(u => {
-        console.log("✅ [CASES] Usuário autenticado:", u.email);
+        if (!u) {
+          console.error("❌ [CASES] Usuário não autenticado!");
+          throw new Error("Não autenticado");
+        }
+        console.log("✅ [CASES] Usuário autenticado:", u.email, "ID:", u.id);
         setUser(u);
       })
       .catch((err) => {
@@ -54,10 +56,14 @@ export default function Cases({ theme = 'light' }) {
   const { data: cases = [], refetch } = useQuery({
     queryKey: ['cases', user?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
-      console.log("🔍 Buscando processos criados por:", user.email);
+      if (!user?.email) {
+        console.log("⏳ [CASES] Aguardando autenticação...");
+        return [];
+      }
+      console.log("🔍 [CASES] Buscando processos de:", user.email);
       const result = await base44.entities.Case.filter({ created_by: user.email }, '-created_date');
-      console.log("📁 Processos encontrados:", result.length);
+      console.log("📁 [CASES] Processos encontrados:", result.length);
+      console.log("📁 [CASES] Dados:", result);
       return result;
     },
     enabled: !!user?.email
@@ -70,16 +76,17 @@ export default function Cases({ theme = 'light' }) {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      console.log("🚀 [CASES] INICIANDO CRIAÇÃO/ATUALIZAÇÃO");
-      console.log("👤 [CASES] Usuário:", user?.email);
-      console.log("📝 [CASES] Dados:", data);
+      console.log("💾 [CASES] Iniciando salvamento...");
+      console.log("💾 [CASES] Dados do formulário:", data);
+      console.log("💾 [CASES] Usuário atual:", user);
       
       if (!user?.email) {
-        console.error("❌ [CASES] Usuário não autenticado");
-        throw new Error("Usuário não autenticado. Recarregue a página.");
+        console.error("❌ [CASES] ERRO: Usuário não identificado!");
+        throw new Error("Usuário não autenticado. Recarregue.");
       }
+      
       if (!data.title?.trim() || !data.client_id) {
-        console.error("❌ [CASES] Dados inválidos");
+        console.error("❌ [CASES] ERRO: Campos obrigatórios faltando!");
         throw new Error("Título e cliente são obrigatórios");
       }
 
@@ -98,55 +105,58 @@ export default function Cases({ theme = 'light' }) {
         created_by: user.email
       };
 
-      console.log("📤 [CASES] Enviando para banco:", cleanData);
+      console.log("💾 [CASES] Payload enviado:", cleanData);
 
       if (editingCase) {
-        console.log("✏️ [CASES] Modo: ATUALIZAÇÃO");
+        console.log("💾 [CASES] Atualizando processo existente ID:", editingCase.id);
         return await base44.entities.Case.update(editingCase.id, cleanData);
       }
       
-      console.log("➕ [CASES] Modo: CRIAÇÃO");
       const newCase = await base44.entities.Case.create(cleanData);
       
-      console.log("📥 [CASES] Resposta do banco:", newCase);
+      console.log("💾 [CASES] Resposta do banco:", newCase);
       
       if (!newCase || !newCase.id) {
-        console.error("❌ [CASES] Banco não retornou ID");
-        throw new Error("Falha ao salvar no banco de dados.");
+        console.error("❌ [CASES] ERRO CRÍTICO: Banco não retornou ID!", newCase);
+        throw new Error("Falha ao salvar: banco não confirmou.");
       }
       
-      console.log("✅ [CASES] SUCESSO! Processo ID:", newCase.id);
+      console.log("✅ [CASES] Processo criado! ID:", newCase.id);
       return newCase;
     },
     onSuccess: async (data) => {
-      console.log("🎉 [CASES] onSuccess disparado para ID:", data.id);
+      console.log("✅ [CASES] onSuccess chamado. Processo:", data);
       console.log("🔄 [CASES] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
-      console.log("🔄 [CASES] Fazendo refetch...");
+      console.log("🔄 [CASES] Refetch forçado...");
       await refetch();
-      console.log("✅ [CASES] Refetch completo!");
+      console.log("✅ [CASES] Atualização concluída!");
+      
       toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
       setShowForm(false);
       setEditingCase(null);
       resetForm();
 
       if (data && data.id && !editingCase) {
-        console.log("➡️ [CASES] Redirecionando para:", data.id);
+        console.log("➡️ [CASES] Redirecionando para detalhes ID:", data.id);
         navigate(createPageUrl("CaseDetails") + "?id=" + data.id);
       }
     },
     onError: (err) => {
-      console.error("❌ [CASES] MUTATION ERROR:", err);
+      console.error("❌ [CASES] Erro no salvamento:", err);
       console.error("❌ [CASES] Stack:", err.stack);
       toast.error(`Erro: ${err.message}`);
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Case.delete(id),
+    mutationFn: (id) => {
+      console.log("🗑️ [CASES] Excluindo processo ID:", id);
+      return base44.entities.Case.delete(id);
+    },
     onSuccess: () => {
+      console.log("✅ [CASES] Processo excluído, atualizando lista...");
       queryClient.invalidateQueries({ queryKey: ['cases'] });
-      setSelectedCase(null);
       toast.success("Processo excluído");
     }
   });
@@ -187,6 +197,7 @@ export default function Cases({ theme = 'light' }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("🚀 [CASES] Formulário submetido!");
     saveMutation.mutate(formData);
   };
 
@@ -202,9 +213,13 @@ export default function Cases({ theme = 'light' }) {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold">Processos</h1>
-            <p className="text-gray-500 mt-1">Seus processos jurídicos • Documentos aparecem dentro de cada processo</p>
+            <p className="text-gray-500 mt-1">{cases.length} processo(s) encontrado(s)</p>
           </div>
-          <Button onClick={() => { resetForm(); setShowForm(true); }} className="bg-indigo-600">
+          <Button onClick={() => { 
+            console.log("➕ [CASES] Botão Novo Processo clicado");
+            resetForm(); 
+            setShowForm(true); 
+          }} className="bg-indigo-600">
             <Plus className="w-4 h-4 mr-2" />
             Novo Processo
           </Button>
