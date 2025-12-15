@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import ProGuard from "../components/common/ProGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,10 +63,6 @@ export default function TeamWorkspace() {
     queryKey: ['teamFiles', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      // Verificar se o usuário é membro da equipe
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
-        return [];
-      }
       return base44.entities.TeamFile.filter(
         { team_id: selectedTeam.id },
         '-created_date'
@@ -80,10 +75,6 @@ export default function TeamWorkspace() {
     queryKey: ['teamTasks', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      // Verificar se o usuário é membro da equipe
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
-        return [];
-      }
       return base44.entities.Task.filter(
         { team_id: selectedTeam.id },
         '-created_date'
@@ -96,10 +87,6 @@ export default function TeamWorkspace() {
     queryKey: ['teamEvents', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      // Verificar se o usuário é membro da equipe
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
-        return [];
-      }
       return base44.entities.CalendarEvent.filter(
         { team_id: selectedTeam.id },
         'start_time'
@@ -253,7 +240,6 @@ export default function TeamWorkspace() {
   }
 
   return (
-    <ProGuard featureName="Workspace de Equipes">
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
@@ -679,6 +665,5 @@ export default function TeamWorkspace() {
         </Tabs>
       </div>
     </div>
-    </ProGuard>
   );
 }
