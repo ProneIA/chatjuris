@@ -1,150 +1,188 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Users, Plus, Trash2, Loader2, Shield } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Users, Plus, ExternalLink, Trash2, Shield } from "lucide-react";
-import { toast } from "sonner";
-import SimpleTeamForm from "@/components/forms/SimpleTeamForm";
 
-// REWRITTEN FROM SCRATCH - SIMPLE & ROBUST
+// PÁGINA RECONSTRUÍDA DO ZERO - Foco em Equipes e Propriedade
 export default function Teams() {
   const [user, setUser] = useState(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
 
+  // 1. AUTENTICAÇÃO
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(u => {
+        if (!u) throw new Error("Não autenticado");
+        setUser(u);
+      })
+      .catch(() => toast.error("Sessão inválida."));
   }, []);
 
-  // Fetch Teams
-  const { data: teams = [], isLoading } = useQuery({
-    queryKey: ['all-teams', user?.email],
+  // 2. LISTAGEM CORRIGIDA - Busca TODAS as equipes e filtra no cliente
+  const { data: myTeams = [], isLoading, refetch } = useQuery({
+    queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
+      console.log("🔍 Buscando todas as equipes...");
+      
+      // Busca TODAS as equipes (o RLS já filtra automaticamente)
       const allTeams = await base44.entities.Team.list('-created_date');
-      // Filter visible teams
-      return allTeams.filter(t => 
-        t.owner_email === user.email || 
-        t.members?.includes(user.email)
+      
+      // Filtro adicional no cliente para garantir visibilidade correta
+      const myTeams = allTeams.filter(t => 
+        t.owner_email === user.email || t.members?.includes(user.email)
       );
+      
+      console.log("👥 Total de equipes encontradas:", allTeams.length);
+      console.log("👥 Minhas equipes (dono ou membro):", myTeams.length);
+      return myTeams;
     },
     enabled: !!user?.email
   });
 
-  // Delete Mutation
+  // 3. CRIAÇÃO SEGURA
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.email) throw new Error("Sem usuário.");
+      if (!newTeamName.trim()) throw new Error("Nome obrigatório.");
+
+      console.log("💾 Criando equipe...");
+
+      const team = await base44.entities.Team.create({
+        name: newTeamName.trim(),
+        description: "",
+        owner_email: user.email,
+        members: [user.email],
+        is_active: true
+      });
+
+      if (!team || !team.id) throw new Error("Banco não confirmou criação.");
+      return team;
+    },
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      await refetch();
+      console.log("✅ Equipe criada com sucesso:", data);
+      toast.success(`✅ Equipe criada: ${data.name}`);
+      setIsCreateOpen(false);
+      setNewTeamName("");
+      
+      // REDIRECIONAR PARA WORKSPACE
+      navigate(createPageUrl("TeamWorkspace") + "?team=" + data.id);
+    },
+    onError: (e) => toast.error(e.message)
+  });
+
+  // 4. EXCLUSÃO
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Team.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['all-teams'] });
+    mutationFn: async (id) => {
+      await base44.entities.Team.delete(id);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      await refetch();
       toast.success("Equipe removida.");
     }
   });
 
-  const handleTeamCreated = (newTeam) => {
-    setIsCreateOpen(false);
-    queryClient.invalidateQueries({ queryKey: ['all-teams'] });
-    // IMMEDIATE REDIRECT
-    navigate(createPageUrl("TeamWorkspace") + "?team=" + newTeam.id);
-  };
-
-  if (!user) return <div className="p-10 text-center">Carregando...</div>;
+  if (!user) return <div className="p-8 text-center">Carregando...</div>;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <Users className="w-8 h-8 text-indigo-600" />
-            Minhas Equipes
-          </h1>
-          <p className="text-gray-500 mt-1">Colabore com outros advogados e parceiros.</p>
+          <h1 className="text-2xl font-bold">Minhas Equipes</h1>
+          <p className="text-gray-500 text-sm">Equipes que você criou ou nas quais você é membro</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 shadow-md">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Equipe
+        <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600">
+          <Plus className="mr-2 w-4 h-4" /> Nova Equipe
         </Button>
       </div>
 
-      {/* List */}
       {isLoading ? (
-        <div className="text-center py-20 text-gray-500">Carregando equipes...</div>
-      ) : teams.length === 0 ? (
-        <Card className="border-dashed border-2 bg-gray-50/50">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Users className="w-16 h-16 text-gray-300 mb-4" />
-            <h3 className="text-xl font-medium text-gray-700">Nenhuma equipe encontrada</h3>
-            <p className="text-gray-500 mb-6">Crie uma equipe para compartilhar casos e arquivos.</p>
-            <Button variant="outline" onClick={() => setIsCreateOpen(true)}>
-              Criar Agora
-            </Button>
+        <div className="text-center py-10"><Loader2 className="animate-spin mx-auto" /></div>
+      ) : myTeams.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-10 text-center text-gray-500">
+            <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            <p>Você não criou nenhuma equipe ainda.</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {teams.map(team => (
-            <Card 
-              key={team.id} 
-              className="hover:shadow-lg transition-all cursor-pointer border-t-4 border-t-indigo-500 group"
-              onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg truncate">{team.name}</CardTitle>
-                  {team.owner_email === user.email && (
-                    <Shield className="w-4 h-4 text-amber-500" title="Proprietário" />
-                  )}
-                </div>
-                <CardDescription className="line-clamp-2 h-10">
-                  {team.description || "Sem descrição"}
-                </CardDescription>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {myTeams.map(team => (
+            <Card key={team.id} className="border-t-4 border-t-indigo-500 hover:shadow-lg transition-shadow">
+              <CardHeader className="cursor-pointer" onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}>
+                <CardTitle className="flex justify-between items-center">
+                  <span className="truncate">{team.name}</span>
+                  <Shield className="w-4 h-4 text-amber-500" title="Proprietário" />
+                </CardTitle>
+                <CardDescription>Clique para abrir o workspace</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                  <span>{team.members?.length || 1} membros</span>
+                <div className="text-sm text-gray-500 mb-4">
+                  <p>Membros: {team.members?.length || 0}</p>
+                  <p>Dono: {team.owner_email}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    className="flex-1 bg-indigo-50" 
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2 text-indigo-600" /> Abrir
+                  </Button>
                   {team.owner_email === user.email && (
                     <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if(confirm("Excluir esta equipe permanentemente?")) deleteMutation.mutate(team.id);
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => {
+                        if(confirm("Excluir equipe permanentemente?")) deleteMutation.mutate(team.id);
                       }}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
-                <Button 
-                  className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200" 
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" /> Acessar Workspace
-                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Criar Nova Equipe</DialogTitle>
+            <DialogTitle>Criar Equipe</DialogTitle>
           </DialogHeader>
-          <SimpleTeamForm 
-            onSuccess={handleTeamCreated} 
-            onCancel={() => setIsCreateOpen(false)} 
-          />
+          <div className="py-4">
+            <label className="text-sm font-medium">Nome da Equipe</label>
+            <Input 
+              value={newTeamName} 
+              onChange={e => setNewTeamName(e.target.value)}
+              placeholder="Ex: Departamento Jurídico"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+            <Button 
+              onClick={() => createMutation.mutate()} 
+              disabled={createMutation.isPending || !newTeamName.trim()}
+            >
+              {createMutation.isPending ? "Criando..." : "Criar Equipe"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

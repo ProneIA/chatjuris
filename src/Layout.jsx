@@ -36,11 +36,11 @@ import {
 
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
-  { title: "Processos", url: createPageUrl("Cases"), icon: Scale },
-  { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
+  { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
+  { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
 ];
 
 export default function Layout({ children, currentPageName }) {
