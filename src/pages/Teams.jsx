@@ -7,14 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Plus, Trash2, Loader2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 
 // PÁGINA RECONSTRUÍDA DO ZERO - Foco em Equipes e Propriedade
 export default function Teams() {
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
@@ -74,12 +71,12 @@ export default function Teams() {
       await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       await refetch();
       console.log("✅ Equipe criada com sucesso:", data);
-      toast.success(`✅ Equipe criada! Redirecionando...`);
+      toast.success(`✅ Equipe criada: ${data.name}`);
       setIsCreateOpen(false);
       setNewTeamName("");
       
-      // Redirecionamento imediato para a área de trabalho da equipe
-      navigate(createPageUrl('TeamWorkspace') + `?team=${data.id}`);
+      // REDIRECIONAR PARA WORKSPACE
+      navigate(createPageUrl("TeamWorkspace") + "?team=" + data.id);
     },
     onError: (e) => toast.error(e.message)
   });
@@ -122,29 +119,39 @@ export default function Teams() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {myTeams.map(team => (
-            <Card key={team.id} className="border-t-4 border-t-indigo-500">
-              <CardHeader>
+            <Card key={team.id} className="border-t-4 border-t-indigo-500 hover:shadow-lg transition-shadow">
+              <CardHeader className="cursor-pointer" onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}>
                 <CardTitle className="flex justify-between items-center">
                   <span className="truncate">{team.name}</span>
                   <Shield className="w-4 h-4 text-amber-500" title="Proprietário" />
                 </CardTitle>
-                <CardDescription>ID: {team.id}</CardDescription>
+                <CardDescription>Clique para abrir o workspace</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-gray-500 mb-4">
                   <p>Membros: {team.members?.length || 0}</p>
                   <p>Dono: {team.owner_email}</p>
                 </div>
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => {
-                    if(confirm("Excluir equipe permanentemente?")) deleteMutation.mutate(team.id);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    className="flex-1 bg-indigo-50" 
+                    variant="outline"
+                    onClick={() => navigate(createPageUrl("TeamWorkspace") + "?team=" + team.id)}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2 text-indigo-600" /> Abrir
+                  </Button>
+                  {team.owner_email === user.email && (
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => {
+                        if(confirm("Excluir equipe permanentemente?")) deleteMutation.mutate(team.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
