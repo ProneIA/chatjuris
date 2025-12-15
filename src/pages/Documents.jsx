@@ -11,71 +11,68 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
-// PÁGINA RECONSTRUÍDA DO ZERO - Foco em persistência e segurança estrita
 export default function Documents() {
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
-  // Estado local para formulário
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [formData, setFormData] = useState({ title: "", content: "", type: "outros" });
 
-  // 1. AUTENTICAÇÃO OBRIGATÓRIA
   useEffect(() => {
-    console.log("🔐 Iniciando autenticação...");
+    console.log("🔐 [DOCS] Iniciando autenticação...");
     base44.auth.me()
       .then(u => {
         if (!u) {
-          console.error("❌ Usuário não autenticado");
+          console.error("❌ [DOCS] Usuário não autenticado!");
           throw new Error("Não autenticado");
         }
-        console.log("✅ Usuário autenticado:", u.email);
+        console.log("✅ [DOCS] Usuário autenticado:", u.email, "ID:", u.id);
         setUser(u);
       })
       .catch((err) => {
-        console.error("❌ Erro ao carregar sessão:", err);
-        toast.error("Sessão inválida. Por favor, recarregue.");
+        console.error("❌ [DOCS] Erro ao carregar sessão:", err);
+        toast.error("Sessão inválida. Por favor, faça login novamente.");
       });
   }, []);
 
-  // 2. LEITURA ESTRITA: Apenas documentos GERAIS (sem case_id)
   const { data: documents = [], isLoading, refetch } = useQuery({
     queryKey: ['my-documents', user?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
-      console.log("🔍 Buscando documentos gerais de:", user.email);
+      if (!user?.email) {
+        console.log("⏳ [DOCS] Aguardando autenticação do usuário...");
+        return [];
+      }
+      console.log("🔍 [DOCS] Buscando documentos de:", user.email);
       
-      // Busca todos os documentos do usuário
       const allDocs = await base44.entities.LegalDocument.filter({ 
         created_by: user.email 
       }, '-created_date');
       
-      // Filtra apenas documentos SEM case_id (documentos gerais)
       const generalDocs = allDocs.filter(doc => !doc.case_id);
       
-      console.log("📄 Total:", allDocs.length, "| Documentos gerais:", generalDocs.length);
+      console.log("📄 [DOCS] Total de documentos:", allDocs.length, "| Gerais:", generalDocs.length);
+      console.log("📄 [DOCS] Documentos encontrados:", generalDocs);
       return generalDocs;
     },
     enabled: !!user?.email
   });
 
-  // 3. CRIAÇÃO SEGURA
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      console.log("🚀 INICIANDO CRIAÇÃO DE DOCUMENTO");
-      console.log("👤 Usuário:", user?.email);
-      console.log("📝 Dados do formulário:", data);
-      
-      // Validação de segurança no frontend
+      console.log("💾 [DOCS] Iniciando criação de documento...");
+      console.log("💾 [DOCS] Dados do formulário:", data);
+      console.log("💾 [DOCS] Usuário atual:", user);
+
       if (!user?.email) {
-        console.error("❌ ERRO: Usuário não identificado");
+        console.error("❌ [DOCS] ERRO: Usuário não identificado!");
         throw new Error("Usuário não identificado. Recarregue a página.");
       }
+      
       if (!data.title.trim()) {
-        console.error("❌ ERRO: Título vazio");
+        console.error("❌ [DOCS] ERRO: Título vazio!");
         throw new Error("Título é obrigatório.");
       }
 
@@ -86,90 +83,95 @@ export default function Documents() {
         status: "draft",
         created_by: user.email
       };
-      
-      console.log("📤 Enviando para o banco:", payload);
 
-      // Insert com vínculo explícito
+      console.log("💾 [DOCS] Payload enviado ao banco:", payload);
+
       const newDoc = await base44.entities.LegalDocument.create(payload);
 
-      console.log("📥 Resposta do banco:", newDoc);
+      console.log("💾 [DOCS] Resposta do banco:", newDoc);
 
-      // Validação do retorno do banco
       if (!newDoc || !newDoc.id) {
-        console.error("❌ ERRO CRÍTICO: Banco não retornou ID");
-        throw new Error("Erro crítico: Banco de dados não confirmou a criação.");
+        console.error("❌ [DOCS] ERRO CRÍTICO: Banco não retornou ID!", newDoc);
+        throw new Error("Erro ao salvar: banco não confirmou criação.");
       }
 
-      console.log("✅ SUCESSO! Documento ID:", newDoc.id);
+      console.log("✅ [DOCS] Documento criado com sucesso! ID:", newDoc.id);
       return newDoc;
     },
-    onSuccess: async (doc) => {
-      console.log("🎉 Mutation onSuccess disparada para doc ID:", doc.id);
-      console.log("🔄 Invalidando queries...");
+    onSuccess: async (newDoc) => {
+      console.log("✅ [DOCS] onSuccess chamado. Documento:", newDoc);
+      console.log("🔄 [DOCS] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
-      console.log("🔄 Fazendo refetch...");
+      console.log("🔄 [DOCS] Refetch forçado...");
       await refetch();
-      console.log("✅ Refetch completo!");
+      console.log("✅ [DOCS] Atualização concluída!");
+      
       toast.success("✅ Documento salvo com sucesso!");
       setIsCreateOpen(false);
       setFormData({ title: "", content: "", type: "outros" });
     },
     onError: (err) => {
-      console.error("❌ MUTATION ERROR:", err);
-      console.error("❌ Stack:", err.stack);
+      console.error("❌ [DOCS] Erro na criação:", err);
+      console.error("❌ [DOCS] Stack:", err.stack);
       toast.error(`Falha ao salvar: ${err.message}`);
     }
   });
 
-  // 4. EXCLUSÃO (Apenas dono)
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      if (!user?.email) throw new Error("Sem permissão.");
-      // O RLS do banco já deve bloquear, mas validamos aqui também se possível
-      // Delete direto
+      console.log("🗑️ [DOCS] Excluindo documento ID:", id);
       await base44.entities.LegalDocument.delete(id);
     },
     onSuccess: async () => {
+      console.log("✅ [DOCS] Documento excluído, atualizando lista...");
       await queryClient.invalidateQueries({ queryKey: ['my-documents'] });
       await refetch();
       toast.success("Documento excluído.");
       setIsViewOpen(false);
       setSelectedDoc(null);
     },
-    onError: (err) => toast.error(`Erro ao excluir: ${err.message}`)
+    onError: (err) => {
+      console.error("❌ [DOCS] Erro ao excluir:", err);
+      toast.error(`Erro ao excluir: ${err.message}`);
+    }
   });
 
-  // Renderização de bloqueio se não houver user carregado (evita UI fantasma)
-  if (!user) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /> Carregando sessão...</div>;
+  if (!user) {
+    return (
+      <div className="p-8 flex justify-center items-center">
+        <Loader2 className="animate-spin mr-2" /> Carregando sessão...
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Documentos Gerais</h1>
-          <p className="text-gray-500 text-sm">Documentos não vinculados a processos específicos</p>
+          <p className="text-gray-500 text-sm">Documentos não vinculados a processos • {documents.length} encontrado(s)</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refetch()} title="Forçar recarregamento">
-            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar Lista
+          <Button variant="outline" onClick={() => {
+            console.log("🔄 [DOCS] Botão Atualizar clicado");
+            refetch();
+          }}>
+            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
           </Button>
           <Button onClick={() => setIsCreateOpen(true)} className="bg-green-600 hover:bg-green-700">
             <Plus className="w-4 h-4 mr-2" /> Novo Documento
-          </Button>
-          <Button onClick={() => navigate(createPageUrl('DocumentGenerator'))} variant="secondary">
-            Ir para Gerador IA
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-10"><Loader2 className="animate-spin mx-auto" /> Buscando dados...</div>
+        <div className="text-center py-10"><Loader2 className="animate-spin mx-auto" /> Buscando...</div>
       ) : documents.length === 0 ? (
         <Card className="border-dashed border-2">
           <CardContent className="py-10 text-center text-gray-500">
             <FileText className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p>Nenhum documento geral encontrado.</p>
-            <p className="text-xs">Documentos vinculados a processos aparecem dentro de cada processo.</p>
+            <p>Nenhum documento encontrado.</p>
+            <p className="text-xs mt-2">Clique em "Novo Documento" para criar o primeiro.</p>
           </CardContent>
         </Card>
       ) : (
@@ -190,7 +192,7 @@ export default function Documents() {
                   </Button>
                   <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700" 
                     onClick={() => {
-                      if(confirm("Confirmar exclusão definitiva?")) deleteMutation.mutate(doc.id);
+                      if(confirm("Confirmar exclusão?")) deleteMutation.mutate(doc.id);
                     }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -201,7 +203,6 @@ export default function Documents() {
         </div>
       )}
 
-      {/* MODAL DE CRIAÇÃO SIMPLIFICADO */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
@@ -209,7 +210,7 @@ export default function Documents() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">Título Obrigatório</label>
+              <label className="text-sm font-medium">Título *</label>
               <Input 
                 value={formData.title} 
                 onChange={e => setFormData({...formData, title: e.target.value})}
@@ -229,24 +230,28 @@ export default function Documents() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
             <Button 
-              onClick={() => createMutation.mutate(formData)} 
+              onClick={() => {
+                console.log("🚀 [DOCS] Botão Salvar clicado!");
+                console.log("📋 [DOCS] Dados atuais do formulário:", formData);
+                createMutation.mutate(formData);
+              }} 
               disabled={createMutation.isPending || !formData.title.trim()}
             >
-              {createMutation.isPending ? <Loader2 className="animate-spin w-4 h-4" /> : "Salvar no Banco"}
+              {createMutation.isPending ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
+              {createMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* MODAL DE VISUALIZAÇÃO */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedDoc?.title}</DialogTitle>
-            <p className="text-xs text-gray-400">Criado em: {selectedDoc?.created_date}</p>
+            <p className="text-xs text-gray-400">ID: {selectedDoc?.id}</p>
           </DialogHeader>
           <div className="p-4 bg-gray-50 rounded border whitespace-pre-wrap">
-            {selectedDoc?.content}
+            {selectedDoc?.content || "Sem conteúdo"}
           </div>
         </DialogContent>
       </Dialog>
