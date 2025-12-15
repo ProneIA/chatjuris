@@ -50,9 +50,7 @@ export default function TeamWorkspace() {
     queryFn: async () => {
       if (!user?.email) return [];
       const allTeams = await base44.entities.Team.list();
-      return allTeams.filter(t => 
-        t.owner_email === user.email || t.members?.includes(user.email)
-      );
+      return allTeams;
     },
     enabled: !!user?.email
   });
