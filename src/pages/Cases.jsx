@@ -44,8 +44,9 @@ export default function Cases({ theme = 'light' }) {
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      console.log("🔍 Buscando processos criados por:", user.email);
-      const result = await base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+      console.log("🔍 Buscando processos (meus e compartilhados)...");
+      // Busca todos os processos que o usuário tem permissão de ver (RLS cuida do filtro)
+      const result = await base44.entities.Case.list('-created_date');
       console.log("📁 Processos encontrados:", result.length);
       return result;
     },
@@ -93,13 +94,20 @@ export default function Cases({ theme = 'light' }) {
       console.log("✅ Processo salvo com ID:", newCase.id);
       return newCase;
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ['cases'] });
       await refetch();
       toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
+      
+      // Fecha o formulário
       setShowForm(false);
       setEditingCase(null);
       resetForm();
+
+      // "Redireciona" abrindo os detalhes do processo recém-criado/editado
+      if (data && data.id) {
+        setSelectedCase(data);
+      }
     },
     onError: (err) => toast.error(`Erro: ${err.message}`)
   });

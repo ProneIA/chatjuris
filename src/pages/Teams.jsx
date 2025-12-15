@@ -7,11 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Plus, Trash2, Loader2, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 // PÁGINA RECONSTRUÍDA DO ZERO - Foco em Equipes e Propriedade
 export default function Teams() {
   const [user, setUser] = useState(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
@@ -71,9 +74,12 @@ export default function Teams() {
       await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       await refetch();
       console.log("✅ Equipe criada com sucesso:", data);
-      toast.success(`✅ Equipe criada: ${data.name} (ID: ${data.id})`);
+      toast.success(`✅ Equipe criada! Redirecionando...`);
       setIsCreateOpen(false);
       setNewTeamName("");
+      
+      // Redirecionamento imediato para a área de trabalho da equipe
+      navigate(createPageUrl('TeamWorkspace') + `?team=${data.id}`);
     },
     onError: (e) => toast.error(e.message)
   });
