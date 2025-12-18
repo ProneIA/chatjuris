@@ -3,10 +3,13 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Edit, Mail, Phone, MapPin, FileText, User, Building2, DollarSign } from "lucide-react";
+import { X, Edit, Mail, Phone, MapPin, FileText, User, Building2, DollarSign, MessageSquare, Bell, Briefcase } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ClientFinances from "./ClientFinances";
+import ClientCommunicationHistory from "./ClientCommunicationHistory";
+import ClientReminders from "./ClientReminders";
+import ClientRelatedData from "./ClientRelatedData";
 
 export default function ClientDetails({ client, onClose, onEdit, theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -33,9 +36,12 @@ export default function ClientDetails({ client, onClose, onEdit, theme = 'light'
       </div>
 
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className={`w-full grid grid-cols-2 ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-          <TabsTrigger value="info">Informações</TabsTrigger>
-          <TabsTrigger value="finances">Honorários</TabsTrigger>
+        <TabsList className={`w-full grid grid-cols-5 ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+          <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="communications"><MessageSquare className="w-4 h-4" /></TabsTrigger>
+          <TabsTrigger value="reminders"><Bell className="w-4 h-4" /></TabsTrigger>
+          <TabsTrigger value="related"><Briefcase className="w-4 h-4" /></TabsTrigger>
+          <TabsTrigger value="finances"><DollarSign className="w-4 h-4" /></TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="p-6 space-y-6">
@@ -131,6 +137,18 @@ export default function ClientDetails({ client, onClose, onEdit, theme = 'light'
             </div>
           </div>
         </div>
+        </TabsContent>
+
+        <TabsContent value="communications" className="p-6">
+          <ClientCommunicationHistory clientId={client.id} clientName={client.name} theme={theme} />
+        </TabsContent>
+
+        <TabsContent value="reminders" className="p-6">
+          <ClientReminders clientId={client.id} clientName={client.name} theme={theme} />
+        </TabsContent>
+
+        <TabsContent value="related" className="p-6">
+          <ClientRelatedData clientId={client.id} theme={theme} />
         </TabsContent>
 
         <TabsContent value="finances" className="p-6">
