@@ -46,9 +46,14 @@ export default function Teams() {
       
       const allTeams = await base44.entities.Team.list('-created_date');
       
+      const myTeams = allTeams.filter(t => 
+        t.owner_email === user.email || t.members?.includes(user.email)
+      );
+      
       console.log("👥 [TEAMS] Total de equipes:", allTeams.length);
-      console.log("👥 [TEAMS] Dados:", allTeams);
-      return allTeams;
+      console.log("👥 [TEAMS] Minhas equipes:", myTeams.length);
+      console.log("👥 [TEAMS] Dados:", myTeams);
+      return myTeams;
     },
     enabled: !!user?.email
   });

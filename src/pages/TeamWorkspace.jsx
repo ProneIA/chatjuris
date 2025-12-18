@@ -50,7 +50,9 @@ export default function TeamWorkspace() {
     queryFn: async () => {
       if (!user?.email) return [];
       const allTeams = await base44.entities.Team.list();
-      return allTeams;
+      return allTeams.filter(t => 
+        t.owner_email === user.email || t.members?.includes(user.email)
+      );
     },
     enabled: !!user?.email
   });
@@ -61,6 +63,9 @@ export default function TeamWorkspace() {
     queryKey: ['teamFiles', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
       return base44.entities.TeamFile.filter(
         { team_id: selectedTeam.id },
         '-created_date'
@@ -73,6 +78,9 @@ export default function TeamWorkspace() {
     queryKey: ['teamTasks', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
       return base44.entities.Task.filter(
         { team_id: selectedTeam.id },
         '-created_date'
@@ -85,6 +93,9 @@ export default function TeamWorkspace() {
     queryKey: ['teamEvents', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
+      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+        return [];
+      }
       return base44.entities.CalendarEvent.filter(
         { team_id: selectedTeam.id },
         'start_time'
