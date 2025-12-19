@@ -25,7 +25,10 @@ import {
   List,
   X,
   Check,
-  ChevronRight
+  ChevronRight,
+  Scan,
+  RotateCcw,
+  Link as LinkIcon
 } from "lucide-react";
 import {
   Dialog,
@@ -95,6 +98,16 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     queryFn: () => base44.entities.Case.list(),
   });
 
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list(),
+  });
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => base44.entities.Task.list(),
+  });
+
   const handleSelectDoc = (doc) => {
     setSelectedDoc(doc);
     setShowDetails(true);
@@ -103,11 +116,39 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const uploadDocMutation = useMutation({
     mutationFn: async (data) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: data.file });
+      
+      // Extrair texto do documento para busca (OCR simulado)
+      let ocrContent = "";
+      try {
+        const extractResult = await base44.integrations.Core.InvokeLLM({
+          prompt: `Extraia o texto completo deste documento para indexação e busca. Retorne apenas o conteúdo textual extraído.`,
+          file_urls: [file_url],
+          response_json_schema: {
+            type: "object",
+            properties: {
+              extracted_text: { type: "string" }
+            }
+          }
+        });
+        ocrContent = extractResult.extracted_text || "";
+      } catch (error) {
+        console.log("Erro ao extrair conteúdo:", error);
+      }
+
       const doc = await base44.entities.LegalDocument.create({
-        ...data,
+        title: data.title,
+        type: data.type,
+        notes: data.notes,
+        case_ids: data.case_ids || [],
+        task_ids: data.task_ids || [],
+        client_ids: data.client_ids || [],
+        tags: data.tags || [],
         file_url,
+        ocr_content: ocrContent,
+        current_version: 1,
         status: 'draft'
       });
+      
       // Create first version
       await base44.entities.DocumentVersion.create({
         document_id: doc.id,
@@ -122,7 +163,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['legal-documents'] });
       setShowUploadDialog(false);
-      toast.success("Documento enviado!");
+      toast.success("Documento enviado e indexado!");
     },
   });
 
@@ -131,6 +172,24 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       const currentVersions = await base44.entities.DocumentVersion.filter({ document_id: documentId });
       const newVersionNumber = currentVersions.length + 1;
+      
+      // Extrair conteúdo da nova versão
+      let ocrContent = "";
+      try {
+        const extractResult = await base44.integrations.Core.InvokeLLM({
+          prompt: `Extraia o texto completo deste documento para indexação e busca. Retorne apenas o conteúdo textual extraído.`,
+          file_urls: [file_url],
+          response_json_schema: {
+            type: "object",
+            properties: {
+              extracted_text: { type: "string" }
+            }
+          }
+        });
+        ocrContent = extractResult.extracted_text || "";
+      } catch (error) {
+        console.log("Erro ao extrair conteúdo:", error);
+      }
       
       await base44.entities.DocumentVersion.create({
         document_id: documentId,
@@ -141,13 +200,31 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
         author_email: user?.email
       });
       
-      await base44.entities.LegalDocument.update(documentId, { file_url });
+      await base44.entities.LegalDocument.update(documentId, { 
+        file_url,
+        ocr_content: ocrContent,
+        current_version: newVersionNumber
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['legal-documents'] });
       queryClient.invalidateQueries({ queryKey: ['document-versions'] });
       setShowVersionDialog(false);
-      toast.success("Nova versão adicionada!");
+      toast.success("Nova versão adicionada e indexada!");
+    },
+  });
+
+  const revertToVersionMutation = useMutation({
+    mutationFn: async ({ documentId, versionId, versionNumber, fileUrl }) => {
+      await base44.entities.LegalDocument.update(documentId, {
+        file_url: fileUrl,
+        current_version: versionNumber
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['legal-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['document-versions'] });
+      toast.success("Versão restaurada!");
     },
   });
 
@@ -169,10 +246,14 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   });
 
   const filteredDocs = documents.filter(doc => {
-    const matchesSearch = doc.title?.toLowerCase().includes(search.toLowerCase()) ||
-      doc.content?.toLowerCase().includes(search.toLowerCase());
+    const searchLower = search.toLowerCase();
+    const matchesSearch = doc.title?.toLowerCase().includes(searchLower) ||
+      doc.content?.toLowerCase().includes(searchLower) ||
+      doc.ocr_content?.toLowerCase().includes(searchLower) ||
+      doc.notes?.toLowerCase().includes(searchLower);
     const matchesType = filterType === "all" || doc.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesTags = filterTags.length === 0 || filterTags.some(t => doc.tags?.includes(t));
+    return matchesSearch && matchesType && matchesTags;
   });
 
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
@@ -207,7 +288,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
           {[
             { label: "Total", value: documents.length, icon: FileText },
             { label: "Rascunhos", value: documents.filter(d => d.status === 'draft').length, icon: Edit },
-            { label: "Aprovados", value: documents.filter(d => d.status === 'approved').length, icon: Check },
+            { label: "Indexados", value: documents.filter(d => d.ocr_content).length, icon: Scan },
             { label: "Tags", value: tags.length, icon: Tag },
           ].map((stat, i) => (
             <div key={i} className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
@@ -230,12 +311,25 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Buscar documentos..."
+                placeholder="Buscar em títulos, conteúdo e documentos indexados..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10 text-sm"
               />
             </div>
+            {filterTags.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {filterTags.map(tagId => {
+                  const tag = tags.find(t => t.id === tagId);
+                  return tag ? (
+                    <Badge key={tagId} className={tagColors[tag.color]} variant="outline">
+                      {tag.name}
+                      <X className="w-3 h-3 ml-1 cursor-pointer" onClick={() => setFilterTags(filterTags.filter(t => t !== tagId))} />
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
             <div className="flex gap-2">
               <select
                 value={filterType}
@@ -398,6 +492,84 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                       <label className="text-xs text-gray-500">Criado em</label>
                       <p className="font-medium">{new Date(selectedDoc.created_date).toLocaleString('pt-BR')}</p>
                     </div>
+                    <div>
+                      <label className="text-xs text-gray-500">Versão Atual</label>
+                      <p className="font-medium">v{selectedDoc.current_version || 1}</p>
+                    </div>
+                    {selectedDoc.case_ids && selectedDoc.case_ids.length > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-500">Processos Vinculados</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedDoc.case_ids.map(caseId => {
+                            const caseItem = cases.find(c => c.id === caseId);
+                            return caseItem ? (
+                              <Badge key={caseId} variant="outline" className="text-xs">
+                                <LinkIcon className="w-3 h-3 mr-1" />
+                                {caseItem.title}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDoc.task_ids && selectedDoc.task_ids.length > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-500">Tarefas Vinculadas</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedDoc.task_ids.map(taskId => {
+                            const task = tasks.find(t => t.id === taskId);
+                            return task ? (
+                              <Badge key={taskId} variant="outline" className="text-xs">
+                                <LinkIcon className="w-3 h-3 mr-1" />
+                                {task.title}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDoc.client_ids && selectedDoc.client_ids.length > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-500">Clientes Vinculados</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedDoc.client_ids.map(clientId => {
+                            const client = clients.find(c => c.id === clientId);
+                            return client ? (
+                              <Badge key={clientId} variant="outline" className="text-xs">
+                                <LinkIcon className="w-3 h-3 mr-1" />
+                                {client.name}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDoc.tags && selectedDoc.tags.length > 0 && (
+                      <div>
+                        <label className="text-xs text-gray-500">Tags</label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedDoc.tags.map(tagId => {
+                            const tag = tags.find(t => t.id === tagId);
+                            return tag ? (
+                              <Badge key={tagId} className={tagColors[tag.color]}>
+                                {tag.name}
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {selectedDoc.ocr_content && (
+                      <div>
+                        <label className="text-xs text-gray-500 flex items-center gap-1">
+                          <Scan className="w-3 h-3" />
+                          Conteúdo Indexado
+                        </label>
+                        <p className="text-xs text-gray-600 mt-1 max-h-32 overflow-y-auto">
+                          {selectedDoc.ocr_content.substring(0, 500)}...
+                        </p>
+                      </div>
+                    )}
                     {selectedDoc.notes && (
                       <div>
                         <label className="text-xs text-gray-500">Observações</label>
@@ -409,12 +581,38 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                   <TabsContent value="versions" className="mt-4">
                     <div className="space-y-3">
                       {versions.map((ver) => (
-                        <div key={ver.id} className="p-3 rounded-lg bg-gray-100">
+                        <div key={ver.id} className={`p-3 rounded-lg ${ver.version_number === selectedDoc.current_version ? 'bg-blue-50 border border-blue-200' : 'bg-gray-100'}`}>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium">Versão {ver.version_number}</span>
-                            <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')}>
-                              <Download className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">Versão {ver.version_number}</span>
+                              {ver.version_number === selectedDoc.current_version && (
+                                <Badge variant="default" className="text-xs">Atual</Badge>
+                              )}
+                            </div>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')}>
+                                <Download className="w-4 h-4" />
+                              </Button>
+                              {ver.version_number !== selectedDoc.current_version && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    if (confirm(`Reverter para versão ${ver.version_number}?`)) {
+                                      revertToVersionMutation.mutate({
+                                        documentId: selectedDoc.id,
+                                        versionId: ver.id,
+                                        versionNumber: ver.version_number,
+                                        fileUrl: ver.file_url
+                                      });
+                                    }
+                                  }}
+                                  title="Reverter para esta versão"
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm text-gray-600">{ver.changes_description}</p>
                           <p className="text-xs mt-1 text-gray-400">
@@ -442,6 +640,9 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
           </DialogHeader>
           <UploadDocumentForm
             cases={cases}
+            clients={clients}
+            tasks={tasks}
+            tags={tags}
             docTypes={docTypes}
             onSubmit={(data) => uploadDocMutation.mutate(data)}
             onCancel={() => setShowUploadDialog(false)}
@@ -481,23 +682,39 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   );
 }
 
-function UploadDocumentForm({ cases, docTypes, onSubmit, onCancel, isLoading }) {
-  const [formData, setFormData] = useState({ title: "", type: "outros", case_id: "", notes: "" });
+function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, onCancel, isLoading }) {
+  const [formData, setFormData] = useState({ 
+    title: "", 
+    type: "outros", 
+    case_ids: [], 
+    task_ids: [], 
+    client_ids: [], 
+    tags: [], 
+    notes: "" 
+  });
   const [file, setFile] = useState(null);
 
+  const toggleSelection = (array, id) => {
+    return array.includes(id) ? array.filter(i => i !== id) : [...array, id];
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       <div>
-        <label className="text-sm font-medium">Arquivo</label>
+        <label className="text-sm font-medium">Arquivo *</label>
         <Input
           type="file"
           onChange={(e) => setFile(e.target.files[0])}
-          accept=".pdf,.doc,.docx,.txt"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
           className="mt-1"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          <Scan className="w-3 h-3 inline mr-1" />
+          O conteúdo será automaticamente indexado para busca avançada
+        </p>
       </div>
       <div>
-        <label className="text-sm font-medium">Título</label>
+        <label className="text-sm font-medium">Título *</label>
         <Input
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -516,31 +733,99 @@ function UploadDocumentForm({ cases, docTypes, onSubmit, onCancel, isLoading }) 
           ))}
         </select>
       </div>
+      
       <div>
-        <label className="text-sm font-medium">Caso relacionado (opcional)</label>
-        <select
-          value={formData.case_id}
-          onChange={(e) => setFormData({ ...formData, case_id: e.target.value })}
-          className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-        >
-          <option value="">Nenhum</option>
+        <label className="text-sm font-medium flex items-center gap-1">
+          <LinkIcon className="w-3 h-3" />
+          Processos Vinculados (múltipla seleção)
+        </label>
+        <div className="mt-2 max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
           {cases.map(c => (
-            <option key={c.id} value={c.id}>{c.title}</option>
+            <label key={c.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+              <input
+                type="checkbox"
+                checked={formData.case_ids.includes(c.id)}
+                onChange={() => setFormData({ ...formData, case_ids: toggleSelection(formData.case_ids, c.id) })}
+                className="rounded"
+              />
+              <span className="text-sm">{c.title}</span>
+            </label>
           ))}
-        </select>
+          {cases.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhum processo disponível</p>}
+        </div>
       </div>
+
+      <div>
+        <label className="text-sm font-medium flex items-center gap-1">
+          <LinkIcon className="w-3 h-3" />
+          Tarefas Vinculadas (múltipla seleção)
+        </label>
+        <div className="mt-2 max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+          {tasks.map(t => (
+            <label key={t.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+              <input
+                type="checkbox"
+                checked={formData.task_ids.includes(t.id)}
+                onChange={() => setFormData({ ...formData, task_ids: toggleSelection(formData.task_ids, t.id) })}
+                className="rounded"
+              />
+              <span className="text-sm">{t.title}</span>
+            </label>
+          ))}
+          {tasks.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhuma tarefa disponível</p>}
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium flex items-center gap-1">
+          <LinkIcon className="w-3 h-3" />
+          Clientes Vinculados (múltipla seleção)
+        </label>
+        <div className="mt-2 max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+          {clients.map(c => (
+            <label key={c.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+              <input
+                type="checkbox"
+                checked={formData.client_ids.includes(c.id)}
+                onChange={() => setFormData({ ...formData, client_ids: toggleSelection(formData.client_ids, c.id) })}
+                className="rounded"
+              />
+              <span className="text-sm">{c.name}</span>
+            </label>
+          ))}
+          {clients.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhum cliente disponível</p>}
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Tags</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {tags.map(tag => (
+            <Badge
+              key={tag.id}
+              className={`cursor-pointer ${formData.tags.includes(tag.id) ? tagColors[tag.color] : 'opacity-50'}`}
+              onClick={() => setFormData({ ...formData, tags: toggleSelection(formData.tags, tag.id) })}
+            >
+              {formData.tags.includes(tag.id) && <Check className="w-3 h-3 mr-1" />}
+              {tag.name}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="text-sm font-medium">Observações</label>
         <Textarea
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           placeholder="Observações sobre o documento"
+          rows={3}
         />
       </div>
-      <div className="flex justify-end gap-2 pt-4">
+      <div className="flex justify-end gap-2 pt-4 border-t">
         <Button variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button onClick={() => onSubmit({ ...formData, file })} disabled={!file || !formData.title || isLoading}>
-          {isLoading ? "Enviando..." : "Upload"}
+          {isLoading ? "Enviando e indexando..." : "Upload e Indexar"}
         </Button>
       </div>
     </div>
