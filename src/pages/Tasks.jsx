@@ -625,6 +625,7 @@ export default function Tasks({ theme = 'light' }) {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
