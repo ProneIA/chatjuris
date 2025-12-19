@@ -46,6 +46,7 @@ const navigationItems = [
 export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
+    const [subscription, setSubscription] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [deferredPrompt, setDeferredPrompt] = React.useState(null);
@@ -59,8 +60,6 @@ export default function Layout({ children, currentPageName }) {
       return 'light';
     });
 
-    const [userSubscription, setUserSubscription] = React.useState(null);
-
     React.useEffect(() => {
       base44.auth.me()
         .then(async (u) => {
@@ -68,9 +67,9 @@ export default function Layout({ children, currentPageName }) {
           if (u?.id) {
             try {
               const subs = await base44.entities.Subscription.filter({ user_id: u.id });
-              setUserSubscription(subs[0] || null);
+              setSubscription(subs[0] || null);
             } catch (err) {
-              setUserSubscription(null);
+              console.error("Erro ao buscar assinatura:", err);
             }
           }
         })
@@ -221,7 +220,7 @@ export default function Layout({ children, currentPageName }) {
                   <span>Instalar App</span>
                 </Button>
               )}
-              {!(userSubscription?.plan === 'pro' && userSubscription?.status === 'active') && (
+              {!(subscription?.plan === 'pro' && subscription?.status === 'active') && (
                 <Link
                   to={createPageUrl("Pricing")}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
@@ -314,27 +313,27 @@ export default function Layout({ children, currentPageName }) {
                 {navigationItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
+                {!(subscription?.plan === 'pro' && subscription?.status === 'active') && (
+                  <Link
+                    to={createPageUrl("Pricing")}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-amber-400 w-full text-left mt-2 border-t border-neutral-800 pt-3"
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span>Assinar Pro</span>
+                  </Link>
+                )}
                 {!isStandalone && (
                   <button
                     onClick={() => {
                       handleInstallApp();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full text-left mt-2 border-t border-neutral-800 pt-3"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full text-left mt-2"
                   >
                     <Download className="w-4 h-4" />
                     <span>Instalar Aplicativo</span>
                   </button>
-                )}
-                {!(userSubscription?.plan === 'pro' && userSubscription?.status === 'active') && (
-                  <Link
-                    to={createPageUrl("Pricing")}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-amber-400 hover:text-amber-300 w-full mt-2"
-                  >
-                    <Crown className="w-4 h-4" />
-                    <span className="font-bold">Assinar Pro</span>
-                  </Link>
                 )}
               </nav>
             </motion.div>
