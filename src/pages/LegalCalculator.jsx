@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 // Componentes de calculadora
 import AICalculatorAssistant from "../components/calculator/AICalculatorAssistant";
@@ -95,6 +97,11 @@ function JurosCalculator({ isDark }) {
     let taxa = parseFloat(taxaJuros) / 100 || 0;
     const meses = parseInt(periodo) || 0;
 
+    if (!principal || !taxa || !meses) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
     // Converter taxa anual para mensal se necessário
     if (taxaTipo === "anual") {
       taxa = Math.pow(1 + taxa, 1/12) - 1;
@@ -121,8 +128,83 @@ function JurosCalculator({ isDark }) {
       montante,
       taxaMensal: taxaMensalEfetiva,
       taxaAnual: taxaAnualEfetiva,
-      periodo: meses
+      periodo: meses,
+      tipo: tipoJuros
     });
+  };
+
+  const exportarPDF = () => {
+    if (!resultado) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text('CÁLCULO DE JUROS E CORREÇÃO', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
+    
+    // Linha separadora
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, 32, pageWidth - 15, 32);
+    
+    // Dados do cálculo
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('DADOS DO CÁLCULO', 15, 42);
+    
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    let y = 52;
+    
+    const dados = [
+      ['Tipo de Juros:', resultado.tipo === 'simples' ? 'Juros Simples' : 'Juros Compostos'],
+      ['Valor Principal:', `R$ ${resultado.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+      ['Período:', `${resultado.periodo} meses`],
+      ['Taxa Mensal Efetiva:', `${resultado.taxaMensal.toFixed(4)}%`],
+      ['Taxa Anual Efetiva:', `${resultado.taxaAnual.toFixed(2)}%`]
+    ];
+    
+    dados.forEach(([label, value]) => {
+      doc.setFont(undefined, 'bold');
+      doc.text(label, 15, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(value, 80, y);
+      y += 8;
+    });
+    
+    // Resultado
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, y + 5, pageWidth - 15, y + 5);
+    y += 15;
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('RESULTADO', 15, y);
+    y += 10;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text('Valor Principal:', 15, y);
+    doc.text(`R$ ${resultado.principal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 80, y);
+    y += 8;
+    
+    doc.setTextColor(0, 100, 200);
+    doc.text('Juros Acumulados:', 15, y);
+    doc.text(`R$ ${resultado.juros.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 80, y);
+    y += 8;
+    
+    doc.setTextColor(0, 150, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text('Montante Final:', 15, y);
+    doc.text(`R$ ${resultado.montante.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 80, y);
+    
+    doc.save('calculo_juros.pdf');
+    toast.success("PDF gerado com sucesso!");
   };
 
   return (
@@ -188,10 +270,18 @@ function JurosCalculator({ isDark }) {
         </div>
       </div>
 
-      <Button onClick={calcular} className="w-full bg-blue-600 hover:bg-blue-700">
-        <Calculator className="w-4 h-4 mr-2" />
-        Calcular
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={calcular} className="flex-1 bg-blue-600 hover:bg-blue-700">
+          <Calculator className="w-4 h-4 mr-2" />
+          Calcular
+        </Button>
+        {resultado && (
+          <Button onClick={exportarPDF} variant="outline" className="px-4">
+            <Download className="w-4 h-4 mr-2" />
+            PDF
+          </Button>
+        )}
+      </div>
 
       {resultado && (
         <motion.div
@@ -255,12 +345,72 @@ function TrabalhistaCalculator({ isDark }) {
   const [horasExtras, setHorasExtras] = useState("");
   const [resultado, setResultado] = useState(null);
 
+  const exportarPDF = () => {
+    if (!resultado) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('CÁLCULO DE RESCISÃO TRABALHISTA', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
+    
+    doc.line(15, 32, pageWidth - 15, 32);
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('VERBAS RESCISÓRIAS', 15, 42);
+    
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    let y = 52;
+    
+    const verbas = [
+      { label: 'Saldo de Salário', value: resultado.saldoSalario, show: true },
+      { label: `Aviso Prévio (${resultado.avisoPrevioDias} dias)`, value: resultado.avisoPrevioValor, show: resultado.avisoPrevioValor > 0 },
+      { label: 'Férias Proporcionais', value: resultado.feriasProporcionais, show: resultado.feriasProporcionais > 0 },
+      { label: '1/3 Férias Proporcionais', value: resultado.tercoFeriasProporcionais, show: resultado.tercoFeriasProporcionais > 0 },
+      { label: 'Férias Vencidas', value: resultado.feriasVencidasValor, show: resultado.feriasVencidasValor > 0 },
+      { label: '1/3 Férias Vencidas', value: resultado.tercoFeriasVencidas, show: resultado.tercoFeriasVencidas > 0 },
+      { label: '13º Proporcional', value: resultado.decimoTerceiro, show: resultado.decimoTerceiro > 0 },
+      { label: 'FGTS Depositado', value: resultado.fgtsDeposito, show: true },
+      { label: 'Multa FGTS (40%)', value: resultado.multaFgts, show: resultado.multaFgts > 0 },
+      { label: 'Horas Extras', value: resultado.valorHoraExtra, show: resultado.valorHoraExtra > 0 }
+    ];
+    
+    verbas.filter(v => v.show).forEach(verba => {
+      doc.text(verba.label, 15, y);
+      doc.text(`R$ ${verba.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+      y += 7;
+    });
+    
+    doc.line(15, y, pageWidth - 15, y);
+    y += 7;
+    
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(11);
+    doc.text('TOTAL:', 15, y);
+    doc.text(`R$ ${resultado.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+    
+    doc.save('calculo_rescisao.pdf');
+    toast.success("PDF gerado com sucesso!");
+  };
+
   const calcular = () => {
     const sal = parseFloat(salario) || 0;
     const meses = parseInt(mesesTrabalhados) || 0;
     const dias = parseInt(diasTrabalhados) || 0;
     const ferias = parseInt(feriasVencidas) || 0;
     const horas = parseFloat(horasExtras) || 0;
+
+    if (!sal || !meses) {
+      toast.error("Preencha salário e meses trabalhados");
+      return;
+    }
 
     // Saldo de salário
     const saldoSalario = (sal / 30) * dias;
@@ -431,10 +581,18 @@ function TrabalhistaCalculator({ isDark }) {
         </div>
       </div>
 
-      <Button onClick={calcular} className="w-full bg-green-600 hover:bg-green-700">
-        <Calculator className="w-4 h-4 mr-2" />
-        Calcular Rescisão
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={calcular} className="flex-1 bg-green-600 hover:bg-green-700">
+          <Calculator className="w-4 h-4 mr-2" />
+          Calcular Rescisão
+        </Button>
+        {resultado && (
+          <Button onClick={exportarPDF} variant="outline" className="px-4">
+            <Download className="w-4 h-4 mr-2" />
+            PDF
+          </Button>
+        )}
+      </div>
 
       {resultado && (
         <motion.div
@@ -484,9 +642,69 @@ function HonorariosCalculator({ isDark }) {
   const [fazendaPublica, setFazendaPublica] = useState("nao");
   const [resultado, setResultado] = useState(null);
 
+  const exportarPDF = () => {
+    if (!resultado) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('CÁLCULO DE HONORÁRIOS ADVOCATÍCIOS', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
+    
+    doc.line(15, 32, pageWidth - 15, 32);
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('BASE DE CÁLCULO', 15, 42);
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    let y = 52;
+    
+    doc.text('Valor da Causa:', 15, y);
+    doc.text(`R$ ${resultado.valorCausa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+    y += 8;
+    
+    if (resultado.fazenda) {
+      doc.setFontSize(9);
+      doc.text(`Faixa aplicável (art. 85, §3º CPC): ${resultado.percentualMinimo}% a ${resultado.percentualMaximo}%`, 15, y);
+      y += 8;
+    }
+    
+    doc.line(15, y, pageWidth - 15, y);
+    y += 10;
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('HONORÁRIOS ADVOCATÍCIOS', 15, y);
+    y += 10;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Percentual Aplicado: ${resultado.percentual}%`, 15, y);
+    y += 8;
+    
+    doc.setFont(undefined, 'bold');
+    doc.text('Valor dos Honorários:', 15, y);
+    doc.text(`R$ ${resultado.honorarios.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+    
+    doc.save('calculo_honorarios.pdf');
+    toast.success("PDF gerado com sucesso!");
+  };
+
   const calcular = () => {
     const valor = parseFloat(valorCausa) || 0;
     let perc = parseFloat(percentual) || 0;
+
+    if (!valor) {
+      toast.error("Informe o valor da causa");
+      return;
+    }
 
     // Limites do art. 85 CPC
     let minimo = 10;
@@ -583,10 +801,18 @@ function HonorariosCalculator({ isDark }) {
         </div>
       </div>
 
-      <Button onClick={calcular} className="w-full bg-purple-600 hover:bg-purple-700">
-        <Calculator className="w-4 h-4 mr-2" />
-        Calcular Honorários
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={calcular} className="flex-1 bg-purple-600 hover:bg-purple-700">
+          <Calculator className="w-4 h-4 mr-2" />
+          Calcular Honorários
+        </Button>
+        {resultado && (
+          <Button onClick={exportarPDF} variant="outline" className="px-4">
+            <Download className="w-4 h-4 mr-2" />
+            PDF
+          </Button>
+        )}
+      </div>
 
       {resultado && (
         <motion.div
@@ -660,11 +886,80 @@ function PrazosCalculator({ isDark }) {
     return feriados.includes(date.toISOString().split('T')[0]);
   };
 
+  const exportarPDF = () => {
+    if (!resultado) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('CÁLCULO DE PRAZO PROCESSUAL', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
+    
+    doc.line(15, 32, pageWidth - 15, 32);
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('DADOS DO PRAZO', 15, 42);
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    let y = 52;
+    
+    doc.text('Data da Intimação:', 15, y);
+    doc.text(resultado.dataInicial.toLocaleDateString('pt-BR'), pageWidth - 15, y, { align: 'right' });
+    y += 8;
+    
+    doc.text('Prazo:', 15, y);
+    const prazoTexto = `${resultado.prazo} ${resultado.tipo === "uteis" ? "dias úteis" : "dias corridos"}`;
+    doc.text(prazoTexto, pageWidth - 15, y, { align: 'right' });
+    y += 8;
+    
+    if (resultado.dobro) {
+      doc.text(`(Prazo original: ${resultado.prazoOriginal} dias x 2)`, 15, y);
+      y += 8;
+    }
+    
+    doc.line(15, y, pageWidth - 15, y);
+    y += 10;
+    
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(12);
+    doc.text('DATA FINAL DO PRAZO:', 15, y);
+    doc.text(resultado.dataFinal.toLocaleDateString('pt-BR'), pageWidth - 15, y, { align: 'right' });
+    y += 8;
+    
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    doc.text(`Dia da semana: ${resultado.dataFinal.toLocaleDateString('pt-BR', { weekday: 'long' })}`, 15, y);
+    
+    if (resultado.prorrogado) {
+      y += 10;
+      doc.setTextColor(200, 100, 0);
+      doc.text('⚠ Prazo prorrogado para o primeiro dia útil seguinte (art. 224, §1º CPC)', 15, y);
+    }
+    
+    doc.save('calculo_prazo.pdf');
+    toast.success("PDF gerado com sucesso!");
+  };
+
   const calcular = () => {
     const inicio = new Date(dataInicial);
     let dias = parseInt(prazo) || 0;
 
-    if (isNaN(inicio.getTime())) return;
+    if (isNaN(inicio.getTime())) {
+      toast.error("Informe a data inicial");
+      return;
+    }
+    
+    if (!dias) {
+      toast.error("Informe o prazo em dias");
+      return;
+    }
 
     // Prazo em dobro
     if (prazoEmDobro !== "nao") {
@@ -765,10 +1060,18 @@ function PrazosCalculator({ isDark }) {
         </div>
       </div>
 
-      <Button onClick={calcular} className="w-full bg-orange-600 hover:bg-orange-700">
-        <Calendar className="w-4 h-4 mr-2" />
-        Calcular Prazo
-      </Button>
+      <div className="flex gap-2">
+        <Button onClick={calcular} className="flex-1 bg-orange-600 hover:bg-orange-700">
+          <Calendar className="w-4 h-4 mr-2" />
+          Calcular Prazo
+        </Button>
+        {resultado && (
+          <Button onClick={exportarPDF} variant="outline" className="px-4">
+            <Download className="w-4 h-4 mr-2" />
+            PDF
+          </Button>
+        )}
+      </div>
 
       {resultado && (
         <motion.div
