@@ -31,7 +31,7 @@ import DocumentGeneratorChat from './pages/DocumentGeneratorChat';
 import Teams from './pages/Teams';
 import CaseDetails from './pages/CaseDetails';
 import Library from './pages/Library';
-import Analytics from './pages/Analytics';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -69,7 +69,7 @@ export const PAGES = {
     "Teams": Teams,
     "CaseDetails": CaseDetails,
     "Library": Library,
-    "Analytics": Analytics,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
