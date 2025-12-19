@@ -30,6 +30,7 @@ import ColaboracaoHub from './pages/ColaboracaoHub';
 import DocumentGeneratorChat from './pages/DocumentGeneratorChat';
 import Teams from './pages/Teams';
 import CaseDetails from './pages/CaseDetails';
+import Library from './pages/Library';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "DocumentGeneratorChat": DocumentGeneratorChat,
     "Teams": Teams,
     "CaseDetails": CaseDetails,
+    "Library": Library,
 }
 
 export const pagesConfig = {
