@@ -38,7 +38,6 @@ const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Biblioteca", url: createPageUrl("Library"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
-  { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearchAI"), icon: BookOpen },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
