@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Search, Briefcase, FileText, FolderOpen, 
-  Calendar, User, Filter, Grid3x3, List 
+  Calendar, User, Filter, Grid3x3, List, Users, Download, Eye
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +46,15 @@ export default function Library({ theme = 'light' }) {
     enabled: !!user?.email
   });
 
+  const { data: clients = [] } = useQuery({
+    queryKey: ['library-clients', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Client.filter({ created_by: user.email }, 'name');
+    },
+    enabled: !!user?.email
+  });
+
   const filteredCases = cases.filter(c => {
     const matchSearch = c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                        c.case_number?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -56,7 +65,33 @@ export default function Library({ theme = 'light' }) {
 
   const filteredDocs = documents.filter(d => 
     d.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    d.content?.toLowerCase().includes(searchTerm.toLowerCase())
+    d.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    d.ocr_content?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Agrupar documentos por cliente
+  const documentsByClient = clients.map(client => {
+    const clientDocs = documents.filter(doc => 
+      doc.client_ids?.includes(client.id) &&
+      (doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       doc.ocr_content?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    const clientCases = cases.filter(c => c.client_id === client.id);
+    return {
+      client,
+      documents: clientDocs,
+      cases: clientCases,
+      total: clientDocs.length + clientCases.length
+    };
+  }).filter(item => item.total > 0);
+
+  // Documentos sem cliente
+  const docsWithoutClient = documents.filter(doc => 
+    (!doc.client_ids || doc.client_ids.length === 0) &&
+    (doc.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     doc.ocr_content?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const statusColors = {
@@ -130,7 +165,7 @@ export default function Library({ theme = 'light' }) {
     </motion.div>
   );
 
-  const DocumentCard = ({ doc }) => (
+  const DocumentCard = ({ doc, showActions = false }) => (
     <motion.div whileHover={{ y: -4 }}>
       <Card className={`cursor-pointer transition-all h-full ${isDark ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-600' : 'hover:shadow-lg hover:border-purple-300'}`}>
         <CardHeader className="pb-3">
@@ -138,20 +173,35 @@ export default function Library({ theme = 'light' }) {
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-purple-500/20' : 'bg-purple-50'}`}>
               <FileText className={`w-6 h-6 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
             </div>
+            {showActions && doc.file_url && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(doc.file_url, '_blank');
+                }}
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+            )}
           </div>
           <CardTitle className={`text-lg line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {doc.title}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {doc.content && (
-            <p className={`text-sm line-clamp-3 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-              {doc.content}
+          {doc.notes && (
+            <p className={`text-sm line-clamp-2 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+              {doc.notes}
             </p>
           )}
-          {doc.type && (
-            <Badge variant="outline">{doc.type}</Badge>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {doc.type && <Badge variant="outline">{doc.type}</Badge>}
+            {doc.current_version > 1 && (
+              <Badge variant="secondary" className="text-xs">v{doc.current_version}</Badge>
+            )}
+          </div>
           <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
             <Calendar className="w-3 h-3" />
             <span>{moment(doc.created_date).format('DD/MM/YYYY')}</span>
@@ -160,6 +210,77 @@ export default function Library({ theme = 'light' }) {
       </Card>
     </motion.div>
   );
+
+  const ClientSection = ({ clientData }) => {
+    const [expanded, setExpanded] = useState(false);
+    const { client, documents: clientDocs, cases: clientCases, total } = clientData;
+
+    return (
+      <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <CardHeader 
+          className="cursor-pointer hover:bg-opacity-80"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
+                <Users className={`w-6 h-6 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+              </div>
+              <div>
+                <CardTitle className={`text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {client.name}
+                </CardTitle>
+                <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                  {clientCases.length} processo(s) • {clientDocs.length} documento(s)
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon">
+              <motion.div
+                animate={{ rotate: expanded ? 90 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FolderOpen className="w-5 h-5" />
+              </motion.div>
+            </Button>
+          </div>
+        </CardHeader>
+        {expanded && (
+          <CardContent className="space-y-6 pt-4">
+            {/* Processos do cliente */}
+            {clientCases.length > 0 && (
+              <div>
+                <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                  <Briefcase className="w-4 h-4" />
+                  Processos
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {clientCases.map(c => (
+                    <CaseCard key={c.id} caseItem={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Documentos do cliente */}
+            {clientDocs.length > 0 && (
+              <div>
+                <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+                  <FileText className="w-4 h-4" />
+                  Documentos
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {clientDocs.map(d => (
+                    <DocumentCard key={d.id} doc={d} showActions />
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+    );
+  };
 
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
@@ -275,17 +396,61 @@ export default function Library({ theme = 'light' }) {
         </div>
 
         {/* Content Tabs */}
-        <Tabs defaultValue="cases" className="space-y-6">
+        <Tabs defaultValue="clients" className="space-y-6">
           <TabsList className={isDark ? 'bg-neutral-900' : ''}>
+            <TabsTrigger value="clients">
+              <Users className="w-4 h-4 mr-2" />
+              Por Cliente ({documentsByClient.length})
+            </TabsTrigger>
             <TabsTrigger value="cases">
               <Briefcase className="w-4 h-4 mr-2" />
-              Processos ({filteredCases.length})
+              Todos os Processos ({filteredCases.length})
             </TabsTrigger>
             <TabsTrigger value="documents">
               <FileText className="w-4 h-4 mr-2" />
-              Documentos ({filteredDocs.length})
+              Todos os Documentos ({filteredDocs.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="clients" className="space-y-4">
+            {documentsByClient.length === 0 && docsWithoutClient.length === 0 ? (
+              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                <CardContent className="py-16 text-center">
+                  <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <p className={`${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                    Nenhum conteúdo encontrado por cliente
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {documentsByClient.map((clientData) => (
+                  <ClientSection key={clientData.client.id} clientData={clientData} />
+                ))}
+                
+                {/* Documentos sem cliente */}
+                {docsWithoutClient.length > 0 && (
+                  <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                    <CardHeader>
+                      <CardTitle className={`text-xl ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        📁 Documentos Gerais
+                      </CardTitle>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                        {docsWithoutClient.length} documento(s) sem cliente vinculado
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {docsWithoutClient.map(d => (
+                          <DocumentCard key={d.id} doc={d} showActions />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="cases" className="space-y-4">
             {filteredCases.length === 0 ? (
