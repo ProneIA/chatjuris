@@ -16,8 +16,7 @@ import {
   Sun,
   FolderOpen,
   Users2,
-  Download,
-  BarChart3
+  Download
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,7 +37,6 @@ import {
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Biblioteca", url: createPageUrl("Library"), icon: BookOpen },
-  { title: "Analytics", url: createPageUrl("Analytics"), icon: BarChart3 },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
@@ -61,9 +59,21 @@ export default function Layout({ children, currentPageName }) {
       return 'light';
     });
 
+    const [userSubscription, setUserSubscription] = React.useState(null);
+
     React.useEffect(() => {
       base44.auth.me()
-        .then(setUser)
+        .then(async (u) => {
+          setUser(u);
+          if (u?.id) {
+            try {
+              const subs = await base44.entities.Subscription.filter({ user_id: u.id });
+              setUserSubscription(subs[0] || null);
+            } catch (err) {
+              setUserSubscription(null);
+            }
+          }
+        })
         .catch(() => setUser(null))
         .finally(() => setIsLoading(false));
     }, []);
@@ -211,13 +221,15 @@ export default function Layout({ children, currentPageName }) {
                   <span>Instalar App</span>
                 </Button>
               )}
-              <Link
-                to={createPageUrl("Pricing")}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
-              >
-                <Crown className="w-4 h-4" />
-                <span className="font-bold">Pro</span>
-              </Link>
+              {!(userSubscription?.plan === 'pro' && userSubscription?.status === 'active') && (
+                <Link
+                  to={createPageUrl("Pricing")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
+                >
+                  <Crown className="w-4 h-4" />
+                  <span className="font-bold">Pro</span>
+                </Link>
+              )}
             </div>
 
             <Button
@@ -313,6 +325,16 @@ export default function Layout({ children, currentPageName }) {
                     <Download className="w-4 h-4" />
                     <span>Instalar Aplicativo</span>
                   </button>
+                )}
+                {!(userSubscription?.plan === 'pro' && userSubscription?.status === 'active') && (
+                  <Link
+                    to={createPageUrl("Pricing")}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-amber-400 hover:text-amber-300 w-full mt-2"
+                  >
+                    <Crown className="w-4 h-4" />
+                    <span className="font-bold">Assinar Pro</span>
+                  </Link>
                 )}
               </nav>
             </motion.div>
