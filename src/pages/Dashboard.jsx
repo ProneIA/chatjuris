@@ -67,13 +67,21 @@ export default function Dashboard({ theme = 'light' }) {
   }, []);
 
   const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('-created_date'),
+    queryKey: ['clients', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Client.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email
   });
 
   const { data: rawCases = [], isLoading: loadingCases } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list('-created_date'),
+    queryKey: ['cases', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email
   });
 
   // Normaliza os dados - o SDK retorna os dados dentro de 'data'
@@ -87,13 +95,21 @@ export default function Dashboard({ theme = 'light' }) {
     });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('due_date'),
+    queryKey: ['tasks', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Task.filter({ created_by: user.email }, 'due_date');
+    },
+    enabled: !!user?.email
   });
 
   const { data: documents = [], isLoading: loadingDocuments } = useQuery({
-    queryKey: ['documents'],
-    queryFn: () => base44.entities.LegalDocument.list('-created_date'),
+    queryKey: ['documents', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email
   });
 
   const activeCases = cases.filter(c => c.status === 'in_progress').length;

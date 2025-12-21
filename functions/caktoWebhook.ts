@@ -66,8 +66,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // Buscar usuário primeiro para validar existência
+    const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
+    if (!users || users.length === 0) {
+      console.log('Usuário não encontrado:', customerEmail);
+      return new Response(JSON.stringify({ received: true, user_not_found: true }), { status: 200, headers });
+    }
+    
+    const user = users[0];
     const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
-      created_by: customerEmail
+      user_id: user.id
     });
     const existingSub = subscriptions[0];
 
@@ -93,15 +101,12 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Subscription.update(existingSub.id, proData);
         console.log('PRO ATIVADO:', customerEmail);
       } else {
-        const users = await base44.asServiceRole.entities.User.filter({ email: customerEmail });
-        if (users[0]) {
-          await base44.asServiceRole.entities.Subscription.create({
-            ...proData,
-            user_id: users[0].id,
-            last_reset_date: new Date().toISOString().split('T')[0]
-          });
-          console.log('NOVA ASSINATURA PRO:', customerEmail);
-        }
+        await base44.asServiceRole.entities.Subscription.create({
+          ...proData,
+          user_id: user.id,
+          last_reset_date: new Date().toISOString().split('T')[0]
+        });
+        console.log('NOVA ASSINATURA PRO:', customerEmail);
       }
     }
 
