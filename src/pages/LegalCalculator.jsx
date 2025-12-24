@@ -19,6 +19,7 @@ import LiquidacaoCalculator from "../components/calculator/LiquidacaoCalculator"
 import CivilCalculator from "../components/calculator/CivilCalculator";
 import PenalCalculator from "../components/calculator/PenalCalculator";
 import TributarioCalculator from "../components/calculator/TributarioCalculator";
+import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
 
 const calculatorTypes = [
   {
@@ -51,10 +52,17 @@ const calculatorTypes = [
   },
   {
     id: "tributario",
-    title: "Direito Tributário",
+    title: "Direito Tributário Básico",
     description: "SELIC, impostos, repetição de indébito",
     icon: DollarSign,
     color: "amber"
+  },
+  {
+    id: "tributario_avancado",
+    title: "Tributário Avançado",
+    description: "Tese do Século, TUSD/TUST, regimes",
+    icon: TrendingUp,
+    color: "yellow"
   },
   {
     id: "honorarios",
@@ -1159,6 +1167,8 @@ export default function LegalCalculator({ theme = 'light' }) {
         return <PenalCalculator isDark={isDark} />;
       case "tributario":
         return <TributarioCalculator isDark={isDark} />;
+      case "tributario_avancado":
+        return <TributarioAdvancedCalculator isDark={isDark} />;
       case "honorarios":
         return <HonorariosCalculator isDark={isDark} />;
       case "prazos":
