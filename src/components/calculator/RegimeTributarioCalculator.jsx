@@ -1,118 +1,144 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, Download, TrendingDown, Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, Calculator, Download, Loader2, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 export default function RegimeTributarioCalculator({ isDark }) {
-  const [receitaBruta, setReceitaBruta] = useState("");
-  const [custoMercadoria, setCustoMercadoria] = useState("");
+  const [faturamentoAnual, setFaturamentoAnual] = useState("");
+  const [custosMercadorias, setCustosMercadorias] = useState("");
   const [despesasOperacionais, setDespesasOperacionais] = useState("");
-  const [cnae, setCnae] = useState("comercio");
-  const [arquivo, setArquivo] = useState(null);
-  const [processando, setProcessando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
 
-  const processarArquivo = async () => {
-    if (!arquivo) {
-      toast.error("Selecione um arquivo");
-      return;
-    }
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setProcessando(true);
-    
+    setUploading(true);
+    toast.info("Fazendo upload do arquivo...");
+
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      const dados = await base44.integrations.Core.ExtractDataFromUploadedFile({
+      setExtracting(true);
+      toast.info("Extraindo dados fiscais com IA...");
+
+      const response = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
         json_schema: {
           type: "object",
           properties: {
-            receita_bruta: { type: "number" },
-            custo_mercadoria: { type: "number" },
-            despesas_operacionais: { type: "number" }
+            faturamento_anual: { type: "number", description: "Faturamento bruto anual total" },
+            custos_mercadorias: { type: "number", description: "Custo total de mercadorias vendidas" },
+            despesas_operacionais: { type: "number", description: "Total de despesas operacionais" }
           }
         }
       });
 
-      if (dados.status === "success" && dados.output) {
-        setReceitaBruta(String(dados.output.receita_bruta || ""));
-        setCustoMercadoria(String(dados.output.custo_mercadoria || ""));
-        setDespesasOperacionais(String(dados.output.despesas_operacionais || ""));
-        toast.success("Dados extraídos automaticamente!");
+      if (response.status === "success" && response.output) {
+        setFaturamentoAnual(response.output.faturamento_anual?.toString() || "");
+        setCustosMercadorias(response.output.custos_mercadorias?.toString() || "");
+        setDespesasOperacionais(response.output.despesas_operacionais?.toString() || "");
+        toast.success("Dados extraídos com sucesso!");
+        
+        // Calcular automaticamente
+        setTimeout(() => calcular(
+          response.output.faturamento_anual,
+          response.output.custos_mercadorias,
+          response.output.despesas_operacionais
+        ), 500);
       } else {
-        toast.error("Não foi possível extrair os dados");
+        toast.error("Não foi possível extrair os dados: " + (response.details || "erro desconhecido"));
       }
     } catch (error) {
-      toast.error("Erro ao processar arquivo");
+      toast.error("Erro ao processar arquivo: " + error.message);
+    } finally {
+      setUploading(false);
+      setExtracting(false);
     }
-    
-    setProcessando(false);
   };
 
-  const calcular = () => {
-    const receita = parseFloat(receitaBruta) || 0;
-    const custo = parseFloat(custoMercadoria) || 0;
-    const despesas = parseFloat(despesasOperacionais) || 0;
+  const calcular = (fat = null, custos = null, desp = null) => {
+    const faturamento = parseFloat(fat || faturamentoAnual) || 0;
+    const cmt = parseFloat(custos || custosMercadorias) || 0;
+    const despesas = parseFloat(desp || despesasOperacionais) || 0;
 
-    if (!receita) {
-      toast.error("Informe a receita bruta anual");
+    if (!faturamento) {
+      toast.error("Informe o faturamento anual");
       return;
     }
 
-    // SIMPLES NACIONAL
-    const aliquotaSimples = cnae === "comercio" ? 0.06 : cnae === "servicos" ? 0.155 : 0.045;
-    const impostoSimples = receita * aliquotaSimples;
+    // Simples Nacional
+    let aliquotaSimples = 0;
+    if (faturamento <= 180000) aliquotaSimples = 4.0;
+    else if (faturamento <= 360000) aliquotaSimples = 7.3;
+    else if (faturamento <= 720000) aliquotaSimples = 9.5;
+    else if (faturamento <= 1800000) aliquotaSimples = 10.7;
+    else if (faturamento <= 3600000) aliquotaSimples = 14.3;
+    else if (faturamento <= 4800000) aliquotaSimples = 19.0;
+    else aliquotaSimples = 0; // Acima do limite
 
-    // LUCRO PRESUMIDO
-    const margemPresumida = cnae === "comercio" ? 0.08 : cnae === "servicos" ? 0.32 : 0.12;
-    const basePresumida = receita * margemPresumida;
+    const tributosSimples = faturamento * (aliquotaSimples / 100);
+
+    // Lucro Presumido
+    const basePresumida = faturamento * 0.08; // 8% para comércio
     const irpjPresumido = basePresumida * 0.15;
     const csllPresumida = basePresumida * 0.09;
-    const pisPresumido = receita * 0.0065;
-    const cofinsPresumida = receita * 0.03;
-    const impostoPresumido = irpjPresumido + csllPresumida + pisPresumido + cofinsPresumida;
+    const pisPresumido = faturamento * 0.0065;
+    const cofinsPresumido = faturamento * 0.03;
+    const totalPresumido = irpjPresumido + csllPresumida + pisPresumido + cofinsPresumido;
 
-    // LUCRO REAL
-    const lucroReal = receita - custo - despesas;
-    const irpjReal = Math.max(0, lucroReal * 0.15);
-    const csllReal = Math.max(0, lucroReal * 0.09);
-    const pisReal = receita * 0.0165;
-    const cofinsReal = receita * 0.076;
-    const impostoReal = irpjReal + csllReal + pisReal + cofinsReal;
+    // Lucro Real
+    const lucroReal = Math.max(0, faturamento - cmt - despesas);
+    const irpjReal = lucroReal * 0.15;
+    const adicionalIrpj = Math.max(0, lucroReal - 240000) * 0.10;
+    const csllReal = lucroReal * 0.09;
+    const pisReal = faturamento * 0.0165;
+    const cofinsReal = faturamento * 0.076;
+    const totalReal = irpjReal + adicionalIrpj + csllReal + pisReal + cofinsReal;
 
     // Melhor regime
-    const valores = [
-      { regime: "Simples Nacional", valor: impostoSimples },
-      { regime: "Lucro Presumido", valor: impostoPresumido },
-      { regime: "Lucro Real", valor: impostoReal }
+    const regimes = [
+      { nome: "Simples Nacional", valor: tributosSimples, elegivel: faturamento <= 4800000 },
+      { nome: "Lucro Presumido", valor: totalPresumido, elegivel: faturamento <= 78000000 },
+      { nome: "Lucro Real", valor: totalReal, elegivel: true }
     ];
-    const melhorRegime = valores.reduce((prev, curr) => prev.valor < curr.valor ? prev : curr);
+
+    const melhor = regimes.filter(r => r.elegivel).reduce((prev, curr) => 
+      curr.valor < prev.valor ? curr : prev
+    );
 
     setResultado({
-      receitaBruta: receita,
-      simplesNacional: impostoSimples,
-      lucroPresumido: impostoPresumido,
-      lucroReal: impostoReal,
-      melhorRegime: melhorRegime.regime,
-      economia: Math.max(...valores.map(v => v.valor)) - melhorRegime.valor,
-      detalhamentoPresumido: {
+      faturamento,
+      simplesNacional: {
+        tributos: tributosSimples,
+        aliquota: aliquotaSimples,
+        elegivel: faturamento <= 4800000
+      },
+      lucroPresumido: {
         irpj: irpjPresumido,
         csll: csllPresumida,
         pis: pisPresumido,
-        cofins: cofinsPresumida
+        cofins: cofinsPresumido,
+        total: totalPresumido,
+        elegivel: faturamento <= 78000000
       },
-      detalhamentoReal: {
-        irpj: irpjReal,
+      lucroReal: {
+        irpj: irpjReal + adicionalIrpj,
         csll: csllReal,
         pis: pisReal,
-        cofins: cofinsReal
-      }
+        cofins: cofinsReal,
+        total: totalReal,
+        elegivel: true
+      },
+      melhorRegime: melhor.nome,
+      economia: regimes.filter(r => r.elegivel).reduce((max, r) => Math.max(max, r.valor), 0) - melhor.valor
     });
   };
 
@@ -132,43 +158,17 @@ export default function RegimeTributarioCalculator({ isDark }) {
     
     doc.line(15, 32, pageWidth - 15, 32);
     
-    let y = 45;
     doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
-    doc.text('RECEITA BRUTA ANUAL:', 15, y);
-    doc.text(`R$ ${resultado.receitaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+    doc.text(`Faturamento Anual: R$ ${resultado.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 15, 42);
     
-    y += 15;
-    doc.text('TRIBUTOS POR REGIME:', 15, y);
-    y += 10;
-    
-    doc.setFont(undefined, 'normal');
+    let y = 52;
     doc.setFontSize(10);
-    
-    doc.text('Simples Nacional:', 15, y);
-    doc.text(`R$ ${resultado.simplesNacional.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
-    y += 8;
-    
-    doc.text('Lucro Presumido:', 15, y);
-    doc.text(`R$ ${resultado.lucroPresumido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
-    y += 8;
-    
-    doc.text('Lucro Real:', 15, y);
-    doc.text(`R$ ${resultado.lucroReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
-    
-    y += 12;
-    doc.line(15, y, pageWidth - 15, y);
-    y += 10;
-    
     doc.setFont(undefined, 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 150, 0);
     doc.text('MELHOR REGIME:', 15, y);
-    doc.text(resultado.melhorRegime, pageWidth - 15, y, { align: 'right' });
-    y += 10;
-    
-    doc.text('ECONOMIA:', 15, y);
-    doc.text(`R$ ${resultado.economia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 15, y, { align: 'right' });
+    doc.setTextColor(0, 150, 0);
+    doc.text(resultado.melhorRegime, 60, y);
+    doc.setTextColor(0, 0, 0);
     
     doc.save('comparacao_regimes.pdf');
     toast.success("PDF gerado com sucesso!");
@@ -176,92 +176,68 @@ export default function RegimeTributarioCalculator({ isDark }) {
 
   return (
     <div className="space-y-6">
-      {/* Upload */}
-      <div className={`p-4 rounded-lg border-2 border-dashed ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-emerald-50 border-emerald-200"}`}>
-        <div className="flex items-center gap-3 mb-3">
-          <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-          <div>
-            <h4 className={`font-semibold text-sm ${isDark ? "text-white" : "text-gray-900"}`}>
-              Importar DRE ou Balanço
-            </h4>
-            <p className="text-xs text-gray-500">Upload de planilha com dados contábeis</p>
+      <div className={`p-4 rounded-lg border-2 border-dashed ${isDark ? "border-neutral-700 bg-neutral-900/50" : "border-gray-300 bg-gray-50"}`}>
+        <div className="flex flex-col items-center gap-3">
+          <Upload className={`w-8 h-8 ${isDark ? "text-neutral-400" : "text-gray-400"}`} />
+          <div className="text-center">
+            <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
+              Upload de Arquivo Fiscal
+            </p>
+            <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>
+              SPED, DRE, Balancete ou XML - A IA extrairá os dados automaticamente
+            </p>
           </div>
-        </div>
-        <div className="flex gap-2">
           <Input
             type="file"
-            accept=".xlsx,.csv,.pdf"
-            onChange={(e) => setArquivo(e.target.files[0])}
-            className={isDark ? "bg-neutral-800 border-neutral-700" : ""}
+            accept=".xml,.txt,.pdf,.xlsx,.xls"
+            onChange={handleFileUpload}
+            disabled={uploading || extracting}
+            className="max-w-xs"
           />
-          <Button
-            onClick={processarArquivo}
-            disabled={!arquivo || processando}
-            variant="outline"
-            className="shrink-0"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {processando ? "..." : "Importar"}
-          </Button>
+          {(uploading || extracting) && (
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {uploading ? "Fazendo upload..." : "Extraindo dados com IA..."}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Receita Bruta Anual (R$)</Label>
+          <Label>Faturamento Anual (R$)</Label>
           <Input
             type="number"
-            placeholder="Ex: 1000000"
-            value={receitaBruta}
-            onChange={(e) => setReceitaBruta(e.target.value)}
+            value={faturamentoAnual}
+            onChange={(e) => setFaturamentoAnual(e.target.value)}
+            placeholder="Ex: 2400000"
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
-
         <div className="space-y-2">
-          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Atividade Principal</Label>
-          <select
-            value={cnae}
-            onChange={(e) => setCnae(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border ${isDark ? "bg-neutral-900 border-neutral-700 text-white" : "bg-white border-gray-200"}`}
-          >
-            <option value="comercio">Comércio</option>
-            <option value="servicos">Serviços</option>
-            <option value="industria">Indústria</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>
-            Custo de Mercadorias/Serviços (R$)
-            <span className="text-xs text-gray-400 ml-1">(para Lucro Real)</span>
-          </Label>
+          <Label>Custos de Mercadorias (R$)</Label>
           <Input
             type="number"
-            placeholder="Ex: 400000"
-            value={custoMercadoria}
-            onChange={(e) => setCustoMercadoria(e.target.value)}
+            value={custosMercadorias}
+            onChange={(e) => setCustosMercadorias(e.target.value)}
+            placeholder="Ex: 800000"
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
-
         <div className="space-y-2">
-          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>
-            Despesas Operacionais (R$)
-            <span className="text-xs text-gray-400 ml-1">(para Lucro Real)</span>
-          </Label>
+          <Label>Despesas Operacionais (R$)</Label>
           <Input
             type="number"
-            placeholder="Ex: 200000"
             value={despesasOperacionais}
             onChange={(e) => setDespesasOperacionais(e.target.value)}
+            placeholder="Ex: 400000"
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={calcular} className="flex-1 bg-emerald-600 hover:bg-emerald-700">
+        <Button onClick={() => calcular()} className="flex-1 bg-yellow-600 hover:bg-yellow-700">
           <Calculator className="w-4 h-4 mr-2" />
           Comparar Regimes
         </Button>
@@ -279,88 +255,112 @@ export default function RegimeTributarioCalculator({ isDark }) {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          {/* Comparação Visual */}
-          <div className={`p-6 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-white border border-gray-200"}`}>
-            <h4 className={`font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-              Comparação de Tributos Anuais
-            </h4>
-            
-            <div className="space-y-3">
-              {[
-                { nome: "Simples Nacional", valor: resultado.simplesNacional, cor: "blue" },
-                { nome: "Lucro Presumido", valor: resultado.lucroPresumido, cor: "purple" },
-                { nome: "Lucro Real", valor: resultado.lucroReal, cor: "indigo" }
-              ].map((regime, i) => {
-                const percentual = (regime.valor / resultado.receitaBruta) * 100;
-                const isMelhor = regime.nome === resultado.melhorRegime;
-                
-                return (
-                  <div key={i} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className={`font-medium ${isMelhor ? "text-emerald-600" : isDark ? "text-neutral-300" : "text-gray-700"}`}>
-                        {regime.nome}
-                        {isMelhor && <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">MELHOR</span>}
-                      </span>
-                      <span className={`font-semibold ${isMelhor ? "text-emerald-600" : isDark ? "text-white" : "text-gray-900"}`}>
-                        R$ {regime.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-neutral-800" : "bg-gray-200"}`}>
-                      <div
-                        className={`h-full ${isMelhor ? "bg-emerald-500" : `bg-${regime.cor}-500`}`}
-                        style={{ width: `${percentual}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">{percentual.toFixed(2)}% da receita bruta</p>
+          <div className={`p-4 rounded-lg ${isDark ? "bg-green-900/20 border border-green-800" : "bg-green-50 border border-green-200"}`}>
+            <p className="text-sm font-medium text-green-600 mb-1">✓ Melhor Regime</p>
+            <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
+              {resultado.melhorRegime}
+            </p>
+            <p className="text-sm text-green-600 mt-2">
+              Economia de R$ {resultado.economia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} por ano
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {resultado.simplesNacional.elegivel && (
+              <div className={`p-4 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-white border border-gray-200"}`}>
+                <h4 className={`font-semibold mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>
+                  Simples Nacional
+                </h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Alíquota</p>
+                    <p className={isDark ? "text-white" : "text-gray-900"}>{resultado.simplesNacional.aliquota}%</p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <div>
+                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Total Tributos</p>
+                    <p className="font-bold text-blue-600">
+                      R$ {resultado.simplesNacional.tributos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          {/* Economia */}
-          <div className="p-6 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingDown className="w-6 h-6" />
-              <h4 className="font-semibold text-lg">Economia Anual Estimada</h4>
-            </div>
-            <p className="text-3xl font-bold">
-              R$ {resultado.economia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-sm opacity-90 mt-1">
-              Escolhendo {resultado.melhorRegime} ao invés do regime mais caro
-            </p>
-          </div>
+            {resultado.lucroPresumido.elegivel && (
+              <div className={`p-4 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-white border border-gray-200"}`}>
+                <h4 className={`font-semibold mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>
+                  Lucro Presumido
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-neutral-400" : "text-gray-600"}>IRPJ</span>
+                    <span className={isDark ? "text-white" : "text-gray-900"}>
+                      R$ {resultado.lucroPresumido.irpj.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-neutral-400" : "text-gray-600"}>CSLL</span>
+                    <span className={isDark ? "text-white" : "text-gray-900"}>
+                      R$ {resultado.lucroPresumido.csll.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-neutral-400" : "text-gray-600"}>PIS</span>
+                    <span className={isDark ? "text-white" : "text-gray-900"}>
+                      R$ {resultado.lucroPresumido.pis.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-neutral-400" : "text-gray-600"}>COFINS</span>
+                    <span className={isDark ? "text-white" : "text-gray-900"}>
+                      R$ {resultado.lucroPresumido.cofins.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t flex justify-between">
+                    <span className="font-semibold">Total</span>
+                    <span className="font-bold text-blue-600">
+                      R$ {resultado.lucroPresumido.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          {/* Detalhamento */}
-          <div className={`p-6 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-gray-50 border border-gray-200"}`}>
-            <h4 className={`font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
-              Detalhamento Lucro Presumido
-            </h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex justify-between">
-                <span className={isDark ? "text-neutral-400" : "text-gray-600"}>IRPJ (15%)</span>
-                <span className={isDark ? "text-white" : "text-gray-900"}>
-                  R$ {resultado.detalhamentoPresumido.irpj.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={isDark ? "text-neutral-400" : "text-gray-600"}>CSLL (9%)</span>
-                <span className={isDark ? "text-white" : "text-gray-900"}>
-                  R$ {resultado.detalhamentoPresumido.csll.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={isDark ? "text-neutral-400" : "text-gray-600"}>PIS (0,65%)</span>
-                <span className={isDark ? "text-white" : "text-gray-900"}>
-                  R$ {resultado.detalhamentoPresumido.pis.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className={isDark ? "text-neutral-400" : "text-gray-600"}>COFINS (3%)</span>
-                <span className={isDark ? "text-white" : "text-gray-900"}>
-                  R$ {resultado.detalhamentoPresumido.cofins.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </span>
+            <div className={`p-4 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-white border border-gray-200"}`}>
+              <h4 className={`font-semibold mb-3 ${isDark ? "text-white" : "text-gray-900"}`}>
+                Lucro Real
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className={isDark ? "text-neutral-400" : "text-gray-600"}>IRPJ</span>
+                  <span className={isDark ? "text-white" : "text-gray-900"}>
+                    R$ {resultado.lucroReal.irpj.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? "text-neutral-400" : "text-gray-600"}>CSLL</span>
+                  <span className={isDark ? "text-white" : "text-gray-900"}>
+                    R$ {resultado.lucroReal.csll.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? "text-neutral-400" : "text-gray-600"}>PIS</span>
+                  <span className={isDark ? "text-white" : "text-gray-900"}>
+                    R$ {resultado.lucroReal.pis.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={isDark ? "text-neutral-400" : "text-gray-600"}>COFINS</span>
+                  <span className={isDark ? "text-white" : "text-gray-900"}>
+                    R$ {resultado.lucroReal.cofins.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="pt-2 border-t flex justify-between">
+                  <span className="font-semibold">Total</span>
+                  <span className="font-bold text-blue-600">
+                    R$ {resultado.lucroReal.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
