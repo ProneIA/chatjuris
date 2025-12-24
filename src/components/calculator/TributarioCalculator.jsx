@@ -12,145 +12,227 @@ export default function TributarioCalculator({ isDark }) {
   const [tipoCalculo, setTipoCalculo] = useState("selic");
   const [valorPrincipal, setValorPrincipal] = useState("");
   const [meses, setMeses] = useState("");
-  const [aliquota, setAliquota] = useState("15");
+  const [aliquota, setAliquota] = useState("");
+  const [baseCalculo, setBaseCalculo] = useState("");
   const [resultado, setResultado] = useState(null);
 
   const calcular = () => {
-    const principal = parseFloat(valorPrincipal) || 0;
-    const periodoMeses = parseInt(meses) || 0;
+    const valor = parseFloat(valorPrincipal) || 0;
+    const periodo = parseInt(meses) || 0;
     const aliq = parseFloat(aliquota) || 0;
+    const base = parseFloat(baseCalculo) || 0;
 
-    if (!principal) {
-      toast.error("Informe o valor principal");
+    if (!valor) {
+      toast.error("Preencha os campos obrigatórios");
       return;
     }
 
-    let resultado = {};
+    let calc = {};
 
     switch (tipoCalculo) {
       case "selic":
-        // SELIC aproximada: 13.75% a.a. = 1.08% a.m.
-        const taxaSelic = 0.0108;
-        const montanteSelic = principal * Math.pow(1 + taxaSelic, periodoMeses);
-        const jurosSelic = montanteSelic - principal;
-        resultado = {
+        // SELIC média aproximada: 1% a.m.
+        const selicMensal = 0.01;
+        const montanteSelic = valor * Math.pow(1 + selicMensal, periodo);
+        const jurosSelic = montanteSelic - valor;
+        
+        calc = {
           tipo: "Atualização pela SELIC",
-          valorPrincipal: principal,
-          periodo: periodoMeses,
-          taxaMensal: taxaSelic * 100,
-          jurosAcumulados: jurosSelic,
-          montanteFinal: montanteSelic,
-          base: "Lei 9.250/95 e CTN"
+          valorPrincipal: valor,
+          periodo: `${periodo} meses`,
+          taxaSelic: "1% a.m. (estimada)",
+          juros: jurosSelic,
+          montante: montanteSelic,
+          base: "Art. 39, §4º da Lei 9.250/95"
         };
         break;
 
-      case "repetindo_indebito":
-        // Repetição de indébito (art. 165-A CTN)
-        const valorRepetir = principal * 2; // Em dobro se má-fé
-        resultado = {
-          tipo: "Repetição de Indébito",
-          valorPago: principal,
-          valorRepetir,
-          dobro: true,
-          base: "Art. 165-A do CTN"
+      case "icms":
+        const valorIcms = base * (aliq / 100);
+        calc = {
+          tipo: "ICMS",
+          baseCalculo: base,
+          aliquota: `${aliq}%`,
+          valorImposto: valorIcms,
+          base: "Lei Complementar 87/96"
+        };
+        break;
+
+      case "iss":
+        const valorIss = base * (aliq / 100);
+        calc = {
+          tipo: "ISS - Imposto Sobre Serviços",
+          baseCalculo: base,
+          aliquota: `${aliq}%`,
+          valorImposto: valorIss,
+          base: "Lei Complementar 116/2003"
+        };
+        break;
+
+      case "repetir_indebito":
+        // Repetição de indébito com SELIC
+        const selicRepet = 0.01;
+        const montanteRepet = valor * Math.pow(1 + selicRepet, periodo);
+        const jurosRepet = montanteRepet - valor;
+        
+        calc = {
+          tipo: "Repetição de Indébito Tributário",
+          valorPago: valor,
+          periodo: `${periodo} meses`,
+          correcaoSelic: jurosRepet,
+          totalRestituir: montanteRepet,
+          base: "Art. 165 do CTN c/c Súmula 162 STJ"
         };
         break;
 
       case "multa_fiscal":
-        // Multa fiscal (75% ou 150%)
-        const multaPerc = aliq / 100;
-        const multaFiscal = principal * multaPerc;
-        resultado = {
+        const percentualMulta = aliq || 75;
+        const valorMulta = valor * (percentualMulta / 100);
+        const total = valor + valorMulta;
+        
+        calc = {
           tipo: "Multa Fiscal",
-          valorPrincipal: principal,
-          percentualMulta: aliq,
-          multaDevida: multaFiscal,
-          total: principal + multaFiscal,
+          tributoPrincipal: valor,
+          percentualMulta: `${percentualMulta}%`,
+          valorMulta,
+          totalDevido: total,
           base: "Art. 44 da Lei 9.430/96"
         };
         break;
 
-      case "compensacao":
-        // Compensação tributária
-        const compensacao = principal * 0.85; // 85% compensável
-        resultado = {
-          tipo: "Compensação Tributária",
-          creditoExistente: principal,
-          valorCompensavel: compensacao,
-          limiteLegal: "85%",
-          base: "Art. 170-A do CTN"
-        };
-        break;
-
       default:
-        break;
+        return;
     }
 
-    setResultado(resultado);
+    setResultado(calc);
   };
 
   const exportarPDF = () => {
     if (!resultado) return;
+
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
     doc.setFontSize(18);
-    doc.text(`CÁLCULO TRIBUTÁRIO - ${resultado.tipo}`, 15, 20);
-    doc.setFontSize(12);
-    let y = 40;
-    Object.entries(resultado).forEach(([key, value]) => {
-      if (key !== "tipo" && key !== "base" && typeof value === "number") {
-        doc.text(`${key}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`, 15, y);
-        y += 10;
-      }
-    });
-    doc.save("calculo_tributario.pdf");
-    toast.success("PDF gerado!");
+    doc.setFont(undefined, 'bold');
+    doc.text('CÁLCULO TRIBUTÁRIO', pageWidth / 2, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
+    
+    doc.line(15, 32, pageWidth - 15, 32);
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text(resultado.tipo, 15, 42);
+    
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Base legal: ${resultado.base}`, 15, 50);
+    
+    doc.save('calculo_tributario.pdf');
+    toast.success("PDF gerado com sucesso!");
   };
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Tipo de Cálculo</Label>
+        <div className="space-y-2 md:col-span-2">
+          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Tipo de Cálculo</Label>
           <Select value={tipoCalculo} onValueChange={setTipoCalculo}>
-            <SelectTrigger>
+            <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-700" : ""}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="selic">Atualização pela SELIC</SelectItem>
-              <SelectItem value="repetindo_indebito">Repetição de Indébito</SelectItem>
+              <SelectItem value="icms">ICMS</SelectItem>
+              <SelectItem value="iss">ISS</SelectItem>
+              <SelectItem value="repetir_indebito">Repetição de Indébito</SelectItem>
               <SelectItem value="multa_fiscal">Multa Fiscal</SelectItem>
-              <SelectItem value="compensacao">Compensação Tributária</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label>Valor Principal (R$)</Label>
-          <Input type="number" value={valorPrincipal} onChange={(e) => setValorPrincipal(e.target.value)} />
-        </div>
+        {(tipoCalculo === "selic" || tipoCalculo === "repetir_indebito") && (
+          <>
+            <div className="space-y-2">
+              <Label>Valor Principal (R$)</Label>
+              <Input
+                type="number"
+                value={valorPrincipal}
+                onChange={(e) => setValorPrincipal(e.target.value)}
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Período (meses)</Label>
+              <Input
+                type="number"
+                value={meses}
+                onChange={(e) => setMeses(e.target.value)}
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+          </>
+        )}
 
-        {tipoCalculo === "selic" && (
-          <div className="space-y-2">
-            <Label>Período (meses)</Label>
-            <Input type="number" value={meses} onChange={(e) => setMeses(e.target.value)} />
-          </div>
+        {(tipoCalculo === "icms" || tipoCalculo === "iss") && (
+          <>
+            <div className="space-y-2">
+              <Label>Base de Cálculo (R$)</Label>
+              <Input
+                type="number"
+                value={baseCalculo}
+                onChange={(e) => setBaseCalculo(e.target.value)}
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Alíquota (%)</Label>
+              <Input
+                type="number"
+                value={aliquota}
+                onChange={(e) => setAliquota(e.target.value)}
+                placeholder={tipoCalculo === "icms" ? "Ex: 18" : "Ex: 5"}
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+          </>
         )}
 
         {tipoCalculo === "multa_fiscal" && (
-          <div className="space-y-2">
-            <Label>Percentual da Multa (%)</Label>
-            <Input type="number" value={aliquota} onChange={(e) => setAliquota(e.target.value)} />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label>Tributo Principal (R$)</Label>
+              <Input
+                type="number"
+                value={valorPrincipal}
+                onChange={(e) => setValorPrincipal(e.target.value)}
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Percentual da Multa (%)</Label>
+              <Input
+                type="number"
+                value={aliquota}
+                onChange={(e) => setAliquota(e.target.value)}
+                placeholder="Ex: 75"
+                className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
+              />
+            </div>
+          </>
         )}
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={calcular} className="flex-1 bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={calcular} className="flex-1 bg-amber-600 hover:bg-amber-700">
           <Calculator className="w-4 h-4 mr-2" />
           Calcular
         </Button>
         {resultado && (
-          <Button onClick={exportarPDF} variant="outline">
+          <Button onClick={exportarPDF} variant="outline" className="px-4">
             <Download className="w-4 h-4 mr-2" />
             PDF
           </Button>
@@ -161,23 +243,26 @@ export default function TributarioCalculator({ isDark }) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-6 rounded-lg ${isDark ? "bg-neutral-900" : "bg-indigo-50"}`}
+          className={`p-6 rounded-lg ${isDark ? "bg-neutral-900 border border-neutral-800" : "bg-amber-50 border border-amber-100"}`}
         >
-          <h4 className="font-semibold mb-4">{resultado.tipo}</h4>
+          <h4 className={`font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>{resultado.tipo}</h4>
+          <p className={`text-xs mb-4 ${isDark ? "text-neutral-500" : "text-gray-500"}`}>{resultado.base}</p>
           <div className="space-y-2">
-            {Object.entries(resultado).map(([key, value]) => {
-              if (key === "tipo" || key === "base") return null;
-              return (
+            {Object.entries(resultado)
+              .filter(([key]) => key !== 'tipo' && key !== 'base')
+              .map(([key, value]) => (
                 <div key={key} className="flex justify-between">
-                  <span>{key}</span>
-                  <span className="font-semibold">
-                    {typeof value === "number" ? `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : String(value)}
+                  <span className={isDark ? "text-neutral-400" : "text-gray-600"}>
+                    {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                  </span>
+                  <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                    {typeof value === 'number' 
+                      ? `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                      : value}
                   </span>
                 </div>
-              );
-            })}
+              ))}
           </div>
-          <p className="text-xs mt-4 text-gray-500">Base legal: {resultado.base}</p>
         </motion.div>
       )}
     </div>
