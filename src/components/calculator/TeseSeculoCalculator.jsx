@@ -102,7 +102,7 @@ export default function TeseSeculoCalculator({ isDark }) {
       baseAntiga,
       baseNova,
       pisPago,
-      cofinsP ago,
+      cofinsPago,
       pisDevido,
       cofinsDevida,
       recuperacaoPis,
