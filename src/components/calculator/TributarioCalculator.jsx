@@ -1,20 +1,61 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, Download } from "lucide-react";
+import { Calculator, Download, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
 export default function TributarioCalculator({ isDark }) {
   const [tipoCalculo, setTipoCalculo] = useState("selic");
+  const [arquivo, setArquivo] = useState(null);
+  const [processando, setProcessando] = useState(false);
   const [valorPrincipal, setValorPrincipal] = useState("");
   const [meses, setMeses] = useState("");
   const [aliquota, setAliquota] = useState("");
   const [baseCalculo, setBaseCalculo] = useState("");
   const [resultado, setResultado] = useState(null);
+
+  const processarArquivo = async () => {
+    if (!arquivo) {
+      toast.error("Selecione um arquivo");
+      return;
+    }
+
+    setProcessando(true);
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
+      
+      const dados = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            valor_principal: { type: "number" },
+            base_calculo: { type: "number" },
+            aliquota: { type: "number" }
+          }
+        }
+      });
+
+      if (dados.status === "success" && dados.output) {
+        if (dados.output.valor_principal) setValorPrincipal(String(dados.output.valor_principal));
+        if (dados.output.base_calculo) setBaseCalculo(String(dados.output.base_calculo));
+        if (dados.output.aliquota) setAliquota(String(dados.output.aliquota));
+        toast.success("Dados fiscais extraídos!");
+      } else {
+        toast.error("Não foi possível extrair os dados");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar arquivo");
+    }
+    
+    setProcessando(false);
+  };
 
   const calcular = () => {
     const valor = parseFloat(valorPrincipal) || 0;
@@ -137,6 +178,28 @@ export default function TributarioCalculator({ isDark }) {
 
   return (
     <div className="space-y-6">
+      {/* Upload */}
+      <div className={`p-4 rounded-lg border ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-amber-50 border-amber-200"}`}>
+        <Label className="mb-2 block text-sm">Importar Documento Fiscal (opcional)</Label>
+        <div className="flex gap-2">
+          <Input
+            type="file"
+            accept=".pdf,.xml,.txt"
+            onChange={(e) => setArquivo(e.target.files[0])}
+            className={isDark ? "bg-neutral-800 border-neutral-700" : ""}
+          />
+          <Button
+            onClick={processarArquivo}
+            disabled={!arquivo || processando}
+            variant="outline"
+            size="sm"
+          >
+            <Upload className="w-4 h-4 mr-1" />
+            {processando ? "..." : "Extrair"}
+          </Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2 md:col-span-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Tipo de Cálculo</Label>

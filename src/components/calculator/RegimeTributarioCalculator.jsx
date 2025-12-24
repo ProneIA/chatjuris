@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, Download, TrendingDown } from "lucide-react";
+import { Calculator, Download, TrendingDown, Upload, FileSpreadsheet } from "lucide-react";
 import { motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
@@ -12,7 +13,47 @@ export default function RegimeTributarioCalculator({ isDark }) {
   const [custoMercadoria, setCustoMercadoria] = useState("");
   const [despesasOperacionais, setDespesasOperacionais] = useState("");
   const [cnae, setCnae] = useState("comercio");
+  const [arquivo, setArquivo] = useState(null);
+  const [processando, setProcessando] = useState(false);
   const [resultado, setResultado] = useState(null);
+
+  const processarArquivo = async () => {
+    if (!arquivo) {
+      toast.error("Selecione um arquivo");
+      return;
+    }
+
+    setProcessando(true);
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
+      
+      const dados = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            receita_bruta: { type: "number" },
+            custo_mercadoria: { type: "number" },
+            despesas_operacionais: { type: "number" }
+          }
+        }
+      });
+
+      if (dados.status === "success" && dados.output) {
+        setReceitaBruta(String(dados.output.receita_bruta || ""));
+        setCustoMercadoria(String(dados.output.custo_mercadoria || ""));
+        setDespesasOperacionais(String(dados.output.despesas_operacionais || ""));
+        toast.success("Dados extraídos automaticamente!");
+      } else {
+        toast.error("Não foi possível extrair os dados");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar arquivo");
+    }
+    
+    setProcessando(false);
+  };
 
   const calcular = () => {
     const receita = parseFloat(receitaBruta) || 0;
@@ -135,6 +176,36 @@ export default function RegimeTributarioCalculator({ isDark }) {
 
   return (
     <div className="space-y-6">
+      {/* Upload */}
+      <div className={`p-4 rounded-lg border-2 border-dashed ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-emerald-50 border-emerald-200"}`}>
+        <div className="flex items-center gap-3 mb-3">
+          <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
+          <div>
+            <h4 className={`font-semibold text-sm ${isDark ? "text-white" : "text-gray-900"}`}>
+              Importar DRE ou Balanço
+            </h4>
+            <p className="text-xs text-gray-500">Upload de planilha com dados contábeis</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            type="file"
+            accept=".xlsx,.csv,.pdf"
+            onChange={(e) => setArquivo(e.target.files[0])}
+            className={isDark ? "bg-neutral-800 border-neutral-700" : ""}
+          />
+          <Button
+            onClick={processarArquivo}
+            disabled={!arquivo || processando}
+            variant="outline"
+            className="shrink-0"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {processando ? "..." : "Importar"}
+          </Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Receita Bruta Anual (R$)</Label>

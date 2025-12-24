@@ -1,21 +1,64 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, Download } from "lucide-react";
+import { Calculator, Download, Upload, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
 export default function CivilCalculator({ isDark }) {
   const [tipoCalculo, setTipoCalculo] = useState("multa_contratual");
+  const [arquivo, setArquivo] = useState(null);
+  const [processando, setProcessando] = useState(false);
   const [valorContrato, setValorContrato] = useState("");
   const [percentualMulta, setPercentualMulta] = useState("10");
   const [valorParcela, setValorParcela] = useState("");
   const [numeroParcelas, setNumeroParcelas] = useState("");
   const [diasAtraso, setDiasAtraso] = useState("");
   const [resultado, setResultado] = useState(null);
+
+  const processarArquivo = async () => {
+    if (!arquivo) {
+      toast.error("Selecione um arquivo");
+      return;
+    }
+
+    setProcessando(true);
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
+      
+      const schema = {
+        type: "object",
+        properties: {
+          valor_contrato: { type: "number" },
+          valor_parcela: { type: "number" },
+          numero_parcelas: { type: "number" }
+        }
+      };
+
+      const dados = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: schema
+      });
+
+      if (dados.status === "success" && dados.output) {
+        if (dados.output.valor_contrato) setValorContrato(String(dados.output.valor_contrato));
+        if (dados.output.valor_parcela) setValorParcela(String(dados.output.valor_parcela));
+        if (dados.output.numero_parcelas) setNumeroParcelas(String(dados.output.numero_parcelas));
+        toast.success("Dados extraídos do contrato!");
+      } else {
+        toast.error("Não foi possível extrair os dados");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar arquivo");
+    }
+    
+    setProcessando(false);
+  };
 
   const calcular = () => {
     const valor = parseFloat(valorContrato) || 0;
@@ -152,6 +195,28 @@ export default function CivilCalculator({ isDark }) {
 
   return (
     <div className="space-y-6">
+      {/* Upload */}
+      <div className={`p-4 rounded-lg border ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-indigo-50 border-indigo-200"}`}>
+        <Label className="mb-2 block text-sm">Importar Contrato (opcional)</Label>
+        <div className="flex gap-2">
+          <Input
+            type="file"
+            accept=".pdf,.docx,.txt"
+            onChange={(e) => setArquivo(e.target.files[0])}
+            className={isDark ? "bg-neutral-800 border-neutral-700" : ""}
+          />
+          <Button
+            onClick={processarArquivo}
+            disabled={!arquivo || processando}
+            variant="outline"
+            size="sm"
+          >
+            <Upload className="w-4 h-4 mr-1" />
+            {processando ? "..." : "Extrair"}
+          </Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2 md:col-span-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Tipo de Cálculo</Label>
