@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,9 +24,6 @@ import TeseSeculoCalculator from "../components/calculator/TeseSeculoCalculator"
 import ExclusaoISSCalculator from "../components/calculator/ExclusaoISSCalculator";
 import ConsumidorCalculator from "../components/calculator/ConsumidorCalculator";
 import FamiliaCalculator from "../components/calculator/FamiliaCalculator";
-import CivilCalculator from "../components/calculator/CivilCalculator";
-import PenalCalculator from "../components/calculator/PenalCalculator";
-import TributarioCalculator from "../components/calculator/TributarioCalculator";
 import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
 
 const calculatorTypes = [
@@ -47,9 +44,16 @@ const calculatorTypes = [
   {
     id: "civil",
     title: "Direito Civil",
-    description: "Obrigações, família, sucessões",
+    description: "Obrigações, multas, danos materiais",
     icon: FileText,
     color: "indigo"
+  },
+  {
+    id: "familia",
+    title: "Família e Sucessões",
+    description: "Pensão, partilha, usufruto",
+    icon: Users,
+    color: "pink"
   },
   {
     id: "penal",
@@ -60,17 +64,24 @@ const calculatorTypes = [
   },
   {
     id: "tributario",
-    title: "Direito Tributário Básico",
-    description: "SELIC, impostos, repetição de indébito",
+    title: "Tributário Básico",
+    description: "SELIC, impostos, multas fiscais",
     icon: DollarSign,
     color: "amber"
   },
   {
     id: "tributario_avancado",
     title: "Tributário Avançado",
-    description: "Tese do Século, TUSD/TUST, regimes",
+    description: "Tese do Século, ISS, Regimes",
     icon: TrendingUp,
     color: "yellow"
+  },
+  {
+    id: "consumidor",
+    title: "Consumidor",
+    description: "Repetição indébito, juros abusivos",
+    icon: ShoppingCart,
+    color: "cyan"
   },
   {
     id: "honorarios",
@@ -1175,6 +1186,10 @@ export default function LegalCalculator({ theme = 'light' }) {
         return <PenalCalculator isDark={isDark} />;
       case "tributario":
         return <TributarioCalculator isDark={isDark} />;
+      case "familia":
+        return <FamiliaCalculator isDark={isDark} />;
+      case "consumidor":
+        return <ConsumidorCalculator isDark={isDark} />;
       case "tributario_avancado":
         return <TributarioAdvancedCalculator isDark={isDark} />;
       case "honorarios":
