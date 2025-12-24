@@ -1,75 +1,89 @@
 import AIAssistant from './pages/AIAssistant';
-import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Documents from './pages/Documents';
-import Templates from './pages/Templates';
-import Tasks from './pages/Tasks';
+import AboutUs from './pages/AboutUs';
+import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
-import Jurisprudence from './pages/Jurisprudence';
-import Pricing from './pages/Pricing';
-import Contact from './pages/Contact';
-import Settings from './pages/Settings';
-import TeamWorkspace from './pages/TeamWorkspace';
-import PaymentSuccess from './pages/PaymentSuccess';
-import LandingPage from './pages/LandingPage';
-import QuemSomos from './pages/QuemSomos';
-import Funcionalidades from './pages/Funcionalidades';
-import ClientPortal from './pages/ClientPortal';
-import DocumentsEnhanced from './pages/DocumentsEnhanced';
-import LegalResearchAI from './pages/LegalResearchAI';
-import LegalCalculator from './pages/LegalCalculator';
-import DiaryMonitor from './pages/DiaryMonitor';
+import CaseDetails from './pages/CaseDetails';
 import Cases from './pages/Cases';
 import ClientAccess from './pages/ClientAccess';
-import MySubscription from './pages/MySubscription';
-import DocumentGenerator from './pages/DocumentGenerator';
-import ContactPublic from './pages/ContactPublic';
-import GestaoHub from './pages/GestaoHub';
-import FerramentasHub from './pages/FerramentasHub';
+import ClientPortal from './pages/ClientPortal';
+import Clients from './pages/Clients';
 import ColaboracaoHub from './pages/ColaboracaoHub';
+import Contact from './pages/Contact';
+import ContactPublic from './pages/ContactPublic';
+import Dashboard from './pages/Dashboard';
+import DiarioMonitor from './pages/DiarioMonitor';
+import DiaryMonitor from './pages/DiaryMonitor';
+import DocumentGenerator from './pages/DocumentGenerator';
 import DocumentGeneratorChat from './pages/DocumentGeneratorChat';
-import Teams from './pages/Teams';
-import CaseDetails from './pages/CaseDetails';
+import DocumentManager from './pages/DocumentManager';
+import Documents from './pages/Documents';
+import DocumentsEnhanced from './pages/DocumentsEnhanced';
+import Features from './pages/Features';
+import FerramentasHub from './pages/FerramentasHub';
+import Funcionalidades from './pages/Funcionalidades';
+import GestaoHub from './pages/GestaoHub';
+import Home from './pages/Home';
+import Jurisprudence from './pages/Jurisprudence';
+import LandingPage from './pages/LandingPage';
+import LegalCalculator from './pages/LegalCalculator';
+import LegalResearch from './pages/LegalResearch';
+import LegalResearchAI from './pages/LegalResearchAI';
 import Library from './pages/Library';
+import MySubscription from './pages/MySubscription';
+import PaymentSuccess from './pages/PaymentSuccess';
+import Pricing from './pages/Pricing';
+import QuemSomos from './pages/QuemSomos';
 import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import Tasks from './pages/Tasks';
+import TeamWorkspace from './pages/TeamWorkspace';
+import Teams from './pages/Teams';
+import Templates from './pages/Templates';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AIAssistant": AIAssistant,
-    "Dashboard": Dashboard,
-    "Clients": Clients,
-    "Documents": Documents,
-    "Templates": Templates,
-    "Tasks": Tasks,
+    "AboutUs": AboutUs,
+    "Analytics": Analytics,
     "Calendar": Calendar,
-    "Jurisprudence": Jurisprudence,
-    "Pricing": Pricing,
-    "Contact": Contact,
-    "Settings": Settings,
-    "TeamWorkspace": TeamWorkspace,
-    "PaymentSuccess": PaymentSuccess,
-    "LandingPage": LandingPage,
-    "QuemSomos": QuemSomos,
-    "Funcionalidades": Funcionalidades,
-    "ClientPortal": ClientPortal,
-    "DocumentsEnhanced": DocumentsEnhanced,
-    "LegalResearchAI": LegalResearchAI,
-    "LegalCalculator": LegalCalculator,
-    "DiaryMonitor": DiaryMonitor,
+    "CaseDetails": CaseDetails,
     "Cases": Cases,
     "ClientAccess": ClientAccess,
-    "MySubscription": MySubscription,
-    "DocumentGenerator": DocumentGenerator,
-    "ContactPublic": ContactPublic,
-    "GestaoHub": GestaoHub,
-    "FerramentasHub": FerramentasHub,
+    "ClientPortal": ClientPortal,
+    "Clients": Clients,
     "ColaboracaoHub": ColaboracaoHub,
+    "Contact": Contact,
+    "ContactPublic": ContactPublic,
+    "Dashboard": Dashboard,
+    "DiarioMonitor": DiarioMonitor,
+    "DiaryMonitor": DiaryMonitor,
+    "DocumentGenerator": DocumentGenerator,
     "DocumentGeneratorChat": DocumentGeneratorChat,
-    "Teams": Teams,
-    "CaseDetails": CaseDetails,
+    "DocumentManager": DocumentManager,
+    "Documents": Documents,
+    "DocumentsEnhanced": DocumentsEnhanced,
+    "Features": Features,
+    "FerramentasHub": FerramentasHub,
+    "Funcionalidades": Funcionalidades,
+    "GestaoHub": GestaoHub,
+    "Home": Home,
+    "Jurisprudence": Jurisprudence,
+    "LandingPage": LandingPage,
+    "LegalCalculator": LegalCalculator,
+    "LegalResearch": LegalResearch,
+    "LegalResearchAI": LegalResearchAI,
     "Library": Library,
+    "MySubscription": MySubscription,
+    "PaymentSuccess": PaymentSuccess,
+    "Pricing": Pricing,
+    "QuemSomos": QuemSomos,
     "Reports": Reports,
+    "Settings": Settings,
+    "Tasks": Tasks,
+    "TeamWorkspace": TeamWorkspace,
+    "Teams": Teams,
+    "Templates": Templates,
 }
 
 export const pagesConfig = {

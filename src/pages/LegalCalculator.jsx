@@ -16,6 +16,9 @@ import AtualizacaoCalculator from "../components/calculator/AtualizacaoCalculato
 import IndenizacaoCalculator from "../components/calculator/IndenizacaoCalculator";
 import PrevidenciarioCalculator from "../components/calculator/PrevidenciarioCalculator";
 import LiquidacaoCalculator from "../components/calculator/LiquidacaoCalculator";
+import CivilCalculator from "../components/calculator/CivilCalculator";
+import TributarioCalculator from "../components/calculator/TributarioCalculator";
+import PenalCalculator from "../components/calculator/PenalCalculator";
 
 const calculatorTypes = [
   {
@@ -80,6 +83,27 @@ const calculatorTypes = [
     description: "Liquidação de sentença completa",
     icon: FileCheck,
     color: "cyan"
+  },
+  {
+    id: "civil",
+    title: "Direito Civil",
+    description: "Multas, danos, revisão contratual",
+    icon: Scale,
+    color: "slate"
+  },
+  {
+    id: "tributario",
+    title: "Tributário",
+    description: "SELIC, multas, repetição indébito",
+    icon: DollarSign,
+    color: "emerald"
+  },
+  {
+    id: "penal",
+    title: "Direito Penal",
+    description: "Dosimetria, progressão, prescrição",
+    icon: Shield,
+    color: "red"
   }
 ];
 
@@ -1143,6 +1167,12 @@ export default function LegalCalculator({ theme = 'light' }) {
         return <PrevidenciarioCalculator isDark={isDark} />;
       case "liquidacao":
         return <LiquidacaoCalculator isDark={isDark} />;
+      case "civil":
+        return <CivilCalculator isDark={isDark} />;
+      case "tributario":
+        return <TributarioCalculator isDark={isDark} />;
+      case "penal":
+        return <PenalCalculator isDark={isDark} />;
       default:
         return <JurosCalculator isDark={isDark} />;
     }
