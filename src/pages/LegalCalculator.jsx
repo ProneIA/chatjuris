@@ -19,6 +19,14 @@ import LiquidacaoCalculator from "../components/calculator/LiquidacaoCalculator"
 import CivilCalculator from "../components/calculator/CivilCalculator";
 import PenalCalculator from "../components/calculator/PenalCalculator";
 import TributarioCalculator from "../components/calculator/TributarioCalculator";
+import RegimeTributarioCalculator from "../components/calculator/RegimeTributarioCalculator";
+import TeseSeculoCalculator from "../components/calculator/TeseSeculoCalculator";
+import ExclusaoISSCalculator from "../components/calculator/ExclusaoISSCalculator";
+import ConsumidorCalculator from "../components/calculator/ConsumidorCalculator";
+import FamiliaCalculator from "../components/calculator/FamiliaCalculator";
+import CivilCalculator from "../components/calculator/CivilCalculator";
+import PenalCalculator from "../components/calculator/PenalCalculator";
+import TributarioCalculator from "../components/calculator/TributarioCalculator";
 import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
 
 const calculatorTypes = [
