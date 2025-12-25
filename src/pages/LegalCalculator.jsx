@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2 } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 
@@ -23,113 +23,90 @@ import FamiliaCalculator from "../components/calculator/FamiliaCalculator";
 import ConsumidorCalculator from "../components/calculator/ConsumidorCalculator";
 import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
 
-const calculatorTypes = [
-  {
-    id: "juros",
-    title: "Juros e Correção",
-    description: "Juros simples, compostos e correção monetária",
-    icon: Percent,
-    color: "blue"
-  },
-  {
-    id: "trabalhista",
-    title: "Cálculos Trabalhistas",
-    description: "Rescisão, férias, 13º, horas extras",
-    icon: Briefcase,
-    color: "green"
-  },
+const areasJuridicas = [
   {
     id: "civil",
     title: "Direito Civil",
-    description: "Obrigações, multas, danos materiais",
+    description: "Contratos, obrigações, danos materiais",
     icon: FileText,
-    color: "indigo"
+    color: "indigo",
+    calculators: ["civil", "juros", "honorarios", "prazos"]
+  },
+  {
+    id: "trabalhista",
+    title: "Direito Trabalhista",
+    description: "Rescisão, férias, verbas trabalhistas",
+    icon: Briefcase,
+    color: "green",
+    calculators: ["trabalhista", "juros", "prazos", "liquidacao"]
+  },
+  {
+    id: "tributario",
+    title: "Direito Tributário",
+    description: "Impostos, SELIC, teses fiscais",
+    icon: DollarSign,
+    color: "amber",
+    calculators: ["tributario", "tributario_avancado", "juros"]
   },
   {
     id: "familia",
     title: "Família e Sucessões",
-    description: "Pensão, partilha, usufruto",
+    description: "Pensão, partilha, divórcio",
     icon: Users,
-    color: "pink"
+    color: "pink",
+    calculators: ["familia", "juros", "honorarios"]
   },
   {
     id: "penal",
     title: "Direito Penal",
-    description: "Dosimetria, progressão, remição",
+    description: "Dosimetria, progressão de regime",
     icon: Shield,
-    color: "red"
-  },
-  {
-    id: "tributario",
-    title: "Tributário Básico",
-    description: "SELIC, impostos, multas fiscais",
-    icon: DollarSign,
-    color: "amber"
-  },
-  {
-    id: "tributario_avancado",
-    title: "Tributário Avançado",
-    description: "Tese do Século, ISS, Regimes",
-    icon: TrendingUp,
-    color: "yellow"
+    color: "red",
+    calculators: ["penal", "prazos"]
   },
   {
     id: "consumidor",
-    title: "Consumidor",
-    description: "Repetição indébito, juros abusivos",
+    title: "Direito do Consumidor",
+    description: "Repetição, juros abusivos, CDC",
     icon: ShoppingCart,
-    color: "cyan"
-  },
-  {
-    id: "honorarios",
-    title: "Honorários",
-    description: "Honorários advocatícios e sucumbência",
-    icon: Scale,
-    color: "purple"
-  },
-  {
-    id: "prazos",
-    title: "Prazos Processuais",
-    description: "Dias úteis e corridos (CPC/CLT)",
-    icon: Calendar,
-    color: "orange"
-  },
-  {
-    id: "custas",
-    title: "Custas Judiciais",
-    description: "Custas por tribunal e instância",
-    icon: FileText,
-    color: "red"
-  },
-  {
-    id: "atualizacao",
-    title: "Atualização Monetária",
-    description: "SELIC, IPCA, INPC, IGP-M, TR",
-    icon: DollarSign,
-    color: "indigo"
-  },
-  {
-    id: "indenizacao",
-    title: "Indenizações",
-    description: "Danos morais e materiais (STJ)",
-    icon: Heart,
-    color: "rose"
+    color: "cyan",
+    calculators: ["consumidor", "juros", "indenizacao"]
   },
   {
     id: "previdenciario",
-    title: "Previdenciário",
-    description: "RMI, fator, atrasados INSS",
+    title: "Direito Previdenciário",
+    description: "Benefícios, aposentadoria, INSS",
     icon: Shield,
-    color: "teal"
+    color: "teal",
+    calculators: ["previdenciario", "atualizacao", "liquidacao"]
   },
   {
-    id: "liquidacao",
-    title: "Liquidação",
-    description: "Liquidação de sentença completa",
-    icon: FileCheck,
-    color: "cyan"
+    id: "geral",
+    title: "Ferramentas Gerais",
+    description: "Prazos, custas, atualização",
+    icon: Calculator,
+    color: "purple",
+    calculators: ["prazos", "custas", "atualizacao", "honorarios"]
   }
 ];
+
+const calculatorTypes = {
+  juros: { title: "Juros e Correção", description: "Juros simples, compostos e correção monetária", icon: Percent },
+  trabalhista: { title: "Rescisão Trabalhista", description: "Rescisão, férias, 13º, horas extras", icon: Briefcase },
+  civil: { title: "Direito Civil", description: "Obrigações, multas, danos materiais", icon: FileText },
+  familia: { title: "Família e Sucessões", description: "Pensão, partilha, usufruto", icon: Users },
+  penal: { title: "Direito Penal", description: "Dosimetria, progressão, remição", icon: Shield },
+  tributario: { title: "Tributário Básico", description: "SELIC, impostos, multas fiscais", icon: DollarSign },
+  tributario_avancado: { title: "Tributário Avançado", description: "Tese do Século, ISS, Regimes", icon: TrendingUp },
+  consumidor: { title: "Consumidor", description: "Repetição indébito, juros abusivos", icon: ShoppingCart },
+  honorarios: { title: "Honorários", description: "Honorários advocatícios e sucumbência", icon: Scale },
+  prazos: { title: "Prazos Processuais", description: "Dias úteis e corridos (CPC/CLT)", icon: Calendar },
+  custas: { title: "Custas Judiciais", description: "Custas por tribunal e instância", icon: FileText },
+  atualizacao: { title: "Atualização Monetária", description: "SELIC, IPCA, INPC, IGP-M, TR", icon: DollarSign },
+  indenizacao: { title: "Indenizações", description: "Danos morais e materiais (STJ)", icon: Heart },
+  previdenciario: { title: "Previdenciário", description: "RMI, fator, atrasados INSS", icon: Shield },
+  liquidacao: { title: "Liquidação", description: "Liquidação de sentença completa", icon: FileCheck }
+};
 
 // Componente de Juros e Correção
 function JurosCalculator({ isDark }) {
@@ -1168,51 +1145,43 @@ function PrazosCalculator({ isDark }) {
 
 export default function LegalCalculator({ theme = 'light' }) {
   const isDark = theme === 'dark';
-  const [selectedCalculator, setSelectedCalculator] = useState("juros");
+  const [step, setStep] = useState(1); // 1: upload, 2: área, 3: tipo de cálculo, 4: calculadora
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [selectedCalculator, setSelectedCalculator] = useState(null);
   const [showAI, setShowAI] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   const renderCalculator = () => {
-    switch (selectedCalculator) {
-      case "juros":
-        return <JurosCalculator isDark={isDark} />;
-      case "trabalhista":
-        return <TrabalhistaCalculator isDark={isDark} />;
-      case "civil":
-        return <CivilCalculator isDark={isDark} />;
-      case "penal":
-        return <PenalCalculator isDark={isDark} />;
-      case "tributario":
-        return <TributarioCalculator isDark={isDark} />;
-      case "familia":
-        return <FamiliaCalculator isDark={isDark} />;
-      case "consumidor":
-        return <ConsumidorCalculator isDark={isDark} />;
-      case "tributario_avancado":
-        return <TributarioAdvancedCalculator isDark={isDark} />;
-      case "honorarios":
-        return <HonorariosCalculator isDark={isDark} />;
-      case "prazos":
-        return <PrazosCalculator isDark={isDark} />;
-      case "custas":
-        return <CustasCalculator isDark={isDark} />;
-      case "atualizacao":
-        return <AtualizacaoCalculator isDark={isDark} />;
-      case "indenizacao":
-        return <IndenizacaoCalculator isDark={isDark} />;
-      case "previdenciario":
-        return <PrevidenciarioCalculator isDark={isDark} />;
-      case "liquidacao":
-        return <LiquidacaoCalculator isDark={isDark} />;
-      default:
-        return <JurosCalculator isDark={isDark} />;
-    }
+    if (!selectedCalculator) return null;
+
+    const calculators = {
+      juros: JurosCalculator,
+      trabalhista: TrabalhistaCalculator,
+      civil: CivilCalculator,
+      penal: PenalCalculator,
+      tributario: TributarioCalculator,
+      familia: FamiliaCalculator,
+      consumidor: ConsumidorCalculator,
+      tributario_avancado: TributarioAdvancedCalculator,
+      honorarios: HonorariosCalculator,
+      prazos: PrazosCalculator,
+      custas: CustasCalculator,
+      atualizacao: AtualizacaoCalculator,
+      indenizacao: IndenizacaoCalculator,
+      previdenciario: PrevidenciarioCalculator,
+      liquidacao: LiquidacaoCalculator
+    };
+
+    const CalculatorComponent = calculators[selectedCalculator];
+    return CalculatorComponent ? <CalculatorComponent isDark={isDark} uploadedFile={uploadedFile} /> : null;
   };
 
-  const selectedType = calculatorTypes.find(c => c.id === selectedCalculator);
+  const selectedAreaData = areasJuridicas.find(a => a.id === selectedArea);
+  const availableCalculators = selectedAreaData?.calculators.map(id => ({ id, ...calculatorTypes[id] })) || [];
 
   return (
     <div className={`min-h-screen p-4 md:p-6 lg:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -1225,89 +1194,285 @@ export default function LegalCalculator({ theme = 'light' }) {
                   Calculadora Jurídica
                 </h1>
                 <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                  Cálculos conforme normas dos tribunais e legislação vigente
+                  {step === 1 && "Comece fazendo upload de um documento ou escolha uma área"}
+                  {step === 2 && "Selecione a área jurídica do seu cálculo"}
+                  {step === 3 && "Escolha o tipo de cálculo"}
+                  {step === 4 && "Preencha os dados e calcule"}
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowAI(!showAI)}
-              variant={showAI ? "default" : "outline"}
-              className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Assistente IA
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Sidebar - Tipos de Cálculo */}
-          <div className="lg:col-span-1 space-y-2">
-            {calculatorTypes.map((calc) => {
-              const Icon = calc.icon;
-              const isSelected = selectedCalculator === calc.id;
-
-              return (
-                <button
-                  key={calc.id}
-                  onClick={() => setSelectedCalculator(calc.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-all ${
-                    isSelected
-                      ? isDark
-                        ? 'bg-white text-black'
-                        : 'bg-gray-900 text-white'
-                      : isDark
-                        ? 'bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-white'
-                        : 'bg-white border border-gray-200 hover:border-gray-300 text-gray-900'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isSelected ? '' : isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{calc.title}</p>
-                      <p className={`text-xs truncate ${isSelected ? 'opacity-70' : isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                        {calc.description}
-                      </p>
-                    </div>
-                    {isSelected && <ChevronRight className="w-4 h-4 shrink-0" />}
-                  </div>
-                </button>
-              );
-            })}
+            {step === 4 && (
+              <Button
+                onClick={() => setShowAI(!showAI)}
+                variant={showAI ? "default" : "outline"}
+                className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Assistente IA
+              </Button>
+            )}
           </div>
 
-          {/* Main Content - Calculadora */}
-          <div className={`${showAI ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  {selectedType && <selectedType.icon className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />}
-                  <div>
-                    <CardTitle className={isDark ? 'text-white' : ''}>
-                      {selectedType?.title}
-                    </CardTitle>
-                    <CardDescription className={isDark ? 'text-neutral-400' : ''}>
-                      {selectedType?.description}
-                    </CardDescription>
+          {/* Progress Steps */}
+          <div className="flex items-center gap-2 mt-6">
+            {[1, 2, 3, 4].map((s) => (
+              <React.Fragment key={s}>
+                <div className={`flex items-center gap-2 ${s > 1 ? 'flex-1' : ''}`}>
+                  {s > 1 && (
+                    <div className={`h-0.5 flex-1 ${step >= s ? (isDark ? 'bg-white' : 'bg-gray-900') : (isDark ? 'bg-neutral-800' : 'bg-gray-300')}`} />
+                  )}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                    step >= s 
+                      ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                      : isDark ? 'bg-neutral-800 text-neutral-500' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {s}
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {renderCalculator()}
-              </CardContent>
-            </Card>
+              </React.Fragment>
+            ))}
           </div>
-
-          {/* AI Assistant */}
-          {showAI && (
-            <div className="lg:col-span-1">
-              <AICalculatorAssistant 
-                isDark={isDark} 
-                calculatorType={selectedCalculator}
-              />
-            </div>
-          )}
         </div>
+
+        <AnimatePresence mode="wait">
+          {/* Step 1: Upload */}
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'border-2'}`}>
+                <CardContent className="p-12">
+                  <div className="text-center space-y-6">
+                    <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                      <Upload className={`w-10 h-10 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
+                    </div>
+                    <div>
+                      <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Upload de Documento (Opcional)
+                      </h2>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                        Contratos, SPED, notas fiscais, holerites - A IA extrairá os dados automaticamente
+                      </p>
+                    </div>
+                    <div className="max-w-md mx-auto">
+                      <Input
+                        type="file"
+                        accept=".pdf,.xml,.txt,.docx,.xlsx,.xls"
+                        onChange={(e) => {
+                          setUploadedFile(e.target.files[0]);
+                          toast.success("Arquivo carregado! Prossiga para a próxima etapa.");
+                        }}
+                        className={`text-center ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="text-center">
+                <Button
+                  onClick={() => setStep(2)}
+                  size="lg"
+                  className={isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'}
+                >
+                  {uploadedFile ? "Continuar com o arquivo" : "Pular para seleção manual"}
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 2: Área Jurídica */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {areasJuridicas.map((area) => {
+                  const Icon = area.icon;
+                  return (
+                    <motion.button
+                      key={area.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedArea(area.id);
+                        setStep(3);
+                      }}
+                      className={`p-6 rounded-lg border-2 text-left transition-all ${
+                        isDark
+                          ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-600'
+                          : 'bg-white border-gray-200 hover:border-gray-400'
+                      }`}
+                    >
+                      <Icon className={`w-8 h-8 mb-3 text-${area.color}-600`} />
+                      <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {area.title}
+                      </h3>
+                      <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                        {area.description}
+                      </p>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setStep(1)}
+                  variant="outline"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Tipo de Cálculo */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                <CardHeader>
+                  <CardTitle className={isDark ? 'text-white' : ''}>
+                    Escolha o tipo de cálculo
+                  </CardTitle>
+                  <CardDescription className={isDark ? 'text-neutral-400' : ''}>
+                    {selectedAreaData?.title} - Selecione o cálculo específico
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {availableCalculators.map((calc) => {
+                      const Icon = calc.icon;
+                      return (
+                        <motion.button
+                          key={calc.id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setSelectedCalculator(calc.id);
+                            setStep(4);
+                          }}
+                          className={`p-4 rounded-lg border text-left transition-all ${
+                            isDark
+                              ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-600'
+                              : 'bg-gray-50 border-gray-200 hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Icon className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`} />
+                            <div className="flex-1">
+                              <h4 className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {calc.title}
+                              </h4>
+                              <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                                {calc.description}
+                              </p>
+                            </div>
+                            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setStep(2)}
+                  variant="outline"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 4: Calculadora */}
+          {step === 4 && (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <div className={`grid ${showAI ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+                <div className={showAI ? 'lg:col-span-2' : ''}>
+                  <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {selectedCalculator && calculatorTypes[selectedCalculator] && (
+                            <>
+                              <calculatorTypes[selectedCalculator].icon className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                              <div>
+                                <CardTitle className={isDark ? 'text-white' : ''}>
+                                  {calculatorTypes[selectedCalculator].title}
+                                </CardTitle>
+                                <CardDescription className={isDark ? 'text-neutral-400' : ''}>
+                                  {calculatorTypes[selectedCalculator].description}
+                                </CardDescription>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setStep(3);
+                            setSelectedCalculator(null);
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Trocar
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {renderCalculator()}
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex justify-center mt-6">
+                    <Button
+                      onClick={() => setStep(3)}
+                      variant="outline"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Voltar para seleção
+                    </Button>
+                  </div>
+                </div>
+
+                {showAI && (
+                  <div>
+                    <AICalculatorAssistant 
+                      isDark={isDark} 
+                      calculatorType={selectedCalculator}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
