@@ -1201,16 +1201,33 @@ export default function LegalCalculator({ theme = 'light' }) {
                 </p>
               </div>
             </div>
-            {step === 4 && (
-              <Button
-                onClick={() => setShowAI(!showAI)}
-                variant={showAI ? "default" : "outline"}
-                className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Assistente IA
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {step > 1 && (
+                <Button
+                  onClick={() => {
+                    setStep(1);
+                    setSelectedArea(null);
+                    setSelectedCalculator(null);
+                    setUploadedFile(null);
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Recomeçar
+                </Button>
+              )}
+              {step === 4 && (
+                <Button
+                  onClick={() => setShowAI(!showAI)}
+                  variant={showAI ? "default" : "outline"}
+                  className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
+                  size="sm"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Assistente IA
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Progress Steps */}
@@ -1453,13 +1470,19 @@ export default function LegalCalculator({ theme = 'light' }) {
                     </CardContent>
                   </Card>
 
-                  <div className="flex justify-center mt-6">
+                  <div className="flex justify-center gap-3 mt-6">
                     <Button
                       onClick={() => setStep(3)}
                       variant="outline"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Voltar para seleção
+                      Voltar
+                    </Button>
+                    <Button
+                      onClick={() => setStep(2)}
+                      variant="outline"
+                    >
+                      Trocar área jurídica
                     </Button>
                   </div>
                 </div>
