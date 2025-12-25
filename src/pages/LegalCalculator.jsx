@@ -22,6 +22,10 @@ import TributarioCalculator from "../components/calculator/TributarioCalculator"
 import FamiliaCalculator from "../components/calculator/FamiliaCalculator";
 import ConsumidorCalculator from "../components/calculator/ConsumidorCalculator";
 import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
+import CalculationHistory from "../components/calculator/CalculationHistory";
+import SaveCalculationDialog from "../components/calculator/SaveCalculationDialog";
+import { useSwipeable } from "react-swipeable";
+import { Save, Bookmark } from "lucide-react";
 
 const areasJuridicas = [
   {
@@ -1150,6 +1154,23 @@ export default function LegalCalculator({ theme = 'light' }) {
   const [selectedCalculator, setSelectedCalculator] = useState(null);
   const [showAI, setShowAI] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveAsDraft, setSaveAsDraft] = useState(false);
+  const [currentInputData, setCurrentInputData] = useState(null);
+  const [currentResultData, setCurrentResultData] = useState(null);
+
+  // Navegação por gestos mobile
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (step < 4) setStep(step + 1);
+    },
+    onSwipedRight: () => {
+      if (step > 1) setStep(step - 1);
+    },
+    preventScrollOnSwipe: true,
+    trackMouse: false
+  });
 
   const renderCalculator = () => {
     if (!selectedCalculator) return null;
@@ -1179,8 +1200,23 @@ export default function LegalCalculator({ theme = 'light' }) {
   const selectedAreaData = areasJuridicas.find(a => a.id === selectedArea);
   const availableCalculators = selectedAreaData?.calculators.map(id => ({ id, ...calculatorTypes[id] })) || [];
 
+  const handleLoadCalculation = (calc) => {
+    setSelectedArea(calc.legal_area);
+    setSelectedCalculator(calc.calculator_type);
+    setCurrentInputData(calc.input_data);
+    setCurrentResultData(calc.result_data);
+    setStep(4);
+    setShowHistory(false);
+    toast.success("Cálculo carregado");
+  };
+
+  const handleSaveCalculation = (isDraft = false) => {
+    setSaveAsDraft(isDraft);
+    setShowSaveDialog(true);
+  };
+
   return (
-    <div className={`min-h-screen p-4 md:p-6 lg:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div {...swipeHandlers} className={`min-h-screen p-4 md:p-6 lg:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -1201,7 +1237,47 @@ export default function LegalCalculator({ theme = 'light' }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {step === 4 && (
+                <>
+                  <Button
+                    onClick={() => setShowHistory(!showHistory)}
+                    variant="outline"
+                    size="sm"
+                    className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Histórico</span>
+                  </Button>
+                  <Button
+                    onClick={() => handleSaveCalculation(true)}
+                    variant="outline"
+                    size="sm"
+                    className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+                  >
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Rascunho</span>
+                  </Button>
+                  <Button
+                    onClick={() => handleSaveCalculation(false)}
+                    variant="outline"
+                    size="sm"
+                    className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Salvar</span>
+                  </Button>
+                  <Button
+                    onClick={() => setShowAI(!showAI)}
+                    variant={showAI ? "default" : "outline"}
+                    className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
+                    size="sm"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Assistente IA</span>
+                  </Button>
+                </>
+              )}
               {step > 1 && (
                 <Button
                   onClick={() => {
@@ -1215,18 +1291,7 @@ export default function LegalCalculator({ theme = 'light' }) {
                   className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Recomeçar
-                </Button>
-              )}
-              {step === 4 && (
-                <Button
-                  onClick={() => setShowAI(!showAI)}
-                  variant={showAI ? "default" : "outline"}
-                  className={showAI ? "bg-purple-600 hover:bg-purple-700" : ""}
-                  size="sm"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Assistente IA
+                  <span className="hidden sm:inline">Recomeçar</span>
                 </Button>
               )}
             </div>
@@ -1432,7 +1497,23 @@ export default function LegalCalculator({ theme = 'light' }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <div className={`grid ${showAI ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+              <div className={`grid ${showAI || showHistory ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+                {showHistory && (
+                  <div className="lg:order-first">
+                    <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                      <CardContent className="p-4">
+                        <CalculationHistory
+                          isDark={isDark}
+                          onLoadCalculation={handleLoadCalculation}
+                          currentArea={selectedArea}
+                          currentType={selectedCalculator}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                
+                <div className={showAI || showHistory ? 'lg:col-span-2' : ''}>
                 <div className={showAI ? 'lg:col-span-2' : ''}>
                   <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
                     <CardHeader>
@@ -1503,9 +1584,31 @@ export default function LegalCalculator({ theme = 'light' }) {
                   </div>
                 )}
               </div>
+
+              {/* Save Dialog */}
+              <SaveCalculationDialog
+                open={showSaveDialog}
+                onOpenChange={setShowSaveDialog}
+                calculatorType={selectedCalculator}
+                legalArea={selectedArea}
+                inputData={currentInputData}
+                resultData={currentResultData}
+                isDraft={saveAsDraft}
+              />
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Mobile Swipe Hint */}
+        {step > 1 && step < 4 && (
+          <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2">
+            <div className={`px-4 py-2 rounded-full text-xs ${
+              isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-white border border-gray-200 text-gray-500'
+            }`}>
+              ← Deslize para navegar →
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
