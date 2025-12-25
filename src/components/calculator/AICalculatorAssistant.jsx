@@ -1,16 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2, Copy, Check } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sparkles, Send, Loader2, Copy, Check, History, Trash2, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export default function AICalculatorAssistant({ isDark, calculatorType, currentData }) {
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentConversation, setCurrentConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const queryClient = useQueryClient();
 
   const getContextPrompt = () => {
     const contexts = {
@@ -114,9 +123,50 @@ Conhece profundamente:
     return contexts[calculatorType] || contexts.juros;
   };
 
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["ai-calculator-conversations", calculatorType],
+    queryFn: () => base44.entities.AICalculatorConversation.filter(
+      { calculator_type: calculatorType },
+      "-last_message_at",
+      10
+    ),
+  });
+
+  const saveConversationMutation = useMutation({
+    mutationFn: (data) => {
+      if (currentConversation) {
+        return base44.entities.AICalculatorConversation.update(currentConversation, data);
+      }
+      return base44.entities.AICalculatorConversation.create(data);
+    },
+    onSuccess: (data) => {
+      if (!currentConversation) {
+        setCurrentConversation(data.id);
+      }
+      queryClient.invalidateQueries({ queryKey: ["ai-calculator-conversations"] });
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: (id) => base44.entities.AICalculatorConversation.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ai-calculator-conversations"] });
+      toast.success("Conversa excluída");
+    },
+  });
+
   const handleAsk = async () => {
     if (!question.trim()) return;
 
+    const userMessage = {
+      role: "user",
+      content: question,
+      timestamp: new Date().toISOString()
+    };
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setQuestion("");
     setIsLoading(true);
     setResponse(null);
 
@@ -132,16 +182,59 @@ Cite artigos de lei, súmulas e jurisprudências quando relevante.
 Se necessário, apresente exemplos de cálculo passo a passo.
 ${contextData}
 
-Pergunta do advogado: ${question}`,
+Pergunta do advogado: ${userMessage.content}`,
         add_context_from_internet: true
       });
 
+      const assistantMessage = {
+        role: "assistant",
+        content: result,
+        timestamp: new Date().toISOString()
+      };
+
+      const updatedMessages = [...newMessages, assistantMessage];
+      setMessages(updatedMessages);
       setResponse(result);
+
+      // Salvar conversa
+      const title = newMessages[0].content.substring(0, 50) + (newMessages[0].content.length > 50 ? "..." : "");
+      saveConversationMutation.mutate({
+        calculator_type: calculatorType,
+        messages: updatedMessages,
+        title,
+        last_message_at: new Date().toISOString()
+      });
+
     } catch (error) {
-      setResponse("Erro ao processar sua pergunta. Tente novamente.");
+      const errorMessage = "Erro ao processar sua pergunta. Tente novamente.";
+      setResponse(errorMessage);
+      setMessages([...newMessages, {
+        role: "assistant",
+        content: errorMessage,
+        timestamp: new Date().toISOString()
+      }]);
     }
 
     setIsLoading(false);
+  };
+
+  const loadConversation = (conversation) => {
+    setMessages(conversation.messages || []);
+    setCurrentConversation(conversation.id);
+    setShowHistory(false);
+    if (conversation.messages && conversation.messages.length > 0) {
+      const lastAssistant = [...conversation.messages].reverse().find(m => m.role === "assistant");
+      if (lastAssistant) {
+        setResponse(lastAssistant.content);
+      }
+    }
+  };
+
+  const startNewConversation = () => {
+    setMessages([]);
+    setCurrentConversation(null);
+    setResponse(null);
+    setShowHistory(false);
   };
 
   const handleCopy = () => {
@@ -182,19 +275,135 @@ Pergunta do advogado: ${question}`,
 
   return (
     <div className={`rounded-lg border p-4 ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-gray-50 border-gray-200'}`}>
-      <div className="flex items-center gap-2 mb-4">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
-          <Sparkles className="w-4 h-4 text-purple-500" />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-purple-500/20' : 'bg-purple-100'}`}>
+            <Sparkles className="w-4 h-4 text-purple-500" />
+          </div>
+          <div>
+            <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Assistente de Cálculos
+            </h3>
+            <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+              {currentConversation ? "Conversa em andamento" : "Tire dúvidas sobre cálculos"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Assistente de Cálculos
-          </h3>
-          <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-            Tire dúvidas sobre cálculos e fundamentação legal
-          </p>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowHistory(!showHistory)}
+            className="h-8 w-8"
+          >
+            <History className="w-4 h-4" />
+          </Button>
+          {currentConversation && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={startNewConversation}
+              className="h-8 w-8"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Histórico de Conversas */}
+      {showHistory && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mb-4"
+        >
+          <ScrollArea className="h-[200px]">
+            <div className="space-y-2 pr-2">
+              {conversations.length === 0 ? (
+                <p className={`text-xs text-center py-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                  Nenhuma conversa anterior
+                </p>
+              ) : (
+                conversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className={`p-2 rounded-lg cursor-pointer transition-colors flex items-start justify-between gap-2 ${
+                      isDark 
+                        ? 'bg-neutral-800 hover:bg-neutral-700' 
+                        : 'bg-white border border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div 
+                      className="flex-1 min-w-0"
+                      onClick={() => loadConversation(conv)}
+                    >
+                      <p className={`text-xs font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {conv.title || "Conversa sem título"}
+                      </p>
+                      <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                        {format(new Date(conv.last_message_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteConversationMutation.mutate(conv.id);
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3 text-red-500" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </motion.div>
+      )}
+
+      {/* Mensagens da conversa atual */}
+      {messages.length > 0 && (
+        <ScrollArea className="h-[300px] mb-4">
+          <div className="space-y-3 pr-2">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-lg ${
+                  msg.role === "user"
+                    ? isDark ? 'bg-blue-900/30 ml-8' : 'bg-blue-50 ml-8'
+                    : isDark ? 'bg-neutral-800 mr-8' : 'bg-white border border-gray-200 mr-8'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs font-medium ${
+                    msg.role === "user" 
+                      ? 'text-blue-500' 
+                      : 'text-purple-500'
+                  }`}>
+                    {msg.role === "user" ? "Você" : "Assistente"}
+                  </span>
+                  <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                    {format(new Date(msg.timestamp), "HH:mm")}
+                  </span>
+                </div>
+                {msg.role === "assistant" ? (
+                  <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    {msg.content}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
 
       {/* Sugestões */}
       {!response && !isLoading && (
