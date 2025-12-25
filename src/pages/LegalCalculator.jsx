@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft, Save, History, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,9 @@ import TributarioCalculator from "../components/calculator/TributarioCalculator"
 import FamiliaCalculator from "../components/calculator/FamiliaCalculator";
 import ConsumidorCalculator from "../components/calculator/ConsumidorCalculator";
 import TributarioAdvancedCalculator from "../components/calculator/TributarioAdvancedCalculator";
+import CalculationHistory from "../components/calculator/CalculationHistory";
+import SaveCalculationDialog from "../components/calculator/SaveCalculationDialog";
+import { useSwipeable } from "react-swipeable";
 import CalculationHistory from "../components/calculator/CalculationHistory";
 import SaveCalculationDialog from "../components/calculator/SaveCalculationDialog";
 import { useSwipeable } from "react-swipeable";
@@ -1154,6 +1157,10 @@ export default function LegalCalculator({ theme = 'light' }) {
   const [selectedCalculator, setSelectedCalculator] = useState(null);
   const [showAI, setShowAI] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [currentInputData, setCurrentInputData] = useState(null);
+  const [currentResultData, setCurrentResultData] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
