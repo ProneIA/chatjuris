@@ -1212,7 +1212,9 @@ export default function LegalCalculator({ theme = 'light' }) {
                   }}
                   variant="outline"
                   size="sm"
+                  className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
                 >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Recomeçar
                 </Button>
               )}
@@ -1474,13 +1476,18 @@ export default function LegalCalculator({ theme = 'light' }) {
                     <Button
                       onClick={() => setStep(3)}
                       variant="outline"
+                      className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Voltar
+                      Voltar para cálculos
                     </Button>
                     <Button
-                      onClick={() => setStep(2)}
+                      onClick={() => {
+                        setStep(2);
+                        setSelectedCalculator(null);
+                      }}
                       variant="outline"
+                      className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
                     >
                       Trocar área jurídica
                     </Button>
