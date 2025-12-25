@@ -1419,19 +1419,22 @@ export default function LegalCalculator({ theme = 'light' }) {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          {selectedCalculator && calculatorTypes[selectedCalculator] && (
-                            <>
-                              <calculatorTypes[selectedCalculator].icon className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-                              <div>
-                                <CardTitle className={isDark ? 'text-white' : ''}>
-                                  {calculatorTypes[selectedCalculator].title}
-                                </CardTitle>
-                                <CardDescription className={isDark ? 'text-neutral-400' : ''}>
-                                  {calculatorTypes[selectedCalculator].description}
-                                </CardDescription>
-                              </div>
-                            </>
-                          )}
+                          {selectedCalculator && calculatorTypes[selectedCalculator] && (() => {
+                            const SelectedIcon = calculatorTypes[selectedCalculator].icon;
+                            return (
+                              <>
+                                <SelectedIcon className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                                <div>
+                                  <CardTitle className={isDark ? 'text-white' : ''}>
+                                    {calculatorTypes[selectedCalculator].title}
+                                  </CardTitle>
+                                  <CardDescription className={isDark ? 'text-neutral-400' : ''}>
+                                    {calculatorTypes[selectedCalculator].description}
+                                  </CardDescription>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                         <Button
                           onClick={() => {
