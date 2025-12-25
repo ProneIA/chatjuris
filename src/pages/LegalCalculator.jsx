@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft, Save, History, BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,6 @@ import TributarioAdvancedCalculator from "../components/calculator/TributarioAdv
 import CalculationHistory from "../components/calculator/CalculationHistory";
 import SaveCalculationDialog from "../components/calculator/SaveCalculationDialog";
 import { useSwipeable } from "react-swipeable";
-import { Save, Bookmark } from "lucide-react";
 
 const areasJuridicas = [
   {
@@ -1156,9 +1155,9 @@ export default function LegalCalculator({ theme = 'light' }) {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [saveAsDraft, setSaveAsDraft] = useState(false);
   const [currentInputData, setCurrentInputData] = useState(null);
   const [currentResultData, setCurrentResultData] = useState(null);
+  const [saveAsDraft, setSaveAsDraft] = useState(false);
 
   // Navegação por gestos mobile
   const swipeHandlers = useSwipeable({
@@ -1512,7 +1511,7 @@ export default function LegalCalculator({ theme = 'light' }) {
                     </Card>
                   </div>
                 )}
-                
+
                 <div className={showAI || showHistory ? 'lg:col-span-2' : ''}>
                   <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
                     <CardHeader>
@@ -1583,32 +1582,32 @@ export default function LegalCalculator({ theme = 'light' }) {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Save Dialog */}
-            <SaveCalculationDialog
-              open={showSaveDialog}
-              onOpenChange={setShowSaveDialog}
-              calculatorType={selectedCalculator}
-              legalArea={selectedArea}
-              inputData={currentInputData}
-              resultData={currentResultData}
-              isDraft={saveAsDraft}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Save Dialog */}
+        <SaveCalculationDialog
+          open={showSaveDialog}
+          onOpenChange={setShowSaveDialog}
+          calculatorType={selectedCalculator}
+          legalArea={selectedArea}
+          inputData={currentInputData}
+          resultData={currentResultData}
+          isDraft={saveAsDraft}
+        />
 
-      {/* Mobile Swipe Hint */}
-      {step > 1 && step < 4 && (
-        <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2">
-          <div className={`px-4 py-2 rounded-full text-xs ${
-            isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-white border border-gray-200 text-gray-500'
-          }`}>
-            ← Deslize para navegar →
+        {/* Mobile Swipe Hint */}
+        {step > 1 && step < 4 && (
+          <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2">
+            <div className={`px-4 py-2 rounded-full text-xs ${
+              isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-white border border-gray-200 text-gray-500'
+            }`}>
+              ← Deslize para navegar →
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
 }
