@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft, Save, History, BookmarkPlus } from "lucide-react";
+import { Calculator, Percent, Calendar, Scale, DollarSign, Briefcase, FileText, ChevronRight, Heart, Shield, FileCheck, Sparkles, Download, Printer, TrendingUp, Users, ShoppingCart, TrendingDown, Building2, Upload, ArrowRight, ArrowLeft, Save, History, BookmarkPlus, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1158,6 +1158,7 @@ export default function LegalCalculator({ theme = 'light' }) {
   const [currentInputData, setCurrentInputData] = useState(null);
   const [currentResultData, setCurrentResultData] = useState(null);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+  const [showAIChatHistory, setShowAIChatHistory] = useState(false);
 
   // Navegação por gestos mobile
   const swipeHandlers = useSwipeable({
@@ -1247,6 +1248,15 @@ export default function LegalCalculator({ theme = 'light' }) {
                   >
                     <History className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">Histórico</span>
+                  </Button>
+                  <Button
+                    onClick={() => setShowAIChatHistory(!showAIChatHistory)}
+                    variant="outline"
+                    size="sm"
+                    className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    <span className="hidden sm:inline">Chat IA</span>
                   </Button>
                   <Button
                     onClick={() => handleSaveCalculation(true)}
@@ -1496,7 +1506,7 @@ export default function LegalCalculator({ theme = 'light' }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              <div className={`grid ${showAI || showHistory ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
+              <div className={`grid ${showAI || showHistory || showAIChatHistory ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6`}>
                 {showHistory && (
                   <div className="lg:order-first">
                     <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
@@ -1512,7 +1522,26 @@ export default function LegalCalculator({ theme = 'light' }) {
                   </div>
                 )}
 
-                <div className={showAI || showHistory ? 'lg:col-span-2' : ''}>
+                {showAIChatHistory && (
+                  <div className="lg:order-first">
+                    <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                      <CardHeader className="pb-3">
+                        <CardTitle className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          Histórico de Chat com IA
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0">
+                        <AICalculatorAssistant 
+                          isDark={isDark} 
+                          calculatorType={selectedCalculator}
+                          historyMode={true}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                <div className={showAI || showHistory || showAIChatHistory ? 'lg:col-span-2' : ''}>
                   <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
