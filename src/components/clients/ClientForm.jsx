@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save } from "lucide-react";
+import { X, Save, ScanLine } from "lucide-react";
+import DocumentScanner from "@/components/common/DocumentScanner";
 
 export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
   const [formData, setFormData] = useState(client || {
@@ -19,9 +20,20 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
     status: "active",
     notes: ""
   });
+  const [showScanner, setShowScanner] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDocumentData = (data) => {
+    setFormData(prev => ({
+      ...prev,
+      name: data.nome_completo || prev.name,
+      cpf_cnpj: data.cpf || data.cnpj || prev.cpf_cnpj,
+      address: data.endereco || prev.address
+    }));
+    setShowScanner(false);
   };
 
   const handleSubmit = (e) => {
@@ -56,6 +68,28 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
       </CardHeader>
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Scanner de Documento */}
+          {!client && (
+            <div className="mb-4">
+              {!showScanner ? (
+                <Button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  variant="outline"
+                  className="w-full border-dashed border-2"
+                >
+                  <ScanLine className="w-4 h-4 mr-2" />
+                  Escanear Documento (RG/CNH/CNPJ)
+                </Button>
+              ) : (
+                <DocumentScanner
+                  onDataExtracted={handleDocumentData}
+                  documentType={formData.type === "company" ? "cnpj" : "identity"}
+                />
+              )}
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="name">Nome Completo *</Label>
