@@ -82,6 +82,9 @@ export default function ConversationHistoryDialog({
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-4 h-4 text-slate-400 shrink-0" />
                   
+                  {conv.is_favorite && (
+                    <Star className="w-4 h-4 text-yellow-500 fill-current flex-shrink-0" />
+                  )}
                   <div className="flex-1 min-w-0">
                     {editingId === conv.id ? (
                       <div className="flex items-center gap-2">
