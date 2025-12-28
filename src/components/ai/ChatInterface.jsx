@@ -3,9 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Loader2, Paperclip, X, FileText, StopCircle } from "lucide-react";
+import { Send, Loader2, Paperclip, X, FileText, StopCircle, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import MessageBubble from "./MessageBubble";
+import SuggestedQuestions from "./SuggestedQuestions";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
 import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import AdvancedDocumentAnalyzer from "./AdvancedDocumentAnalyzer";
@@ -18,10 +20,21 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showCaseSummarizer, setShowCaseSummarizer] = useState(false);
   const [showAdvancedAnalyzer, setShowAdvancedAnalyzer] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(conversation?.is_favorite || false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: () => 
+      base44.entities.Conversation.update(conversation.id, { is_favorite: !isFavorite }),
+    onSuccess: () => {
+      setIsFavorite(!isFavorite);
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast.success(isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos ⭐");
+    }
+  });
 
   const { canUseAI } = usePlanAccess();
 
@@ -273,6 +286,17 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
               ))}
             </AnimatePresence>
 
+            {/* Suggested Questions */}
+            {!isGenerating && messages.length > 0 && (
+              <div className="mt-4">
+                <SuggestedQuestions 
+                  messages={messages}
+                  onQuestionClick={(question) => setInput(question)}
+                  mode={conversation?.mode || "assistant"}
+                />
+              </div>
+            )}
+
             {/* Loading indicator */}
             {isGenerating && (
               <motion.div
@@ -299,6 +323,19 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
       {/* Input Area - ChatGPT Style */}
       <div className="border-t border-slate-200 bg-white">
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          {/* Favorite Button */}
+          <div className="flex justify-end mb-2">
+            <Button
+              onClick={() => toggleFavoriteMutation.mutate()}
+              variant="ghost"
+              size="sm"
+              className={`${isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-gray-400 hover:text-yellow-500"}`}
+            >
+              <Star className={`w-4 h-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+              {isFavorite ? "Favorito" : "Adicionar aos favoritos"}
+            </Button>
+          </div>
+
           {uploadedFile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}

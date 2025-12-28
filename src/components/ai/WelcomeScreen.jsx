@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Scale, FileText, Send, Loader2, Paperclip, X, Search, MessageSquare } from "lucide-react";
 import MessageBubble from "./MessageBubble";
+import SuggestedQuestions from "./SuggestedQuestions";
 
 const suggestedPrompts = [
   {
@@ -134,6 +135,17 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                     </div>
                   </div>
                 </motion.div>
+              )}
+
+              {/* Suggested Questions */}
+              {!isProcessing && messages.length > 0 && (
+                <div className="mt-6">
+                  <SuggestedQuestions 
+                    messages={messages}
+                    onQuestionClick={(question) => setInput(question)}
+                    mode="assistant"
+                  />
+                </div>
               )}
             </div>
           )}
