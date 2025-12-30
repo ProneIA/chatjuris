@@ -13,7 +13,7 @@ export default function PlanLimitGuard({
   children 
 }) {
   const navigate = useNavigate();
-  const isPro = subscription?.plan === 'pro';
+  const isPro = subscription?.plan === 'pro' && subscription?.status === 'active';
   const isAtLimit = !isPro && currentCount >= limitCount;
 
   if (isAtLimit) {
