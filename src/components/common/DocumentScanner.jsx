@@ -78,32 +78,58 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
     try {
       // 1. Upload da imagem
       toast.info("Enviando imagem...");
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: image });
 
-      // 2. Extração de dados com IA
+      // 2. Extração de dados com IA usando LLM diretamente
       toast.info("Extraindo dados do documento com IA...");
+      
+      const documentTypeInstructions = {
+        identity: "Extraia os seguintes dados do documento de identidade (RG, CNH ou similar): nome completo, CPF (apenas números), RG, data de nascimento (formato DD/MM/AAAA), nome da mãe, e órgão emissor.",
+        cnh: "Extraia os seguintes dados da CNH: nome completo, CPF, número da CNH, data de nascimento, categoria da CNH, e data de validade.",
+        cnpj: "Extraia os seguintes dados do cartão CNPJ: razão social, CNPJ (apenas números), nome fantasia, e endereço completo."
+      };
+
       const schema = documentSchemas[documentType];
       
-      const response = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: schema
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um especialista em OCR e extração de dados de documentos brasileiros.
+
+${documentTypeInstructions[documentType]}
+
+IMPORTANTE:
+- Retorne APENAS os dados que você conseguir ler claramente no documento
+- Para CPF e CNPJ, retorne APENAS os números, sem pontos ou traços
+- Para datas, use o formato DD/MM/AAAA
+- Se não conseguir ler algum campo, omita-o do JSON
+- Seja preciso e não invente dados
+
+Analise o documento na imagem anexada e retorne os dados no formato JSON solicitado.`,
+        file_urls: [file_url],
+        response_json_schema: schema
       });
 
-      if (response.status === "success" && response.output) {
-        setExtractedData(response.output);
-        toast.success("Dados extraídos com sucesso!");
-        
-        // Callback para componente pai
-        if (onDataExtracted) {
-          onDataExtracted(response.output);
+      if (response && typeof response === 'object') {
+        // Limpar dados vazios
+        const cleanedData = Object.fromEntries(
+          Object.entries(response).filter(([_, v]) => v && v.toString().trim() !== '')
+        );
+
+        if (Object.keys(cleanedData).length > 0) {
+          setExtractedData(cleanedData);
+          toast.success("Dados extraídos com sucesso!");
+          
+          // Callback para componente pai
+          if (onDataExtracted) {
+            onDataExtracted(cleanedData);
+          }
+        } else {
+          throw new Error("Nenhum dado foi extraído do documento");
         }
       } else {
-        const errorMsg = response.details || "Não foi possível extrair os dados do documento";
-        setError(errorMsg);
-        toast.error(errorMsg);
+        throw new Error("Resposta inválida da IA");
       }
     } catch (err) {
-      const errorMsg = "Erro ao processar documento: " + err.message;
+      const errorMsg = err.message || "Erro ao processar documento";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
