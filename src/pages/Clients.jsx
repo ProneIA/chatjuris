@@ -7,7 +7,6 @@ import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
-import PlanLimitGuard from "../components/common/PlanLimitGuard";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -146,22 +145,15 @@ export default function Clients({ theme = 'light' }) {
 
         <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showForm ? (
-            <PlanLimitGuard
-              subscription={subscription}
-              currentCount={clients.length}
-              limitCount={3}
-              entityName="clientes"
-            >
-              <ClientForm
-                client={editingClient}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingClient(null);
-                }}
-                isLoading={createMutation.isPending || updateMutation.isPending}
-              />
-            </PlanLimitGuard>
+            <ClientForm
+              client={editingClient}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingClient(null);
+              }}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+            />
           ) : (
             <ClientList
               clients={filteredClients}
