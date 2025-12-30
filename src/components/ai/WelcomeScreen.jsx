@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Scale, FileText, Send, Loader2, Paperclip, X, Search, MessageSquare } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import SuggestedQuestions from "./SuggestedQuestions";
+import DocumentAnalyzer from "./DocumentAnalyzer";
 
 const suggestedPrompts = [
   {
@@ -135,6 +136,19 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                     </div>
                   </div>
                 </motion.div>
+              )}
+
+              {/* Document Analyzer */}
+              {uploadedFile && !isProcessing && (
+                <div className="mt-6">
+                  <DocumentAnalyzer 
+                    uploadedFile={uploadedFile}
+                    onAnalysisComplete={(result, type) => {
+                      const summary = JSON.stringify(result, null, 2);
+                      onSendMessage(`Análise completa (${type}):\n\n${summary.substring(0, 500)}...\n\nBaseado nesta análise, me forneça insights adicionais.`);
+                    }}
+                  />
+                </div>
               )}
 
               {/* Suggested Questions */}
