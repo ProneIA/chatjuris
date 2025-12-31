@@ -158,7 +158,7 @@ export default function DespesasManager({ theme = 'light' }) {
             <div>
               <Label>Categoria</Label>
               <Select 
-                value={despesaForm.categoria} 
+                value={despesaForm.categoria || ""} 
                 onValueChange={(v) => setDespesaForm({...despesaForm, categoria: v})}
               >
                 <SelectTrigger>

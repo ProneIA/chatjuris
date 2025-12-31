@@ -224,7 +224,7 @@ export default function HonorariosManager({ theme = 'light' }) {
             <div>
               <Label>Cliente</Label>
               <Select 
-                value={contratoForm.cliente_id} 
+                value={contratoForm.cliente_id || ""} 
                 onValueChange={(v) => setContratoForm({...contratoForm, cliente_id: v})}
               >
                 <SelectTrigger>
@@ -241,7 +241,7 @@ export default function HonorariosManager({ theme = 'light' }) {
             <div>
               <Label>Tipo</Label>
               <Select 
-                value={contratoForm.tipo} 
+                value={contratoForm.tipo || ""} 
                 onValueChange={(v) => setContratoForm({...contratoForm, tipo: v})}
               >
                 <SelectTrigger>
@@ -270,7 +270,7 @@ export default function HonorariosManager({ theme = 'light' }) {
             <div>
               <Label>Forma de Pagamento</Label>
               <Select 
-                value={contratoForm.forma_pagamento} 
+                value={contratoForm.forma_pagamento || ""} 
                 onValueChange={(v) => setContratoForm({...contratoForm, forma_pagamento: v})}
               >
                 <SelectTrigger>
