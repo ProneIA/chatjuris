@@ -16,6 +16,7 @@ import DiaryMonitor from './pages/DiaryMonitor';
 import DocumentGenerator from './pages/DocumentGenerator';
 import DocumentGeneratorChat from './pages/DocumentGeneratorChat';
 import DocumentManager from './pages/DocumentManager';
+import Documentation from './pages/Documentation';
 import Documents from './pages/Documents';
 import DocumentsEnhanced from './pages/DocumentsEnhanced';
 import Features from './pages/Features';
@@ -39,7 +40,7 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
-import Documentation from './pages/Documentation';
+import FinancialDashboard from './pages/FinancialDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "DocumentGenerator": DocumentGenerator,
     "DocumentGeneratorChat": DocumentGeneratorChat,
     "DocumentManager": DocumentManager,
+    "Documentation": Documentation,
     "Documents": Documents,
     "DocumentsEnhanced": DocumentsEnhanced,
     "Features": Features,
@@ -85,7 +87,7 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
-    "Documentation": Documentation,
+    "FinancialDashboard": FinancialDashboard,
 }
 
 export const pagesConfig = {
