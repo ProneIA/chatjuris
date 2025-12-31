@@ -16,7 +16,8 @@ import {
   Sun,
   FolderOpen,
   Users2,
-  Download
+  Download,
+  DollarSign
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +37,7 @@ import {
 
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
+  { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
   { title: "Biblioteca", url: createPageUrl("Library"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },

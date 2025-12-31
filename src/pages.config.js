@@ -21,6 +21,7 @@ import Documents from './pages/Documents';
 import DocumentsEnhanced from './pages/DocumentsEnhanced';
 import Features from './pages/Features';
 import FerramentasHub from './pages/FerramentasHub';
+import FinancialDashboard from './pages/FinancialDashboard';
 import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
@@ -40,7 +41,6 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
-import FinancialDashboard from './pages/FinancialDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +68,7 @@ export const PAGES = {
     "DocumentsEnhanced": DocumentsEnhanced,
     "Features": Features,
     "FerramentasHub": FerramentasHub,
+    "FinancialDashboard": FinancialDashboard,
     "Funcionalidades": Funcionalidades,
     "GestaoHub": GestaoHub,
     "Home": Home,
@@ -87,7 +88,6 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
-    "FinancialDashboard": FinancialDashboard,
 }
 
 export const pagesConfig = {
