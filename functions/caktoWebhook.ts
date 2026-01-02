@@ -101,17 +101,21 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Subscription.update(existingSub.id, proData);
         console.log('PRO ATIVADO:', customerEmail);
       } else {
+        // Tentar obter affiliate_code dos metadados da Cakto ou do campo personalizado
+        let affiliateCode = data.metadata?.affiliate_code || data.custom_data?.ref || null;
+        
         const newSub = await base44.asServiceRole.entities.Subscription.create({
           ...proData,
           user_id: user.id,
+          affiliate_code: affiliateCode,
           last_reset_date: new Date().toISOString().split('T')[0]
         });
         console.log('NOVA ASSINATURA PRO:', customerEmail);
 
         // Verificar se há afiliado associado
-        if (newSub.affiliate_code) {
+        if (affiliateCode) {
           const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
-            affiliate_code: newSub.affiliate_code,
+            affiliate_code: affiliateCode,
             status: 'active'
           });
           

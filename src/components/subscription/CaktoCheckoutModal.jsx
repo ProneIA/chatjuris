@@ -1,17 +1,37 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getStoredAffiliateCode } from './AffiliateTracker';
+import { base44 } from "@/api/base44Client";
 
 export default function CaktoCheckoutModal({ checkoutUrl, onClose }) {
+  const [finalCheckoutUrl, setFinalCheckoutUrl] = useState(checkoutUrl);
+
   useEffect(() => {
     // Previne scroll da página de fundo
     document.body.style.overflow = 'hidden';
     
+    // Capturar código de afiliado e adicionar ao localStorage da subscription
+    const affiliateCode = getStoredAffiliateCode();
+    if (affiliateCode) {
+      // Salvar no localStorage para ser usado após o webhook
+      localStorage.setItem('pending_affiliate_code', affiliateCode);
+      
+      // Tentar adicionar à URL do Cakto se possível
+      try {
+        const url = new URL(checkoutUrl);
+        url.searchParams.set('ref', affiliateCode);
+        setFinalCheckoutUrl(url.toString());
+      } catch (e) {
+        // Se falhar, manter URL original
+      }
+    }
+    
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [checkoutUrl]);
 
   return (
     <motion.div
@@ -62,7 +82,7 @@ export default function CaktoCheckoutModal({ checkoutUrl, onClose }) {
         {/* Iframe do Checkout da Cakto */}
         <div className="relative" style={{ height: 'calc(90vh - 80px)' }}>
           <iframe
-            src={checkoutUrl}
+            src={finalCheckoutUrl}
             className="w-full h-full border-none"
             title="Checkout Seguro"
             allow="payment"
