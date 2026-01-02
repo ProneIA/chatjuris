@@ -162,9 +162,9 @@ export default function Layout({ children, currentPageName }) {
 
   // Filtrar itens de navegação baseado no usuário
   const visibleNavItems = navigationItems.filter(item => {
-    // Mostrar "Afiliados" apenas para admin ou afiliados
+    // Mostrar "Afiliados" apenas para admin
     if (item.title === "Afiliados") {
-      return user?.role === 'admin' || user?.is_affiliate;
+      return user?.role === 'admin';
     }
     return true;
   });

@@ -1,5 +1,6 @@
 import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
+import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
 import CaseDetails from './pages/CaseDetails';
@@ -41,13 +42,13 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
-import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AIAssistant": AIAssistant,
     "AboutUs": AboutUs,
+    "AffiliatesDashboard": AffiliatesDashboard,
     "Analytics": Analytics,
     "Calendar": Calendar,
     "CaseDetails": CaseDetails,
@@ -89,7 +90,6 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
-    "AffiliatesDashboard": AffiliatesDashboard,
 }
 
 export const pagesConfig = {
