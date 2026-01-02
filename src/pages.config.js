@@ -41,6 +41,7 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
+import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -88,6 +89,7 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
+    "AffiliatesDashboard": AffiliatesDashboard,
 }
 
 export const pagesConfig = {
