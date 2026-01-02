@@ -31,18 +31,8 @@ export default function AffiliateRegistration({ theme = 'light' }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const affiliate = await base44.entities.Affiliate.create(data);
-      
-      // Atualizar o usuário para marcar como afiliado
-      const users = await base44.asServiceRole.entities.User.filter({ email: data.user_email });
-      if (users.length > 0) {
-        await base44.asServiceRole.entities.User.update(users[0].id, {
-          is_affiliate: true,
-          affiliate_id: affiliate.id
-        });
-      }
-      
-      return affiliate;
+      const response = await base44.functions.invoke('createAffiliate', data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['affiliates'] });
