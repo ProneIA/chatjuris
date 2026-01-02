@@ -38,6 +38,7 @@ import {
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
+  { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: Users2 },
   { title: "Biblioteca", url: createPageUrl("Library"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
@@ -159,6 +160,15 @@ export default function Layout({ children, currentPageName }) {
       );
     };
 
+  // Filtrar itens de navegação baseado no usuário
+  const visibleNavItems = navigationItems.filter(item => {
+    // Mostrar "Afiliados" apenas para admin ou afiliados
+    if (item.title === "Afiliados") {
+      return user?.role === 'admin' || user?.is_affiliate;
+    }
+    return true;
+  });
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <PWAHead />
@@ -176,7 +186,7 @@ export default function Layout({ children, currentPageName }) {
         onOpenChange={setShowInstallModal} 
         isIOS={isIOS} 
       />
-      
+
       <style>{`
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: ${isDark ? '#0a0a0a' : '#f1f5f9'}; }
@@ -201,7 +211,7 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
-              {navigationItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <NavLink key={item.title} item={item} />
               ))}
             </nav>
@@ -312,7 +322,7 @@ export default function Layout({ children, currentPageName }) {
               className="lg:hidden fixed top-14 left-0 right-0 bg-neutral-900 z-40 border-b border-neutral-800 max-h-[80vh] overflow-y-auto"
             >
               <nav className="p-4 space-y-1">
-                {navigationItems.map((item) => (
+                {visibleNavItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
                 {!(subscription?.plan === 'pro' && subscription?.status === 'active') && (
