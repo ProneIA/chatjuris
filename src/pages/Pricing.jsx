@@ -8,6 +8,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import PaymentModal from "@/components/subscription/PaymentModal";
 import CaktoCheckoutModal from "@/components/subscription/CaktoCheckoutModal";
+import AffiliateTracker from "@/components/subscription/AffiliateTracker";
 
 const plans = [
   {
@@ -158,6 +159,7 @@ export default function Pricing({ theme = 'light' }) {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
+      <AffiliateTracker />
       {/* Simple Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">

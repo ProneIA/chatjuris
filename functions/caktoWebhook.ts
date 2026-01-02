@@ -101,12 +101,45 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Subscription.update(existingSub.id, proData);
         console.log('PRO ATIVADO:', customerEmail);
       } else {
-        await base44.asServiceRole.entities.Subscription.create({
+        const newSub = await base44.asServiceRole.entities.Subscription.create({
           ...proData,
           user_id: user.id,
           last_reset_date: new Date().toISOString().split('T')[0]
         });
         console.log('NOVA ASSINATURA PRO:', customerEmail);
+
+        // Verificar se há afiliado associado
+        if (newSub.affiliate_code) {
+          const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
+            affiliate_code: newSub.affiliate_code,
+            status: 'active'
+          });
+          
+          if (affiliates.length > 0) {
+            const affiliate = affiliates[0];
+            const commissionAmount = proData.price * (affiliate.commission_rate / 100);
+            
+            // Criar registro de comissão
+            await base44.asServiceRole.entities.AffiliateCommission.create({
+              affiliate_id: affiliate.id,
+              affiliate_code: affiliate.affiliate_code,
+              subscription_id: newSub.id,
+              customer_email: customerEmail,
+              subscription_value: proData.price,
+              commission_rate: affiliate.commission_rate,
+              commission_amount: commissionAmount,
+              status: 'pending'
+            });
+
+            // Atualizar totais do afiliado
+            await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
+              total_sales: (affiliate.total_sales || 0) + 1,
+              total_commission: (affiliate.total_commission || 0) + commissionAmount
+            });
+
+            console.log('COMISSÃO REGISTRADA:', affiliate.affiliate_code, commissionAmount);
+          }
+        }
       }
     }
 
