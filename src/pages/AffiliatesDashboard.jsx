@@ -43,11 +43,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     enabled: isAdmin
   });
 
-  const copyAffiliateLink = () => {
-    const link = `${window.location.origin}?ref=${myAffiliate.affiliate_code}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Link copiado!");
-  };
+
 
   const stats = {
     totalAffiliates: allAffiliates.length,
