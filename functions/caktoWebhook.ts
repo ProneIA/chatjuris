@@ -127,6 +127,7 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.AffiliateCommission.create({
               affiliate_id: affiliate.id,
               affiliate_code: affiliate.affiliate_code,
+              affiliate_email: affiliate.user_email,
               subscription_id: newSub.id,
               customer_email: customerEmail,
               subscription_value: proData.price,
