@@ -17,7 +17,8 @@ import {
   FolderOpen,
   Users2,
   Download,
-  DollarSign
+  DollarSign,
+  Bookmark
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
