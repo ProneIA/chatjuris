@@ -16,31 +16,56 @@ import CommissionsList from "@/components/affiliates/CommissionsList";
 export default function AffiliatesDashboard({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
+  const [userAffiliate, setUserAffiliate] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(async (u) => {
+      setUser(u);
+      if (u?.email) {
+        // Verificar se o usuário é um afiliado
+        const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
+        setUserAffiliate(affiliates[0] || null);
+      }
+    }).catch(() => {});
   }, []);
 
   const isAdmin = user?.role === 'admin';
+  const isAffiliate = !!userAffiliate;
 
-  // Redirecionar se não for admin
+  // Redirecionar se não for admin nem afiliado
   React.useEffect(() => {
-    if (user && !isAdmin) {
+    if (user && !isAdmin && !isAffiliate) {
       window.location.href = '/';
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, isAffiliate]);
 
+  // Admin vê todos os afiliados, afiliado vê apenas ele mesmo
   const { data: allAffiliates = [] } = useQuery({
-    queryKey: ['affiliates'],
-    queryFn: () => base44.entities.Affiliate.list('-created_date'),
-    enabled: isAdmin
+    queryKey: ['affiliates', user?.email],
+    queryFn: () => {
+      if (isAdmin) {
+        return base44.entities.Affiliate.list('-created_date');
+      } else if (isAffiliate) {
+        return base44.entities.Affiliate.filter({ user_email: user.email });
+      }
+      return [];
+    },
+    enabled: isAdmin || isAffiliate
   });
 
+  // Admin vê todas as comissões, afiliado vê apenas as suas
   const { data: allCommissions = [] } = useQuery({
-    queryKey: ['allCommissions'],
-    queryFn: () => base44.entities.AffiliateCommission.list('-created_date'),
-    enabled: isAdmin
+    queryKey: ['allCommissions', user?.email],
+    queryFn: () => {
+      if (isAdmin) {
+        return base44.entities.AffiliateCommission.list('-created_date');
+      } else if (isAffiliate) {
+        return base44.entities.AffiliateCommission.filter({ affiliate_id: userAffiliate.id });
+      }
+      return [];
+    },
+    enabled: (isAdmin || isAffiliate) && !!user?.email
   });
 
 
@@ -52,7 +77,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     pendingCommissions: allCommissions.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.commission_amount, 0)
   };
 
-  if (!isAdmin) {
+  if (!isAdmin && !isAffiliate) {
     return null;
   }
 
@@ -62,10 +87,10 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
         {/* Header */}
         <div>
           <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Gestão de Afiliados
+            {isAdmin ? 'Gestão de Afiliados' : 'Meu Painel de Afiliado'}
           </h1>
           <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
-            Gerencie afiliados e comissões
+            {isAdmin ? 'Gerencie afiliados e comissões' : 'Acompanhe suas vendas e comissões'}
           </p>
         </div>
 
@@ -139,28 +164,109 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
 
 
         {/* Tabs */}
-        <Tabs defaultValue="affiliates" className="w-full">
+        <Tabs defaultValue={isAffiliate && !isAdmin ? "commissions" : "affiliates"} className="w-full">
           <TabsList className={isDark ? 'bg-neutral-900' : 'bg-gray-100'}>
-            <TabsTrigger value="affiliates">Afiliados</TabsTrigger>
+            {isAdmin && <TabsTrigger value="affiliates">Afiliados</TabsTrigger>}
             <TabsTrigger value="commissions">Comissões</TabsTrigger>
-            <TabsTrigger value="register">Novo Afiliado</TabsTrigger>
+            {isAdmin && <TabsTrigger value="register">Novo Afiliado</TabsTrigger>}
+            {isAffiliate && !isAdmin && <TabsTrigger value="my_data">Meus Dados</TabsTrigger>}
           </TabsList>
 
-          <TabsContent value="affiliates">
-            <AffiliateList affiliates={allAffiliates} theme={theme} />
-          </TabsContent>
+          {isAdmin && (
+            <TabsContent value="affiliates">
+              <AffiliateList affiliates={allAffiliates} theme={theme} />
+            </TabsContent>
+          )}
 
           <TabsContent value="commissions">
             <CommissionsList 
               commissions={allCommissions} 
-              isAdmin={true}
+              isAdmin={isAdmin}
               theme={theme} 
             />
           </TabsContent>
 
-          <TabsContent value="register">
-            <AffiliateRegistration theme={theme} />
-          </TabsContent>
+          {isAdmin && (
+            <TabsContent value="register">
+              <AffiliateRegistration theme={theme} />
+            </TabsContent>
+          )}
+
+          {isAffiliate && !isAdmin && (
+            <TabsContent value="my_data">
+              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+                <CardHeader>
+                  <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
+                    Meus Dados de Afiliado
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Nome</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.name}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Código</p>
+                        <p className={`font-mono font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.affiliate_code}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Email</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.user_email}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Status</p>
+                        <p className={`font-medium ${
+                          userAffiliate?.status === 'active' ? 'text-green-600' : 
+                          userAffiliate?.status === 'pending' ? 'text-orange-600' : 'text-red-600'
+                        }`}>
+                          {userAffiliate?.status === 'active' ? 'Ativo' : 
+                           userAffiliate?.status === 'pending' ? 'Pendente' : 'Suspenso'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Taxa de Comissão</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.commission_rate}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total de Vendas</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.total_sales || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Comissões</p>
+                        <p className={`font-medium text-green-600`}>
+                          R$ {(userAffiliate?.total_commission || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Pago</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          R$ {(userAffiliate?.total_paid || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Chave PIX</p>
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {userAffiliate?.pix_key || 'Não cadastrada'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

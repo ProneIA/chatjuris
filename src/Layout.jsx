@@ -64,6 +64,8 @@ export default function Layout({ children, currentPageName }) {
       return 'light';
     });
 
+    const [userAffiliate, setUserAffiliate] = React.useState(null);
+
     React.useEffect(() => {
       base44.auth.me()
         .then(async (u) => {
@@ -72,6 +74,10 @@ export default function Layout({ children, currentPageName }) {
             try {
               const subs = await base44.entities.Subscription.filter({ user_id: u.id });
               setSubscription(subs[0] || null);
+
+              // Verificar se o usuário é um afiliado
+              const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
+              setUserAffiliate(affiliates[0] || null);
             } catch (err) {
               console.error("Erro ao buscar assinatura:", err);
             }
@@ -163,9 +169,9 @@ export default function Layout({ children, currentPageName }) {
 
   // Filtrar itens de navegação baseado no usuário
   const visibleNavItems = navigationItems.filter(item => {
-    // Mostrar "Afiliados" apenas para admin
+    // Mostrar "Afiliados" para admin ou para usuários que são afiliados cadastrados
     if (item.title === "Afiliados") {
-      return user?.role === 'admin';
+      return user?.role === 'admin' || userAffiliate;
     }
     return true;
   });
