@@ -10,9 +10,27 @@ import { toast } from "sonner";
 export default function CommissionsList({ commissions, isAdmin, theme = 'light' }) {
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
+  const [affiliates, setAffiliates] = React.useState({});
+
+  // Carregar dados dos afiliados
+  React.useEffect(() => {
+    const loadAffiliates = async () => {
+      try {
+        const allAffiliates = await base44.entities.Affiliate.list();
+        const affiliatesMap = {};
+        allAffiliates.forEach(a => {
+          affiliatesMap[a.id] = a;
+        });
+        setAffiliates(affiliatesMap);
+      } catch (error) {
+        console.error('Erro ao carregar afiliados:', error);
+      }
+    };
+    loadAffiliates();
+  }, []);
 
   const markAsPaidMutation = useMutation({
-    mutationFn: async ({ commissionId, affiliateId }) => {
+    mutationFn: async ({ commissionId, affiliateId, affiliateEmail, affiliateName, commissionAmount }) => {
       const commission = await base44.entities.AffiliateCommission.update(commissionId, {
         status: 'paid',
         payment_date: new Date().toISOString().split('T')[0]
@@ -25,6 +43,18 @@ export default function CommissionsList({ commissions, isAdmin, theme = 'light' 
         await base44.entities.Affiliate.update(affiliateId, {
           total_paid: currentPaid + commission.commission_amount
         });
+      }
+
+      // Enviar notificação automática
+      try {
+        await base44.functions.invoke('notifyCommissionPayment', {
+          affiliate_email: affiliateEmail,
+          affiliate_name: affiliateName,
+          commission_amount: commissionAmount,
+          payment_date: new Date().toISOString().split('T')[0]
+        });
+      } catch (error) {
+        console.error('Erro ao enviar notificação:', error);
       }
 
       return commission;
@@ -110,10 +140,16 @@ export default function CommissionsList({ commissions, isAdmin, theme = 'light' 
               {isAdmin && commission.status === 'pending' && (
                 <Button
                   size="sm"
-                  onClick={() => markAsPaidMutation.mutate({ 
-                    commissionId: commission.id,
-                    affiliateId: commission.affiliate_id 
-                  })}
+                  onClick={() => {
+                    const affiliate = affiliates[commission.affiliate_id];
+                    markAsPaidMutation.mutate({ 
+                      commissionId: commission.id,
+                      affiliateId: commission.affiliate_id,
+                      affiliateEmail: affiliate?.user_email || '',
+                      affiliateName: affiliate?.name || 'Afiliado',
+                      commissionAmount: commission.commission_amount
+                    });
+                  }}
                   disabled={markAsPaidMutation.isPending}
                 >
                   Marcar como Pago
