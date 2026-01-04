@@ -220,9 +220,8 @@ export default function Cases({ theme = 'light' }) {
             {filteredCases.map((caseItem) => (
               <CaseCard
                 key={caseItem.id}
-                caseData={caseItem}
+                caseItem={caseItem}
                 onClick={() => navigate(createPageUrl("CaseDetails") + "?id=" + caseItem.id)}
-                onEdit={() => handleEdit(caseItem)}
                 theme={theme}
               />
             ))}
