@@ -68,6 +68,7 @@ export default function Layout({ children, currentPageName }) {
     const [userAffiliate, setUserAffiliate] = React.useState(null);
     const [showConsentModal, setShowConsentModal] = React.useState(false);
     const [hasCheckedConsent, setHasCheckedConsent] = React.useState(false);
+    const [consentAccepted, setConsentAccepted] = React.useState(false);
 
     React.useEffect(() => {
       base44.auth.me()
@@ -83,11 +84,23 @@ export default function Layout({ children, currentPageName }) {
               setUserAffiliate(affiliates[0] || null);
 
               // Verificar consentimentos LGPD
+              const localConsentKey = `consent_accepted_${u.email}`;
+              const localConsent = localStorage.getItem(localConsentKey);
+
+              if (localConsent === 'true') {
+                // Usuário já aceitou antes (verificação rápida)
+                setHasCheckedConsent(true);
+                return;
+              }
+
               const consents = await base44.entities.UserConsent.filter({ user_email: u.email });
               const hasTermsConsent = consents.some(c => c.consent_type === 'terms_of_use' && c.accepted);
               const hasPrivacyConsent = consents.some(c => c.consent_type === 'privacy_policy' && c.accepted);
-              
-              if (!hasTermsConsent || !hasPrivacyConsent) {
+
+              if (hasTermsConsent && hasPrivacyConsent) {
+                // Salvar no localStorage para não verificar novamente
+                localStorage.setItem(localConsentKey, 'true');
+              } else {
                 setShowConsentModal(true);
               }
               setHasCheckedConsent(true);
@@ -388,10 +401,17 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       {/* Consent Modal */}
-      {hasCheckedConsent && (
+      {hasCheckedConsent && !consentAccepted && (
         <ConsentModal 
           open={showConsentModal} 
-          onAccept={() => setShowConsentModal(false)} 
+          onAccept={() => {
+            setShowConsentModal(false);
+            setConsentAccepted(true);
+            // Salvar no localStorage
+            if (user?.email) {
+              localStorage.setItem(`consent_accepted_${user.email}`, 'true');
+            }
+          }} 
         />
       )}
     </div>
