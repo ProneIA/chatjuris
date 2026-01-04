@@ -42,6 +42,9 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import MyData from './pages/MyData';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +93,9 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
+    "PrivacyPolicy": PrivacyPolicy,
+    "TermsOfService": TermsOfService,
+    "MyData": MyData,
 }
 
 export const pagesConfig = {
