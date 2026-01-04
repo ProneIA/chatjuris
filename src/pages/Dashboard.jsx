@@ -152,13 +152,13 @@ export default function Dashboard({ theme = 'light' }) {
     },
     {
       title: "Processos",
-      value: activeCases,
-      total: totalCases,
+      value: totalCases,
+      total: activeCases,
       icon: FolderOpen,
       link: createPageUrl("Cases"),
       color: "emerald",
-      subtitle: "em andamento",
-      showProgress: true
+      subtitle: `${activeCases} em andamento`,
+      showProgress: false
     },
     {
       title: "Documentos",
