@@ -32,9 +32,11 @@ import LegalCalculator from './pages/LegalCalculator';
 import LegalResearch from './pages/LegalResearch';
 import LegalResearchAI from './pages/LegalResearchAI';
 import Library from './pages/Library';
+import MyData from './pages/MyData';
 import MySubscription from './pages/MySubscription';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Pricing from './pages/Pricing';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import QuemSomos from './pages/QuemSomos';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
@@ -42,9 +44,7 @@ import Tasks from './pages/Tasks';
 import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
-import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
-import MyData from './pages/MyData';
 import __Layout from './Layout.jsx';
 
 
@@ -83,9 +83,11 @@ export const PAGES = {
     "LegalResearch": LegalResearch,
     "LegalResearchAI": LegalResearchAI,
     "Library": Library,
+    "MyData": MyData,
     "MySubscription": MySubscription,
     "PaymentSuccess": PaymentSuccess,
     "Pricing": Pricing,
+    "PrivacyPolicy": PrivacyPolicy,
     "QuemSomos": QuemSomos,
     "Reports": Reports,
     "Settings": Settings,
@@ -93,9 +95,7 @@ export const PAGES = {
     "TeamWorkspace": TeamWorkspace,
     "Teams": Teams,
     "Templates": Templates,
-    "PrivacyPolicy": PrivacyPolicy,
     "TermsOfService": TermsOfService,
-    "MyData": MyData,
 }
 
 export const pagesConfig = {
