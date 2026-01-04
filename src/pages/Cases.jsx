@@ -53,20 +53,27 @@ export default function Cases({ theme = 'light' }) {
       });
   }, []);
 
-  const { data: cases = [], refetch } = useQuery({
+  const { data: cases = [], refetch, isLoading: casesLoading } = useQuery({
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) {
         console.log("⏳ [CASES] Aguardando autenticação...");
         return [];
       }
-      console.log("🔍 [CASES] Buscando processos de:", user.email);
-      const result = await base44.entities.Case.list('-created_date');
-      console.log("📁 [CASES] Processos encontrados:", result.length);
-      console.log("📁 [CASES] Dados:", result);
-      return result;
+      console.log("🔍 [CASES] Buscando processos do usuário:", user.email);
+      try {
+        const result = await base44.entities.Case.list('-created_date');
+        console.log("✅ [CASES] Processos encontrados:", result.length);
+        console.log("📁 [CASES] Dados completos:", JSON.stringify(result, null, 2));
+        return result;
+      } catch (error) {
+        console.error("❌ [CASES] Erro ao buscar processos:", error);
+        return [];
+      }
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
   });
 
   const { data: clients = [] } = useQuery({
@@ -124,21 +131,25 @@ export default function Cases({ theme = 'light' }) {
       return newCase;
     },
     onSuccess: async (data) => {
-      console.log("✅ [CASES] onSuccess chamado. Processo:", data);
-      console.log("🔄 [CASES] Invalidando queries...");
-      await queryClient.invalidateQueries({ queryKey: ['cases'] });
-      console.log("🔄 [CASES] Refetch forçado...");
-      await refetch();
-      console.log("✅ [CASES] Atualização concluída!");
+      console.log("✅ [CASES] onSuccess chamado. Processo salvo:", data);
       
-      toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado!");
+      toast.success(editingCase ? "✅ Processo atualizado!" : "✅ Processo criado com sucesso!");
+      
+      console.log("🔄 [CASES] Invalidando e recarregando lista...");
+      await queryClient.invalidateQueries({ queryKey: ['cases'] });
+      await refetch();
+      
       setShowForm(false);
       setEditingCase(null);
       resetForm();
+      
+      console.log("✅ [CASES] Lista atualizada!");
 
       if (data && data.id && !editingCase) {
-        console.log("➡️ [CASES] Redirecionando para detalhes ID:", data.id);
-        navigate(createPageUrl("CaseDetails") + "?id=" + data.id);
+        setTimeout(() => {
+          console.log("➡️ [CASES] Navegando para detalhes ID:", data.id);
+          navigate(createPageUrl("CaseDetails") + "?id=" + data.id);
+        }, 500);
       }
     },
     onError: (err) => {
@@ -236,11 +247,18 @@ export default function Cases({ theme = 'light' }) {
 
         <div className="flex gap-6">
           <div className="flex-1">
-            {filteredCases.length === 0 ? (
+            {casesLoading ? (
+              <div className="text-center py-20">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                <p className="text-gray-500">Carregando processos...</p>
+              </div>
+            ) : filteredCases.length === 0 ? (
               <div className="text-center py-20 border-2 border-dashed rounded-xl">
                 <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-medium">Nenhum processo encontrado</h3>
-                <p className="text-gray-500 mt-2 mb-6">Crie seu primeiro processo</p>
+                <p className="text-gray-500 mt-2 mb-6">
+                  {cases.length === 0 ? "Crie seu primeiro processo" : "Nenhum resultado para sua busca"}
+                </p>
                 <Button variant="outline" onClick={() => setShowForm(true)}>
                   Criar processo
                 </Button>
