@@ -47,11 +47,11 @@ export default function CaseDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
        <CaseDetails 
          caseData={caseData} 
          onClose={() => navigate(createPageUrl("Cases"))}
-         onEdit={() => {}} // TODO: Add edit navigation if needed or handle in component
+         onEdit={() => {}}
          isPage={true}
        />
     </div>
