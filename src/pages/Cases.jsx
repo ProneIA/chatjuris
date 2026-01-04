@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, FolderOpen, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Search, Plus, FolderOpen, FileText, Calendar, AlertCircle, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import CaseCard from "@/components/cases/CaseCard";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -21,136 +21,150 @@ export default function Cases({ theme = 'light' }) {
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingCase, setEditingCase] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     case_number: "",
     client_id: "",
     client_name: "",
     area: "",
     status: "new",
     priority: "medium",
-    description: "",
     court: "",
     opposing_party: "",
     start_date: "",
     deadline: "",
-    value: ""
+    value: 0
   });
 
-  // Buscar usuário
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  // Buscar processos
-  const { data: cases = [], isLoading } = useQuery({
+  const { data: cases = [], isLoading, refetch } = useQuery({
     queryKey: ['cases', user?.email],
-    queryFn: () => base44.entities.Case.list('-created_date'),
-    enabled: !!user?.email
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const result = await base44.entities.Case.list('-created_date');
+      return result;
+    },
+    enabled: !!user?.email,
+    refetchOnMount: true
   });
 
-  // Buscar clientes para o select
   const { data: clients = [] } = useQuery({
     queryKey: ['clients', user?.email],
-    queryFn: () => base44.entities.Client.list(),
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return await base44.entities.Client.list('name');
+    },
     enabled: !!user?.email
   });
 
-  // Criar/Atualizar processo
   const saveMutation = useMutation({
-    mutationFn: (data) => base44.entities.Case.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-      toast.success("Processo criado com sucesso!");
+    mutationFn: async (data) => {
+      if (editingCase) {
+        return await base44.entities.Case.update(editingCase.id, data);
+      } else {
+        return await base44.entities.Case.create(data);
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cases'] });
+      await refetch();
+      toast.success(editingCase ? "Processo atualizado!" : "Processo criado com sucesso!");
       setShowForm(false);
+      setEditingCase(null);
       resetForm();
     },
     onError: (error) => {
+      console.error("Erro ao salvar processo:", error);
       toast.error("Erro ao salvar processo");
-      console.error(error);
     }
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Case.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['cases'] });
+      await refetch();
+      toast.success("Processo excluído!");
+    }
+  });
+
+  const handleSave = () => {
+    if (!formData.title || !formData.area || !formData.client_id) {
+      toast.error("Preencha os campos obrigatórios");
+      return;
+    }
+
+    const selectedClient = clients.find(c => c.id === formData.client_id);
+    const dataToSave = {
+      ...formData,
+      client_name: selectedClient?.name || formData.client_name,
+      value: formData.value ? parseFloat(formData.value) : 0
+    };
+
+    saveMutation.mutate(dataToSave);
+  };
+
+  const handleEdit = (caseItem) => {
+    setEditingCase(caseItem);
+    setFormData({
+      title: caseItem.title || "",
+      description: caseItem.description || "",
+      case_number: caseItem.case_number || "",
+      client_id: caseItem.client_id || "",
+      client_name: caseItem.client_name || "",
+      area: caseItem.area || "",
+      status: caseItem.status || "new",
+      priority: caseItem.priority || "medium",
+      court: caseItem.court || "",
+      opposing_party: caseItem.opposing_party || "",
+      start_date: caseItem.start_date || "",
+      deadline: caseItem.deadline || "",
+      value: caseItem.value || 0
+    });
+    setShowForm(true);
+  };
 
   const resetForm = () => {
     setFormData({
       title: "",
+      description: "",
       case_number: "",
       client_id: "",
       client_name: "",
       area: "",
       status: "new",
       priority: "medium",
-      description: "",
       court: "",
       opposing_party: "",
       start_date: "",
       deadline: "",
-      value: ""
+      value: 0
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.title || !formData.client_id || !formData.area) {
-      toast.error("Preencha os campos obrigatórios");
-      return;
-    }
-    saveMutation.mutate(formData);
-  };
-
-  const handleClientChange = (clientId) => {
-    const client = clients.find(c => c.id === clientId);
-    setFormData({
-      ...formData,
-      client_id: clientId,
-      client_name: client?.name || ""
-    });
-  };
-
-  // Filtrar processos
-  const filteredCases = cases.filter(c => 
+  const filteredCases = cases.filter(c =>
     c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.client_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status) => {
-    const colors = {
-      new: "bg-blue-100 text-blue-700",
-      in_progress: "bg-yellow-100 text-yellow-700",
-      waiting: "bg-purple-100 text-purple-700",
-      closed: "bg-gray-100 text-gray-700",
-      archived: "bg-gray-100 text-gray-500"
-    };
-    return colors[status] || colors.new;
-  };
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      new: "Novo",
-      in_progress: "Em Andamento",
-      waiting: "Aguardando",
-      closed: "Encerrado",
-      archived: "Arquivado"
-    };
-    return labels[status] || status;
-  };
-
-  const getPriorityColor = (priority) => {
-    const colors = {
-      low: "bg-gray-100 text-gray-600",
-      medium: "bg-blue-100 text-blue-600",
-      high: "bg-orange-100 text-orange-600",
-      urgent: "bg-red-100 text-red-600"
-    };
-    return colors[priority] || colors.medium;
-  };
+  if (!user) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Processos
@@ -160,7 +174,11 @@ export default function Cases({ theme = 'light' }) {
             </p>
           </div>
           <Button 
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setEditingCase(null);
+              resetForm();
+              setShowForm(true);
+            }}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -168,10 +186,9 @@ export default function Cases({ theme = 'light' }) {
           </Button>
         </div>
 
-        {/* Busca */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               placeholder="Buscar processos..."
               value={searchTerm}
@@ -181,151 +198,73 @@ export default function Cases({ theme = 'light' }) {
           </div>
         </div>
 
-        {/* Lista de Processos */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mb-4" />
-            <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
-              Carregando processos...
-            </p>
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
           </div>
         ) : filteredCases.length === 0 ? (
           <div className={`text-center py-20 border-2 border-dashed rounded-xl ${isDark ? 'border-neutral-800' : 'border-gray-300'}`}>
-            <FolderOpen className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-600' : 'text-gray-300'}`} />
-            <h3 className={`text-xl font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {cases.length === 0 ? "Nenhum processo cadastrado" : "Nenhum resultado encontrado"}
+            <FolderOpen className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+            <h3 className={`text-xl font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Nenhum processo encontrado
             </h3>
-            <p className={`mb-6 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-              {cases.length === 0 ? "Crie seu primeiro processo" : "Tente outro termo de busca"}
+            <p className={`mt-2 mb-6 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+              {cases.length === 0 ? "Crie seu primeiro processo" : "Nenhum resultado para sua busca"}
             </p>
-            {cases.length === 0 && (
-              <Button onClick={() => setShowForm(true)} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Processo
-              </Button>
-            )}
+            <Button onClick={() => setShowForm(true)}>
+              Criar processo
+            </Button>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCases.map((caseItem) => (
-              <Card
+              <CaseCard
                 key={caseItem.id}
+                caseData={caseItem}
                 onClick={() => navigate(createPageUrl("CaseDetails") + "?id=" + caseItem.id)}
-                className={`p-5 cursor-pointer hover:shadow-lg transition-all ${
-                  isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'bg-white hover:border-indigo-200'
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className={`font-semibold text-lg mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {caseItem.title}
-                    </h3>
-                    {caseItem.case_number && (
-                      <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                        <FileText className="w-3 h-3" />
-                        {caseItem.case_number}
-                      </p>
-                    )}
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(caseItem.status)}`}>
-                    {getStatusLabel(caseItem.status)}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  {caseItem.client_name && (
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                      Cliente: {caseItem.client_name}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(caseItem.priority)}`}>
-                      {caseItem.priority === 'low' ? 'Baixa' :
-                       caseItem.priority === 'medium' ? 'Média' :
-                       caseItem.priority === 'high' ? 'Alta' : 'Urgente'}
-                    </span>
-                    {caseItem.area && (
-                      <span className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-neutral-800 text-neutral-300' : 'bg-gray-100 text-gray-700'}`}>
-                        {caseItem.area}
-                      </span>
-                    )}
-                  </div>
-
-                  {caseItem.deadline && (
-                    <p className={`text-xs flex items-center gap-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                      <Calendar className="w-3 h-3" />
-                      Prazo: {new Date(caseItem.deadline).toLocaleDateString('pt-BR')}
-                    </p>
-                  )}
-                </div>
-              </Card>
+                onEdit={() => handleEdit(caseItem)}
+                theme={theme}
+              />
             ))}
           </div>
         )}
 
-        {/* Modal de Criação */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className={`max-w-2xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                Novo Processo
-              </DialogTitle>
+              <DialogTitle>{editingCase ? "Editar Processo" : "Novo Processo"}</DialogTitle>
             </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
-                    Título * <span className="text-red-500">obrigatório</span>
-                  </Label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Ação Trabalhista - Horas Extras"
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
-                    Número do Processo
-                  </Label>
-                  <Input
-                    value={formData.case_number}
-                    onChange={(e) => setFormData({...formData, case_number: e.target.value})}
-                    placeholder="0000000-00.0000.0.00.0000"
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Título *</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ex: Ação de indenização"
+                />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
-                    Cliente * <span className="text-red-500">obrigatório</span>
-                  </Label>
-                  <Select value={formData.client_id} onValueChange={handleClientChange} required>
-                    <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Cliente *</Label>
+                <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>
-                    Área do Direito * <span className="text-red-500">obrigatório</span>
-                  </Label>
-                  <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})} required>
-                    <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}>
+                  <Label>Área *</Label>
+                  <Select value={formData.area} onValueChange={(value) => setFormData({ ...formData, area: value })}>
+                    <SelectTrigger>
                       <SelectValue placeholder="Selecione a área" />
                     </SelectTrigger>
                     <SelectContent>
@@ -341,29 +280,38 @@ export default function Cases({ theme = 'light' }) {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Número do Processo</Label>
+                  <Input
+                    value={formData.case_number}
+                    onChange={(e) => setFormData({ ...formData, case_number: e.target.value })}
+                    placeholder="0000000-00.0000.0.00.0000"
+                  />
+                </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Status</Label>
-                  <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                    <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}>
+                  <Label>Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="new">Novo</SelectItem>
-                      <SelectItem value="in_progress">Em Andamento</SelectItem>
+                      <SelectItem value="in_progress">Em andamento</SelectItem>
                       <SelectItem value="waiting">Aguardando</SelectItem>
-                      <SelectItem value="closed">Encerrado</SelectItem>
+                      <SelectItem value="closed">Concluído</SelectItem>
                       <SelectItem value="archived">Arquivado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Prioridade</Label>
-                  <Select value={formData.priority} onValueChange={(v) => setFormData({...formData, priority: v})}>
-                    <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}>
+                  <Label>Prioridade</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -377,108 +325,79 @@ export default function Cases({ theme = 'light' }) {
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Descrição</Label>
+                <Label>Vara/Tribunal</Label>
+                <Input
+                  value={formData.court}
+                  onChange={(e) => setFormData({ ...formData, court: e.target.value })}
+                  placeholder="Ex: 1ª Vara Cível de São Paulo"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Parte Contrária</Label>
+                <Input
+                  value={formData.opposing_party}
+                  onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })}
+                  placeholder="Nome da parte contrária"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data de Início</Label>
+                  <Input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Prazo</Label>
+                  <Input
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Valor da Causa (R$)</Label>
+                <Input
+                  type="number"
+                  value={formData.value}
+                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Descrição</Label>
                 <Textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descreva o caso..."
-                  className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Detalhes do processo..."
                   rows={4}
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Vara/Tribunal</Label>
-                  <Input
-                    value={formData.court}
-                    onChange={(e) => setFormData({...formData, court: e.target.value})}
-                    placeholder="Ex: 5ª Vara Cível"
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Parte Contrária</Label>
-                  <Input
-                    value={formData.opposing_party}
-                    onChange={(e) => setFormData({...formData, opposing_party: e.target.value})}
-                    placeholder="Nome da parte contrária"
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Data de Início</Label>
-                  <Input
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({...formData, start_date: e.target.value})}
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Prazo</Label>
-                  <Input
-                    type="date"
-                    value={formData.deadline}
-                    onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Valor da Causa</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.value}
-                    onChange={(e) => setFormData({...formData, value: e.target.value})}
-                    placeholder="0.00"
-                    className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                  />
-                </div>
-              </div>
-
-              <div className={`p-3 rounded-lg flex items-start gap-2 ${isDark ? 'bg-blue-950/30 border border-blue-900/50' : 'bg-blue-50 border border-blue-200'}`}>
-                <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-                <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
-                  <strong>Informações Sigilosas:</strong> Este processo será visível apenas para você. 
-                  Seus dados estão protegidos conforme a LGPD.
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowForm(false);
-                    resetForm();
-                  }}
-                  className="flex-1"
-                >
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setShowForm(false)}>
                   Cancelar
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={saveMutation.isPending}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                >
+                <Button onClick={handleSave} disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Salvando...
                     </>
                   ) : (
-                    'Criar Processo'
+                    "Salvar"
                   )}
                 </Button>
               </div>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
