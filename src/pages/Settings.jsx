@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { User, Bell, Palette, Keyboard, Save, Loader2, Pencil, X, Check } from "lucide-react";
+import { User, Bell, Palette, Keyboard, Save, Loader2, Pencil, X, Check, Shield, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function Settings({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -81,6 +83,7 @@ export default function Settings({ theme = 'light' }) {
     { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'appearance', label: 'Aparência', icon: Palette },
     { id: 'shortcuts', label: 'Atalhos', icon: Keyboard },
+    { id: 'privacy', label: 'Privacidade', icon: Shield },
   ];
 
   return (
@@ -348,6 +351,52 @@ export default function Settings({ theme = 'light' }) {
                     </>
                   )}
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy Tab */}
+          {activeTab === 'privacy' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-medium text-white mb-1">Privacidade e LGPD</h2>
+                <p className="text-sm text-neutral-500">Gerencie seus dados pessoais e consentimentos</p>
+              </div>
+
+              <div className="p-4 border border-neutral-800 rounded-lg bg-neutral-900">
+                <p className="text-sm text-neutral-300 mb-4">
+                  Seus dados são protegidos conforme a Lei Geral de Proteção de Dados Pessoais (LGPD). 
+                  Você tem direitos sobre seus dados pessoais, incluindo acesso, correção e exclusão.
+                </p>
+                <div className="space-y-3">
+                  <Link to={createPageUrl("MyData")}>
+                    <Button className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Acessar Meus Dados
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl("PrivacyPolicy")} target="_blank">
+                    <Button className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Ver Política de Privacidade
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl("TermsOfService")} target="_blank">
+                    <Button className="w-full justify-start bg-neutral-800 hover:bg-neutral-700 text-white border-neutral-700">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Ver Termos de Uso
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="p-4 border border-neutral-800 rounded-lg bg-neutral-900">
+                <p className="text-xs text-neutral-500 mb-1">
+                  <strong className="text-white">Encarregado de Dados (DPO):</strong> dpo@juris.app
+                </p>
+                <p className="text-xs text-neutral-500">
+                  Para questões sobre privacidade e proteção de dados.
+                </p>
               </div>
             </div>
           )}
