@@ -27,6 +27,7 @@ import NotificationPanel from "@/components/collaboration/NotificationPanel";
 import InstallAppBanner from "@/components/common/InstallAppBanner";
 import InstallInstructionsDialog from "@/components/common/InstallInstructionsDialog";
 import PWAHead from "@/components/common/PWAHead";
+import ConsentModal from "@/components/lgpd/ConsentModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -65,6 +66,8 @@ export default function Layout({ children, currentPageName }) {
     });
 
     const [userAffiliate, setUserAffiliate] = React.useState(null);
+    const [showConsentModal, setShowConsentModal] = React.useState(false);
+    const [hasCheckedConsent, setHasCheckedConsent] = React.useState(false);
 
     React.useEffect(() => {
       base44.auth.me()
@@ -78,8 +81,19 @@ export default function Layout({ children, currentPageName }) {
               // Verificar se o usuário é um afiliado
               const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
               setUserAffiliate(affiliates[0] || null);
+
+              // Verificar consentimentos LGPD
+              const consents = await base44.entities.UserConsent.filter({ user_email: u.email });
+              const hasTermsConsent = consents.some(c => c.consent_type === 'terms_of_use' && c.accepted);
+              const hasPrivacyConsent = consents.some(c => c.consent_type === 'privacy_policy' && c.accepted);
+              
+              if (!hasTermsConsent || !hasPrivacyConsent) {
+                setShowConsentModal(true);
+              }
+              setHasCheckedConsent(true);
             } catch (err) {
               console.error("Erro ao buscar assinatura:", err);
+              setHasCheckedConsent(true);
             }
           }
         })
@@ -287,6 +301,12 @@ export default function Layout({ children, currentPageName }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("MyData")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                    <Bookmark className="w-4 h-4" />
+                    <span>Meus Dados</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to={createPageUrl("Contact")} className="flex items-center gap-2 cursor-pointer text-gray-700">
                     <MessageSquare className="w-4 h-4" />
                     <span>Contato</span>
@@ -366,6 +386,14 @@ export default function Layout({ children, currentPageName }) {
           {React.cloneElement(children, { theme })}
         </div>
       </main>
+
+      {/* Consent Modal */}
+      {hasCheckedConsent && (
+        <ConsentModal 
+          open={showConsentModal} 
+          onAccept={() => setShowConsentModal(false)} 
+        />
+      )}
     </div>
   );
 }
