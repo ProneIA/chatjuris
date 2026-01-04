@@ -61,7 +61,7 @@ export default function Cases({ theme = 'light' }) {
         return [];
       }
       console.log("🔍 [CASES] Buscando processos de:", user.email);
-      const result = await base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+      const result = await base44.entities.Case.list('-created_date');
       console.log("📁 [CASES] Processos encontrados:", result.length);
       console.log("📁 [CASES] Dados:", result);
       return result;
@@ -101,8 +101,7 @@ export default function Cases({ theme = 'light' }) {
         court: data.court || "",
         opposing_party: data.opposing_party || "",
         start_date: data.start_date || "",
-        deadline: data.deadline || "",
-        created_by: user.email
+        deadline: data.deadline || ""
       };
 
       console.log("💾 [CASES] Payload enviado:", cleanData);
