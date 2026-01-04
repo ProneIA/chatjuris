@@ -66,7 +66,7 @@ export default function CaseDetails({ caseData, onClose, onEdit, isPage = false,
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-white'}`}>
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
