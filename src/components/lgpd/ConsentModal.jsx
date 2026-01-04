@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, FileText, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
 
 export default function ConsentModal({ open, onAccept }) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -13,32 +14,40 @@ export default function ConsentModal({ open, onAccept }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAccept = async () => {
-    if (!acceptedTerms || !acceptedPrivacy) return;
+    if (!acceptedTerms || !acceptedPrivacy) {
+      toast.error("Por favor, aceite todos os termos para continuar");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       const user = await base44.auth.me();
       
       // Registrar consentimentos
-      await base44.entities.UserConsent.create({
-        user_email: user.email,
-        consent_type: "terms_of_use",
-        accepted: true,
-        accepted_at: new Date().toISOString(),
-        version: "1.0"
-      });
+      await Promise.all([
+        base44.entities.UserConsent.create({
+          user_email: user.email,
+          consent_type: "terms_of_use",
+          accepted: true,
+          accepted_at: new Date().toISOString(),
+          version: "1.0"
+        }),
+        base44.entities.UserConsent.create({
+          user_email: user.email,
+          consent_type: "privacy_policy",
+          accepted: true,
+          accepted_at: new Date().toISOString(),
+          version: "1.0"
+        })
+      ]);
 
-      await base44.entities.UserConsent.create({
-        user_email: user.email,
-        consent_type: "privacy_policy",
-        accepted: true,
-        accepted_at: new Date().toISOString(),
-        version: "1.0"
-      });
-
+      toast.success("Consentimento registrado com sucesso!");
       onAccept();
     } catch (error) {
       console.error("Erro ao registrar consentimento:", error);
+      toast.error("Erro ao salvar. Você pode continuar e aceitar depois nas configurações.");
+      // Permitir continuar mesmo com erro
+      setTimeout(() => onAccept(), 1500);
     } finally {
       setIsSubmitting(false);
     }
