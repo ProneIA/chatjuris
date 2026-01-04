@@ -75,24 +75,14 @@ export default function Dashboard({ theme = 'light' }) {
     enabled: !!user?.email
   });
 
-  const { data: rawCases = [], isLoading: loadingCases } = useQuery({
+  const { data: cases = [], isLoading: loadingCases } = useQuery({
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+      return base44.entities.Case.list('-created_date');
     },
     enabled: !!user?.email
   });
-
-  // Normaliza os dados - o SDK retorna os dados dentro de 'data'
-  const cases = rawCases
-    .filter(c => c && (c.title || (c.data && c.data.title)))
-    .map(c => {
-      if (c.data && c.data.title) {
-        return { id: c.id, created_date: c.created_date, created_by: c.created_by, ...c.data };
-      }
-      return c;
-    });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['tasks', user?.email],
