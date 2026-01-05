@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import DocumentDetailsDialog from "@/components/documents/DocumentDetailsDialog";
 
 export default function Library({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -27,6 +28,8 @@ export default function Library({ theme = 'light' }) {
   const [viewBy, setViewBy] = useState("client"); // "all", "client", "type"
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedType, setSelectedType] = useState("all");
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -195,7 +198,10 @@ export default function Library({ theme = 'light' }) {
                     document={doc}
                     clients={clients}
                     cases={cases}
-                    onClick={() => navigate(createPageUrl("DocumentsEnhanced"))}
+                    onClick={() => {
+                      setSelectedDocument(doc);
+                      setShowDocumentDialog(true);
+                    }}
                     theme={theme}
                   />
                 ))}
@@ -280,7 +286,10 @@ export default function Library({ theme = 'light' }) {
                       clients={clients}
                       cases={cases}
                       compact
-                      onClick={() => navigate(createPageUrl("DocumentsEnhanced"))}
+                      onClick={() => {
+                        setSelectedDocument(doc);
+                        setShowDocumentDialog(true);
+                      }}
                       theme={theme}
                     />
                   ))}
@@ -346,7 +355,8 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
-      className={`p-${compact ? '3' : '4'} rounded-xl border transition-all ${
+      onClick={onClick}
+      className={`p-${compact ? '3' : '4'} rounded-xl border transition-all cursor-pointer ${
         isDark 
           ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' 
           : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
@@ -387,26 +397,6 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
           <p className={`text-xs line-clamp-2 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`}>
             {document.ocr_content.substring(0, 100)}...
           </p>
-        </div>
-      )}
-      {document.file_url && (
-        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="flex-1"
-            onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Visualizar
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
-          >
-            <Download className="w-4 h-4" />
-          </Button>
         </div>
       )}
     </motion.div>
