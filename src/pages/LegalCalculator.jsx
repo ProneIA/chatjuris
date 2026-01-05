@@ -1152,13 +1152,15 @@ export default function LegalCalculator({ theme = 'light' }) {
   const [selectedArea, setSelectedArea] = useState(null);
   const [selectedCalculator, setSelectedCalculator] = useState(null);
   const [showAI, setShowAI] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [currentInputData, setCurrentInputData] = useState(null);
   const [currentResultData, setCurrentResultData] = useState(null);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
   const [showAIChatHistory, setShowAIChatHistory] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [extractedData, setExtractedData] = useState(null);
 
   // Navegação por gestos mobile
   const swipeHandlers = useSwipeable({
