@@ -171,8 +171,8 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Plano mensal usa Mercado Pago checkout
-    if (planId === "pro_monthly") {
+    // Planos mensal e anual usam Mercado Pago checkout
+    if (planId === "pro_monthly" || planId === "pro_yearly") {
       try {
         const response = await base44.functions.invoke('createMercadoPagoCheckout', { 
           planId,
@@ -187,14 +187,6 @@ export default function Pricing({ theme = 'light' }) {
       } catch (error) {
         alert('Erro ao processar checkout: ' + error.message);
       }
-      return;
-    }
-
-    // Plano anual usa Cakto
-    if (planId === "pro_yearly") {
-      const plan = plans.find(p => p.id === planId);
-      setSelectedPlan(plan);
-      setShowCaktoCheckout(true);
       return;
     }
 

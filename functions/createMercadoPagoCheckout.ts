@@ -38,6 +38,13 @@ Deno.serve(async (req) => {
         unit_price: 119.90,
         frequency: 1,
         frequency_type: "months"
+      },
+      pro_yearly: {
+        title: "Juris IA - Plano Profissional Anual",
+        description: "Acesso completo por 12 meses - Economize 2 meses",
+        unit_price: 1198.80,
+        frequency: 12,
+        frequency_type: "months"
       }
     };
 
