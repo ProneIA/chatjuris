@@ -141,7 +141,7 @@ export default function Checkout({ theme = 'light' }) {
   const onSubmit = async (formData) => {
     setProcessing(true);
     console.log('Dados do formulário Mercado Pago:', formData);
-
+    
     try {
       const response = await base44.functions.invoke('processDirectPayment', {
         formData,
