@@ -132,6 +132,21 @@ export default function ClientPortal({ theme = 'light' }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['client-portals'] }),
   });
 
+  const createUpdateMutation = useMutation({
+    mutationFn: (data) => base44.entities.CaseUpdate.create({
+      ...data,
+      author_name: user?.full_name,
+      author_email: user?.email,
+      is_visible_to_client: true
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['case-updates'] });
+      setShowUpdateDialog(false);
+      setUpdateForm({ title: "", content: "", update_type: "general", case_id: "" });
+      toast.success("Atualização criada com sucesso!");
+    },
+  });
+
   const filteredPortals = portals.filter(p =>
     p.client_name?.toLowerCase().includes(search.toLowerCase()) ||
     p.client_email?.toLowerCase().includes(search.toLowerCase())
