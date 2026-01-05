@@ -88,23 +88,84 @@ Deno.serve(async (req) => {
       }
     };
 
-    // Se for PIX, configurar método específico
+    // Se for PIX, criar pagamento direto
     if (paymentMethod === 'pix') {
-      preference.payment_methods = {
-        excluded_payment_methods: [
-          { id: "visa" },
-          { id: "master" },
-          { id: "amex" },
-          { id: "elo" }
-        ],
-        excluded_payment_types: [
-          { id: "credit_card" },
-          { id: "debit_card" },
-          { id: "ticket" }
-        ]
+      const pixPayment = {
+        transaction_amount: plan.unit_price,
+        description: plan.title,
+        payment_method_id: 'pix',
+        payer: {
+          email: user.email,
+          first_name: user.full_name?.split(' ')[0] || 'Cliente',
+          last_name: user.full_name?.split(' ').slice(1).join(' ') || 'Juris'
+        },
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+          plan_id: planId
+        }
       };
+
+      const pixResponse = await fetch('https://api.mercadopago.com/v1/payments', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(pixPayment)
+      });
+
+      if (!pixResponse.ok) {
+        const errorData = await pixResponse.json();
+        console.error('Mercado Pago PIX Error:', errorData);
+        return Response.json({ 
+          success: false,
+          error: 'Erro ao criar pagamento PIX',
+          details: errorData
+        }, { status: pixResponse.status, headers });
+      }
+
+      const pixData = await pixResponse.json();
+
+      // Criar registro de subscription pendente
+      try {
+        const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
+        
+        if (subscriptions.length > 0) {
+          await base44.entities.Subscription.update(subscriptions[0].id, {
+            plan: planId,
+            status: 'pending',
+            payment_status: 'pending',
+            payment_method: 'pix',
+            payment_external_id: pixData.id.toString(),
+            price: plan.unit_price
+          });
+        } else {
+          await base44.entities.Subscription.create({
+            user_id: user.id,
+            plan: planId,
+            status: 'pending',
+            payment_status: 'pending',
+            payment_method: 'pix',
+            payment_external_id: pixData.id.toString(),
+            price: plan.unit_price,
+            daily_actions_limit: 5,
+            daily_actions_used: 0
+          });
+        }
+      } catch (dbError) {
+        console.error('Database Error:', dbError);
+      }
+
+      return Response.json({
+        success: true,
+        payment_id: pixData.id,
+        pix_code: pixData.point_of_interaction?.transaction_data?.qr_code,
+        pix_qr_code: pixData.point_of_interaction?.transaction_data?.qr_code_base64
+      }, { headers });
     }
 
+    // Para cartão, criar preference
     const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
@@ -135,9 +196,8 @@ Deno.serve(async (req) => {
           plan: planId,
           status: 'pending',
           payment_status: 'pending',
-          payment_method: paymentMethod || 'credit_card',
+          payment_method: 'credit_card',
           payment_external_id: data.id,
-          payment_external_url: data.init_point,
           price: plan.unit_price
         });
       } else {
@@ -146,9 +206,8 @@ Deno.serve(async (req) => {
           plan: planId,
           status: 'pending',
           payment_status: 'pending',
-          payment_method: paymentMethod || 'credit_card',
+          payment_method: 'credit_card',
           payment_external_id: data.id,
-          payment_external_url: data.init_point,
           price: plan.unit_price,
           daily_actions_limit: 5,
           daily_actions_used: 0
@@ -160,7 +219,6 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      checkout_url: data.init_point,
       preference_id: data.id
     }, { headers });
 
