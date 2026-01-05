@@ -150,7 +150,8 @@ export default function ClientAccess() {
       base44.entities.ClientPortalAccess.update(portal.id, {
         permissions: newPermissions
       }),
-    onSuccess: () => {
+    onSuccess: (updatedPortal) => {
+      setPortal({ ...portal, permissions: updatedPortal.permissions });
       queryClient.invalidateQueries({ queryKey: ['client-portal-access'] });
       toast.success("Permissão atualizada!");
     },
