@@ -7,6 +7,101 @@ import { toast } from "sonner";
 
 export default function DocumentDetailsDialog({ document, isOpen, onClose, theme = 'light' }) {
   const isDark = theme === 'dark';
+
+  const exportToPDF = () => {
+    if (!document) return;
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    
+    // Título
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(document.title || 'Documento', margin, margin);
+    
+    // Tipo e data
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    let yPos = margin + 10;
+    doc.text(`Tipo: ${document.type || 'N/A'}`, margin, yPos);
+    yPos += 6;
+    doc.text(`Criado em: ${new Date(document.created_date).toLocaleDateString('pt-BR')}`, margin, yPos);
+    yPos += 10;
+    
+    // Conteúdo
+    if (document.content) {
+      doc.setFontSize(11);
+      const lines = doc.splitTextToSize(document.content, maxWidth);
+      
+      lines.forEach(line => {
+        if (yPos > 280) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, margin, yPos);
+        yPos += 6;
+      });
+    }
+    
+    // OCR Content
+    if (document.ocr_content) {
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      yPos += 10;
+      doc.setFont(undefined, 'bold');
+      doc.text('Texto Extraído (OCR):', margin, yPos);
+      yPos += 8;
+      doc.setFont(undefined, 'normal');
+      
+      const ocrLines = doc.splitTextToSize(document.ocr_content, maxWidth);
+      ocrLines.forEach(line => {
+        if (yPos > 280) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, margin, yPos);
+        yPos += 6;
+      });
+    }
+    
+    doc.save(`${document.title || 'documento'}.pdf`);
+    toast.success('PDF gerado com sucesso!');
+  };
+
+  const exportToWord = () => {
+    if (!document) return;
+    
+    let content = `${document.title || 'Documento'}\n\n`;
+    content += `Tipo: ${document.type || 'N/A'}\n`;
+    content += `Data de Criação: ${new Date(document.created_date).toLocaleDateString('pt-BR')}\n\n`;
+    
+    if (document.content) {
+      content += `CONTEÚDO:\n${document.content}\n\n`;
+    }
+    
+    if (document.ocr_content) {
+      content += `TEXTO EXTRAÍDO (OCR):\n${document.ocr_content}\n\n`;
+    }
+    
+    if (document.notes) {
+      content += `OBSERVAÇÕES:\n${document.notes}\n`;
+    }
+    
+    const blob = new Blob([content], { type: 'application/msword' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${document.title || 'documento'}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast.success('Documento Word exportado!');
+  };
   const [copied, setCopied] = React.useState(false);
 
   if (!document) return null;
