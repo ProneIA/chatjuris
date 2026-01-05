@@ -23,7 +23,8 @@ import {
   ChevronRight,
   Loader2,
   Shield,
-  Heart
+  Heart,
+  Settings
 } from "lucide-react";
 import { formatLocalDate, formatLocalDateTime } from "@/components/common/DateFormatter";
 import { toast } from "sonner";
