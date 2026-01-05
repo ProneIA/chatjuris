@@ -288,7 +288,7 @@ export default function LandingPage() {
               <div className="text-center">
                 <p className="text-gray-500 text-xs sm:text-sm mb-2">A partir de</p>
                 <p className="text-4xl sm:text-5xl font-light text-gray-900 mb-2">
-                  R$ 49<span className="text-xl sm:text-2xl">,99</span>
+                  R$ 99<span className="text-xl sm:text-2xl">,90</span>
                 </p>
                 <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8">/mês</p>
                 
