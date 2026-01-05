@@ -1,13 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
-const MP_API_BASE = "https://api.mercadopago.com";
-
 Deno.serve(async (req) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
   if (req.method === 'OPTIONS') {
@@ -16,163 +13,117 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const currentUser = await base44.auth.me();
+    const user = await base44.auth.me();
 
-    if (!currentUser) {
+    if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
-    const { 
-      token, 
-      payment_method_id, 
-      installments, 
-      issuer_id, 
-      transaction_amount,
-      payer,
-      planId, 
-      userEmail 
-    } = await req.json();
+    const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+    if (!MP_ACCESS_TOKEN) {
+      return Response.json({ 
+        error: 'Mercado Pago não configurado' 
+      }, { status: 500, headers });
+    }
 
-    console.log('Dados recebidos:', { planId, payment_method_id, installments, userEmail });
+    const body = await req.json();
+    const { formData, planId, userEmail } = body;
 
-    const plans = {
-      pro_monthly: { name: "Pro Mensal", price: 119.90 },
-      pro_yearly: { name: "Pro Anual", price: 1198.80 }
+    const priceMap = {
+      pro_monthly: 119.9,
+      pro_yearly: 1198.8
     };
 
-    const plan = plans[planId];
-    if (!plan) {
+    const price = priceMap[planId];
+    if (!price) {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
 
-    // Criar pagamento com dados do Mercado Pago SDK
+    // Criar pagamento com dados do CardPayment
     const paymentData = {
-      transaction_amount: transaction_amount || plan.price,
-      description: `Assinatura ${plan.name} - Juris`,
-      payment_method_id: payment_method_id,
-      token: token,
-      installments: installments || 1,
-      issuer_id: issuer_id,
+      transaction_amount: price,
+      token: formData.token,
+      installments: formData.installments,
+      payment_method_id: formData.payment_method_id,
+      issuer_id: formData.issuer_id,
       payer: {
-        email: payer?.email || userEmail,
-        identification: payer?.identification
+        email: userEmail
       },
       metadata: {
-        user_email: userEmail,
-        plan_id: planId
+        plan_id: planId,
+        user_email: userEmail
       }
     };
 
-    console.log('Criando pagamento no Mercado Pago:', { 
-      payment_method_id, 
-      installments, 
-      amount: paymentData.transaction_amount 
-    });
-
-    const response = await fetch(`${MP_API_BASE}/v1/payments`, {
+    const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
-        'X-Idempotency-Key': `${userEmail}-${planId}-${Date.now()}`
+        'X-Idempotency-Key': `${user.id}-card-${Date.now()}`
       },
       body: JSON.stringify(paymentData)
     });
 
-    const paymentResult = await response.json();
-    console.log('Resposta do Mercado Pago:', { 
-      status: paymentResult.status, 
-      id: paymentResult.id,
-      status_detail: paymentResult.status_detail
-    });
+    const data = await response.json();
 
     if (!response.ok) {
-      return Response.json({
-        success: false,
-        error: paymentResult.message || 'Erro ao processar pagamento',
-        details: paymentResult
+      console.error('Mercado Pago Error:', data);
+      return Response.json({ 
+        status: 'error',
+        error: data.message || 'Erro ao processar pagamento',
+        details: data
       }, { status: response.status, headers });
     }
 
-    // Buscar usuário pelo email para criar subscription
-    const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
-    const user = users[0];
-
-    if (!user) {
-      return Response.json({
-        success: false,
-        error: 'Usuário não encontrado'
-      }, { status: 404, headers });
+    // Atualizar subscription se aprovado
+    if (data.status === 'approved') {
+      try {
+        const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
+        
+        if (subscriptions.length > 0) {
+          await base44.entities.Subscription.update(subscriptions[0].id, {
+            plan: planId,
+            status: 'active',
+            payment_status: 'paid',
+            payment_method: 'credit_card',
+            payment_external_id: data.id.toString(),
+            price,
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            start_date: new Date().toISOString().split('T')[0],
+            last_reset_date: new Date().toISOString().split('T')[0]
+          });
+        } else {
+          await base44.entities.Subscription.create({
+            user_id: user.id,
+            plan: planId,
+            status: 'active',
+            payment_status: 'paid',
+            payment_method: 'credit_card',
+            payment_external_id: data.id.toString(),
+            price,
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            start_date: new Date().toISOString().split('T')[0],
+            last_reset_date: new Date().toISOString().split('T')[0]
+          });
+        }
+      } catch (dbError) {
+        console.error('Database Error:', dbError);
+      }
     }
 
-    // Criar ou atualizar subscription
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ 
-      user_id: user.id 
-    });
-
-    const subscriptionData = {
-      user_id: user.id,
-      plan: planId.startsWith('pro') ? 'pro' : planId,
-      status: paymentResult.status === 'approved' ? 'active' : 'pending',
-      payment_status: paymentResult.status === 'approved' ? 'paid' : 'pending',
-      payment_external_id: paymentResult.id?.toString(),
-      payment_method: paymentMethod,
-      price: plan.price,
-      daily_actions_limit: paymentResult.status === 'approved' ? 999999 : 5,
-      daily_actions_used: 0,
-      last_reset_date: new Date().toISOString().split('T')[0],
-      start_date: paymentResult.status === 'approved' ? new Date().toISOString().split('T')[0] : null,
-      next_billing_date: paymentResult.status === 'approved' ? calculateNextBillingDate(planId) : null
-    };
-
-    if (subscriptions.length > 0) {
-      await base44.asServiceRole.entities.Subscription.update(
-        subscriptions[0].id, 
-        subscriptionData
-      );
-    } else {
-      await base44.asServiceRole.entities.Subscription.create(subscriptionData);
-    }
-
-    // Retornar resultado
-    if (paymentResult.status === 'approved') {
-      return Response.json({
-        success: true,
-        status: 'approved',
-        payment_id: paymentResult.id
-      }, { headers });
-    } else if (paymentResult.status === 'pending' && paymentResult.payment_type_id === 'pix') {
-      return Response.json({
-        success: true,
-        status: 'pending',
-        payment_id: paymentResult.id,
-        qr_code: paymentResult.point_of_interaction?.transaction_data?.qr_code,
-        qr_code_base64: paymentResult.point_of_interaction?.transaction_data?.qr_code_base64
-      }, { headers });
-    } else {
-      return Response.json({
-        success: false,
-        status: paymentResult.status,
-        error: 'Pagamento não aprovado',
-        details: paymentResult
-      }, { headers });
-    }
+    return Response.json({
+      status: data.status,
+      payment_id: data.id
+    }, { headers });
 
   } catch (error) {
-    console.error('Error processing payment:', error);
+    console.error('Error:', error);
     return Response.json({ 
-      success: false,
+      status: 'error',
       error: error.message 
     }, { status: 500, headers });
   }
 });
-
-function calculateNextBillingDate(planId) {
-  const next = new Date();
-  if (planId === 'pro_yearly') {
-    next.setFullYear(next.getFullYear() + 1);
-  } else {
-    next.setMonth(next.getMonth() + 1);
-  }
-  return next.toISOString().split('T')[0];
-}
