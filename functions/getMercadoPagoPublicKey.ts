@@ -15,44 +15,28 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     await base44.auth.me();
 
-    // Retornar a chave pública do Mercado Pago
-    // A chave pública pode ser derivada do access token ou configurada separadamente
-    const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
+    // Buscar Public Key diretamente da variável de ambiente
+    const publicKey = Deno.env.get('MP_PUBLIC_KEY');
     
-    if (!accessToken) {
+    if (!publicKey) {
       return Response.json({ 
-        error: 'Mercado Pago não configurado' 
+        error: 'MP_PUBLIC_KEY não configurada. Configure nas variáveis de ambiente.',
+        success: false
       }, { status: 500, headers });
     }
 
-    // Buscar informações da conta para obter a public key
-    const response = await fetch('https://api.mercadopago.com/v1/account/credentials', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      return Response.json({ 
-        error: 'Erro ao buscar credenciais' 
-      }, { status: response.status, headers });
-    }
-
-    const credentials = await response.json();
+    console.log('Public key retornada:', publicKey.substring(0, 20) + '...');
     
-    // A public key geralmente está em credentials.public_key
-    // Se não estiver disponível, precisamos usar uma public key pré-configurada
-    const publicKey = credentials.public_key || Deno.env.get('MERCADOPAGO_PUBLIC_KEY');
-
     return Response.json({
       success: true,
       publicKey
     }, { headers });
 
   } catch (error) {
+    console.error('Erro ao buscar public key:', error);
     return Response.json({ 
-      error: error.message 
+      error: error.message,
+      success: false
     }, { status: 500, headers });
   }
 });
