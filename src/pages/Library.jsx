@@ -380,27 +380,6 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
               )}
             </div>
           )}
-          {document.file_url && (
-            <div className="flex gap-1 mt-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 px-2 text-xs"
-                onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
-              >
-                <Eye className="w-3 h-3 mr-1" />
-                Visualizar
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 px-2 text-xs"
-                onClick={(e) => { e.stopPropagation(); onClick(); }}
-              >
-                Ver Detalhes
-              </Button>
-            </div>
-          )}
         </div>
       </div>
       {document.ocr_content && !compact && (
@@ -408,6 +387,26 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
           <p className={`text-xs line-clamp-2 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`}>
             {document.ocr_content.substring(0, 100)}...
           </p>
+        </div>
+      )}
+      {document.file_url && (
+        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="flex-1"
+            onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Visualizar
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
+          >
+            <Download className="w-4 h-4" />
+          </Button>
         </div>
       )}
     </motion.div>
