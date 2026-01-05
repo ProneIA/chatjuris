@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
 
 export default function Library({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -106,6 +107,96 @@ export default function Library({ theme = 'light' }) {
   });
 
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
+
+  const exportDocToPDF = (doc) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    
+    // Title
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(doc.title || 'Documento', margin, margin);
+    
+    // Info
+    pdf.setFontSize(10);
+    pdf.setFont(undefined, 'normal');
+    let yPos = margin + 10;
+    pdf.text(`Tipo: ${doc.type || 'N/A'}`, margin, yPos);
+    yPos += 6;
+    pdf.text(`Criado em: ${new Date(doc.created_date).toLocaleDateString('pt-BR')}`, margin, yPos);
+    yPos += 10;
+    
+    // Content
+    if (doc.content) {
+      pdf.setFontSize(11);
+      const lines = pdf.splitTextToSize(doc.content, maxWidth);
+      lines.forEach(line => {
+        if (yPos > 280) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        pdf.text(line, margin, yPos);
+        yPos += 6;
+      });
+    }
+    
+    // OCR
+    if (doc.ocr_content) {
+      if (yPos > 270) {
+        pdf.addPage();
+        yPos = 20;
+      }
+      yPos += 10;
+      pdf.setFont(undefined, 'bold');
+      pdf.text('Texto Extraído (OCR):', margin, yPos);
+      yPos += 8;
+      pdf.setFont(undefined, 'normal');
+      
+      const ocrLines = pdf.splitTextToSize(doc.ocr_content, maxWidth);
+      ocrLines.forEach(line => {
+        if (yPos > 280) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        pdf.text(line, margin, yPos);
+        yPos += 6;
+      });
+    }
+    
+    pdf.save(`${doc.title || 'documento'}.pdf`);
+    toast.success('PDF exportado!');
+  };
+
+  const exportDocToWord = (doc) => {
+    let content = `${doc.title || 'Documento'}\n\n`;
+    content += `Tipo: ${doc.type || 'N/A'}\n`;
+    content += `Data: ${new Date(doc.created_date).toLocaleDateString('pt-BR')}\n\n`;
+    
+    if (doc.content) {
+      content += `CONTEÚDO:\n${doc.content}\n\n`;
+    }
+    
+    if (doc.ocr_content) {
+      content += `TEXTO EXTRAÍDO (OCR):\n${doc.ocr_content}\n\n`;
+    }
+    
+    if (doc.notes) {
+      content += `OBSERVAÇÕES:\n${doc.notes}\n`;
+    }
+    
+    const blob = new Blob([content], { type: 'application/msword' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${doc.title || 'documento'}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast.success('Word exportado!');
+  };
 
   return (
     <div className={`min-h-screen p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
@@ -364,7 +455,7 @@ export default function Library({ theme = 'light' }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {selectedDocument.file_url && (
                     <>
                       <Button
@@ -392,17 +483,34 @@ export default function Library({ theme = 'light' }) {
                       </Button>
                     </>
                   )}
-                  {selectedDocument.content && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(selectedDocument.content);
-                        toast.success('Conteúdo copiado!');
-                      }}
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copiar Texto
-                    </Button>
+                  {(selectedDocument.content || selectedDocument.ocr_content) && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const contentToCopy = selectedDocument.content || selectedDocument.ocr_content;
+                          navigator.clipboard.writeText(contentToCopy);
+                          toast.success('Conteúdo copiado!');
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copiar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => exportDocToPDF(selectedDocument)}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        PDF
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => exportDocToWord(selectedDocument)}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Word
+                      </Button>
+                    </>
                   )}
                 </div>
 

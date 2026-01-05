@@ -167,62 +167,6 @@ Gere o documento completo agora:`;
     setIsGenerating(false);
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const maxWidth = pageWidth - 2 * margin;
-    
-    // Remove HTML tags for PDF
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = generatedContent;
-    const textContent = tempDiv.textContent || tempDiv.innerText || "";
-    
-    // Título
-    doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text(formData.title || 'Documento', margin, margin);
-    
-    // Conteúdo
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'normal');
-    let yPos = margin + 10;
-    
-    const lines = doc.splitTextToSize(textContent, maxWidth);
-    lines.forEach(line => {
-      if (yPos > 280) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.text(line, margin, yPos);
-      yPos += 6;
-    });
-    
-    doc.save(`${formData.title || 'documento'}.pdf`);
-    toast.success('PDF gerado com sucesso!');
-  };
-
-  const exportToWord = () => {
-    // Remove HTML tags for Word
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = generatedContent;
-    const textContent = tempDiv.textContent || tempDiv.innerText || "";
-    
-    let content = `${formData.title || 'Documento'}\n\n`;
-    content += textContent;
-    
-    const blob = new Blob([content], { type: 'application/msword' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${formData.title || 'documento'}.doc`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    toast.success('Documento Word exportado!');
-  };
-
   const saveDocument = async () => {
     try {
       await base44.entities.LegalDocument.create({
@@ -253,6 +197,62 @@ Gere o documento completo agora:`;
       console.error("Erro ao salvar documento:", error);
       toast.error("Erro ao salvar documento. Tente novamente.");
     }
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    
+    // Remove HTML tags from content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Title
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(formData.title || 'Documento', margin, margin);
+    
+    // Content
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    let yPos = margin + 10;
+    
+    const lines = doc.splitTextToSize(plainText, maxWidth);
+    lines.forEach(line => {
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.text(line, margin, yPos);
+      yPos += 6;
+    });
+    
+    doc.save(`${formData.title || 'documento'}.pdf`);
+    toast.success('PDF exportado com sucesso!');
+  };
+
+  const exportToWord = () => {
+    // Remove HTML tags from content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedContent;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    
+    let content = `${formData.title || 'Documento'}\n\n`;
+    content += plainText;
+    
+    const blob = new Blob([content], { type: 'application/msword' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${formData.title || 'documento'}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast.success('Documento Word exportado!');
   };
 
   return (
@@ -491,7 +491,7 @@ Gere o documento completo agora:`;
                 />
               </div>
 
-              <div className="flex justify-between gap-3 pt-4 mt-20 flex-wrap">
+              <div className="flex flex-wrap justify-between gap-3 pt-4 mt-20">
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
