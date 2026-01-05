@@ -70,22 +70,27 @@ export default function Checkout({ theme = 'light' }) {
     if (paymentMethod === "pix") {
       setProcessing(true);
       try {
+        console.log('Iniciando pagamento PIX...', { planId, userEmail: user.email });
         const response = await base44.functions.invoke('createPixPayment', { 
           planId,
           userEmail: user.email,
           userName: user.full_name
         });
 
-        if (response.data.success) {
-          setPixCode(response.data.pix_code);
-          setPixQrCode(response.data.pix_qr_code);
+        console.log('Resposta PIX:', response.data);
+
+        if (response.data?.success) {
+          setPixCode(response.data.qr_code);
+          setPixQrCode(response.data.qr_code_base64);
           setShowPaymentForm(true);
         } else {
-          alert('Erro ao gerar PIX. Tente novamente.');
+          console.error('Erro na resposta PIX:', response.data);
+          alert('Erro ao gerar PIX: ' + (response.data?.error || 'Tente novamente'));
         }
-        setProcessing(false);
       } catch (error) {
-        alert('Erro: ' + error.message);
+        console.error('Erro ao gerar PIX:', error);
+        alert('Erro ao gerar PIX: ' + error.message);
+      } finally {
         setProcessing(false);
       }
     } else {
