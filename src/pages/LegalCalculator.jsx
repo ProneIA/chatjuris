@@ -12,6 +12,7 @@ import { base44 } from "@/api/base44Client";
 
 // Componentes de calculadora
 import AICalculatorAssistant from "../components/calculator/AICalculatorAssistant";
+import CurrencyInput, { NumberInput } from "../components/calculator/CurrencyInput";
 import CustasCalculator from "../components/calculator/CustasCalculator";
 import AtualizacaoCalculator from "../components/calculator/AtualizacaoCalculator";
 import IndenizacaoCalculator from "../components/calculator/IndenizacaoCalculator";
@@ -256,11 +257,10 @@ function JurosCalculator({ isDark }) {
 
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Valor Principal (R$)</Label>
-          <Input
-            type="number"
-            placeholder="Ex: 10000"
+          <CurrencyInput
+            placeholder="Ex: 10.000,00"
             value={valorPrincipal}
-            onChange={(e) => setValorPrincipal(e.target.value)}
+            onChange={setValorPrincipal}
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
@@ -268,11 +268,11 @@ function JurosCalculator({ isDark }) {
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Taxa de Juros (%)</Label>
           <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Ex: 1"
+            <NumberInput
+              placeholder="Ex: 1,5"
               value={taxaJuros}
-              onChange={(e) => setTaxaJuros(e.target.value)}
+              onChange={setTaxaJuros}
+              decimals={4}
               className={`flex-1 ${isDark ? "bg-neutral-900 border-neutral-700" : ""}`}
             />
             <Select value={taxaTipo} onValueChange={setTaxaTipo}>
@@ -538,11 +538,10 @@ function TrabalhistaCalculator({ isDark }) {
 
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Salário Bruto (R$)</Label>
-          <Input
-            type="number"
-            placeholder="Ex: 3000"
+          <CurrencyInput
+            placeholder="Ex: 3.000,00"
             value={salario}
-            onChange={(e) => setSalario(e.target.value)}
+            onChange={setSalario}
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
@@ -796,22 +795,21 @@ function HonorariosCalculator({ isDark }) {
 
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Valor da Causa (R$)</Label>
-          <Input
-            type="number"
-            placeholder="Ex: 50000"
+          <CurrencyInput
+            placeholder="Ex: 50.000,00"
             value={valorCausa}
-            onChange={(e) => setValorCausa(e.target.value)}
+            onChange={setValorCausa}
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
 
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Percentual (%)</Label>
-          <Input
-            type="number"
-            placeholder="Ex: 15"
+          <NumberInput
+            placeholder="Ex: 15,00"
             value={percentual}
-            onChange={(e) => setPercentual(e.target.value)}
+            onChange={setPercentual}
+            decimals={2}
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
