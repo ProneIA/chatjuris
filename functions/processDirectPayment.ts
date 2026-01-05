@@ -22,7 +22,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
-    const { planId, paymentMethod, formData, user } = await req.json();
+    const { 
+      token, 
+      payment_method_id, 
+      installments, 
+      issuer_id, 
+      transaction_amount,
+      payer,
+      planId, 
+      userEmail 
+    } = await req.json();
+
+    console.log('Dados recebidos:', { planId, payment_method_id, installments, userEmail });
 
     const plans = {
       pro_monthly: { name: "Pro Mensal", price: 119.90 },
@@ -34,35 +45,46 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
 
-    // Criar pagamento direto
+    // Criar pagamento com dados do Mercado Pago SDK
     const paymentData = {
-      transaction_amount: plan.price,
+      transaction_amount: transaction_amount || plan.price,
       description: `Assinatura ${plan.name} - Juris`,
-      payment_method_id: formData.payment_method_id,
-      token: formData.token,
-      installments: formData.installments || 1,
+      payment_method_id: payment_method_id,
+      token: token,
+      installments: installments || 1,
+      issuer_id: issuer_id,
       payer: {
-        email: user.email,
-        identification: formData.payer?.identification
+        email: payer?.email || userEmail,
+        identification: payer?.identification
       },
       metadata: {
-        user_id: user.id,
-        user_email: user.email,
+        user_email: userEmail,
         plan_id: planId
       }
     };
+
+    console.log('Criando pagamento no Mercado Pago:', { 
+      payment_method_id, 
+      installments, 
+      amount: paymentData.transaction_amount 
+    });
 
     const response = await fetch(`${MP_API_BASE}/v1/payments`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
-        'X-Idempotency-Key': `${user.id}-${planId}-${Date.now()}`
+        'X-Idempotency-Key': `${userEmail}-${planId}-${Date.now()}`
       },
       body: JSON.stringify(paymentData)
     });
 
     const paymentResult = await response.json();
+    console.log('Resposta do Mercado Pago:', { 
+      status: paymentResult.status, 
+      id: paymentResult.id,
+      status_detail: paymentResult.status_detail
+    });
 
     if (!response.ok) {
       return Response.json({
@@ -70,6 +92,17 @@ Deno.serve(async (req) => {
         error: paymentResult.message || 'Erro ao processar pagamento',
         details: paymentResult
       }, { status: response.status, headers });
+    }
+
+    // Buscar usuário pelo email para criar subscription
+    const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+    const user = users[0];
+
+    if (!user) {
+      return Response.json({
+        success: false,
+        error: 'Usuário não encontrado'
+      }, { status: 404, headers });
     }
 
     // Criar ou atualizar subscription

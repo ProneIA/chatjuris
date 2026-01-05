@@ -35,6 +35,7 @@ export default function Checkout({ theme = 'light' }) {
   const [processing, setProcessing] = React.useState(false);
   const [paymentMethod, setPaymentMethod] = React.useState("credit_card");
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
+  const [mpReady, setMpReady] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [pixCode, setPixCode] = React.useState(null);
   const [pixQrCode, setPixQrCode] = React.useState(null);
@@ -48,17 +49,34 @@ export default function Checkout({ theme = 'light' }) {
       .then(setUser)
       .catch(() => navigate(createPageUrl("Pricing")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [navigate]);
+
+  React.useEffect(() => {
+    if (!loading && !plan) {
+      navigate(createPageUrl("Pricing"));
+    }
+  }, [loading, plan, navigate]);
 
   React.useEffect(() => {
     const loadMercadoPago = async () => {
       try {
         const response = await base44.functions.invoke('getMercadoPagoPublicKey');
         const publicKey = response.data.publicKey;
+        
+        if (!publicKey || (!publicKey.startsWith('TEST-') && !publicKey.startsWith('APP_USR-'))) {
+          console.error('Public Key inválida:', publicKey);
+          alert('Erro na configuração do Mercado Pago. Contate o suporte.');
+          return;
+        }
+        
         setMpPublicKey(publicKey);
         initMercadoPago(publicKey, { locale: 'pt-BR' });
+        
+        // Aguardar SDK inicializar
+        setTimeout(() => setMpReady(true), 500);
       } catch (error) {
         console.error('Erro ao carregar Mercado Pago:', error);
+        alert('Erro ao carregar sistema de pagamento. Tente novamente.');
       }
     };
     loadMercadoPago();
@@ -77,48 +95,62 @@ export default function Checkout({ theme = 'light' }) {
           userName: user.full_name
         });
 
-        console.log('Resposta PIX:', response.data);
+        console.log('Resposta PIX completa:', response.data);
 
         if (response.data?.success && response.data.qr_code) {
           setPixCode(response.data.qr_code);
           setPixQrCode(response.data.qr_code_base64);
+          setProcessing(false);
           setShowPaymentForm(true);
         } else {
+          setProcessing(false);
           console.error('Erro na resposta PIX:', response.data);
           alert('Erro ao gerar PIX: ' + (response.data?.error || 'QR Code não gerado'));
         }
       } catch (error) {
+        setProcessing(false);
         console.error('Erro ao gerar PIX:', error);
         alert('Erro ao gerar PIX: ' + error.message);
-      } finally {
-        setProcessing(false);
       }
     } else {
+      if (!mpReady) {
+        alert('Sistema de pagamento ainda carregando. Aguarde...');
+        return;
+      }
       setShowPaymentForm(true);
     }
   };
 
   const onSubmit = async (formData) => {
     setProcessing(true);
+    console.log('Dados do formulário Mercado Pago:', formData);
+    
     try {
       const response = await base44.functions.invoke('processDirectPayment', {
-        formData,
+        token: formData.token,
+        payment_method_id: formData.payment_method_id,
+        installments: formData.installments,
+        issuer_id: formData.issuer_id,
+        transaction_amount: formData.transaction_amount,
+        payer: formData.payer,
         planId,
-        userId: user.id,
         userEmail: user.email
       });
 
-      if (response.data.status === 'approved') {
+      console.log('Resposta do pagamento:', response.data);
+
+      if (response.data?.status === 'approved') {
         navigate(createPageUrl("PaymentSuccess") + "?status=success");
-      } else if (response.data.status === 'pending') {
+      } else if (response.data?.status === 'pending') {
         navigate(createPageUrl("PaymentSuccess") + "?status=pending");
       } else {
-        alert(response.data.error || 'Pagamento não aprovado. Verifique os dados e tente novamente.');
         setProcessing(false);
+        alert(response.data?.error || 'Pagamento não aprovado. Verifique os dados e tente novamente.');
       }
     } catch (error) {
-      alert('Erro ao processar pagamento: ' + error.message);
       setProcessing(false);
+      console.error('Erro ao processar pagamento:', error);
+      alert('Erro ao processar pagamento: ' + error.message);
     }
   };
 
@@ -143,8 +175,7 @@ export default function Checkout({ theme = 'light' }) {
     );
   }
 
-  if (!plan) {
-    navigate(createPageUrl("Pricing"));
+  if (!loading && !plan) {
     return null;
   }
 
@@ -330,18 +361,18 @@ export default function Checkout({ theme = 'light' }) {
                   {/* Checkout Button */}
                   <Button
                     onClick={handleInitiateCheckout}
-                    disabled={processing}
-                    className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                    disabled={processing || (paymentMethod === 'credit_card' && !mpReady)}
+                    className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {processing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Processando...
+                        {paymentMethod === 'pix' ? 'Gerando PIX...' : 'Processando...'}
                       </>
                     ) : !mpPublicKey ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Carregando...
+                        Carregando sistema de pagamento...
                       </>
                     ) : (
                       `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
@@ -399,7 +430,7 @@ export default function Checkout({ theme = 'light' }) {
                         Após o pagamento, sua assinatura será ativada automaticamente.
                       </p>
                     </div>
-                  ) : paymentMethod === "credit_card" && mpPublicKey ? (
+                  ) : paymentMethod === "credit_card" && mpReady ? (
                     <div className="space-y-4">
                       <CardPayment
                         initialization={{ 
@@ -431,8 +462,11 @@ export default function Checkout({ theme = 'light' }) {
                       )}
                     </div>
                   ) : (
-                    <div className="flex justify-center py-8">
+                    <div className="flex flex-col items-center justify-center py-8 gap-3">
                       <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Carregando formulário de pagamento...
+                      </p>
                     </div>
                   )}
                 </>
