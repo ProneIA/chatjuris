@@ -10,6 +10,31 @@ import { jsPDF } from "jspdf";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
+// Funções auxiliares para formatação brasileira
+const formatarNumero = (valor) => {
+  if (!valor && valor !== 0) return '';
+  const numero = typeof valor === 'string' ? parseFloat(valor.replace(/\./g, '').replace(',', '.')) : valor;
+  if (isNaN(numero)) return '';
+  return numero.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const parseNumero = (valor) => {
+  if (!valor) return 0;
+  const str = valor.toString().replace(/\./g, '').replace(',', '.');
+  return parseFloat(str) || 0;
+};
+
+const formatarNumeroInput = (e, setter) => {
+  const valor = e.target.value;
+  const apenasNumeros = valor.replace(/[^\d]/g, '');
+  if (apenasNumeros === '') {
+    setter('');
+    return;
+  }
+  const numero = parseInt(apenasNumeros) / 100;
+  setter(formatarNumero(numero));
+};
+
 // Componentes de calculadora
 import AICalculatorAssistant from "../components/calculator/AICalculatorAssistant";
 import CurrencyInput, { NumberInput } from "../components/calculator/CurrencyInput";
