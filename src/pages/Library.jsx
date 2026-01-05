@@ -12,17 +12,13 @@ import {
   Tag,
   LinkIcon,
   Eye,
-  Download,
-  Copy,
-  X,
-  ExternalLink
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import DocumentDetailsDialog from "@/components/documents/DocumentDetailsDialog";
 
 export default function Library({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -33,6 +29,7 @@ export default function Library({ theme = 'light' }) {
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedType, setSelectedType] = useState("all");
   const [selectedDocument, setSelectedDocument] = useState(null);
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -201,7 +198,10 @@ export default function Library({ theme = 'light' }) {
                     document={doc}
                     clients={clients}
                     cases={cases}
-                    onClick={() => setSelectedDocument(doc)}
+                    onClick={() => {
+                      setSelectedDocument(doc);
+                      setShowDocumentDialog(true);
+                    }}
                     theme={theme}
                   />
                 ))}
@@ -248,7 +248,10 @@ export default function Library({ theme = 'light' }) {
                         clients={clients}
                         cases={cases}
                         compact
-                        onClick={() => navigate(createPageUrl("DocumentsEnhanced"))}
+                        onClick={() => {
+                          setSelectedDocument(doc);
+                          setShowDocumentDialog(true);
+                        }}
                         theme={theme}
                       />
                     ))}
@@ -286,7 +289,10 @@ export default function Library({ theme = 'light' }) {
                       clients={clients}
                       cases={cases}
                       compact
-                      onClick={() => setSelectedDocument(doc)}
+                      onClick={() => {
+                        setSelectedDocument(doc);
+                        setShowDocumentDialog(true);
+                      }}
                       theme={theme}
                     />
                   ))}
@@ -326,7 +332,10 @@ export default function Library({ theme = 'light' }) {
                         clients={clients}
                         cases={cases}
                         compact
-                        onClick={() => setSelectedDocument(doc)}
+                        onClick={() => {
+                          setSelectedDocument(doc);
+                          setShowDocumentDialog(true);
+                        }}
                         theme={theme}
                       />
                     ))}
@@ -336,139 +345,17 @@ export default function Library({ theme = 'light' }) {
             })}
           </div>
         )}
-
-        {/* Document Viewer Dialog */}
-        <Dialog open={!!selectedDocument} onOpenChange={() => setSelectedDocument(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>{selectedDocument?.title}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedDocument(null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </DialogTitle>
-            </DialogHeader>
-            
-            {selectedDocument && (
-              <div className="space-y-4">
-                {/* Document Info */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge>{selectedDocument.type || 'Documento'}</Badge>
-                  {selectedDocument.status && (
-                    <Badge variant="outline">{selectedDocument.status}</Badge>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  {selectedDocument.file_url && (
-                    <>
-                      <Button
-                        variant="default"
-                        onClick={() => window.open(selectedDocument.file_url, '_blank')}
-                        className="flex-1"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Abrir Arquivo
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = selectedDocument.file_url;
-                          link.download = selectedDocument.title || 'documento';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                          toast.success('Download iniciado!');
-                        }}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar
-                      </Button>
-                    </>
-                  )}
-                  {selectedDocument.content && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        navigator.clipboard.writeText(selectedDocument.content);
-                        toast.success('Conteúdo copiado!');
-                      }}
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copiar Texto
-                    </Button>
-                  )}
-                </div>
-
-                {/* Document Content */}
-                {selectedDocument.content && (
-                  <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-gray-50 border-gray-200'}`}>
-                    <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Conteúdo do Documento
-                    </h3>
-                    <div className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                      <pre className="whitespace-pre-wrap text-sm">{selectedDocument.content}</pre>
-                    </div>
-                  </div>
-                )}
-
-                {/* OCR Content */}
-                {selectedDocument.ocr_content && (
-                  <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-gray-50 border-gray-200'}`}>
-                    <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Texto Extraído (OCR)
-                    </h3>
-                    <div className={`prose max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                      <pre className="whitespace-pre-wrap text-sm">{selectedDocument.ocr_content}</pre>
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
-                {selectedDocument.notes && (
-                  <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-gray-50 border-gray-200'}`}>
-                    <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Observações
-                    </h3>
-                    <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                      {selectedDocument.notes}
-                    </p>
-                  </div>
-                )}
-
-                {/* Metadata */}
-                <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-gray-50 border-gray-200'}`}>
-                  <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Informações
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>Criado em:</span>
-                      <p className={isDark ? 'text-white' : 'text-gray-900'}>
-                        {new Date(selectedDocument.created_date).toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                    {selectedDocument.current_version && (
-                      <div>
-                        <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>Versão:</span>
-                        <p className={isDark ? 'text-white' : 'text-gray-900'}>
-                          {selectedDocument.current_version}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
+
+      <DocumentDetailsDialog
+        document={selectedDocument}
+        isOpen={showDocumentDialog}
+        onClose={() => {
+          setShowDocumentDialog(false);
+          setSelectedDocument(null);
+        }}
+        theme={theme}
+      />
     </div>
   );
 }
