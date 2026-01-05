@@ -56,10 +56,9 @@ Deno.serve(async (req) => {
         transaction_amount: config.transaction_amount,
         currency_id: "BRL"
       },
-      back_url: `${Deno.env.get('PUBLIC_URL')}/pricing`,
+      back_url: "https://juris.base44.app/pricing",
       payer_email: user.email,
-      external_reference: `${user.id}_${planId}_${Date.now()}`,
-      status: "pending"
+      external_reference: `${user.id}_${planId}_${Date.now()}`
     };
 
     const response = await fetch('https://api.mercadopago.com/preapproval', {
