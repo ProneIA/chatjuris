@@ -2,12 +2,12 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { Check, CreditCard, QrCode, Shield, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Check, CreditCard, QrCode, Shield, Lock, ArrowLeft, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { initMercadoPago, CardPayment, Payment } from '@mercadopago/sdk-react';
+import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 
 const plans = {
   pro_monthly: {
@@ -33,8 +33,11 @@ export default function Checkout({ theme = 'light' }) {
   const [loading, setLoading] = React.useState(true);
   const [processing, setProcessing] = React.useState(false);
   const [paymentMethod, setPaymentMethod] = React.useState("credit_card");
-  const [publicKey, setPublicKey] = React.useState(null);
-  const [paymentSuccess, setPaymentSuccess] = React.useState(false);
+  const [showPaymentForm, setShowPaymentForm] = React.useState(false);
+  const [mpPublicKey, setMpPublicKey] = React.useState(null);
+  const [preferenceId, setPreferenceId] = React.useState(null);
+  const [pixCode, setPixCode] = React.useState(null);
+  const [pixQrCode, setPixQrCode] = React.useState(null);
   
   const planId = new URLSearchParams(location.search).get("plan");
   const plan = plans[planId];
@@ -44,78 +47,75 @@ export default function Checkout({ theme = 'light' }) {
       .then(setUser)
       .catch(() => navigate(createPageUrl("Pricing")))
       .finally(() => setLoading(false));
-    
-    // Buscar chave pública do Mercado Pago
-    base44.functions.invoke('getMercadoPagoPublicKey')
-      .then(response => {
-        if (response.data.publicKey) {
-          setPublicKey(response.data.publicKey);
-          initMercadoPago(response.data.publicKey, { locale: 'pt-BR' });
-        }
-      })
-      .catch(console.error);
   }, []);
 
-  const onSubmitCard = async (formData) => {
+  React.useEffect(() => {
+    // Inicializar MercadoPago com a chave pública
+    const publicKey = 'APP_USR-0e2e6f23-8e07-45a5-ae3f-b6e71bec0c19';
+    setMpPublicKey(publicKey);
+    initMercadoPago(publicKey);
+  }, []);
+
+  const handleInitiateCheckout = async () => {
     setProcessing(true);
     try {
-      const response = await base44.functions.invoke('processDirectPayment', {
+      const response = await base44.functions.invoke('createMercadoPagoCheckout', { 
         planId,
-        paymentMethod: 'credit_card',
-        formData,
-        user: {
-          email: user.email,
-          full_name: user.full_name,
-          id: user.id
-        }
+        paymentMethod: paymentMethod === "pix" ? "pix" : "credit_card"
       });
       
       if (response.data.success) {
-        setPaymentSuccess(true);
-        setTimeout(() => navigate(createPageUrl("Dashboard")), 3000);
+        if (paymentMethod === "pix" && response.data.pix_code) {
+          setPixCode(response.data.pix_code);
+          setPixQrCode(response.data.pix_qr_code);
+          setShowPaymentForm(true);
+        } else if (paymentMethod === "credit_card" && response.data.preference_id) {
+          setPreferenceId(response.data.preference_id);
+          setShowPaymentForm(true);
+        }
+      } else {
+        alert('Erro ao processar pagamento. Tente novamente.');
+      }
+      setProcessing(false);
+    } catch (error) {
+      alert('Erro: ' + error.message);
+      setProcessing(false);
+    }
+  };
+
+  const onSubmit = async (formData) => {
+    setProcessing(true);
+    try {
+      const response = await base44.functions.invoke('processMercadoPagoPayment', {
+        formData,
+        planId,
+        userId: user.id
+      });
+
+      if (response.data.success) {
+        navigate(createPageUrl("PaymentSuccess") + "?status=success");
       } else {
         alert(response.data.error || 'Erro ao processar pagamento');
         setProcessing(false);
       }
     } catch (error) {
-      alert('Erro: ' + error.message);
+      alert('Erro ao processar pagamento: ' + error.message);
       setProcessing(false);
     }
   };
 
-  const onSubmitPix = async (formData) => {
-    setProcessing(true);
-    try {
-      const response = await base44.functions.invoke('processDirectPayment', {
-        planId,
-        paymentMethod: 'pix',
-        formData,
-        user: {
-          email: user.email,
-          full_name: user.full_name,
-          id: user.id
-        }
-      });
-      
-      if (response.data.success && response.data.qr_code) {
-        // Mostrar QR code e aguardar pagamento
-        alert('PIX gerado! Código: ' + response.data.qr_code_base64);
-      } else {
-        alert(response.data.error || 'Erro ao gerar PIX');
-        setProcessing(false);
-      }
-    } catch (error) {
-      alert('Erro: ' + error.message);
-      setProcessing(false);
-    }
-  };
-
-  const onError = async (error) => {
-    console.error('Payment error:', error);
+  const onError = (error) => {
+    console.error('Erro no pagamento:', error);
+    alert('Erro ao processar pagamento. Tente novamente.');
     setProcessing(false);
   };
 
-  if (loading || !publicKey) {
+  const copyPixCode = () => {
+    navigator.clipboard.writeText(pixCode);
+    alert('Código PIX copiado!');
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -126,21 +126,6 @@ export default function Checkout({ theme = 'light' }) {
   if (!plan) {
     navigate(createPageUrl("Pricing"));
     return null;
-  }
-
-  if (paymentSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento Aprovado!</h2>
-          <p className="text-gray-600 mb-4">Seu plano foi ativado com sucesso.</p>
-          <p className="text-sm text-gray-500">Redirecionando...</p>
-        </div>
-      </div>
-    );
   }
 
   const isDark = theme === 'dark';
@@ -233,119 +218,186 @@ export default function Checkout({ theme = 'light' }) {
           {/* Right Column - Payment Method */}
           <div>
             <div className={`rounded-lg ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'} border p-8`}>
-              <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Método de Pagamento
-              </h2>
+              {!showPaymentForm ? (
+                <>
+                  <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Método de Pagamento
+                  </h2>
 
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                <div className="space-y-4">
-                  {/* Credit Card */}
-                  <label
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      paymentMethod === "credit_card"
-                        ? isDark 
-                          ? 'border-white bg-white/5' 
-                          : 'border-gray-900 bg-gray-50'
-                        : isDark
-                        ? 'border-neutral-800 hover:border-neutral-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <RadioGroupItem value="credit_card" id="credit_card" />
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                      }`}>
-                        <CreditCard className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-                      </div>
-                      <div>
-                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          Cartão de Crédito
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <div className="space-y-4">
+                      {/* Credit Card */}
+                      <label
+                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          paymentMethod === "credit_card"
+                            ? isDark 
+                              ? 'border-white bg-white/5' 
+                              : 'border-gray-900 bg-gray-50'
+                            : isDark
+                            ? 'border-neutral-800 hover:border-neutral-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <RadioGroupItem value="credit_card" id="credit_card" />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                            isDark ? 'bg-neutral-800' : 'bg-gray-100'
+                          }`}>
+                            <CreditCard className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                          </div>
+                          <div>
+                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              Cartão de Crédito
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                              Parcelamento em até 12x
+                            </div>
+                          </div>
                         </div>
-                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          Parcelamento em até 12x
+                      </label>
+
+                      {/* PIX */}
+                      <label
+                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          paymentMethod === "pix"
+                            ? isDark 
+                              ? 'border-white bg-white/5' 
+                              : 'border-gray-900 bg-gray-50'
+                            : isDark
+                            ? 'border-neutral-800 hover:border-neutral-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <RadioGroupItem value="pix" id="pix" />
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                            isDark ? 'bg-neutral-800' : 'bg-gray-100'
+                          }`}>
+                            <QrCode className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                          </div>
+                          <div>
+                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              PIX
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                              Aprovação instantânea
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      </label>
                     </div>
-                  </label>
+                  </RadioGroup>
 
-                  {/* PIX */}
-                  <label
-                    className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      paymentMethod === "pix"
-                        ? isDark 
-                          ? 'border-white bg-white/5' 
-                          : 'border-gray-900 bg-gray-50'
-                        : isDark
-                        ? 'border-neutral-800 hover:border-neutral-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                  {/* User Info */}
+                  <div className={`mt-6 pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Email</Label>
+                    <Input
+                      value={user?.email || ''}
+                      disabled
+                      className={`mt-2 ${isDark ? 'bg-neutral-800 border-neutral-700 text-gray-300' : 'bg-gray-50'}`}
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>Nome Completo</Label>
+                    <Input
+                      value={user?.full_name || ''}
+                      disabled
+                      className={`mt-2 ${isDark ? 'bg-neutral-800 border-neutral-700 text-gray-300' : 'bg-gray-50'}`}
+                    />
+                  </div>
+
+                  {/* Checkout Button */}
+                  <Button
+                    onClick={handleInitiateCheckout}
+                    disabled={processing}
+                    className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                   >
-                    <RadioGroupItem value="pix" id="pix" />
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                      }`}>
-                        <QrCode className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-                      </div>
-                      <div>
-                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          PIX
+                    {processing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
+                    )}
+                  </Button>
+
+                  <p className={`text-xs text-center mt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    Pagamento 100% seguro processado pelo Mercado Pago. Cancele a qualquer momento.
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* Payment Form */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {paymentMethod === "pix" ? "Pagamento via PIX" : "Dados do Cartão"}
+                    </h2>
+                    <button
+                      onClick={() => setShowPaymentForm(false)}
+                      className={`p-2 rounded-lg hover:bg-gray-100 ${isDark ? 'hover:bg-neutral-800' : ''}`}
+                    >
+                      <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                    </button>
+                  </div>
+
+                  {paymentMethod === "pix" && pixCode ? (
+                    <div className="space-y-6">
+                      <div className={`p-6 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'} text-center`}>
+                        {pixQrCode && (
+                          <img src={pixQrCode} alt="QR Code PIX" className="w-64 h-64 mx-auto mb-4" />
+                        )}
+                        <p className={`text-sm mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          Escaneie o QR Code com o app do seu banco ou copie o código PIX abaixo:
+                        </p>
+                        <div className={`p-3 rounded border ${isDark ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-gray-200'} mb-3`}>
+                          <code className={`text-xs break-all ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {pixCode}
+                          </code>
                         </div>
-                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          Aprovação instantânea
-                        </div>
+                        <Button onClick={copyPixCode} variant="outline" className="w-full">
+                          Copiar Código PIX
+                        </Button>
                       </div>
+                      <p className={`text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Após o pagamento, você será redirecionado automaticamente ou pode fechar esta janela.
+                      </p>
                     </div>
-                  </label>
-                </div>
-              </RadioGroup>
-
-              {/* Payment Form */}
-              <div className={`mt-6 pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                {paymentMethod === "credit_card" ? (
-                  <CardPayment
-                    initialization={{
-                      amount: plan.price,
-                      payer: {
-                        email: user?.email,
-                        firstName: user?.full_name?.split(' ')[0],
-                        lastName: user?.full_name?.split(' ').slice(1).join(' ')
-                      }
-                    }}
-                    onSubmit={onSubmitCard}
-                    onError={onError}
-                    locale="pt-BR"
-                  />
-                ) : (
-                  <Payment
-                    initialization={{
-                      amount: plan.price,
-                      preferenceId: null,
-                      payer: {
-                        email: user?.email,
-                        firstName: user?.full_name?.split(' ')[0],
-                        lastName: user?.full_name?.split(' ').slice(1).join(' ')
-                      }
-                    }}
-                    customization={{
-                      paymentMethods: {
-                        maxInstallments: 1,
-                        types: {
-                          excluded: ['credit_card', 'debit_card', 'ticket']
-                        }
-                      }
-                    }}
-                    onSubmit={onSubmitPix}
-                    onError={onError}
-                    locale="pt-BR"
-                  />
-                )}
-              </div>
-
-              <p className={`text-xs text-center mt-6 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                Pagamento 100% seguro processado pelo Mercado Pago. Cancele a qualquer momento.
-              </p>
+                  ) : paymentMethod === "credit_card" && preferenceId && mpPublicKey ? (
+                    <div className="space-y-4">
+                      <CardPayment
+                        initialization={{ 
+                          amount: plan.price,
+                          payer: {
+                            email: user?.email
+                          }
+                        }}
+                        onSubmit={onSubmit}
+                        onError={onError}
+                        customization={{
+                          visual: {
+                            style: {
+                              theme: isDark ? 'dark' : 'default'
+                            }
+                          },
+                          paymentMethods: {
+                            maxInstallments: 12
+                          }
+                        }}
+                      />
+                      {processing && (
+                        <div className="flex items-center justify-center gap-2 py-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                          <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+                            Processando pagamento...
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
         </div>
