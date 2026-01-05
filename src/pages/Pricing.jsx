@@ -193,32 +193,7 @@ export default function Pricing({ theme = 'light' }) {
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       <AffiliateTracker />
-      {/* Simple Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
-              <Scale className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-lg font-semibold">Juris</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link 
-              to={createPageUrl("LandingPage")} 
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              Início
-            </Link>
-            <button
-              onClick={() => base44.auth.redirectToLogin(createPageUrl("Dashboard"))}
-              className="text-sm font-medium px-4 py-2 bg-black text-white hover:bg-gray-800 transition-colors"
-            >
-              Entrar
-            </button>
-          </div>
-        </div>
-      </header>
-
+      
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-16">
         {/* Hero Header */}
         <motion.div 
