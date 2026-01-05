@@ -37,15 +37,43 @@ const plans = [
     }
   },
   {
-    id: "pro",
-    name: "Profissional",
+    id: "pro_monthly",
+    name: "Profissional Mensal",
     icon: Zap,
-    price: 49.99,
-    originalPrice: 99.99,
+    price: 109.90,
     period: "/mês",
-    description: "Tudo ilimitado para advogados sérios",
+    description: "Tudo ilimitado, pagamento mensal",
+    popular: false,
+    features: [
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Templates ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
+      { text: "Gerador de imagens IA", included: true },
+      { text: "Suporte prioritário 24/7", included: true },
+    ],
+    limits: {
+      daily_actions_limit: 999999,
+      daily_actions_used: 0
+    }
+  },
+  {
+    id: "pro_annual",
+    name: "Profissional Anual",
+    icon: Crown,
+    price: 99.90,
+    annualTotal: 1198.80,
+    period: "/mês",
+    description: "Tudo ilimitado + economia anual",
     popular: true,
-    discount: 50,
+    savingsText: "Mais de 1 mês GRÁTIS",
+    monthlySavings: 10.00,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
       { text: "Clientes ILIMITADOS", included: true, highlight: true },
@@ -140,7 +168,13 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    if (planId === "pro") {
+    if (planId === "pro_monthly") {
+      setShowCaktoCheckout(true);
+      return;
+    }
+
+    if (planId === "pro_annual") {
+      // Para o plano anual, abrir modal com URL diferente
       setShowCaktoCheckout(true);
       return;
     }
@@ -225,11 +259,11 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id;
-            const isPro = plan.id === "pro";
+            const isPro = plan.id === "pro_monthly" || plan.id === "pro_annual";
 
             return (
               <motion.div
@@ -243,11 +277,11 @@ export default function Pricing({ theme = 'light' }) {
                     : "bg-white border border-gray-200"
                 }`}
               >
-                {/* Discount Badge */}
-                {plan.discount && (
+                {/* Savings Badge */}
+                {plan.savingsText && (
                   <div className="absolute top-0 right-0">
-                    <div className="bg-gray-700 text-white text-xs font-medium px-4 py-2">
-                      -{plan.discount}% OFF
+                    <div className="bg-green-600 text-white text-xs font-bold px-4 py-2">
+                      {plan.savingsText}
                     </div>
                   </div>
                 )}
@@ -282,11 +316,6 @@ export default function Pricing({ theme = 'light' }) {
                   {/* Price */}
                   <div className="mb-6 sm:mb-8">
                     <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-                      {plan.originalPrice && (
-                        <span className={`text-sm sm:text-lg line-through ${isPro ? "text-gray-500" : "text-gray-400"}`}>
-                          R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
-                        </span>
-                      )}
                       <span className={`text-3xl sm:text-5xl font-semibold ${isPro ? "text-white" : "text-gray-900"}`}>
                         R$ {plan.price.toFixed(2).replace('.', ',')}
                       </span>
@@ -294,9 +323,14 @@ export default function Pricing({ theme = 'light' }) {
                         {plan.period}
                       </span>
                     </div>
-                    {isPro && (
-                      <p className="text-xs sm:text-sm text-gray-400 mt-2">
-                        Economia de R$ 600/ano
+                    {plan.annualTotal && (
+                      <p className="text-xs sm:text-sm text-green-400 mt-2 font-medium">
+                        R$ {plan.annualTotal.toFixed(2).replace('.', ',')} cobrado anualmente
+                      </p>
+                    )}
+                    {plan.monthlySavings && (
+                      <p className="text-xs sm:text-sm text-green-400 mt-1">
+                        Economize R$ {(plan.monthlySavings * 12).toFixed(2).replace('.', ',')} por ano
                       </p>
                     )}
                   </div>
@@ -320,7 +354,7 @@ export default function Pricing({ theme = 'light' }) {
                       </>
                     ) : (
                       <>
-                        {isPro ? "Começar Agora" : "Começar Grátis"}
+                        {plan.id === "free" ? "Começar Grátis" : "Assinar Agora"}
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </>
                     )}
@@ -439,10 +473,10 @@ export default function Pricing({ theme = 'light' }) {
             Comece hoje e veja a diferença em minutos. Sem cartão de crédito necessário.
           </p>
           <button
-            onClick={() => handleSelectPlan("pro")}
+            onClick={() => handleSelectPlan("pro_annual")}
             className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto rounded-none border-0"
           >
-            Começar com o Pro - 50% OFF
+            Assinar Plano Anual
             <ArrowRight className="w-4 h-4" />
           </button>
           <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">
@@ -463,7 +497,8 @@ export default function Pricing({ theme = 'light' }) {
       {/* Cakto Checkout Modal */}
       {showCaktoCheckout && (
         <CaktoCheckoutModal
-          checkoutUrl="https://pay.cakto.com.br/8nuuzas_661861"
+          monthlyCheckoutUrl="https://pay.cakto.com.br/juris_mensal"
+          annualCheckoutUrl="https://pay.cakto.com.br/juris_anual"
           onClose={() => setShowCaktoCheckout(false)}
         />
       )}
