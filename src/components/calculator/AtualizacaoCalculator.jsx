@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import CurrencyInput from "./CurrencyInput";
 
 // Índices acumulados aproximados (últimos anos - valores simulados para demonstração)
 const indicesAcumulados = {
