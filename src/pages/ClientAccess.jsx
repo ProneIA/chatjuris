@@ -23,8 +23,7 @@ import {
   ChevronRight,
   Loader2,
   Shield,
-  Heart,
-  Settings
+  Heart
 } from "lucide-react";
 import { formatLocalDate, formatLocalDateTime } from "@/components/common/DateFormatter";
 import { toast } from "sonner";
@@ -144,28 +143,7 @@ export default function ClientAccess() {
     },
   });
 
-  // Toggle de permissões
-  const updatePermissionMutation = useMutation({
-    mutationFn: (newPermissions) => 
-      base44.entities.ClientPortalAccess.update(portal.id, {
-        permissions: newPermissions
-      }),
-    onSuccess: (updatedPortal) => {
-      setPortal({ ...portal, permissions: updatedPortal.permissions });
-      queryClient.invalidateQueries({ queryKey: ['client-portal-access'] });
-      toast.success("Permissão atualizada!");
-    },
-  });
 
-  const togglePermission = (permissionKey) => {
-    const currentPermissions = portal?.permissions || {};
-    const newValue = !currentPermissions[permissionKey];
-    
-    updatePermissionMutation.mutate({
-      ...currentPermissions,
-      [permissionKey]: newValue
-    });
-  };
 
   const statusLabels = {
     new: { label: "Novo", color: "bg-emerald-100 text-emerald-700", icon: Clock },
@@ -314,10 +292,6 @@ export default function ClientAccess() {
             <TabsTrigger value="messages" className="rounded-lg">
               <MessageSquare className="w-4 h-4 mr-2" />
               Mensagens
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
             </TabsTrigger>
           </TabsList>
 
@@ -559,121 +533,7 @@ export default function ClientAccess() {
             </Card>
           </TabsContent>
 
-          {/* Aba de Configurações */}
-          <TabsContent value="settings">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="border-b border-slate-100">
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-blue-600" />
-                  Configurações de Acesso
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-4">Permissões</h3>
-                    <div className="space-y-4">
-                      {/* Visualizar documentos */}
-                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">Visualizar documentos</p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Permite ver documentos relacionados aos processos
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => togglePermission('view_documents')}
-                          disabled={updatePermissionMutation.isPending}
-                          className={`min-w-[110px] ${
-                            portal?.permissions?.view_documents !== false
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
-                        >
-                          {portal?.permissions?.view_documents !== false ? 'Permitido' : 'Bloqueado'}
-                        </Button>
-                      </div>
 
-                      {/* Visualizar atualizações */}
-                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">Visualizar atualizações</p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Permite ver atualizações sobre os processos
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => togglePermission('view_updates')}
-                          disabled={updatePermissionMutation.isPending}
-                          className={`min-w-[110px] ${
-                            portal?.permissions?.view_updates !== false
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
-                        >
-                          {portal?.permissions?.view_updates !== false ? 'Permitido' : 'Bloqueado'}
-                        </Button>
-                      </div>
-
-                      {/* Enviar mensagens */}
-                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">Enviar mensagens</p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Permite comunicação direta com a equipe jurídica
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => togglePermission('send_messages')}
-                          disabled={updatePermissionMutation.isPending}
-                          className={`min-w-[110px] ${
-                            portal?.permissions?.send_messages !== false
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
-                        >
-                          {portal?.permissions?.send_messages !== false ? 'Permitido' : 'Bloqueado'}
-                        </Button>
-                      </div>
-
-                      {/* Enviar documentos */}
-                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">Enviar documentos</p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Permite fazer upload de documentos ao portal
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => togglePermission('upload_documents')}
-                          disabled={updatePermissionMutation.isPending}
-                          className={`min-w-[110px] ${
-                            portal?.permissions?.upload_documents === true
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-red-600 hover:bg-red-700'
-                          }`}
-                        >
-                          {portal?.permissions?.upload_documents === true ? 'Permitido' : 'Bloqueado'}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-slate-200">
-                    <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
-                      <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">Status do Acesso</p>
-                        <p className="text-sm text-blue-700 mt-1">
-                          {portal?.is_active ? 'Seu acesso está ativo e funcionando normalmente' : 'Seu acesso está temporariamente suspenso'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
         {/* Rodapé com contato */}
