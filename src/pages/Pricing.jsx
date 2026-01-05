@@ -40,7 +40,7 @@ const plans = [
     id: "pro_monthly",
     name: "Profissional Mensal",
     icon: Zap,
-    price: 109.90,
+    price: 119.90,
     period: "/mês",
     billingType: "monthly",
     description: "Tudo ilimitado com renovação mensal",
@@ -69,7 +69,7 @@ const plans = [
     name: "Profissional Anual",
     icon: Crown,
     price: 99.90,
-    originalPrice: 109.90,
+    originalPrice: 119.90,
     period: "/mês",
     billingType: "yearly",
     annualTotal: 1198.80,
@@ -94,7 +94,7 @@ const plans = [
       daily_actions_limit: 999999,
       daily_actions_used: 0
     },
-    savingsText: "Economize R$ 120/ano - mais de 1 mês grátis!"
+    savingsText: "Economize R$ 240/ano - 2 meses grátis!"
   }
 ];
 
@@ -480,7 +480,7 @@ export default function Pricing({ theme = 'light' }) {
             onClick={() => handleSelectPlan("pro_yearly")}
             className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto rounded-none border-0"
           >
-            Começar com o Plano Anual - Economize R$ 120
+            Começar com o Plano Anual - Economize R$ 240
             <ArrowRight className="w-4 h-4" />
           </button>
           <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">
