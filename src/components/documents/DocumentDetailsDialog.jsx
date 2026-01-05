@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Copy, FileText, ExternalLink, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
 
 export default function DocumentDetailsDialog({ document, isOpen, onClose, theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -220,7 +221,7 @@ export default function DocumentDetailsDialog({ document, isOpen, onClose, theme
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
             {document.file_url && (
               <>
                 <Button
@@ -236,6 +237,24 @@ export default function DocumentDetailsDialog({ document, isOpen, onClose, theme
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download
+                </Button>
+              </>
+            )}
+            {hasContent && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={exportToPDF}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={exportToWord}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar Word
                 </Button>
               </>
             )}
