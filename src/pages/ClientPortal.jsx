@@ -425,6 +425,80 @@ export default function ClientPortal({ theme = 'light' }) {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Create Update Dialog */}
+      <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Atualização</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Caso</label>
+              <select
+                value={updateForm.case_id}
+                onChange={(e) => setUpdateForm({ ...updateForm, case_id: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+              >
+                <option value="">Selecione um caso</option>
+                {(selectedPortal?.case_ids || []).map(caseId => {
+                  const caseData = cases.find(c => c.id === caseId);
+                  return caseData ? (
+                    <option key={caseId} value={caseId}>{caseData.title}</option>
+                  ) : null;
+                })}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Tipo</label>
+              <select
+                value={updateForm.update_type}
+                onChange={(e) => setUpdateForm({ ...updateForm, update_type: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+              >
+                <option value="general">Geral</option>
+                <option value="status_change">Mudança de Status</option>
+                <option value="document_added">Documento Adicionado</option>
+                <option value="hearing_scheduled">Audiência Agendada</option>
+                <option value="deadline">Prazo Importante</option>
+                <option value="milestone">Marco Importante</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Título</label>
+              <Input
+                value={updateForm.title}
+                onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })}
+                placeholder="Ex: Processo avançou para fase de instrução"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Descrição</label>
+              <Textarea
+                value={updateForm.content}
+                onChange={(e) => setUpdateForm({ ...updateForm, content: e.target.value })}
+                placeholder="Descreva a atualização..."
+                rows={4}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowUpdateDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => createUpdateMutation.mutate(updateForm)}
+                disabled={!updateForm.case_id || !updateForm.title || !updateForm.content || createUpdateMutation.isPending}
+              >
+                Criar Atualização
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
