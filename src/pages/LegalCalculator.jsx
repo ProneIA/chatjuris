@@ -1197,7 +1197,7 @@ export default function LegalCalculator({ theme = 'light' }) {
     };
 
     const CalculatorComponent = calculators[selectedCalculator];
-    return CalculatorComponent ? <CalculatorComponent isDark={isDark} uploadedFile={uploadedFile} /> : null;
+    return CalculatorComponent ? <CalculatorComponent isDark={isDark} extractedData={extractedData} /> : null;
   };
 
   const selectedAreaData = areasJuridicas.find(a => a.id === selectedArea);
