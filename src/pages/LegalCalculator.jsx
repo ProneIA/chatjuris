@@ -455,11 +455,11 @@ function TrabalhistaCalculator({ isDark }) {
   };
 
   const calcular = () => {
-    const sal = parseFloat(salario) || 0;
+    const sal = parseNumero(salario);
     const meses = parseInt(mesesTrabalhados) || 0;
     const dias = parseInt(diasTrabalhados) || 0;
     const ferias = parseInt(feriasVencidas) || 0;
-    const horas = parseFloat(horasExtras) || 0;
+    const horas = parseNumero(horasExtras);
 
     if (!sal || !meses) {
       toast.error("Preencha salário e meses trabalhados");
