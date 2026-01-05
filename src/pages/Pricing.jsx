@@ -502,8 +502,8 @@ export default function Pricing({ theme = 'light' }) {
       {showCaktoCheckout && selectedPlan && (
         <CaktoCheckoutModal
           checkoutUrl={selectedPlan.id === "pro_yearly" 
-            ? "https://pay.cakto.com.br/anual_juris" 
-            : "https://pay.cakto.com.br/mensal_juris"}
+            ? "https://pay.cakto.com.br/bk2kqs4_710675" 
+            : "https://pay.cakto.com.br/8nuuzas_661861"}
           onClose={() => setShowCaktoCheckout(false)}
         />
       )}
