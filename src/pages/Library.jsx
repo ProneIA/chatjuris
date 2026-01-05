@@ -345,9 +345,7 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      onClick={onClick}
-      className={`p-${compact ? '3' : '4'} rounded-xl border cursor-pointer transition-all ${
+      className={`p-${compact ? '3' : '4'} rounded-xl border transition-all ${
         isDark 
           ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' 
           : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'
@@ -388,6 +386,32 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
           <p className={`text-xs line-clamp-2 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`}>
             {document.ocr_content.substring(0, 100)}...
           </p>
+        </div>
+      )}
+      {document.file_url && (
+        <div className="flex gap-2 mt-3">
+          <Button 
+            size="sm" 
+            variant="default"
+            className="flex-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(document.file_url, '_blank');
+            }}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            Visualizar
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(document.file_url, '_blank');
+            }}
+          >
+            <Download className="w-3 h-3" />
+          </Button>
         </div>
       )}
     </motion.div>
