@@ -212,7 +212,7 @@ export default function Pricing({ theme = 'light' }) {
           
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
             Junte-se a <span className="font-semibold text-gray-900">+500 advogados</span> que já economizam 
-            <span className="font-semibold text-gray-900"> 15+ horas por semana</span> com o Juris
+            <span className="font-semibold text-gray-900"> 2 dias de trabalho por semana</span> com o Juris
           </p>
 
           {/* Social Proof Stats */}
