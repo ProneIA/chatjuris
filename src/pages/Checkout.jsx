@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
@@ -28,15 +28,15 @@ const plans = {
 export default function Checkout({ theme = 'light' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("pix");
+  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [processing, setProcessing] = React.useState(false);
+  const [paymentMethod, setPaymentMethod] = React.useState("pix");
   
   const planId = new URLSearchParams(location.search).get("plan");
   const plan = plans[planId];
 
-  useEffect(() => {
+  React.useEffect(() => {
     base44.auth.me()
       .then(setUser)
       .catch(() => navigate(createPageUrl("Pricing")))
