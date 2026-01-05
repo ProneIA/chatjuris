@@ -26,7 +26,12 @@ export default function AtualizacaoCalculator({ isDark }) {
   const [resultado, setResultado] = useState(null);
 
   const calcular = () => {
-    const valor = parseFloat(valorOriginal) || 0;
+    const parseNumero = (valor) => {
+      if (!valor) return 0;
+      const str = valor.toString().replace(/\./g, '').replace(',', '.');
+      return parseFloat(str) || 0;
+    };
+    const valor = parseNumero(valorOriginal);
     const inicio = new Date(dataInicial);
     const fim = new Date(dataFinal);
 
