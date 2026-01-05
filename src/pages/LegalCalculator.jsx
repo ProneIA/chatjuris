@@ -1503,22 +1503,86 @@ Retorne um JSON com a seguinte estrutura:
                     </div>
                     <div>
                       <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Upload de Documento (Opcional)
+                        Upload de Documentos (Opcional)
                       </h2>
                       <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
                         Contratos, SPED, notas fiscais, holerites - A IA extrairá os dados automaticamente
                       </p>
+                      <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                        Você pode selecionar múltiplos arquivos de uma vez
+                      </p>
                     </div>
-                    <div className="max-w-md mx-auto">
+                    <div className="max-w-md mx-auto space-y-4">
                       <Input
                         type="file"
-                        accept=".pdf,.xml,.txt,.docx,.xlsx,.xls"
-                        onChange={(e) => {
-                          setUploadedFile(e.target.files[0]);
-                          toast.success("Arquivo carregado! Prossiga para a próxima etapa.");
-                        }}
+                        accept=".pdf,.xml,.txt,.docx,.xlsx,.xls,.png,.jpg,.jpeg"
+                        multiple
+                        onChange={(e) => handleFileUpload(e.target.files)}
                         className={`text-center ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
                       />
+                      
+                      {uploadedFiles.length > 0 && (
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                          <p className={`text-sm font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {uploadedFiles.length} arquivo(s) selecionado(s):
+                          </p>
+                          <div className="space-y-2">
+                            {uploadedFiles.map((file, index) => (
+                              <div key={index} className={`flex items-center justify-between text-xs p-2 rounded ${isDark ? 'bg-neutral-900' : 'bg-white'}`}>
+                                <span className={`truncate flex-1 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                                  {file.name}
+                                </span>
+                                <span className={`text-xs ml-2 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                                  {(file.size / 1024).toFixed(1)} KB
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <Button
+                            onClick={analyzeDocumentsWithAI}
+                            disabled={isAnalyzing}
+                            size="sm"
+                            className="w-full mt-4 bg-purple-600 hover:bg-purple-700"
+                          >
+                            {isAnalyzing ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Analisando com IA...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Analisar com IA
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {extractedData && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`p-4 rounded-lg ${isDark ? 'bg-green-900/20 border border-green-800' : 'bg-green-50 border border-green-200'}`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <CheckSquare className="w-5 h-5 text-green-600 mt-0.5" />
+                            <div>
+                              <p className={`text-sm font-medium ${isDark ? 'text-green-400' : 'text-green-800'}`}>
+                                Dados extraídos com sucesso!
+                              </p>
+                              <p className={`text-xs mt-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                                {extractedData.tipo_documento && `Tipo: ${extractedData.tipo_documento}`}
+                              </p>
+                              {extractedData.dados_extraidos?.observacoes && (
+                                <p className={`text-xs mt-2 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                                  {extractedData.dados_extraidos.observacoes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1530,7 +1594,7 @@ Retorne um JSON com a seguinte estrutura:
                   size="lg"
                   className={isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'}
                 >
-                  {uploadedFile ? "Continuar com o arquivo" : "Pular para seleção manual"}
+                  {uploadedFiles.length > 0 ? "Continuar com os arquivos" : "Pular para seleção manual"}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
