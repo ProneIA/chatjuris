@@ -314,6 +314,10 @@ export default function ClientAccess() {
               <MessageSquare className="w-4 h-4 mr-2" />
               Mensagens
             </TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </TabsTrigger>
           </TabsList>
 
           {/* Aba de Processos */}
