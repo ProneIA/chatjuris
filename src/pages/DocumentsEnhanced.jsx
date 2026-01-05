@@ -469,9 +469,14 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
 
                 <div className="flex gap-2 flex-wrap">
                   {selectedDoc.file_url && (
-                    <Button size="sm" variant="outline" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
-                      <Download className="w-4 h-4 mr-2" /> Download
-                    </Button>
+                    <>
+                      <Button size="sm" variant="default" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
+                        <Eye className="w-4 h-4 mr-2" /> Visualizar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
+                        <Download className="w-4 h-4 mr-2" /> Download
+                      </Button>
+                    </>
                   )}
                   <Button size="sm" variant="outline" onClick={() => setShowVersionDialog(true)}>
                     <Upload className="w-4 h-4 mr-2" /> Nova Versão
