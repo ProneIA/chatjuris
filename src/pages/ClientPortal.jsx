@@ -343,6 +343,12 @@ export default function ClientPortal({ theme = 'light' }) {
                 </TabsContent>
 
                 <TabsContent value="updates" className="p-4 max-h-[500px] overflow-y-auto">
+                  <div className="flex justify-end mb-4">
+                    <Button onClick={() => setShowUpdateDialog(true)} size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Nova Atualização
+                    </Button>
+                  </div>
                   <div className="space-y-4">
                     {updates.map((update) => (
                       <div key={update.id} className={`p-4 rounded-lg border ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
