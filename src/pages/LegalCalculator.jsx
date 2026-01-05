@@ -751,8 +751,8 @@ function HonorariosCalculator({ isDark }) {
   };
 
   const calcular = () => {
-    const valor = parseFloat(valorCausa) || 0;
-    let perc = parseFloat(percentual) || 0;
+    const valor = parseNumero(valorCausa);
+    let perc = parseNumero(percentual);
 
     if (!valor) {
       toast.error("Informe o valor da causa");
