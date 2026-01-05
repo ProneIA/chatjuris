@@ -90,19 +90,21 @@ Deno.serve(async (req) => {
 
     // Se for PIX, criar pagamento direto
     if (paymentMethod === 'pix') {
+      const firstName = user.full_name?.split(' ')[0] || 'Cliente';
+      const lastName = user.full_name?.split(' ').slice(1).join(' ') || 'Juris';
+      
       const pixPayment = {
         transaction_amount: plan.unit_price,
         description: plan.title,
         payment_method_id: 'pix',
         payer: {
           email: user.email,
-          first_name: user.full_name?.split(' ')[0] || 'Cliente',
-          last_name: user.full_name?.split(' ').slice(1).join(' ') || 'Juris'
-        },
-        metadata: {
-          user_id: user.id,
-          user_email: user.email,
-          plan_id: planId
+          first_name: firstName,
+          last_name: lastName,
+          identification: {
+            type: 'CPF',
+            number: '00000000000'
+          }
         }
       };
 
