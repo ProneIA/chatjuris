@@ -1450,7 +1450,8 @@ Retorne um JSON com a seguinte estrutura:
                     setStep(1);
                     setSelectedArea(null);
                     setSelectedCalculator(null);
-                    setUploadedFile(null);
+                    setUploadedFiles([]);
+                    setExtractedData(null);
                   }}
                   variant="outline"
                   size="sm"
