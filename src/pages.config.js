@@ -35,7 +35,6 @@ import Library from './pages/Library';
 import MyData from './pages/MyData';
 import MySubscription from './pages/MySubscription';
 import PaymentSuccess from './pages/PaymentSuccess';
-import Pricing from './pages/Pricing';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import QuemSomos from './pages/QuemSomos';
 import Reports from './pages/Reports';
@@ -45,6 +44,7 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
+import Pricing from './pages/Pricing';
 import __Layout from './Layout.jsx';
 
 
@@ -86,7 +86,6 @@ export const PAGES = {
     "MyData": MyData,
     "MySubscription": MySubscription,
     "PaymentSuccess": PaymentSuccess,
-    "Pricing": Pricing,
     "PrivacyPolicy": PrivacyPolicy,
     "QuemSomos": QuemSomos,
     "Reports": Reports,
@@ -96,6 +95,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
+    "Pricing": Pricing,
 }
 
 export const pagesConfig = {
