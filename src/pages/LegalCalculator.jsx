@@ -148,8 +148,8 @@ function JurosCalculator({ isDark }) {
   const [resultado, setResultado] = useState(null);
 
   const calcular = () => {
-    const principal = parseFloat(valorPrincipal) || 0;
-    let taxa = parseFloat(taxaJuros) / 100 || 0;
+    const principal = parseNumero(valorPrincipal);
+    let taxa = parseNumero(taxaJuros) / 100 || 0;
     const meses = parseInt(periodo) || 0;
 
     if (!principal || !taxa || !meses) {
