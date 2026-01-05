@@ -171,7 +171,23 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    if (planId === "pro_monthly" || planId === "pro_yearly") {
+    // Plano mensal usa Mercado Pago
+    if (planId === "pro_monthly") {
+      try {
+        const response = await base44.functions.invoke('createMercadoPagoSubscription', { planId });
+        if (response.data.success && response.data.checkout_url) {
+          window.location.href = response.data.checkout_url;
+        } else {
+          alert('Erro ao criar assinatura. Tente novamente.');
+        }
+      } catch (error) {
+        alert('Erro ao processar assinatura: ' + error.message);
+      }
+      return;
+    }
+
+    // Plano anual usa Cakto
+    if (planId === "pro_yearly") {
       const plan = plans.find(p => p.id === planId);
       setSelectedPlan(plan);
       setShowCaktoCheckout(true);
