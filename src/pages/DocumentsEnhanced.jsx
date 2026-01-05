@@ -595,7 +595,10 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                               )}
                             </div>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')}>
+                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')} title="Visualizar">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')} title="Download">
                                 <Download className="w-4 h-4" />
                               </Button>
                               {ver.version_number !== selectedDoc.current_version && (
