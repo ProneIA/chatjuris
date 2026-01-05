@@ -144,6 +144,28 @@ export default function ClientAccess() {
     },
   });
 
+  // Toggle de permissões
+  const updatePermissionMutation = useMutation({
+    mutationFn: (newPermissions) => 
+      base44.entities.ClientPortalAccess.update(portal.id, {
+        permissions: newPermissions
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-portal-access'] });
+      toast.success("Permissão atualizada!");
+    },
+  });
+
+  const togglePermission = (permissionKey) => {
+    const currentPermissions = portal?.permissions || {};
+    const newValue = !currentPermissions[permissionKey];
+    
+    updatePermissionMutation.mutate({
+      ...currentPermissions,
+      [permissionKey]: newValue
+    });
+  };
+
   const statusLabels = {
     new: { label: "Novo", color: "bg-emerald-100 text-emerald-700", icon: Clock },
     in_progress: { label: "Em Andamento", color: "bg-blue-100 text-blue-700", icon: Loader2 },
