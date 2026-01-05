@@ -60,8 +60,11 @@ export default function Checkout({ theme = 'light' }) {
   React.useEffect(() => {
     const loadMercadoPago = async () => {
       try {
+        console.log('Buscando public key...');
         const response = await base44.functions.invoke('getMercadoPagoPublicKey');
         const publicKey = response.data.publicKey;
+        
+        console.log('Public key recebida:', publicKey);
         
         if (!publicKey || (!publicKey.startsWith('TEST-') && !publicKey.startsWith('APP_USR-'))) {
           console.error('Public Key inválida:', publicKey);
@@ -69,18 +72,32 @@ export default function Checkout({ theme = 'light' }) {
           return;
         }
         
+        console.log('Inicializando Mercado Pago SDK...');
         setMpPublicKey(publicKey);
-        initMercadoPago(publicKey, { locale: 'pt-BR' });
         
-        // Aguardar SDK inicializar
-        setTimeout(() => setMpReady(true), 500);
+        try {
+          initMercadoPago(publicKey, { locale: 'pt-BR' });
+          console.log('SDK inicializado');
+          
+          // Aguardar SDK estar pronto
+          setTimeout(() => {
+            console.log('SDK pronto para uso');
+            setMpReady(true);
+          }, 1000);
+        } catch (sdkError) {
+          console.error('Erro ao inicializar SDK:', sdkError);
+          alert('Erro ao inicializar sistema de pagamento.');
+        }
       } catch (error) {
         console.error('Erro ao carregar Mercado Pago:', error);
         alert('Erro ao carregar sistema de pagamento. Tente novamente.');
       }
     };
-    loadMercadoPago();
-  }, []);
+    
+    if (user) {
+      loadMercadoPago();
+    }
+  }, [user]);
 
 
 
@@ -432,6 +449,7 @@ export default function Checkout({ theme = 'light' }) {
                     </div>
                   ) : paymentMethod === "credit_card" && mpReady ? (
                     <div className="space-y-4">
+                      {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
                           amount: plan.price,
@@ -441,6 +459,7 @@ export default function Checkout({ theme = 'light' }) {
                         }}
                         onSubmit={onSubmit}
                         onError={onError}
+                        onReady={() => console.log('CardPayment pronto')}
                         customization={{
                           visual: {
                             style: {
@@ -466,6 +485,9 @@ export default function Checkout({ theme = 'light' }) {
                       <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                         Carregando formulário de pagamento...
+                      </p>
+                      <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        mpPublicKey: {mpPublicKey ? 'OK' : 'Carregando...'} | mpReady: {mpReady ? 'Sim' : 'Não'}
                       </p>
                     </div>
                   )}
