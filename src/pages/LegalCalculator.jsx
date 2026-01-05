@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { motion, AnimatePresence } from "framer-motion";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 // Componentes de calculadora
 import AICalculatorAssistant from "../components/calculator/AICalculatorAssistant";
