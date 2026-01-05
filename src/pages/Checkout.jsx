@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { Check, CreditCard, QrCode, Shield, Lock, ArrowLeft, Loader2, X, Copy } from "lucide-react";
+import { Check, CreditCard, QrCode, Shield, Lock, ArrowLeft, Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,9 +36,6 @@ export default function Checkout({ theme = 'light' }) {
   const [paymentMethod, setPaymentMethod] = React.useState("credit_card");
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
-  const [pixData, setPixData] = React.useState(null);
-  const [showPaymentForm, setShowPaymentForm] = React.useState(false);
-  const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [pixCode, setPixCode] = React.useState(null);
   const [pixQrCode, setPixQrCode] = React.useState(null);
 
@@ -59,20 +56,6 @@ export default function Checkout({ theme = 'light' }) {
         const response = await base44.functions.invoke('getMercadoPagoPublicKey');
         const publicKey = response.data.publicKey;
         setMpPublicKey(publicKey);
-        initMercadoPago(publicKey);
-      } catch (error) {
-        console.error('Erro ao carregar chave pública do Mercado Pago:', error);
-      }
-    };
-    loadMercadoPago();
-  }, []);
-
-  React.useEffect(() => {
-    const loadMercadoPago = async () => {
-      try {
-        const response = await base44.functions.invoke('getMercadoPagoPublicKey');
-        const publicKey = response.data.public_key;
-        setMpPublicKey(publicKey);
         initMercadoPago(publicKey, { locale: 'pt-BR' });
       } catch (error) {
         console.error('Erro ao carregar Mercado Pago:', error);
@@ -84,12 +67,13 @@ export default function Checkout({ theme = 'light' }) {
 
 
   const handleInitiateCheckout = async () => {
-    setProcessing(true);
-    try {
-      if (paymentMethod === "pix") {
+    if (paymentMethod === "pix") {
+      setProcessing(true);
+      try {
         const response = await base44.functions.invoke('createPixPayment', { 
           planId,
-          userId: user.id
+          userEmail: user.email,
+          userName: user.full_name
         });
 
         if (response.data.success) {
@@ -99,13 +83,13 @@ export default function Checkout({ theme = 'light' }) {
         } else {
           alert('Erro ao gerar PIX. Tente novamente.');
         }
-      } else {
-        setShowPaymentForm(true);
+        setProcessing(false);
+      } catch (error) {
+        alert('Erro: ' + error.message);
+        setProcessing(false);
       }
-      setProcessing(false);
-    } catch (error) {
-      alert('Erro: ' + error.message);
-      setProcessing(false);
+    } else {
+      setShowPaymentForm(true);
     }
   };
 
@@ -115,7 +99,8 @@ export default function Checkout({ theme = 'light' }) {
       const response = await base44.functions.invoke('processDirectPayment', {
         formData,
         planId,
-        userId: user.id
+        userId: user.id,
+        userEmail: user.email
       });
 
       if (response.data.status === 'approved') {
@@ -123,7 +108,7 @@ export default function Checkout({ theme = 'light' }) {
       } else if (response.data.status === 'pending') {
         navigate(createPageUrl("PaymentSuccess") + "?status=pending");
       } else {
-        alert(response.data.error || 'Pagamento não aprovado. Tente novamente.');
+        alert(response.data.error || 'Pagamento não aprovado. Verifique os dados e tente novamente.');
         setProcessing(false);
       }
     } catch (error) {
@@ -359,21 +344,23 @@ export default function Checkout({ theme = 'light' }) {
                 </>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {paymentMethod === "pix" ? "Pagamento via PIX" : "Dados do Cartão"}
-                    </h2>
+                  <div className="mb-6">
                     <button
                       onClick={() => {
                         setShowPaymentForm(false);
                         setPixCode(null);
                         setPixQrCode(null);
                       }}
-                      className={`p-2 rounded-lg hover:bg-gray-100 ${isDark ? 'hover:bg-neutral-800' : ''}`}
+                      className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     >
-                      <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                      <ArrowLeft className="w-4 h-4" />
+                      Voltar
                     </button>
                   </div>
+                  
+                  <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {paymentMethod === "pix" ? "Pagamento via PIX" : "Dados do Cartão"}
+                  </h2>
 
                   {paymentMethod === "pix" && pixCode ? (
                     <div className="space-y-6">
