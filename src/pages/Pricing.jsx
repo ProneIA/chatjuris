@@ -171,17 +171,21 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Plano mensal usa Mercado Pago
+    // Plano mensal usa Mercado Pago checkout
     if (planId === "pro_monthly") {
       try {
-        const response = await base44.functions.invoke('createMercadoPagoSubscription', { planId });
+        const response = await base44.functions.invoke('createMercadoPagoCheckout', { 
+          planId,
+          paymentMethod: 'all' // aceita cartão e PIX
+        });
+        
         if (response.data.success && response.data.checkout_url) {
           window.location.href = response.data.checkout_url;
         } else {
-          alert('Erro ao criar assinatura. Tente novamente.');
+          alert('Erro ao criar checkout. Tente novamente.');
         }
       } catch (error) {
-        alert('Erro ao processar assinatura: ' + error.message);
+        alert('Erro ao processar checkout: ' + error.message);
       }
       return;
     }
