@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Save, Eye, FileText, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, Save, Eye, FileText, RefreshCw, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 export default function LegalDocumentGeneratorInterface({ conversation, onUpdate }) {
   const [step, setStep] = useState(1);
@@ -165,6 +167,62 @@ Gere o documento completo agora:`;
     setIsGenerating(false);
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    
+    // Remove HTML tags for PDF
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+    const textContent = tempDiv.textContent || tempDiv.innerText || "";
+    
+    // Título
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(formData.title || 'Documento', margin, margin);
+    
+    // Conteúdo
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    let yPos = margin + 10;
+    
+    const lines = doc.splitTextToSize(textContent, maxWidth);
+    lines.forEach(line => {
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.text(line, margin, yPos);
+      yPos += 6;
+    });
+    
+    doc.save(`${formData.title || 'documento'}.pdf`);
+    toast.success('PDF gerado com sucesso!');
+  };
+
+  const exportToWord = () => {
+    // Remove HTML tags for Word
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = generatedContent;
+    const textContent = tempDiv.textContent || tempDiv.innerText || "";
+    
+    let content = `${formData.title || 'Documento'}\n\n`;
+    content += textContent;
+    
+    const blob = new Blob([content], { type: 'application/msword' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${formData.title || 'documento'}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    toast.success('Documento Word exportado!');
+  };
+
   const saveDocument = async () => {
     try {
       await base44.entities.LegalDocument.create({
@@ -178,7 +236,7 @@ Gere o documento completo agora:`;
         notes: formData.custom_instructions || null
       });
 
-      alert("✅ Documento salvo com sucesso!");
+      toast.success("✅ Documento salvo com sucesso!");
       
       // Reset form
       setStep(1);
@@ -193,7 +251,7 @@ Gere o documento completo agora:`;
       setGeneratedContent("");
     } catch (error) {
       console.error("Erro ao salvar documento:", error);
-      alert("Erro ao salvar documento. Tente novamente.");
+      toast.error("Erro ao salvar documento. Tente novamente.");
     }
   };
 
@@ -433,7 +491,7 @@ Gere o documento completo agora:`;
                 />
               </div>
 
-              <div className="flex justify-between gap-3 pt-4 mt-20">
+              <div className="flex justify-between gap-3 pt-4 mt-20 flex-wrap">
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
@@ -441,14 +499,32 @@ Gere o documento completo agora:`;
                 >
                   Voltar
                 </Button>
-                <Button
-                  onClick={saveDocument}
-                  size="lg"
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                >
-                  <Save className="w-5 h-5 mr-2" />
-                  Salvar Documento
-                </Button>
+                <div className="flex gap-3 flex-wrap">
+                  <Button
+                    variant="outline"
+                    onClick={exportToPDF}
+                    size="lg"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Exportar PDF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={exportToWord}
+                    size="lg"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Exportar Word
+                  </Button>
+                  <Button
+                    onClick={saveDocument}
+                    size="lg"
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <Save className="w-5 h-5 mr-2" />
+                    Salvar Documento
+                  </Button>
+                </div>
               </div>
             </Card>
           </motion.div>
