@@ -60,28 +60,41 @@ Deno.serve(async (req) => {
           type: 'CPF',
           number: '00000000000'
         }
+      },
+      metadata: {
+        plan_id: planId,
+        user_email: userEmail
       }
     };
+
+    console.log('Criando pagamento PIX no Mercado Pago:', { planId, amount: plan.unit_price });
 
     const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': `${user.id}-pix-${planId}-${Date.now()}`
       },
       body: JSON.stringify(pixPayment)
     });
 
+    const data = await response.json();
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Mercado Pago PIX Error:', errorData);
+      console.error('Mercado Pago PIX Error:', data);
       return Response.json({ 
         success: false,
-        error: 'Erro ao criar pagamento PIX'
+        error: data.message || 'Erro ao criar pagamento PIX',
+        details: data
       }, { status: response.status, headers });
     }
 
-    const data = await response.json();
+    console.log('PIX criado no Mercado Pago:', { 
+      id: data.id, 
+      status: data.status,
+      has_qr_code: !!data.point_of_interaction?.transaction_data?.qr_code
+    });
 
     // Criar subscription pendente
     try {
@@ -113,11 +126,25 @@ Deno.serve(async (req) => {
       console.error('Database Error:', dbError);
     }
 
+    const qrCode = data.point_of_interaction?.transaction_data?.qr_code;
+    const qrCodeBase64 = data.point_of_interaction?.transaction_data?.qr_code_base64;
+
+    if (!qrCode) {
+      console.error('QR Code não retornado pelo Mercado Pago. Resposta completa:', JSON.stringify(data));
+      return Response.json({
+        success: false,
+        error: 'QR Code PIX não foi gerado. Tente novamente.',
+        details: data
+      }, { status: 500, headers });
+    }
+
+    console.log('PIX gerado com sucesso');
+
     return Response.json({
       success: true,
       payment_id: data.id,
-      pix_code: data.point_of_interaction?.transaction_data?.qr_code,
-      pix_qr_code: data.point_of_interaction?.transaction_data?.qr_code_base64
+      qr_code: qrCode,
+      qr_code_base64: qrCodeBase64
     }, { headers });
 
   } catch (error) {

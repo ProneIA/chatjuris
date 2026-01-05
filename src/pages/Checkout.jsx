@@ -79,13 +79,13 @@ export default function Checkout({ theme = 'light' }) {
 
         console.log('Resposta PIX:', response.data);
 
-        if (response.data?.success) {
+        if (response.data?.success && response.data.qr_code) {
           setPixCode(response.data.qr_code);
           setPixQrCode(response.data.qr_code_base64);
           setShowPaymentForm(true);
         } else {
           console.error('Erro na resposta PIX:', response.data);
-          alert('Erro ao gerar PIX: ' + (response.data?.error || 'Tente novamente'));
+          alert('Erro ao gerar PIX: ' + (response.data?.error || 'QR Code não gerado'));
         }
       } catch (error) {
         console.error('Erro ao gerar PIX:', error);
