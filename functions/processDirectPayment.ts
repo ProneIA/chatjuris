@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const MP_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
+const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
 const MP_API_BASE = "https://api.mercadopago.com";
 
 Deno.serve(async (req) => {
