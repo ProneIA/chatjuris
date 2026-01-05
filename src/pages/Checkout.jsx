@@ -325,13 +325,18 @@ export default function Checkout({ theme = 'light' }) {
                   {/* Checkout Button */}
                   <Button
                     onClick={handleInitiateCheckout}
-                    disabled={processing || !mpPublicKey}
+                    disabled={processing}
                     className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                   >
                     {processing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Processando...
+                      </>
+                    ) : !mpPublicKey ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Carregando...
                       </>
                     ) : (
                       `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
