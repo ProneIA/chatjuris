@@ -1218,6 +1218,160 @@ export default function LegalCalculator({ theme = 'light' }) {
     setShowSaveDialog(true);
   };
 
+  const handleFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    const fileArray = Array.from(files);
+    setUploadedFiles(fileArray);
+    toast.success(`${fileArray.length} arquivo(s) carregado(s)`);
+  };
+
+  const analyzeDocumentsWithAI = async () => {
+    if (uploadedFiles.length === 0) {
+      toast.error("Nenhum arquivo para analisar");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    toast.info("Analisando documentos com IA...");
+
+    try {
+      // Upload dos arquivos
+      const fileUrls = [];
+      for (const file of uploadedFiles) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        fileUrls.push(file_url);
+      }
+
+      // Define o contexto do tipo de cálculo
+      let analysisPrompt = `Analise os documentos fornecidos e extraia TODOS os dados numéricos e informações relevantes para cálculos jurídicos.
+
+INSTRUÇÕES IMPORTANTES:
+- Extraia TODOS os valores monetários, datas, percentuais, e números encontrados
+- Identifique o tipo de documento (contrato, nota fiscal, holerite, SPED, petição, etc)
+- Organize os dados de forma estruturada e detalhada
+- Inclua contexto de cada informação extraída
+- Se houver múltiplos documentos, organize por documento
+
+Retorne um JSON com a seguinte estrutura:
+{
+  "tipo_documento": "descrição do tipo",
+  "dados_extraidos": {
+    "valores_monetarios": [
+      {"descricao": "nome do campo", "valor": numero, "contexto": "onde foi encontrado"}
+    ],
+    "datas": [
+      {"descricao": "tipo de data", "data": "YYYY-MM-DD", "contexto": "relevância"}
+    ],
+    "percentuais": [
+      {"descricao": "tipo de percentual", "valor": numero, "contexto": "aplicação"}
+    ],
+    "periodos": [
+      {"descricao": "tipo de período", "quantidade": numero, "unidade": "dias/meses/anos", "contexto": "detalhes"}
+    ],
+    "partes": {
+      "nomes": ["lista de nomes de pessoas/empresas"],
+      "identificadores": ["CPF, CNPJ, etc se houver"]
+    },
+    "observacoes": "informações adicionais relevantes"
+  }
+}`;
+
+      if (selectedCalculator) {
+        const calculatorContext = {
+          'trabalhista': 'Foque em: salários, verbas rescisórias, período de trabalho, férias, 13º, FGTS, horas extras',
+          'juros': 'Foque em: valor principal, taxas de juros, período, datas de vencimento',
+          'civil': 'Foque em: valores de contratos, multas, danos, prazos',
+          'tributario': 'Foque em: impostos, multas, SELIC, valores de tributos, períodos fiscais',
+          'familia': 'Foque em: valores de pensão, patrimônio, rendas, dependentes',
+          'honorarios': 'Foque em: valor da causa, percentuais, custas',
+          'prazos': 'Foque em: datas de intimação, prazos processuais',
+          'previdenciario': 'Foque em: salários de contribuição, tempo de contribuição, benefícios',
+          'liquidacao': 'Foque em: valores principais, juros, correção monetária, períodos'
+        };
+
+        analysisPrompt += `\n\nCONTEXTO ESPECÍFICO: ${calculatorContext[selectedCalculator] || 'Análise geral de dados jurídicos'}`;
+      }
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: analysisPrompt,
+        file_urls: fileUrls,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            tipo_documento: { type: "string" },
+            dados_extraidos: {
+              type: "object",
+              properties: {
+                valores_monetarios: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      descricao: { type: "string" },
+                      valor: { type: "number" },
+                      contexto: { type: "string" }
+                    }
+                  }
+                },
+                datas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      descricao: { type: "string" },
+                      data: { type: "string" },
+                      contexto: { type: "string" }
+                    }
+                  }
+                },
+                percentuais: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      descricao: { type: "string" },
+                      valor: { type: "number" },
+                      contexto: { type: "string" }
+                    }
+                  }
+                },
+                periodos: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      descricao: { type: "string" },
+                      quantidade: { type: "number" },
+                      unidade: { type: "string" },
+                      contexto: { type: "string" }
+                    }
+                  }
+                },
+                partes: {
+                  type: "object",
+                  properties: {
+                    nomes: { type: "array", items: { type: "string" } },
+                    identificadores: { type: "array", items: { type: "string" } }
+                  }
+                },
+                observacoes: { type: "string" }
+              }
+            }
+          }
+        }
+      });
+
+      setExtractedData(response);
+      toast.success("Análise concluída! Os dados foram extraídos e estão prontos para uso.");
+    } catch (error) {
+      console.error("Erro ao analisar documentos:", error);
+      toast.error("Erro ao analisar documentos. Tente novamente.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div {...swipeHandlers} className={`min-h-screen p-4 md:p-6 lg:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto">
