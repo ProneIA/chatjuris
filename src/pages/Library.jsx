@@ -380,6 +380,27 @@ function DocumentCard({ document, clients, cases, onClick, theme, compact = fals
               )}
             </div>
           )}
+          {document.file_url && (
+            <div className="flex gap-1 mt-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs"
+                onClick={(e) => { e.stopPropagation(); window.open(document.file_url, '_blank'); }}
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                Visualizar
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs"
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+              >
+                Ver Detalhes
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       {document.ocr_content && !compact && (
