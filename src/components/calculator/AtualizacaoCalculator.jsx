@@ -95,11 +95,10 @@ export default function AtualizacaoCalculator({ isDark }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Valor Original (R$)</Label>
-          <Input
-            type="number"
-            placeholder="Ex: 10000"
+          <CurrencyInput
+            placeholder="Ex: 10.000,00"
             value={valorOriginal}
-            onChange={(e) => setValorOriginal(e.target.value)}
+            onChange={setValorOriginal}
             className={isDark ? "bg-neutral-900 border-neutral-700" : ""}
           />
         </div>
