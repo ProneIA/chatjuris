@@ -161,7 +161,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     // Public pages - no layout (always, even if logged in)
-    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing"];
+    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing", "ClientAccess"];
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
     }
