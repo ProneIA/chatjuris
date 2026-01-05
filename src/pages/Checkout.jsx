@@ -34,6 +34,9 @@ export default function Checkout({ theme = 'light' }) {
   const [loading, setLoading] = React.useState(true);
   const [processing, setProcessing] = React.useState(false);
   const [paymentMethod, setPaymentMethod] = React.useState("credit_card");
+  const [mpPublicKey, setMpPublicKey] = React.useState(null);
+  const [showPaymentForm, setShowPaymentForm] = React.useState(false);
+  const [pixData, setPixData] = React.useState(null);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [pixCode, setPixCode] = React.useState(null);
@@ -48,6 +51,20 @@ export default function Checkout({ theme = 'light' }) {
       .then(setUser)
       .catch(() => navigate(createPageUrl("Pricing")))
       .finally(() => setLoading(false));
+  }, []);
+
+  React.useEffect(() => {
+    const loadMercadoPago = async () => {
+      try {
+        const response = await base44.functions.invoke('getMercadoPagoPublicKey');
+        const publicKey = response.data.publicKey;
+        setMpPublicKey(publicKey);
+        initMercadoPago(publicKey);
+      } catch (error) {
+        console.error('Erro ao carregar chave pública do Mercado Pago:', error);
+      }
+    };
+    loadMercadoPago();
   }, []);
 
   React.useEffect(() => {

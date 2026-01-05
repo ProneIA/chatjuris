@@ -27,16 +27,16 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { planId, userId } = body;
+    const { planId, userEmail, userName } = body;
 
     const plans = {
       pro_monthly: {
         title: "Juris IA - Plano Profissional Mensal",
-        price: 119.90
+        unit_price: 119.90
       },
       pro_yearly: {
         title: "Juris IA - Plano Profissional Anual",
-        price: 1198.80
+        unit_price: 1198.80
       }
     };
 
@@ -45,17 +45,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
 
-    const firstName = user.full_name?.split(' ')[0] || 'Cliente';
-    const lastName = user.full_name?.split(' ').slice(1).join(' ') || 'Juris';
+    const firstName = userName?.split(' ')[0] || 'Cliente';
+    const lastName = userName?.split(' ').slice(1).join(' ') || 'Juris';
 
     const pixPayment = {
-      transaction_amount: plan.price,
+      transaction_amount: plan.unit_price,
       description: plan.title,
       payment_method_id: 'pix',
       payer: {
-        email: user.email,
+        email: userEmail,
         first_name: firstName,
-        last_name: lastName
+        last_name: lastName,
+        identification: {
+          type: 'CPF',
+          number: '00000000000'
+        }
       }
     };
 
@@ -79,9 +83,9 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
 
-    // Criar registro de subscription pendente
+    // Criar subscription pendente
     try {
-      const subscriptions = await base44.entities.Subscription.filter({ user_id: userId });
+      const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
       
       if (subscriptions.length > 0) {
         await base44.entities.Subscription.update(subscriptions[0].id, {
@@ -90,17 +94,17 @@ Deno.serve(async (req) => {
           payment_status: 'pending',
           payment_method: 'pix',
           payment_external_id: data.id.toString(),
-          price: plan.price
+          price: plan.unit_price
         });
       } else {
         await base44.entities.Subscription.create({
-          user_id: userId,
+          user_id: user.id,
           plan: planId,
           status: 'pending',
           payment_status: 'pending',
           payment_method: 'pix',
           payment_external_id: data.id.toString(),
-          price: plan.price,
+          price: plan.unit_price,
           daily_actions_limit: 5,
           daily_actions_used: 0
         });
