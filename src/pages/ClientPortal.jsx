@@ -46,6 +46,13 @@ export default function ClientPortal({ theme = 'light' }) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState(null);
   const [newMessage, setNewMessage] = useState("");
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [updateForm, setUpdateForm] = useState({
+    title: "",
+    content: "",
+    update_type: "general",
+    case_id: ""
+  });
   const queryClient = useQueryClient();
 
   useEffect(() => {
