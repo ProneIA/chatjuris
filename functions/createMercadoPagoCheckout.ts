@@ -71,12 +71,11 @@ Deno.serve(async (req) => {
         name: user.full_name
       },
       back_urls: {
-        success: `${Deno.env.get('PUBLIC_URL')}/Pricing?payment=success`,
+        success: `${Deno.env.get('PUBLIC_URL')}/PaymentSuccess?status=success`,
         failure: `${Deno.env.get('PUBLIC_URL')}/Pricing?payment=failure`,
-        pending: `${Deno.env.get('PUBLIC_URL')}/Pricing?payment=pending`
+        pending: `${Deno.env.get('PUBLIC_URL')}/PaymentSuccess?status=pending`
       },
       auto_return: "approved",
-      notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadopagoWebhook`,
       metadata: {
         user_id: user.id,
         user_email: user.email,
