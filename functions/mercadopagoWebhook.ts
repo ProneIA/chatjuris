@@ -75,6 +75,50 @@ async function updateSubscriptionFromPayment(base44, paymentDetails) {
 
     await base44.asServiceRole.entities.Subscription.update(subscription.id, updateData);
     console.log('Subscription updated from payment:', subscription.id, updateData);
+
+    // Criar comissão se pagamento aprovado e houver afiliado
+    if (status === 'approved' && subscription.affiliate_id && subscription.affiliate_code) {
+      try {
+        // Verificar se comissão já existe
+        const existingCommissions = await base44.asServiceRole.entities.AffiliateCommission.filter({
+          subscription_id: subscription.id
+        });
+
+        if (existingCommissions.length === 0) {
+          // Buscar dados do afiliado
+          const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
+            id: subscription.affiliate_id 
+          });
+
+          if (affiliates.length > 0) {
+            const affiliate = affiliates[0];
+            const price = paymentDetails.transaction_amount || subscription.price;
+            const commissionAmount = price * (affiliate.commission_rate / 100);
+
+            await base44.asServiceRole.entities.AffiliateCommission.create({
+              affiliate_id: affiliate.id,
+              affiliate_code: subscription.affiliate_code,
+              subscription_id: subscription.id,
+              customer_email: userEmail,
+              subscription_value: price,
+              commission_rate: affiliate.commission_rate,
+              commission_amount: commissionAmount,
+              status: 'pending'
+            });
+
+            // Atualizar totais do afiliado
+            await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
+              total_sales: (affiliate.total_sales || 0) + 1,
+              total_commission: (affiliate.total_commission || 0) + commissionAmount
+            });
+
+            console.log('Comissão criada via webhook:', commissionAmount);
+          }
+        }
+      } catch (commissionError) {
+        console.error('Erro ao criar comissão:', commissionError);
+      }
+    }
   } catch (error) {
     console.error('Error updating subscription from payment:', error);
   }

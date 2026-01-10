@@ -105,11 +105,29 @@ export default function Checkout({ theme = 'light' }) {
     if (paymentMethod === "pix") {
       setProcessing(true);
       try {
-        console.log('Iniciando pagamento PIX...', { planId, userEmail: user.email });
+        // Recuperar código de afiliado do localStorage
+        const getAffiliateCode = () => {
+          try {
+            const stored = localStorage.getItem('affiliate_ref');
+            if (!stored) return null;
+            const data = JSON.parse(stored);
+            if (new Date().getTime() > data.expires) {
+              localStorage.removeItem('affiliate_ref');
+              return null;
+            }
+            return data.code;
+          } catch (error) {
+            return null;
+          }
+        };
+
+        const affiliateCode = getAffiliateCode();
+        console.log('Iniciando pagamento PIX...', { planId, userEmail: user.email, affiliateCode });
         const response = await base44.functions.invoke('createPixPayment', { 
           planId,
           userEmail: user.email,
-          userName: user.full_name
+          userName: user.full_name,
+          affiliateCode
         });
 
         console.log('Resposta PIX completa:', response.data);
@@ -142,11 +160,30 @@ export default function Checkout({ theme = 'light' }) {
     setProcessing(true);
     console.log('Dados do formulário Mercado Pago:', formData);
     
+    // Recuperar código de afiliado do localStorage
+    const getAffiliateCode = () => {
+      try {
+        const stored = localStorage.getItem('affiliate_ref');
+        if (!stored) return null;
+        const data = JSON.parse(stored);
+        if (new Date().getTime() > data.expires) {
+          localStorage.removeItem('affiliate_ref');
+          return null;
+        }
+        return data.code;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const affiliateCode = getAffiliateCode();
+    
     try {
       const response = await base44.functions.invoke('processDirectPayment', {
         formData,
         planId,
-        userEmail: user.email
+        userEmail: user.email,
+        affiliateCode
       });
 
       console.log('Resposta do pagamento:', response.data);

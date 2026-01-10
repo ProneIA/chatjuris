@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { formData, planId, userEmail } = body;
+    const { formData, planId, userEmail, affiliateCode } = body;
 
     const priceMap = {
       pro_monthly: 119.9,
@@ -76,38 +76,78 @@ Deno.serve(async (req) => {
       }, { status: response.status, headers });
     }
 
+    // Buscar afiliado se houver código
+    let affiliateId = null;
+    let affiliateData = null;
+    if (affiliateCode) {
+      try {
+        const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
+          affiliate_code: affiliateCode,
+          status: 'active'
+        });
+        if (affiliates.length > 0) {
+          affiliateData = affiliates[0];
+          affiliateId = affiliateData.id;
+          console.log('Afiliado encontrado:', affiliateCode, affiliateId);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar afiliado:', err);
+      }
+    }
+
     // Atualizar subscription se aprovado
     if (data.status === 'approved') {
       try {
         const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
         
+        const subscriptionData = {
+          plan: planId,
+          status: 'active',
+          payment_status: 'paid',
+          payment_method: 'credit_card',
+          payment_external_id: data.id.toString(),
+          price,
+          daily_actions_limit: 999999,
+          daily_actions_used: 0,
+          start_date: new Date().toISOString().split('T')[0],
+          last_reset_date: new Date().toISOString().split('T')[0],
+          ...(affiliateId && { affiliate_id: affiliateId, affiliate_code: affiliateCode })
+        };
+        
+        let subscriptionId;
         if (subscriptions.length > 0) {
-          await base44.entities.Subscription.update(subscriptions[0].id, {
-            plan: planId,
-            status: 'active',
-            payment_status: 'paid',
-            payment_method: 'credit_card',
-            payment_external_id: data.id.toString(),
-            price,
-            daily_actions_limit: 999999,
-            daily_actions_used: 0,
-            start_date: new Date().toISOString().split('T')[0],
-            last_reset_date: new Date().toISOString().split('T')[0]
-          });
+          await base44.entities.Subscription.update(subscriptions[0].id, subscriptionData);
+          subscriptionId = subscriptions[0].id;
         } else {
-          await base44.entities.Subscription.create({
+          const newSub = await base44.entities.Subscription.create({
             user_id: user.id,
-            plan: planId,
-            status: 'active',
-            payment_status: 'paid',
-            payment_method: 'credit_card',
-            payment_external_id: data.id.toString(),
-            price,
-            daily_actions_limit: 999999,
-            daily_actions_used: 0,
-            start_date: new Date().toISOString().split('T')[0],
-            last_reset_date: new Date().toISOString().split('T')[0]
+            ...subscriptionData
           });
+          subscriptionId = newSub.id;
+        }
+
+        // Criar comissão se houver afiliado
+        if (affiliateId && affiliateData) {
+          const commissionAmount = price * (affiliateData.commission_rate / 100);
+          
+          await base44.asServiceRole.entities.AffiliateCommission.create({
+            affiliate_id: affiliateId,
+            affiliate_code: affiliateCode,
+            subscription_id: subscriptionId,
+            customer_email: userEmail,
+            subscription_value: price,
+            commission_rate: affiliateData.commission_rate,
+            commission_amount: commissionAmount,
+            status: 'pending'
+          });
+
+          // Atualizar totais do afiliado
+          await base44.asServiceRole.entities.Affiliate.update(affiliateId, {
+            total_sales: (affiliateData.total_sales || 0) + 1,
+            total_commission: (affiliateData.total_commission || 0) + commissionAmount
+          });
+
+          console.log('Comissão criada:', commissionAmount, 'para afiliado:', affiliateCode);
         }
       } catch (dbError) {
         console.error('Database Error:', dbError);

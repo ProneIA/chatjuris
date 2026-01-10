@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { planId, userEmail, userName } = body;
+    const { planId, userEmail, userName, affiliateCode } = body;
 
     const priceMap = {
       pro_monthly: 119.9,
@@ -86,28 +86,45 @@ Deno.serve(async (req) => {
       }, { status: 500, headers });
     }
 
+    // Buscar afiliado se houver código
+    let affiliateId = null;
+    let affiliateData = null;
+    if (affiliateCode) {
+      try {
+        const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
+          affiliate_code: affiliateCode,
+          status: 'active'
+        });
+        if (affiliates.length > 0) {
+          affiliateData = affiliates[0];
+          affiliateId = affiliateData.id;
+          console.log('Afiliado encontrado:', affiliateCode, affiliateId);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar afiliado:', err);
+      }
+    }
+
     // Criar subscription pendente
     try {
       const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
       
+      const subscriptionData = {
+        plan: planId,
+        status: 'pending',
+        payment_status: 'pending',
+        payment_method: 'pix',
+        payment_external_id: data.id.toString(),
+        price,
+        ...(affiliateId && { affiliate_id: affiliateId, affiliate_code: affiliateCode })
+      };
+      
       if (subscriptions.length > 0) {
-        await base44.entities.Subscription.update(subscriptions[0].id, {
-          plan: planId,
-          status: 'pending',
-          payment_status: 'pending',
-          payment_method: 'pix',
-          payment_external_id: data.id.toString(),
-          price
-        });
+        await base44.entities.Subscription.update(subscriptions[0].id, subscriptionData);
       } else {
         await base44.entities.Subscription.create({
           user_id: user.id,
-          plan: planId,
-          status: 'pending',
-          payment_status: 'pending',
-          payment_method: 'pix',
-          payment_external_id: data.id.toString(),
-          price,
+          ...subscriptionData,
           daily_actions_limit: 5,
           daily_actions_used: 0
         });
