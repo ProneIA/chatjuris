@@ -11,16 +11,16 @@ import { DollarSign, CheckCircle, XCircle, Clock, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WithdrawalRequests({ requests, isOwner, affiliate, theme = 'light' }) {
+  const queryClient = useQueryClient();
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [requestAmount, setRequestAmount] = useState('');
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
-  
-  const canManageWithdrawals = isOwner && user?.email === 'ld.andrade@outlook.com';
-  const queryClient = useQueryClient();
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [requestAmount, setRequestAmount] = useState('');
+
+  const isActualOwner = user?.email === 'ld.andrade@outlook.com';
 
   const availableBalance = affiliate ? 
     (affiliate.total_commission || 0) - (affiliate.total_paid || 0) : 0;
@@ -258,7 +258,7 @@ export default function WithdrawalRequests({ requests, isOwner, affiliate, theme
                   </div>
 
                   {/* Ações do Owner */}
-                  {canManageWithdrawals && request.status === 'pending' && (
+                  {isActualOwner && request.status === 'pending' && (
                     <div className="flex flex-col gap-2 ml-4">
                       <Button
                         size="sm"
@@ -287,7 +287,7 @@ export default function WithdrawalRequests({ requests, isOwner, affiliate, theme
                     </div>
                   )}
 
-                  {canManageWithdrawals && request.status === 'approved' && (
+                  {isActualOwner && request.status === 'approved' && (
                     <Button
                       size="sm"
                       className="ml-4"
