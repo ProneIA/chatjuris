@@ -9,7 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
-export default function AffiliateRegistration({ theme = 'light' }) {
+export default function AffiliateRegistration({ theme = 'light', isOwner = false }) {
+  if (!isOwner) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Acesso restrito ao administrador do sistema.</p>
+      </div>
+    );
+  }
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [form, setForm] = useState({

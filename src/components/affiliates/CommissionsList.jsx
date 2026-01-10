@@ -8,6 +8,13 @@ import { CheckCircle, Clock, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CommissionsList({ commissions, isAdmin, theme = 'light' }) {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+  
+  const isOwner = user?.email === 'ld.andrade@outlook.com';
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [affiliates, setAffiliates] = React.useState({});
@@ -137,7 +144,7 @@ export default function CommissionsList({ commissions, isAdmin, theme = 'light' 
                 </div>
               </div>
 
-              {isAdmin && commission.status === 'pending' && (
+              {isOwner && commission.status === 'pending' && (
                 <Button
                   size="sm"
                   onClick={() => {

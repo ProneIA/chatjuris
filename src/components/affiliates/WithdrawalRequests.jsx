@@ -11,6 +11,13 @@ import { DollarSign, CheckCircle, XCircle, Clock, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WithdrawalRequests({ requests, isOwner, affiliate, theme = 'light' }) {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+  
+  const canManageWithdrawals = isOwner && user?.email === 'ld.andrade@outlook.com';
   const queryClient = useQueryClient();
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [requestAmount, setRequestAmount] = useState('');
@@ -251,7 +258,7 @@ export default function WithdrawalRequests({ requests, isOwner, affiliate, theme
                   </div>
 
                   {/* Ações do Owner */}
-                  {isOwner && request.status === 'pending' && (
+                  {canManageWithdrawals && request.status === 'pending' && (
                     <div className="flex flex-col gap-2 ml-4">
                       <Button
                         size="sm"
@@ -280,7 +287,7 @@ export default function WithdrawalRequests({ requests, isOwner, affiliate, theme
                     </div>
                   )}
 
-                  {isOwner && request.status === 'approved' && (
+                  {canManageWithdrawals && request.status === 'approved' && (
                     <Button
                       size="sm"
                       className="ml-4"

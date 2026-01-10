@@ -224,7 +224,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
 
           {isOwner && (
             <TabsContent value="register">
-              <AffiliateRegistration theme={theme} />
+              <AffiliateRegistration theme={theme} isOwner={isOwner} />
             </TabsContent>
           )}
 

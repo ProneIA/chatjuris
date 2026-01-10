@@ -8,6 +8,11 @@ import { CheckCircle, Clock, Ban, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AffiliateList({ affiliates, theme = 'light', isOwner = false }) {
+  const [user, setUser] = React.useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
 
@@ -120,7 +125,7 @@ export default function AffiliateList({ affiliates, theme = 'light', isOwner = f
                 )}
               </div>
 
-              {isOwner && (
+              {isOwner && user?.email === 'ld.andrade@outlook.com' && (
                 <div className="flex gap-2">
                   {affiliate.status === 'active' && (
                     <Button
