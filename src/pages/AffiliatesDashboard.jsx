@@ -229,84 +229,82 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
           )}
 
           {isAffiliate && !isOwner && (
-            <TabsContent value="my_data">
-              <Card className="bg-white border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-gray-900">
-                    Seu Link de Indicação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
-                      <p className="text-sm text-gray-600 mb-3">Compartilhe este link para ganhar comissões:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-white px-4 py-3 rounded border border-gray-300 text-sm text-gray-900">
-                          https://chatjuris.com/Pricing?ref={userAffiliate?.affiliate_code}
-                        </code>
-                        <Button
-                          onClick={() => {
-                            navigator.clipboard.writeText(`https://chatjuris.com/Pricing?ref=${userAffiliate?.affiliate_code}`);
-                            toast.success('Link copiado!');
-                          }}
-                          className="bg-purple-600 hover:bg-purple-700"
-                        >
-                          Copiar Link
-                        </Button>
+            <>
+              <TabsContent value="my_data">
+                <Card className="bg-white border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="text-gray-900">
+                      Seu Link de Indicação
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+                        <p className="text-sm text-gray-600 mb-3">Compartilhe este link para ganhar comissões:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-white px-4 py-3 rounded border border-gray-300 text-sm text-gray-900">
+                            https://chatjuris.com/Pricing?ref={userAffiliate?.affiliate_code}
+                          </code>
+                          <Button
+                            onClick={() => {
+                              navigator.clipboard.writeText(`https://chatjuris.com/Pricing?ref=${userAffiliate?.affiliate_code}`);
+                              toast.success('Link copiado!');
+                            }}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            Copiar Link
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white border border-gray-200 p-4 rounded">
+                          <p className="text-sm text-gray-600">Código</p>
+                          <p className="font-mono font-bold text-gray-900 text-lg mt-1">
+                            {userAffiliate?.affiliate_code}
+                          </p>
+                        </div>
+                        <div className="bg-white border border-gray-200 p-4 rounded">
+                          <p className="text-sm text-gray-600">Taxa de Comissão</p>
+                          <p className="font-bold text-green-600 text-lg mt-1">
+                            {userAffiliate?.commission_rate}%
+                          </p>
+                        </div>
+                        <div className="bg-white border border-gray-200 p-4 rounded">
+                          <p className="text-sm text-gray-600">Total de Vendas</p>
+                          <p className="font-bold text-gray-900 text-lg mt-1">
+                            {userAffiliate?.total_sales || 0}
+                          </p>
+                        </div>
+                        <div className="bg-white border border-gray-200 p-4 rounded">
+                          <p className="text-sm text-gray-600">Disponível para Saque</p>
+                          <p className="font-bold text-green-600 text-lg mt-1">
+                            R$ {((userAffiliate?.total_commission || 0) - (userAffiliate?.total_paid || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white border border-gray-200 p-4 rounded">
-                        <p className="text-sm text-gray-600">Código</p>
-                        <p className="font-mono font-bold text-gray-900 text-lg mt-1">
-                          {userAffiliate?.affiliate_code}
-                        </p>
-                      </div>
-                      <div className="bg-white border border-gray-200 p-4 rounded">
-                        <p className="text-sm text-gray-600">Taxa de Comissão</p>
-                        <p className="font-bold text-green-600 text-lg mt-1">
-                          {userAffiliate?.commission_rate}%
-                        </p>
-                      </div>
-                      <div className="bg-white border border-gray-200 p-4 rounded">
-                        <p className="text-sm text-gray-600">Total de Vendas</p>
-                        <p className="font-bold text-gray-900 text-lg mt-1">
-                          {userAffiliate?.total_sales || 0}
-                        </p>
-                      </div>
-                      <div className="bg-white border border-gray-200 p-4 rounded">
-                        <p className="text-sm text-gray-600">Disponível para Saque</p>
-                        <p className="font-bold text-green-600 text-lg mt-1">
-                          R$ {((userAffiliate?.total_commission || 0) - (userAffiliate?.total_paid || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
+              <TabsContent value="commissions">
+                <CommissionsList 
+                  commissions={allCommissions} 
+                  isAdmin={false}
+                  theme={theme} 
+                />
+              </TabsContent>
 
-          {isAffiliate && !isOwner && (
-            <TabsContent value="commissions">
-              <CommissionsList 
-                commissions={allCommissions} 
-                isAdmin={false}
-                theme={theme} 
-              />
-            </TabsContent>
-          )}
-
-          {isAffiliate && !isOwner && (
-            <TabsContent value="withdrawals">
-              <WithdrawalRequests 
-                requests={withdrawalRequests} 
-                isOwner={false}
-                affiliate={userAffiliate}
-                theme={theme} 
-              />
-            </TabsContent>
+              <TabsContent value="withdrawals">
+                <WithdrawalRequests 
+                  requests={withdrawalRequests} 
+                  isOwner={false}
+                  affiliate={userAffiliate}
+                  theme={theme} 
+                />
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>
