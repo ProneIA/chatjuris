@@ -69,6 +69,20 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     enabled: (isOwner || isAffiliate) && !!user?.email
   });
 
+  // Solicitações de saque
+  const { data: withdrawalRequests = [] } = useQuery({
+    queryKey: ['withdrawalRequests', user?.email],
+    queryFn: () => {
+      if (isOwner) {
+        return base44.entities.WithdrawalRequest.list('-created_date');
+      } else if (isAffiliate) {
+        return base44.entities.WithdrawalRequest.filter({ affiliate_email: user.email });
+      }
+      return [];
+    },
+    enabled: (isOwner || isAffiliate) && !!user?.email
+  });
+
 
 
   const stats = {
@@ -169,9 +183,15 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
           <TabsList className={isDark ? 'bg-neutral-900' : 'bg-gray-100'}>
             {isOwner && <TabsTrigger value="affiliates">Afiliados</TabsTrigger>}
             {isOwner && <TabsTrigger value="commissions">Comissões</TabsTrigger>}
+            {isOwner && (
+              <TabsTrigger value="withdrawals">
+                Saques {stats.pendingWithdrawals > 0 && `(${stats.pendingWithdrawals})`}
+              </TabsTrigger>
+            )}
             {isOwner && <TabsTrigger value="register">Novo Afiliado</TabsTrigger>}
             {isAffiliate && !isOwner && <TabsTrigger value="my_data">Meu Link</TabsTrigger>}
             {isAffiliate && !isOwner && <TabsTrigger value="commissions">Minhas Comissões</TabsTrigger>}
+            {isAffiliate && !isOwner && <TabsTrigger value="withdrawals">Meus Saques</TabsTrigger>}
           </TabsList>
 
           {isOwner && (
@@ -185,6 +205,16 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
               <CommissionsList 
                 commissions={allCommissions} 
                 isAdmin={isOwner}
+                theme={theme} 
+              />
+            </TabsContent>
+          )}
+
+          {isOwner && (
+            <TabsContent value="withdrawals">
+              <WithdrawalRequests 
+                requests={withdrawalRequests} 
+                isOwner={isOwner}
                 theme={theme} 
               />
             </TabsContent>
@@ -244,9 +274,9 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
                         </p>
                       </div>
                       <div className="bg-white border border-gray-200 p-4 rounded">
-                        <p className="text-sm text-gray-600">Total Comissões</p>
+                        <p className="text-sm text-gray-600">Disponível para Saque</p>
                         <p className="font-bold text-green-600 text-lg mt-1">
-                          R$ {(userAffiliate?.total_commission || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          R$ {((userAffiliate?.total_commission || 0) - (userAffiliate?.total_paid || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                     </div>
@@ -254,6 +284,17 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {isAffiliate && !isOwner && (
+              <TabsContent value="withdrawals">
+                <WithdrawalRequests 
+                  requests={withdrawalRequests} 
+                  isOwner={false}
+                  affiliate={userAffiliate}
+                  theme={theme} 
+                />
+              </TabsContent>
+            )}
           )}
         </Tabs>
       </div>
