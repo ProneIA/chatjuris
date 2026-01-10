@@ -64,7 +64,7 @@ export default function AffiliateList({ affiliates, theme = 'light', isOwner = f
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/Pricing?ref=${affiliate.affiliate_code}`);
+                        navigator.clipboard.writeText(`https://chatjuris.com/Pricing?ref=${affiliate.affiliate_code}`);
                         toast.success('Link copiado!');
                       }}
                     >

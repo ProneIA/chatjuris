@@ -210,11 +210,11 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
                       <p className="text-sm text-gray-600 mb-3">Compartilhe este link para ganhar comissões:</p>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 bg-white px-4 py-3 rounded border border-gray-300 text-sm text-gray-900">
-                          {window.location.origin}/Pricing?ref={userAffiliate?.affiliate_code}
+                          https://chatjuris.com/Pricing?ref={userAffiliate?.affiliate_code}
                         </code>
                         <Button
                           onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/Pricing?ref=${userAffiliate?.affiliate_code}`);
+                            navigator.clipboard.writeText(`https://chatjuris.com/Pricing?ref=${userAffiliate?.affiliate_code}`);
                             toast.success('Link copiado!');
                           }}
                           className="bg-purple-600 hover:bg-purple-700"
