@@ -33,7 +33,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
 
   const isAdmin = user?.role === 'admin';
   const isAffiliate = !!userAffiliate;
-  const isOwner = user?.email === 'your-email@example.com'; // Substitua pelo seu email de criador
+  const isOwner = user?.email === 'felipe.alves@base44.com'; // Email do criador
 
   // Redirecionar se não for admin nem afiliado
   React.useEffect(() => {
