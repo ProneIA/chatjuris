@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import AffiliateRegistration from "@/components/affiliates/AffiliateRegistration";
 import AffiliateList from "@/components/affiliates/AffiliateList";
 import CommissionsList from "@/components/affiliates/CommissionsList";
+import WithdrawalRequests from "@/components/affiliates/WithdrawalRequests";
 
 export default function AffiliatesDashboard({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -89,7 +90,8 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     totalAffiliates: allAffiliates.length,
     activeAffiliates: allAffiliates.filter(a => a.status === 'active').length,
     totalCommissions: allCommissions.reduce((sum, c) => sum + c.commission_amount, 0),
-    pendingCommissions: allCommissions.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.commission_amount, 0)
+    pendingCommissions: allCommissions.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.commission_amount, 0),
+    pendingWithdrawals: withdrawalRequests.filter(w => w.status === 'pending').length
   };
 
   if (!isOwner && !isAffiliate) {
@@ -284,17 +286,27 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
                 </CardContent>
               </Card>
             </TabsContent>
+          )}
 
-            {isAffiliate && !isOwner && (
-              <TabsContent value="withdrawals">
-                <WithdrawalRequests 
-                  requests={withdrawalRequests} 
-                  isOwner={false}
-                  affiliate={userAffiliate}
-                  theme={theme} 
-                />
-              </TabsContent>
-            )}
+          {isAffiliate && !isOwner && (
+            <TabsContent value="commissions">
+              <CommissionsList 
+                commissions={allCommissions} 
+                isAdmin={false}
+                theme={theme} 
+              />
+            </TabsContent>
+          )}
+
+          {isAffiliate && !isOwner && (
+            <TabsContent value="withdrawals">
+              <WithdrawalRequests 
+                requests={withdrawalRequests} 
+                isOwner={false}
+                affiliate={userAffiliate}
+                theme={theme} 
+              />
+            </TabsContent>
           )}
         </Tabs>
       </div>
