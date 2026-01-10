@@ -19,8 +19,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
-    const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
-    if (!accessToken) {
+    const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+    if (!MP_ACCESS_TOKEN) {
       return Response.json({ 
         error: 'Mercado Pago não configurado' 
       }, { status: 500, headers });
@@ -39,56 +39,56 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
 
-    const firstName = userName?.split(' ')[0] || 'Cliente';
-
-    const pixPayment = {
+    // Criar pagamento PIX no Mercado Pago
+    const paymentData = {
       transaction_amount: price,
-      description: `Plano ${planId}`,
+      description: `Assinatura ${planId === 'pro_monthly' ? 'Mensal' : 'Anual'} - Juris`,
       payment_method_id: 'pix',
       payer: {
         email: userEmail,
-        first_name: firstName
+        first_name: userName || userEmail.split('@')[0]
       },
       metadata: {
         plan_id: planId,
-        user_email: userEmail
+        user_email: userEmail,
+        affiliate_code: affiliateCode || null
       }
     };
 
     const response = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
-        'X-Idempotency-Key': `${user.id}-pix-${planId}-${Date.now()}`
+        'X-Idempotency-Key': `${user.id}-pix-${Date.now()}`
       },
-      body: JSON.stringify(pixPayment)
+      body: JSON.stringify(paymentData)
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
-      console.error('Mercado Pago PIX Error:', data);
+      console.error('Mercado Pago Error:', data);
       return Response.json({ 
         success: false,
-        error: data.message || 'Erro ao criar pagamento PIX',
-        details: data
+        error: data.message || 'Erro ao criar pagamento PIX'
       }, { status: response.status, headers });
     }
 
-    const pixData = data.point_of_interaction?.transaction_data;
+    // Extrair QR Code
+    const qrCode = data.point_of_interaction?.transaction_data?.qr_code;
+    const qrCodeBase64 = data.point_of_interaction?.transaction_data?.qr_code_base64;
 
-    if (!pixData?.qr_code) {
-      console.error('QR Code não retornado:', data);
-      return Response.json({
+    if (!qrCode || !qrCodeBase64) {
+      console.error('QR Code não gerado:', data);
+      return Response.json({ 
         success: false,
-        error: 'QR Code PIX não foi gerado. Tente novamente.'
+        error: 'QR Code não foi gerado pelo Mercado Pago'
       }, { status: 500, headers });
     }
 
     // Buscar afiliado se houver código
     let affiliateId = null;
-    let affiliateData = null;
     if (affiliateCode) {
       try {
         const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
@@ -96,48 +96,44 @@ Deno.serve(async (req) => {
           status: 'active'
         });
         if (affiliates.length > 0) {
-          affiliateData = affiliates[0];
-          affiliateId = affiliateData.id;
-          console.log('Afiliado encontrado:', affiliateCode, affiliateId);
+          affiliateId = affiliates[0].id;
         }
-      } catch (err) {
-        console.error('Erro ao buscar afiliado:', err);
+      } catch (e) {
+        console.error('Erro ao buscar afiliado:', e);
       }
     }
 
-    // Criar subscription pendente
-    try {
-      const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
-      
-      const subscriptionData = {
-        plan: planId,
-        status: 'pending',
-        payment_status: 'pending',
-        payment_method: 'pix',
-        payment_external_id: data.id.toString(),
-        price,
-        ...(affiliateId && { affiliate_id: affiliateId, affiliate_code: affiliateCode })
-      };
-      
-      if (subscriptions.length > 0) {
-        await base44.entities.Subscription.update(subscriptions[0].id, subscriptionData);
-      } else {
-        await base44.entities.Subscription.create({
-          user_id: user.id,
-          ...subscriptionData,
-          daily_actions_limit: 5,
-          daily_actions_used: 0
-        });
-      }
-    } catch (dbError) {
-      console.error('Database Error:', dbError);
+    // Criar ou atualizar subscription com status pending
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id });
+    
+    const subscriptionData = {
+      user_id: user.id,
+      plan: planId,
+      status: 'pending',
+      payment_status: 'pending',
+      payment_method: 'pix',
+      payment_external_id: data.id.toString(),
+      price,
+      daily_actions_limit: 999999,
+      daily_actions_used: 0,
+      affiliate_id: affiliateId,
+      affiliate_code: affiliateCode,
+      start_date: new Date().toISOString().split('T')[0],
+      last_reset_date: new Date().toISOString().split('T')[0]
+    };
+
+    if (subscriptions.length > 0) {
+      await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subscriptionData);
+    } else {
+      await base44.asServiceRole.entities.Subscription.create(subscriptionData);
     }
 
     return Response.json({
       success: true,
+      qr_code: qrCode,
+      qr_code_base64: qrCodeBase64,
       payment_id: data.id,
-      qr_code: pixData.qr_code,
-      qr_code_base64: pixData.qr_code_base64
+      has_affiliate: !!affiliateCode
     }, { headers });
 
   } catch (error) {

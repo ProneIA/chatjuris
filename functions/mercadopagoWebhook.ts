@@ -1,262 +1,136 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-
-const MP_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
-const MP_API_BASE = "https://api.mercadopago.com";
-
-// Busca detalhes do pagamento no MP
-async function getPaymentDetails(paymentId) {
-  const response = await fetch(`${MP_API_BASE}/v1/payments/${paymentId}`, {
-    headers: { "Authorization": `Bearer ${MP_ACCESS_TOKEN}` }
-  });
-  if (!response.ok) return null;
-  return await response.json();
-}
-
-// Busca detalhes da assinatura no MP
-async function getSubscriptionDetails(subscriptionId) {
-  const response = await fetch(`${MP_API_BASE}/preapproval/${subscriptionId}`, {
-    headers: { "Authorization": `Bearer ${MP_ACCESS_TOKEN}` }
-  });
-  if (!response.ok) return null;
-  return await response.json();
-}
-
-// Atualiza o status da assinatura no banco baseado em detalhes do pagamento
-async function updateSubscriptionFromPayment(base44, paymentDetails) {
-  try {
-    const metadata = paymentDetails.metadata;
-    const userId = metadata?.user_id;
-    const userEmail = metadata?.user_email || paymentDetails.payer?.email;
-    const planId = metadata?.plan_id;
-
-    if (!userId && !userEmail) {
-      console.log('No user identifier in payment metadata');
-      return;
-    }
-
-    const query = userId ? { user_id: userId } : { created_by: userEmail };
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter(query);
-
-    if (subscriptions.length === 0) {
-      console.log('No subscription found for user');
-      return;
-    }
-
-    const subscription = subscriptions[0];
-    const status = paymentDetails.status;
-
-    let subscriptionStatus = 'pending';
-    let paymentStatus = 'pending';
-
-    if (status === 'approved') {
-      subscriptionStatus = 'active';
-      paymentStatus = 'paid';
-    } else if (status === 'rejected' || status === 'cancelled') {
-      subscriptionStatus = 'cancelled';
-      paymentStatus = 'failed';
-    } else if (status === 'pending' || status === 'in_process') {
-      subscriptionStatus = 'pending';
-      paymentStatus = 'pending';
-    }
-
-    const updateData = {
-      status: subscriptionStatus,
-      payment_status: paymentStatus,
-      payment_external_id: paymentDetails.id?.toString(),
-      plan: planId || subscription.plan || 'pro_monthly',
-      daily_actions_limit: subscriptionStatus === 'active' ? 999999 : 5,
-      daily_actions_used: 0,
-      last_reset_date: new Date().toISOString().split('T')[0],
-      start_date: subscriptionStatus === 'active' ? new Date().toISOString().split('T')[0] : subscription.start_date,
-      next_billing_date: subscriptionStatus === 'active' ? calculateNextBillingDate(new Date()) : subscription.next_billing_date,
-      price: paymentDetails.transaction_amount || subscription.price,
-      payment_method: paymentDetails.payment_method_id || subscription.payment_method
-    };
-
-    await base44.asServiceRole.entities.Subscription.update(subscription.id, updateData);
-    console.log('Subscription updated from payment:', subscription.id, updateData);
-
-    // Criar comissão se pagamento aprovado e houver afiliado
-    if (status === 'approved' && subscription.affiliate_id && subscription.affiliate_code) {
-      try {
-        // Verificar se comissão já existe
-        const existingCommissions = await base44.asServiceRole.entities.AffiliateCommission.filter({
-          subscription_id: subscription.id
-        });
-
-        if (existingCommissions.length === 0) {
-          // Buscar dados do afiliado
-          const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
-            id: subscription.affiliate_id 
-          });
-
-          if (affiliates.length > 0) {
-            const affiliate = affiliates[0];
-            const price = paymentDetails.transaction_amount || subscription.price;
-            const commissionAmount = price * (affiliate.commission_rate / 100);
-
-            await base44.asServiceRole.entities.AffiliateCommission.create({
-              affiliate_id: affiliate.id,
-              affiliate_code: subscription.affiliate_code,
-              subscription_id: subscription.id,
-              customer_email: userEmail,
-              subscription_value: price,
-              commission_rate: affiliate.commission_rate,
-              commission_amount: commissionAmount,
-              status: 'pending'
-            });
-
-            // Atualizar totais do afiliado
-            await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
-              total_sales: (affiliate.total_sales || 0) + 1,
-              total_commission: (affiliate.total_commission || 0) + commissionAmount
-            });
-
-            console.log('Comissão criada via webhook:', commissionAmount);
-          }
-        }
-      } catch (commissionError) {
-        console.error('Erro ao criar comissão:', commissionError);
-      }
-    }
-  } catch (error) {
-    console.error('Error updating subscription from payment:', error);
-  }
-}
-
-// Atualiza o status da assinatura no banco (assinaturas recorrentes)
-async function updateSubscriptionStatus(base44, mpSubscriptionId, newStatus, paymentStatus, extraData = {}) {
-  const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
-    payment_external_id: mpSubscriptionId
-  });
-
-  if (subscriptions.length === 0) {
-    console.log("Assinatura não encontrada no banco:", mpSubscriptionId);
-    return null;
-  }
-
-  const subscription = subscriptions[0];
-  
-  const updateData = {
-    status: newStatus,
-    payment_status: paymentStatus,
-    ...extraData
-  };
-
-  await base44.asServiceRole.entities.Subscription.update(subscription.id, updateData);
-  
-  console.log(`Assinatura ${subscription.id} atualizada: status=${newStatus}, payment=${paymentStatus}`);
-  return subscription;
-}
+import { processAffiliateCommission } from './processAffiliateCommission.js';
 
 Deno.serve(async (req) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, x-signature, x-request-id',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers });
   }
 
-  if (req.method === 'GET') {
-    return Response.json({ status: 'Webhook ativo' }, { status: 200, headers });
-  }
-
-  if (req.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405, headers });
-  }
-
   try {
+    console.log('Webhook recebido do Mercado Pago');
+    
     const base44 = createClientFromRequest(req);
     const body = await req.json();
+    
+    console.log('Webhook body:', JSON.stringify(body, null, 2));
 
-    console.log("Webhook recebido:", JSON.stringify(body));
-
-    const { type, data, action } = body;
-
-    // Notificação de pagamento único (checkout preference)
-    if (type === "payment") {
-      const paymentId = data?.id;
+    // Mercado Pago envia notificações de payment
+    if (body.type === 'payment' || body.action === 'payment.updated') {
+      const paymentId = body.data?.id;
+      
       if (!paymentId) {
-        console.log("ID do pagamento não fornecido");
+        console.log('Payment ID não encontrado no webhook');
         return Response.json({ received: true }, { headers });
       }
 
-      const payment = await getPaymentDetails(paymentId);
-      if (!payment) {
-        console.log("Pagamento não encontrado");
-        return Response.json({ received: true }, { headers });
+      const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+      if (!MP_ACCESS_TOKEN) {
+        console.error('MP_ACCESS_TOKEN não configurado');
+        return Response.json({ error: 'MP não configurado' }, { status: 500, headers });
       }
 
-      console.log("Detalhes do pagamento:", JSON.stringify(payment));
+      // Buscar detalhes do pagamento
+      const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${MP_ACCESS_TOKEN}`
+        }
+      });
 
-      // Atualizar subscription baseado no pagamento
-      await updateSubscriptionFromPayment(base44, payment);
-    }
+      const payment = await paymentResponse.json();
+      console.log('Detalhes do pagamento:', JSON.stringify(payment, null, 2));
 
-    // Notificação de assinatura recorrente (preapproval)
-    if (type === "subscription_preapproval" || type === "preapproval") {
-      const subscriptionId = data?.id;
-      if (!subscriptionId) {
-        console.log("ID da assinatura não fornecido");
-        return Response.json({ received: true }, { headers });
-      }
+      if (payment.status === 'approved') {
+        const metadata = payment.metadata || {};
+        const planId = metadata.plan_id;
+        const userEmail = metadata.user_email;
+        const affiliateCode = metadata.affiliate_code;
 
-      const subscription = await getSubscriptionDetails(subscriptionId);
-      if (!subscription) {
-        console.log("Assinatura não encontrada");
-        return Response.json({ received: true }, { headers });
-      }
+        if (!planId || !userEmail) {
+          console.log('Metadata incompleto, ignorando webhook');
+          return Response.json({ received: true }, { headers });
+        }
 
-      console.log("Detalhes da assinatura:", JSON.stringify(subscription));
+        // Buscar subscription pelo payment_external_id
+        const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ 
+          payment_external_id: paymentId.toString() 
+        });
 
-      switch (subscription.status) {
-        case "authorized":
-        case "active":
-          await updateSubscriptionStatus(base44, subscriptionId, "active", "paid", {
-            next_billing_date: subscription.next_payment_date?.split('T')[0]
+        if (subscriptions.length === 0) {
+          console.log('Subscription não encontrada para payment_id:', paymentId);
+          return Response.json({ received: true }, { headers });
+        }
+
+        const subscription = subscriptions[0];
+
+        // Verificar se já está ativa
+        if (subscription.status === 'active' && subscription.payment_status === 'paid') {
+          console.log('Subscription já estava ativa');
+          return Response.json({ received: true, already_processed: true }, { headers });
+        }
+
+        // Ativar subscription
+        await base44.asServiceRole.entities.Subscription.update(subscription.id, {
+          status: 'active',
+          payment_status: 'paid'
+        });
+
+        console.log('Subscription ativada:', subscription.id);
+
+        // Processar comissão do afiliado se houver
+        if (affiliateCode) {
+          console.log('Processando comissão para afiliado:', affiliateCode);
+          await processAffiliateCommission(
+            base44,
+            subscription.id,
+            affiliateCode,
+            payment.transaction_amount,
+            userEmail
+          );
+        }
+
+        // Enviar email de confirmação
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: userEmail,
+            subject: '🎉 Pagamento Confirmado - Bem-vindo ao Juris Pro!',
+            body: `
+Olá!
+
+Seu pagamento foi confirmado com sucesso! 🎉
+
+Sua assinatura ${planId === 'pro_monthly' ? 'Mensal' : 'Anual'} do Juris Pro está ativa.
+
+Aproveite todos os recursos ilimitados:
+✅ IA Ilimitada
+✅ Todos os modos de IA
+✅ Documentos e processos ilimitados
+✅ Suporte prioritário 24/7
+
+Comece agora mesmo a transformar sua prática jurídica!
+
+Atenciosamente,
+Equipe Juris
+            `
           });
-          break;
-
-        case "paused":
-          await updateSubscriptionStatus(base44, subscriptionId, "pending", "pending");
-          break;
-
-        case "cancelled":
-          await updateSubscriptionStatus(base44, subscriptionId, "cancelled", "cancelled", {
-            end_date: new Date().toISOString().split('T')[0]
-          });
-          break;
-
-        case "pending":
-          await updateSubscriptionStatus(base44, subscriptionId, "pending", "pending");
-          break;
-      }
-    }
-
-    // Notificação de pagamento autorizado em assinatura
-    if (type === "subscription_authorized_payment" || type === "authorized_payment") {
-      const paymentId = data?.id;
-      if (paymentId) {
-        const payment = await getPaymentDetails(paymentId);
-        if (payment) {
-          await updateSubscriptionFromPayment(base44, payment);
+        } catch (emailError) {
+          console.error('Erro ao enviar email:', emailError);
         }
       }
     }
 
-    return Response.json({ received: true, processed: true }, { headers });
+    return Response.json({ received: true }, { headers });
 
   } catch (error) {
-    console.error("Erro no webhook:", error);
-    return Response.json({ received: true, error: error.message }, { headers });
+    console.error('Webhook Error:', error);
+    return Response.json({ 
+      received: true,
+      error: error.message 
+    }, { status: 200, headers }); // Sempre retorna 200 para não reenviar
   }
 });
-
-function calculateNextBillingDate() {
-  const next = new Date();
-  next.setMonth(next.getMonth() + 1);
-  return next.toISOString().split('T')[0];
-}

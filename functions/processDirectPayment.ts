@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { processAffiliateCommission } from './processAffiliateCommission.js';
 
 Deno.serve(async (req) => {
   const headers = {
@@ -51,7 +52,8 @@ Deno.serve(async (req) => {
       },
       metadata: {
         plan_id: planId,
-        user_email: userEmail
+        user_email: userEmail,
+        affiliate_code: affiliateCode || null
       }
     };
 
@@ -78,7 +80,6 @@ Deno.serve(async (req) => {
 
     // Buscar afiliado se houver código
     let affiliateId = null;
-    let affiliateData = null;
     if (affiliateCode) {
       try {
         const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ 
@@ -86,19 +87,17 @@ Deno.serve(async (req) => {
           status: 'active'
         });
         if (affiliates.length > 0) {
-          affiliateData = affiliates[0];
-          affiliateId = affiliateData.id;
-          console.log('Afiliado encontrado:', affiliateCode, affiliateId);
+          affiliateId = affiliates[0].id;
         }
-      } catch (err) {
-        console.error('Erro ao buscar afiliado:', err);
+      } catch (e) {
+        console.error('Erro ao buscar afiliado:', e);
       }
     }
 
-    // Atualizar subscription se aprovado
+    // Atualizar subscription
     if (data.status === 'approved') {
       try {
-        const subscriptions = await base44.entities.Subscription.filter({ user_id: user.id });
+        const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id });
         
         const subscriptionData = {
           plan: planId,
@@ -109,45 +108,33 @@ Deno.serve(async (req) => {
           price,
           daily_actions_limit: 999999,
           daily_actions_used: 0,
+          affiliate_id: affiliateId,
+          affiliate_code: affiliateCode,
           start_date: new Date().toISOString().split('T')[0],
-          last_reset_date: new Date().toISOString().split('T')[0],
-          ...(affiliateId && { affiliate_id: affiliateId, affiliate_code: affiliateCode })
+          last_reset_date: new Date().toISOString().split('T')[0]
         };
-        
+
         let subscriptionId;
         if (subscriptions.length > 0) {
-          await base44.entities.Subscription.update(subscriptions[0].id, subscriptionData);
+          await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subscriptionData);
           subscriptionId = subscriptions[0].id;
         } else {
-          const newSub = await base44.entities.Subscription.create({
+          const newSub = await base44.asServiceRole.entities.Subscription.create({
             user_id: user.id,
             ...subscriptionData
           });
           subscriptionId = newSub.id;
         }
 
-        // Criar comissão se houver afiliado
-        if (affiliateId && affiliateData) {
-          const commissionAmount = price * (affiliateData.commission_rate / 100);
-          
-          await base44.asServiceRole.entities.AffiliateCommission.create({
-            affiliate_id: affiliateId,
-            affiliate_code: affiliateCode,
-            subscription_id: subscriptionId,
-            customer_email: userEmail,
-            subscription_value: price,
-            commission_rate: affiliateData.commission_rate,
-            commission_amount: commissionAmount,
-            status: 'pending'
-          });
-
-          // Atualizar totais do afiliado
-          await base44.asServiceRole.entities.Affiliate.update(affiliateId, {
-            total_sales: (affiliateData.total_sales || 0) + 1,
-            total_commission: (affiliateData.total_commission || 0) + commissionAmount
-          });
-
-          console.log('Comissão criada:', commissionAmount, 'para afiliado:', affiliateCode);
+        // Processar comissão do afiliado se houver
+        if (affiliateCode) {
+          await processAffiliateCommission(
+            base44,
+            subscriptionId,
+            affiliateCode,
+            price,
+            userEmail
+          );
         }
       } catch (dbError) {
         console.error('Database Error:', dbError);
@@ -156,7 +143,8 @@ Deno.serve(async (req) => {
 
     return Response.json({
       status: data.status,
-      payment_id: data.id
+      payment_id: data.id,
+      has_affiliate: !!affiliateCode
     }, { headers });
 
   } catch (error) {
