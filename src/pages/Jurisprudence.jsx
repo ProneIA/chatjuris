@@ -89,21 +89,21 @@ export default function Jurisprudence({ theme = 'light' }) {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Total Salvas</p>
-            <p className="text-2xl font-light text-white mt-1">{stats.total}</p>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <p className="text-sm text-gray-600">Total Salvas</p>
+            <p className="text-2xl font-light text-gray-900 mt-1">{stats.total}</p>
           </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">STF</p>
-            <p className="text-2xl font-light text-white mt-1">{stats.stf}</p>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <p className="text-sm text-gray-600">STF</p>
+            <p className="text-2xl font-light text-gray-900 mt-1">{stats.stf}</p>
           </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">STJ</p>
-            <p className="text-2xl font-light text-white mt-1">{stats.stj}</p>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <p className="text-sm text-gray-600">STJ</p>
+            <p className="text-2xl font-light text-gray-900 mt-1">{stats.stj}</p>
           </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Favoritas</p>
-            <p className="text-2xl font-light text-white mt-1">{stats.favorites}</p>
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <p className="text-sm text-gray-600">Favoritas</p>
+            <p className="text-2xl font-light text-gray-900 mt-1">{stats.favorites}</p>
           </div>
         </div>
       </div>

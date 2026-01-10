@@ -32,6 +32,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
 
   const isAdmin = user?.role === 'admin';
   const isAffiliate = !!userAffiliate;
+  const isOwner = user?.email === 'your-email@example.com'; // Substitua pelo seu email de criador
 
   // Redirecionar se não for admin nem afiliado
   React.useEffect(() => {
@@ -40,32 +41,32 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     }
   }, [user, isAdmin, isAffiliate]);
 
-  // Admin vê todos os afiliados, afiliado vê apenas ele mesmo
+  // Owner/Admin vê todos, afiliado vê apenas ele mesmo
   const { data: allAffiliates = [] } = useQuery({
     queryKey: ['affiliates', user?.email],
     queryFn: () => {
-      if (isAdmin) {
+      if (isOwner) {
         return base44.entities.Affiliate.list('-created_date');
       } else if (isAffiliate) {
         return base44.entities.Affiliate.filter({ user_email: user.email });
       }
       return [];
     },
-    enabled: isAdmin || isAffiliate
+    enabled: isOwner || isAffiliate
   });
 
-  // Admin vê todas as comissões, afiliado vê apenas as suas
+  // Owner vê todas, afiliado vê apenas as suas
   const { data: allCommissions = [] } = useQuery({
     queryKey: ['allCommissions', user?.email],
     queryFn: () => {
-      if (isAdmin) {
+      if (isOwner) {
         return base44.entities.AffiliateCommission.list('-created_date');
       } else if (isAffiliate) {
         return base44.entities.AffiliateCommission.filter({ affiliate_id: userAffiliate.id });
       }
       return [];
     },
-    enabled: (isAdmin || isAffiliate) && !!user?.email
+    enabled: (isOwner || isAffiliate) && !!user?.email
   });
 
 
@@ -77,7 +78,7 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
     pendingCommissions: allCommissions.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.commission_amount, 0)
   };
 
-  if (!isAdmin && !isAffiliate) {
+  if (!isOwner && !isAffiliate) {
     return null;
   }
 
@@ -87,10 +88,10 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
         {/* Header */}
         <div>
           <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {isAdmin ? 'Gestão de Afiliados' : 'Meu Painel de Afiliado'}
+            {isOwner ? 'Gestão de Afiliados' : 'Meu Painel de Afiliado'}
           </h1>
           <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
-            {isAdmin ? 'Gerencie afiliados e comissões' : 'Acompanhe suas vendas e comissões'}
+            {isOwner ? 'Gerencie afiliados e comissões' : 'Acompanhe suas vendas e comissões'}
           </p>
         </div>
 
@@ -164,101 +165,88 @@ export default function AffiliatesDashboard({ theme = 'light' }) {
 
 
         {/* Tabs */}
-        <Tabs defaultValue={isAffiliate && !isAdmin ? "commissions" : "affiliates"} className="w-full">
+        <Tabs defaultValue={isAffiliate && !isOwner ? "my_data" : "affiliates"} className="w-full">
           <TabsList className={isDark ? 'bg-neutral-900' : 'bg-gray-100'}>
-            {isAdmin && <TabsTrigger value="affiliates">Afiliados</TabsTrigger>}
-            <TabsTrigger value="commissions">Comissões</TabsTrigger>
-            {isAdmin && <TabsTrigger value="register">Novo Afiliado</TabsTrigger>}
-            {isAffiliate && !isAdmin && <TabsTrigger value="my_data">Meus Dados</TabsTrigger>}
+            {isOwner && <TabsTrigger value="affiliates">Afiliados</TabsTrigger>}
+            {isOwner && <TabsTrigger value="commissions">Comissões</TabsTrigger>}
+            {isOwner && <TabsTrigger value="register">Novo Afiliado</TabsTrigger>}
+            {isAffiliate && !isOwner && <TabsTrigger value="my_data">Meu Link</TabsTrigger>}
+            {isAffiliate && !isOwner && <TabsTrigger value="commissions">Minhas Comissões</TabsTrigger>}
           </TabsList>
 
-          {isAdmin && (
+          {isOwner && (
             <TabsContent value="affiliates">
-              <AffiliateList affiliates={allAffiliates} theme={theme} />
+              <AffiliateList affiliates={allAffiliates} theme={theme} isOwner={isOwner} />
             </TabsContent>
           )}
 
-          <TabsContent value="commissions">
-            <CommissionsList 
-              commissions={allCommissions} 
-              isAdmin={isAdmin}
-              theme={theme} 
-            />
-          </TabsContent>
+          {isOwner && (
+            <TabsContent value="commissions">
+              <CommissionsList 
+                commissions={allCommissions} 
+                isAdmin={isOwner}
+                theme={theme} 
+              />
+            </TabsContent>
+          )}
 
-          {isAdmin && (
+          {isOwner && (
             <TabsContent value="register">
               <AffiliateRegistration theme={theme} />
             </TabsContent>
           )}
 
-          {isAffiliate && !isAdmin && (
+          {isAffiliate && !isOwner && (
             <TabsContent value="my_data">
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                    Meus Dados de Afiliado
+                  <CardTitle className="text-gray-900">
+                    Seu Link de Indicação
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Nome</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {userAffiliate?.name}
-                        </p>
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+                      <p className="text-sm text-gray-600 mb-3">Compartilhe este link para ganhar comissões:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-white px-4 py-3 rounded border border-gray-300 text-sm text-gray-900">
+                          {window.location.origin}/Pricing?ref={userAffiliate?.affiliate_code}
+                        </code>
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/Pricing?ref=${userAffiliate?.affiliate_code}`);
+                            toast.success('Link copiado!');
+                          }}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Copiar Link
+                        </Button>
                       </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Código</p>
-                        <p className={`font-mono font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white border border-gray-200 p-4 rounded">
+                        <p className="text-sm text-gray-600">Código</p>
+                        <p className="font-mono font-bold text-gray-900 text-lg mt-1">
                           {userAffiliate?.affiliate_code}
                         </p>
                       </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Email</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {userAffiliate?.user_email}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Status</p>
-                        <p className={`font-medium ${
-                          userAffiliate?.status === 'active' ? 'text-green-600' : 
-                          userAffiliate?.status === 'pending' ? 'text-orange-600' : 'text-red-600'
-                        }`}>
-                          {userAffiliate?.status === 'active' ? 'Ativo' : 
-                           userAffiliate?.status === 'pending' ? 'Pendente' : 'Suspenso'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Taxa de Comissão</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="bg-white border border-gray-200 p-4 rounded">
+                        <p className="text-sm text-gray-600">Taxa de Comissão</p>
+                        <p className="font-bold text-green-600 text-lg mt-1">
                           {userAffiliate?.commission_rate}%
                         </p>
                       </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total de Vendas</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="bg-white border border-gray-200 p-4 rounded">
+                        <p className="text-sm text-gray-600">Total de Vendas</p>
+                        <p className="font-bold text-gray-900 text-lg mt-1">
                           {userAffiliate?.total_sales || 0}
                         </p>
                       </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Comissões</p>
-                        <p className={`font-medium text-green-600`}>
+                      <div className="bg-white border border-gray-200 p-4 rounded">
+                        <p className="text-sm text-gray-600">Total Comissões</p>
+                        <p className="font-bold text-green-600 text-lg mt-1">
                           R$ {(userAffiliate?.total_commission || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Pago</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          R$ {(userAffiliate?.total_paid || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="col-span-2">
-                        <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Chave PIX</p>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {userAffiliate?.pix_key || 'Não cadastrada'}
                         </p>
                       </div>
                     </div>

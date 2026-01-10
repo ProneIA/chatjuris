@@ -4,10 +4,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Ban, Eye } from "lucide-react";
+import { CheckCircle, Clock, Ban, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export default function AffiliateList({ affiliates, theme = 'light' }) {
+export default function AffiliateList({ affiliates, theme = 'light', isOwner = false }) {
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
 
@@ -16,6 +16,14 @@ export default function AffiliateList({ affiliates, theme = 'light' }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['affiliates'] });
       toast.success("Status atualizado!");
+    }
+  });
+
+  const deleteAffiliateMutation = useMutation({
+    mutationFn: (id) => base44.entities.Affiliate.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['affiliates'] });
+      toast.success("Afiliado excluído!");
     }
   });
 
@@ -39,34 +47,46 @@ export default function AffiliateList({ affiliates, theme = 'light' }) {
   return (
     <div className="space-y-3">
       {affiliates.map((affiliate) => (
-        <Card key={affiliate.id} className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+        <Card key={affiliate.id} className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className="font-semibold text-gray-900">
                     {affiliate.name}
                   </h3>
                   {getStatusBadge(affiliate.status)}
-                  <code className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                    {affiliate.affiliate_code}
-                  </code>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-900">
+                      {affiliate.affiliate_code}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/Pricing?ref=${affiliate.affiliate_code}`);
+                        toast.success('Link copiado!');
+                      }}
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="grid md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Email:</span>{' '}
-                    <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>{affiliate.user_email}</span>
+                    <span className="text-gray-600">Email:</span>{' '}
+                    <span className="text-gray-900">{affiliate.user_email}</span>
                   </div>
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Vendas:</span>{' '}
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <span className="text-gray-600">Vendas:</span>{' '}
+                    <span className="font-semibold text-gray-900">
                       {affiliate.total_sales}
                     </span>
                   </div>
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Comissão:</span>{' '}
-                    <span className={`font-semibold text-green-600`}>
+                    <span className="text-gray-600">Comissão:</span>{' '}
+                    <span className="font-semibold text-green-600">
                       {affiliate.commission_rate}%
                     </span>
                   </div>
@@ -74,19 +94,19 @@ export default function AffiliateList({ affiliates, theme = 'light' }) {
 
                 <div className="grid md:grid-cols-3 gap-4 text-sm mt-2">
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Total Comissões:</span>{' '}
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <span className="text-gray-600">Total Comissões:</span>{' '}
+                    <span className="font-semibold text-gray-900">
                       R$ {(affiliate.total_commission || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Já Pago:</span>{' '}
+                    <span className="text-gray-600">Já Pago:</span>{' '}
                     <span className="text-purple-600 font-semibold">
                       R$ {(affiliate.total_paid || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div>
-                    <span className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Pendente:</span>{' '}
+                    <span className="text-gray-600">Pendente:</span>{' '}
                     <span className="text-orange-600 font-semibold">
                       R$ {((affiliate.total_commission || 0) - (affiliate.total_paid || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
@@ -94,48 +114,61 @@ export default function AffiliateList({ affiliates, theme = 'light' }) {
                 </div>
 
                 {affiliate.pix_key && (
-                  <div className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                  <div className="text-xs mt-2 text-gray-500">
                     PIX: {affiliate.pix_key}
                   </div>
                 )}
               </div>
 
-              <div className="flex gap-2">
-                {affiliate.status === 'active' && (
+              {isOwner && (
+                <div className="flex gap-2">
+                  {affiliate.status === 'active' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'suspended' })}
+                    >
+                      Suspender
+                    </Button>
+                  )}
+                  {affiliate.status === 'suspended' && (
+                    <Button
+                      size="sm"
+                      onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'active' })}
+                    >
+                      Reativar
+                    </Button>
+                  )}
+                  {affiliate.status === 'pending' && (
+                    <Button
+                      size="sm"
+                      onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'active' })}
+                    >
+                      Aprovar
+                    </Button>
+                  )}
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'suspended' })}
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm(`Tem certeza que deseja excluir o afiliado ${affiliate.name}?`)) {
+                        deleteAffiliateMutation.mutate(affiliate.id);
+                      }
+                    }}
                   >
-                    Suspender
+                    <Trash2 className="w-4 h-4" />
                   </Button>
-                )}
-                {affiliate.status === 'suspended' && (
-                  <Button
-                    size="sm"
-                    onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'active' })}
-                  >
-                    Reativar
-                  </Button>
-                )}
-                {affiliate.status === 'pending' && (
-                  <Button
-                    size="sm"
-                    onClick={() => updateStatusMutation.mutate({ id: affiliate.id, status: 'active' })}
-                  >
-                    Aprovar
-                  </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       ))}
 
       {affiliates.length === 0 && (
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-8 text-center">
-            <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
+            <p className="text-gray-600">
               Nenhum afiliado cadastrado ainda.
             </p>
           </CardContent>

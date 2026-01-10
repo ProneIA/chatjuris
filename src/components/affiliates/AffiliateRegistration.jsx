@@ -58,9 +58,9 @@ export default function AffiliateRegistration({ theme = 'light' }) {
   };
 
   return (
-    <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+    <Card className="bg-white border-gray-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-gray-900">
           <UserPlus className="w-5 h-5" />
           Cadastrar Novo Afiliado
         </CardTitle>
