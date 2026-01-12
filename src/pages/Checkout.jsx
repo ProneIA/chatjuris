@@ -39,10 +39,20 @@ export default function Checkout({ theme = 'light' }) {
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [pixCode, setPixCode] = React.useState(null);
   const [pixQrCode, setPixQrCode] = React.useState(null);
+  const [couponCode, setCouponCode] = React.useState("");
+  const [appliedCoupon, setAppliedCoupon] = React.useState(null);
+  const [couponError, setCouponError] = React.useState("");
+  const [checkingCoupon, setCheckingCoupon] = React.useState(false);
 
   
   const planId = new URLSearchParams(location.search).get("plan");
   const plan = plans[planId];
+  
+  const finalPrice = appliedCoupon 
+    ? appliedCoupon.discount_type === 'percentage'
+      ? plan.price * (1 - appliedCoupon.discount_value / 100)
+      : plan.price - appliedCoupon.discount_value
+    : plan.price;
 
   React.useEffect(() => {
     base44.auth.me()
@@ -127,7 +137,9 @@ export default function Checkout({ theme = 'light' }) {
           planId,
           userEmail: user.email,
           userName: user.full_name,
-          affiliateCode
+          affiliateCode,
+          couponCode: appliedCoupon?.code,
+          finalPrice: appliedCoupon ? finalPrice : undefined
         });
 
         console.log('Resposta PIX completa:', response.data);
@@ -183,7 +195,9 @@ export default function Checkout({ theme = 'light' }) {
         formData,
         planId,
         userEmail: user.email,
-        affiliateCode
+        affiliateCode,
+        couponCode: appliedCoupon?.code,
+        finalPrice: appliedCoupon ? finalPrice : undefined
       });
 
       console.log('Resposta do pagamento:', response.data);
@@ -212,6 +226,73 @@ export default function Checkout({ theme = 'light' }) {
   const copyPixCode = () => {
     navigator.clipboard.writeText(pixCode);
     alert('Código PIX copiado!');
+  };
+
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Digite um código de cupom");
+      return;
+    }
+
+    setCheckingCoupon(true);
+    setCouponError("");
+
+    try {
+      const coupons = await base44.entities.Coupon.filter({ 
+        code: couponCode.toUpperCase(),
+        is_active: true 
+      });
+
+      if (coupons.length === 0) {
+        setCouponError("Cupom inválido ou expirado");
+        setCheckingCoupon(false);
+        return;
+      }
+
+      const coupon = coupons[0];
+      
+      // Validar plano aplicável
+      if (coupon.applicable_plans && !coupon.applicable_plans.includes(planId)) {
+        setCouponError("Este cupom não é válido para o plano selecionado");
+        setCheckingCoupon(false);
+        return;
+      }
+
+      // Validar data
+      const now = new Date();
+      if (coupon.valid_from && new Date(coupon.valid_from) > now) {
+        setCouponError("Este cupom ainda não está disponível");
+        setCheckingCoupon(false);
+        return;
+      }
+      if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+        setCouponError("Este cupom já expirou");
+        setCheckingCoupon(false);
+        return;
+      }
+
+      // Validar usos
+      if (coupon.max_uses && coupon.times_used >= coupon.max_uses) {
+        setCouponError("Este cupom já atingiu o limite de usos");
+        setCheckingCoupon(false);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponError("");
+      alert(`Cupom aplicado! Desconto de ${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : 'R$ ' + coupon.discount_value.toFixed(2)}`);
+    } catch (error) {
+      console.error("Erro ao validar cupom:", error);
+      setCouponError("Erro ao validar cupom. Tente novamente.");
+    } finally {
+      setCheckingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
   };
 
 
@@ -289,11 +370,73 @@ export default function Checkout({ theme = 'light' }) {
                     {plan.savings}
                   </div>
                 )}
+                
+                {/* Cupom de Desconto */}
+                {!appliedCoupon && planId === 'pro_yearly' && (
+                  <div className={`mt-4 pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <Label className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Cupom de Desconto
+                    </Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Digite o código"
+                        className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
+                      />
+                      <Button
+                        onClick={validateCoupon}
+                        disabled={checkingCoupon}
+                        variant="outline"
+                        className="whitespace-nowrap"
+                      >
+                        {checkingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Aplicar'}
+                      </Button>
+                    </div>
+                    {couponError && (
+                      <p className="text-xs text-red-500 mt-1">{couponError}</p>
+                    )}
+                  </div>
+                )}
+
+                {appliedCoupon && (
+                  <div className={`mt-4 pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-green-600 font-medium">
+                        Cupom: {appliedCoupon.code}
+                      </span>
+                      <button
+                        onClick={removeCoupon}
+                        className="text-xs text-red-500 hover:text-red-600"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-baseline">
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Desconto
+                      </span>
+                      <span className="text-sm font-medium text-green-600">
+                        -{appliedCoupon.discount_type === 'percentage' 
+                          ? `${appliedCoupon.discount_value}%`
+                          : `R$ ${appliedCoupon.discount_value.toFixed(2).replace('.', ',')}`}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-dashed border-gray-300">
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Total</span>
-                  <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {plan.price.toFixed(2).replace('.', ',')}
-                  </span>
+                  <div className="text-right">
+                    {appliedCoupon && (
+                      <div className="text-sm line-through text-gray-400 mb-1">
+                        R$ {plan.price.toFixed(2).replace('.', ',')}
+                      </div>
+                    )}
+                    <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      R$ {finalPrice.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -424,7 +567,7 @@ export default function Checkout({ theme = 'light' }) {
                         Carregando sistema de pagamento...
                       </>
                     ) : (
-                      `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
+                      `Continuar para Pagamento - R$ ${finalPrice.toFixed(2).replace('.', ',')}`
                     )}
                   </Button>
 
@@ -484,7 +627,7 @@ export default function Checkout({ theme = 'light' }) {
                       {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
-                          amount: plan.price,
+                          amount: finalPrice,
                           payer: {
                             email: user?.email
                           }
