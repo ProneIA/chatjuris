@@ -27,14 +27,14 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { planId, userEmail, userName, affiliateCode } = body;
+    const { planId, userEmail, userName, affiliateCode, couponCode, finalPrice } = body;
 
     const priceMap = {
       pro_monthly: 119.9,
       pro_yearly: 1198.8
     };
 
-    const price = priceMap[planId];
+    let price = finalPrice || priceMap[planId];
     if (!price) {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
       metadata: {
         plan_id: planId,
         user_email: userEmail,
-        affiliate_code: affiliateCode || null
+        affiliate_code: affiliateCode || null,
+        coupon_code: couponCode || null
       }
     };
 
@@ -100,6 +101,24 @@ Deno.serve(async (req) => {
         }
       } catch (e) {
         console.error('Erro ao buscar afiliado:', e);
+      }
+    }
+
+    // Atualizar uso do cupom se houver
+    if (couponCode) {
+      try {
+        const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
+          code: couponCode.toUpperCase(),
+          is_active: true 
+        });
+        if (coupons.length > 0) {
+          const coupon = coupons[0];
+          await base44.asServiceRole.entities.Coupon.update(coupon.id, {
+            times_used: (coupon.times_used || 0) + 1
+          });
+        }
+      } catch (e) {
+        console.error('Erro ao atualizar cupom:', e);
       }
     }
 
