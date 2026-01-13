@@ -133,39 +133,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 Tire suas dúvidas, pesquise jurisprudências e obtenha orientações jurídicas precisas.
               </p>
 
-              {/* Legal Areas Selection */}
-              <div className="mt-12 max-w-4xl mx-auto">
-                <h3 className="text-sm font-medium text-stone-600 mb-4 text-left">Selecione a área do direito:</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {legalAreas.map((area) => (
-                    <motion.button
-                      key={area.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => onSelectLegalArea(selectedLegalArea === area.name ? null : area.name)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
-                        selectedLegalArea === area.name
-                          ? 'border-black bg-black text-white'
-                          : 'border-stone-200 bg-white hover:border-stone-300'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{area.emoji}</div>
-                      <div className={`text-xs font-medium ${selectedLegalArea === area.name ? 'text-white' : 'text-stone-700'}`}>
-                        {area.name}
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-                {selectedLegalArea && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center text-sm text-stone-600 mt-4"
-                  >
-                    ✓ Área selecionada: <span className="font-semibold">{selectedLegalArea}</span>
-                  </motion.p>
-                )}
-              </div>
+
               </motion.div>
           ) : (
             <div className="space-y-6">
