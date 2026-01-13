@@ -14,7 +14,9 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    await base44.asServiceRole.integrations.Core.SendEmail({
+    console.log('Iniciando envio de email de teste...');
+
+    const result = await base44.asServiceRole.integrations.Core.SendEmail({
       from_name: 'Juris',
       to: 'ld.andrade@outlook.com',
       subject: '✅ Email de Teste - Juris',
@@ -57,9 +59,13 @@ Deno.serve(async (req) => {
       `
     });
 
-    console.log('Email de teste enviado para ld.andrade@outlook.com');
+    console.log('Email de teste enviado com sucesso!', result);
 
-    return Response.json({ success: true, message: 'Email enviado!' }, { headers });
+    return Response.json({ 
+      success: true, 
+      message: 'Email enviado para ld.andrade@outlook.com',
+      timestamp: new Date().toISOString()
+    }, { headers });
   } catch (error) {
     console.error('Erro ao enviar email de teste:', error);
     return Response.json({ error: error.message }, { status: 500, headers });
