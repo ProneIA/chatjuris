@@ -9,9 +9,41 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+const legalAreas = [
+  { id: 'civil', name: 'Direito Civil', emoji: '📜' },
+  { id: 'penal', name: 'Direito Penal', emoji: '⚖️' },
+  { id: 'trabalhista', name: 'Direito Trabalhista', emoji: '👔' },
+  { id: 'tributario', name: 'Direito Tributário', emoji: '💰' },
+  { id: 'empresarial', name: 'Direito Empresarial', emoji: '🏢' },
+  { id: 'consumidor', name: 'Direito do Consumidor', emoji: '🛒' },
+  { id: 'familia', name: 'Direito de Família', emoji: '👨‍👩‍👧‍👦' },
+  { id: 'previdenciario', name: 'Direito Previdenciário', emoji: '🏥' },
+  { id: 'constitucional', name: 'Direito Constitucional', emoji: '🏛️' },
+  { id: 'administrativo', name: 'Direito Administrativo', emoji: '🏛️' },
+  { id: 'ambiental', name: 'Direito Ambiental', emoji: '🌳' },
+  { id: 'eleitoral', name: 'Direito Eleitoral', emoji: '🗳️' },
+  { id: 'internacional', name: 'Direito Internacional', emoji: '🌍' },
+  { id: 'processual_civil', name: 'Processo Civil', emoji: '📋' },
+  { id: 'processual_penal', name: 'Processo Penal', emoji: '⚖️' },
+  { id: 'imobiliario', name: 'Direito Imobiliário', emoji: '🏠' },
+  { id: 'digital', name: 'Direito Digital', emoji: '💻' },
+  { id: 'bancario', name: 'Direito Bancário', emoji: '🏦' },
+];
+
+const documentTypes = [
+  { id: 'peticao_inicial', name: 'Petição Inicial', emoji: '📄', description: '6 campos' },
+  { id: 'contrato', name: 'Contrato', emoji: '📝', description: '7 campos' },
+  { id: 'procuracao', name: 'Procuração', emoji: '✍️', description: '5 campos' },
+  { id: 'recurso', name: 'Recurso/Apelação', emoji: '🔄', description: '6 campos' },
+  { id: 'parecer', name: 'Parecer Jurídico', emoji: '💼', description: '5 campos' },
+  { id: 'contestacao', name: 'Contestação', emoji: '🛡️', description: '6 campos' },
+];
+
 export default function DocumentGeneratorChat({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
+  const [selectedLegalArea, setSelectedLegalArea] = useState(null);
+  const [selectedDocType, setSelectedDocType] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -69,11 +101,14 @@ export default function DocumentGeneratorChat({ theme = 'light' }) {
         .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
         .join('\n\n');
 
+      const areaContext = selectedLegalArea ? `\nÁREA DO DIREITO: ${selectedLegalArea}` : '';
+      const docTypeContext = selectedDocType ? `\nTIPO DE DOCUMENTO: ${selectedDocType}` : '';
+
       const contextInstruction = currentDocument
         ? `DOCUMENTO ATUAL EM EDIÇÃO:\n\n${currentDocument}\n\nATUALIZE ESTE DOCUMENTO com as informações fornecidas pelo usuário. NÃO crie um documento novo, apenas modifique o existente.`
         : 'Gere um novo documento jurídico completo.';
 
-      const prompt = `Você é um advogado brasileiro experiente especializado em redação de peças jurídicas.
+      const prompt = `Você é um advogado brasileiro experiente especializado em redação de peças jurídicas.${areaContext}${docTypeContext}
 
 ${contextInstruction}
 
@@ -170,14 +205,96 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
           {/* Messages */}
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {messages.length === 0 && (
-                <div className="text-center py-12">
+              {messages.length === 0 && !selectedLegalArea && (
+                <div className="text-center py-8 px-4">
                   <Sparkles className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
                   <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Comece uma conversa
+                    Escolha a área do direito
+                  </p>
+                  <p className={`text-sm mb-6 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    Selecione a área jurídica para começar
+                  </p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+                    {legalAreas.map((area) => (
+                      <button
+                        key={area.id}
+                        onClick={() => setSelectedLegalArea(area.name)}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
+                          isDark 
+                            ? 'border-neutral-700 bg-neutral-800 hover:border-purple-500' 
+                            : 'border-gray-200 bg-white hover:border-purple-500'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{area.emoji}</div>
+                        <div className={`text-xs font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          {area.name}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {messages.length === 0 && selectedLegalArea && !selectedDocType && (
+                <div className="text-center py-8 px-4">
+                  <div className="mb-6">
+                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                      <span className="font-medium">{selectedLegalArea}</span>
+                      <button onClick={() => setSelectedLegalArea(null)} className="hover:opacity-70">✕</button>
+                    </span>
+                  </div>
+                  
+                  <FileText className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Escolha o tipo de documento
+                  </p>
+                  <p className={`text-sm mb-6 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    Que tipo de documento você precisa criar?
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-w-3xl mx-auto">
+                    {documentTypes.map((doc) => (
+                      <button
+                        key={doc.id}
+                        onClick={() => setSelectedDocType(doc.name)}
+                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 text-left ${
+                          isDark 
+                            ? 'border-neutral-700 bg-neutral-800 hover:border-indigo-500' 
+                            : 'border-gray-200 bg-white hover:border-indigo-500'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{doc.emoji}</div>
+                        <div className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {doc.name}
+                        </div>
+                        <div className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                          {doc.description}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {messages.length === 0 && selectedLegalArea && selectedDocType && (
+                <div className="text-center py-12">
+                  <div className="mb-4 flex items-center justify-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                      {selectedLegalArea}
+                      <button onClick={() => { setSelectedLegalArea(null); setSelectedDocType(null); }} className="hover:opacity-70">✕</button>
+                    </span>
+                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                      {selectedDocType}
+                      <button onClick={() => setSelectedDocType(null)} className="hover:opacity-70">✕</button>
+                    </span>
+                  </div>
+                  <Sparkles className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Pronto para começar!
                   </p>
                   <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Digite o que você precisa. Ex: "Crie uma petição inicial de ação de cobrança"
+                    Descreva o que você precisa. Ex: "Crie uma {selectedDocType.toLowerCase()} sobre [assunto]"
                   </p>
                 </div>
               )}
