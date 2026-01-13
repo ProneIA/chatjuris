@@ -137,41 +137,32 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Enviar notificações por email
-        try {
-          const planNames = {
-            'pro_monthly': 'Profissional Mensal',
-            'pro_yearly': 'Profissional Anual'
-          };
-
-          const isFirstSubscription = subscriptions.length === 0;
-
-          // Email de confirmação de pagamento
-          await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
-            templateType: 'payment_confirmed',
-            data: {
-              userEmail,
-              userName: user.full_name || 'Cliente',
-              planName: planNames[planId] || planId,
-              amount: price.toFixed(2).replace('.', ',')
-            }
-          });
-
-          // Email de boas-vindas (apenas para primeira assinatura)
-          if (isFirstSubscription) {
+        // Enviar emails de notificação
+        if (data.status === 'approved') {
+          try {
+            // Email de confirmação de pagamento
             await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
-              templateType: 'welcome',
+              type: 'payment_approved',
+              userEmail: user.email,
+              userName: user.full_name || 'Cliente',
               data: {
-                userEmail,
-                userName: user.full_name || 'Cliente',
-                planName: planNames[planId] || planId
+                planName: planId === 'pro_yearly' ? 'Juris Pro Anual' : 'Juris Pro Mensal',
+                amount: price
               }
             });
-          }
 
-          console.log('Emails de notificação enviados');
-        } catch (emailError) {
-          console.error('Erro ao enviar emails de notificação:', emailError);
+            // Se for primeira assinatura, enviar boas-vindas
+            if (!subscriptions || subscriptions.length === 0) {
+              await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+                type: 'welcome',
+                userEmail: user.email,
+                userName: user.full_name || 'Cliente',
+                data: {}
+              });
+            }
+          } catch (emailError) {
+            console.error('Erro ao enviar emails:', emailError);
+          }
         }
       } catch (dbError) {
         console.error('Database Error:', dbError);
