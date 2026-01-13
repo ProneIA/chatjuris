@@ -26,6 +26,7 @@ export default function AIAssistant({ theme = 'light' }) {
   const [tempMessages, setTempMessages] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [selectedLegalArea, setSelectedLegalArea] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -166,15 +167,19 @@ export default function AIAssistant({ theme = 'light' }) {
       const hasDocument = messageContent.includes('[DOCUMENTO ANEXADO:');
       const fileUrl = hasDocument ? messageContent.match(/URL do arquivo: (.*?)\n/)?.[1] : null;
 
+      const legalAreaContext = selectedLegalArea 
+        ? `\nÁREA DO DIREITO SELECIONADA: ${selectedLegalArea}\nFoque sua resposta especificamente nesta área do direito, utilizando terminologia e jurisprudência específica desta área.`
+        : '';
+
       const systemInstructions = hasDocument 
         ? `Você é LEXIA, um especialista em análise de documentos jurídicos brasileiros.
 MISSÃO: Analisar documentos legais de forma completa e profissional.
 FORMATO: Use Markdown com títulos, listas e destaques para organizar a análise.
 INCLUA: Resumo executivo, pontos importantes, riscos identificados, cláusulas relevantes e sugestões de melhoria.
-Responda sempre em português brasileiro.`
+Responda sempre em português brasileiro.${legalAreaContext}`
         : `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
 Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
-Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
+Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.${legalAreaContext}`;
 
       const conversationContext = allMessages
         .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
@@ -280,6 +285,8 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
                 onOpenHistory={() => setShowHistoryDialog(true)}
                 uploadedFile={uploadedFile}
                 onFileUpload={setUploadedFile}
+                selectedLegalArea={selectedLegalArea}
+                onSelectLegalArea={setSelectedLegalArea}
               />
             )}
           </AnimatePresence>
