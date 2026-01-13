@@ -40,13 +40,20 @@ Deno.serve(async (req) => {
     }
 
     // Criar pagamento PIX no Mercado Pago
+    // Separar nome em first_name e last_name
+    const fullName = userName || userEmail.split('@')[0];
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || firstName;
+
     const paymentData = {
       transaction_amount: price,
       description: `Assinatura ${planId === 'pro_monthly' ? 'Mensal' : 'Anual'} - Juris`,
       payment_method_id: 'pix',
       payer: {
         email: userEmail,
-        first_name: userName || userEmail.split('@')[0]
+        first_name: firstName,
+        last_name: lastName
       },
       metadata: {
         plan_id: planId,
