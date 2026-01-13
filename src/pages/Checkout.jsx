@@ -270,41 +270,30 @@ export default function Checkout({ theme = 'light' }) {
                     Método de Pagamento
                   </h2>
 
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="space-y-4">
-                      {/* Credit Card */}
-                      <label
-                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          paymentMethod === "credit_card"
-                            ? isDark 
-                              ? 'border-white bg-white/5' 
-                              : 'border-gray-900 bg-gray-50'
-                            : isDark
-                            ? 'border-neutral-800 hover:border-neutral-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <RadioGroupItem value="credit_card" id="credit_card" />
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                            isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                          }`}>
-                            <CreditCard className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                  <div className="space-y-4">
+                    {/* Credit Card */}
+                    <div className={`flex items-center gap-4 p-4 rounded-lg border-2 ${
+                      isDark 
+                        ? 'border-white bg-white/5' 
+                        : 'border-gray-900 bg-gray-50'
+                    }`}>
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          isDark ? 'bg-neutral-800' : 'bg-gray-100'
+                        }`}>
+                          <CreditCard className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
+                        </div>
+                        <div>
+                          <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            Cartão de Crédito
                           </div>
-                          <div>
-                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              Cartão de Crédito
-                            </div>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Parcelamento em até 12x
-                            </div>
+                          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Parcelamento em até 12x
                           </div>
                         </div>
-                      </label>
-
-
+                      </div>
                     </div>
-                  </RadioGroup>
+                  </div>
 
                   {/* User Info */}
                   <div className={`mt-6 pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
