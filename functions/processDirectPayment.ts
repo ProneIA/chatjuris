@@ -136,6 +136,43 @@ Deno.serve(async (req) => {
             userEmail
           );
         }
+
+        // Enviar notificações por email
+        try {
+          const planNames = {
+            'pro_monthly': 'Profissional Mensal',
+            'pro_yearly': 'Profissional Anual'
+          };
+
+          const isFirstSubscription = subscriptions.length === 0;
+
+          // Email de confirmação de pagamento
+          await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+            templateType: 'payment_confirmed',
+            data: {
+              userEmail,
+              userName: user.full_name || 'Cliente',
+              planName: planNames[planId] || planId,
+              amount: price.toFixed(2).replace('.', ',')
+            }
+          });
+
+          // Email de boas-vindas (apenas para primeira assinatura)
+          if (isFirstSubscription) {
+            await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+              templateType: 'welcome',
+              data: {
+                userEmail,
+                userName: user.full_name || 'Cliente',
+                planName: planNames[planId] || planId
+              }
+            });
+          }
+
+          console.log('Emails de notificação enviados');
+        } catch (emailError) {
+          console.error('Erro ao enviar emails de notificação:', emailError);
+        }
       } catch (dbError) {
         console.error('Database Error:', dbError);
       }

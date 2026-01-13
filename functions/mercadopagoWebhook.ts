@@ -94,30 +94,29 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Enviar email de confirmação
+        // Enviar notificações por email
         try {
-          await base44.asServiceRole.integrations.Core.SendEmail({
-            to: userEmail,
-            subject: '🎉 Pagamento Confirmado - Bem-vindo ao Juris Pro!',
-            body: `
-Olá!
+          const planNames = {
+            'pro_monthly': 'Profissional Mensal',
+            'pro_yearly': 'Profissional Anual'
+          };
 
-Seu pagamento foi confirmado com sucesso! 🎉
+          // Buscar usuário para pegar o nome
+          const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+          const userName = users.length > 0 ? users[0].full_name : 'Cliente';
 
-Sua assinatura ${planId === 'pro_monthly' ? 'Mensal' : 'Anual'} do Juris Pro está ativa.
-
-Aproveite todos os recursos ilimitados:
-✅ IA Ilimitada
-✅ Todos os modos de IA
-✅ Documentos e processos ilimitados
-✅ Suporte prioritário 24/7
-
-Comece agora mesmo a transformar sua prática jurídica!
-
-Atenciosamente,
-Equipe Juris
-            `
+          // Email de ativação de assinatura
+          await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+            templateType: 'subscription_activated',
+            data: {
+              userEmail,
+              userName,
+              planName: planNames[planId] || planId,
+              nextBillingDate: subscription.next_billing_date || null
+            }
           });
+
+          console.log('Email de ativação enviado');
         } catch (emailError) {
           console.error('Erro ao enviar email:', emailError);
         }
