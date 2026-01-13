@@ -30,28 +30,9 @@ const suggestedPrompts = [
   }
 ];
 
-const legalAreas = [
-  { id: 'civil', name: 'Direito Civil', emoji: '📜' },
-  { id: 'penal', name: 'Direito Penal', emoji: '⚖️' },
-  { id: 'trabalhista', name: 'Direito Trabalhista', emoji: '👔' },
-  { id: 'tributario', name: 'Direito Tributário', emoji: '💰' },
-  { id: 'empresarial', name: 'Direito Empresarial', emoji: '🏢' },
-  { id: 'consumidor', name: 'Direito do Consumidor', emoji: '🛒' },
-  { id: 'familia', name: 'Direito de Família', emoji: '👨‍👩‍👧‍👦' },
-  { id: 'previdenciario', name: 'Direito Previdenciário', emoji: '🏥' },
-  { id: 'constitucional', name: 'Direito Constitucional', emoji: '🏛️' },
-  { id: 'administrativo', name: 'Direito Administrativo', emoji: '🏛️' },
-  { id: 'ambiental', name: 'Direito Ambiental', emoji: '🌳' },
-  { id: 'eleitoral', name: 'Direito Eleitoral', emoji: '🗳️' },
-  { id: 'internacional', name: 'Direito Internacional', emoji: '🌍' },
-  { id: 'processual_civil', name: 'Processo Civil', emoji: '📋' },
-  { id: 'processual_penal', name: 'Processo Penal', emoji: '⚖️' },
-  { id: 'imobiliario', name: 'Direito Imobiliário', emoji: '🏠' },
-  { id: 'digital', name: 'Direito Digital', emoji: '💻' },
-  { id: 'bancario', name: 'Direito Bancário', emoji: '🏦' },
-];
 
-export default function WelcomeScreen({ onSendMessage, userName, messages = [], isProcessing = false, onOpenHistory, uploadedFile, onFileUpload, selectedLegalArea, onSelectLegalArea }) {
+
+export default function WelcomeScreen({ onSendMessage, userName, messages = [], isProcessing = false, onOpenHistory, uploadedFile, onFileUpload }) {
   const [input, setInput] = useState("");
   const [uploadingFile, setUploadingFile] = useState(false);
   const textareaRef = useRef(null);
@@ -193,18 +174,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
       {/* Input Area - Fixed at bottom, full width */}
       <div className="border-t border-stone-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
-          {selectedLegalArea && (
-            <div className="mb-3 flex items-center gap-2 text-sm text-stone-600">
-              <span className="font-medium">Área:</span>
-              <span className="px-2 py-1 bg-black text-white rounded-md text-xs">{selectedLegalArea}</span>
-              <button
-                onClick={() => onSelectLegalArea(null)}
-                className="ml-1 text-stone-400 hover:text-stone-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+
           {uploadedFile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
