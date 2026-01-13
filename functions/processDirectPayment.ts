@@ -28,39 +28,20 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { formData, planId, userEmail, affiliateCode, couponCode } = body;
+    const { formData, planId, userEmail, affiliateCode, couponCode, finalPrice } = body;
 
     const priceMap = {
       pro_monthly: 119.9,
       pro_yearly: 1198.8
     };
 
-    let price = priceMap[planId];
+    let price = finalPrice || priceMap[planId];
     if (!price) {
       return Response.json({ error: 'Plano inválido' }, { status: 400, headers });
     }
 
-    // Aplicar cupom se fornecido
-    let discountApplied = 0;
-    if (couponCode) {
-      const planType = planId === 'pro_monthly' ? 'mensal' : 'anual';
-      
-      if (planType === 'mensal' && couponCode === 'JURIS25') {
-        discountApplied = price * 0.25;
-      } else if (planType === 'anual' && couponCode === 'JURIS50') {
-        discountApplied = (price / 12) * 0.5; // Desconto no valor mensal
-      }
-      
-      if (planType === 'anual') {
-        // Para plano anual, aplicar desconto no total anual
-        price = price - (discountApplied * 12);
-      } else {
-        // Para plano mensal, aplicar desconto direto
-        price = price - discountApplied;
-      }
-      
-      price = Math.max(Number(price.toFixed(2)), 0);
-      console.log(`Cupom ${couponCode} aplicado. Desconto: R$ ${discountApplied.toFixed(2)}. Preço final: R$ ${price}`);
+    if (finalPrice && couponCode) {
+      console.log(`Cupom ${couponCode} aplicado. Preço final: R$ ${price}`);
     }
 
     // Criar pagamento com dados do CardPayment
@@ -76,9 +57,7 @@ Deno.serve(async (req) => {
       metadata: {
         plan_id: planId,
         user_email: userEmail,
-        affiliate_code: affiliateCode || null,
-        coupon_code: couponCode || null,
-        discount_applied: discountApplied || 0
+        affiliate_code: affiliateCode || null
       }
     };
 
