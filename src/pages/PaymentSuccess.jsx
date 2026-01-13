@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
@@ -47,6 +47,14 @@ export default function PaymentSuccess() {
     navigate(createPageUrl("Dashboard"));
   };
 
+  const handleCloseTab = () => {
+    window.close();
+    // Se não conseguir fechar (algumas restrições de navegadores), redirecionar
+    setTimeout(() => {
+      navigate(createPageUrl("Dashboard"));
+    }, 500);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
@@ -60,17 +68,45 @@ export default function PaymentSuccess() {
 
         {status === "success" && (
           <>
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-12 h-12 text-green-600" />
+            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <CheckCircle className="w-14 h-14 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">🎉 Pagamento Aprovado!</h1>
-            <p className="text-gray-600 mb-6">{message}</p>
-            <Button 
-              onClick={handleContinue}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              Começar a usar o Juris Pro
-            </Button>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              🎉 Pagamento Concluído!
+            </h1>
+            <p className="text-lg text-gray-700 mb-2 font-medium">
+              Sua assinatura foi ativada com sucesso
+            </p>
+            <p className="text-gray-600 mb-8">
+              Todas as funcionalidades do plano Pro já estão disponíveis para você
+            </p>
+
+            <div className="space-y-3">
+              <Button 
+                onClick={handleContinue}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-6 text-lg font-semibold shadow-lg"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Acessar Sistema Completo
+              </Button>
+              
+              <Button 
+                onClick={handleCloseTab}
+                variant="outline"
+                className="w-full py-6 text-base"
+              >
+                <X className="w-5 h-5 mr-2" />
+                Fechar esta aba
+              </Button>
+            </div>
+
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 font-medium">
+                ✓ IA Ilimitada<br />
+                ✓ Todos os recursos liberados<br />
+                ✓ Suporte prioritário ativo
+              </p>
+            </div>
           </>
         )}
 
