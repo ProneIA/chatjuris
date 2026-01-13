@@ -99,12 +99,11 @@ export default function Checkout({ theme = 'light' }) {
 
 
   const handleInitiateCheckout = async () => {
-      if (!mpReady) {
-        alert('Sistema de pagamento ainda carregando. Aguarde...');
-        return;
-      }
-      setShowPaymentForm(true);
+    if (!mpReady) {
+      alert('Sistema de pagamento ainda carregando. Aguarde...');
+      return;
     }
+    setShowPaymentForm(true);
   };
 
   const onSubmit = async (formData) => {
