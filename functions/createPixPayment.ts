@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
-    const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+    const MP_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
     if (!MP_ACCESS_TOKEN) {
       return Response.json({ 
         error: 'Mercado Pago não configurado' 
