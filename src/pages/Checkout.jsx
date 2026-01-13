@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
+import SubscriptionRegulation from "@/components/subscription/SubscriptionRegulation";
 
 
 const plans = {
@@ -40,6 +41,7 @@ export default function Checkout({ theme = 'light' }) {
   const [couponApplied, setCouponApplied] = React.useState(null);
   const [validatingCoupon, setValidatingCoupon] = React.useState(false);
   const [couponError, setCouponError] = React.useState('');
+  const [regulationAccepted, setRegulationAccepted] = React.useState(false);
 
   
   const planId = new URLSearchParams(location.search).get("plan");
@@ -411,10 +413,19 @@ export default function Checkout({ theme = 'light' }) {
                     />
                   </div>
 
+                  {/* Regulation Acceptance */}
+                  <div className="mt-6">
+                    <SubscriptionRegulation
+                      accepted={regulationAccepted}
+                      onAcceptChange={setRegulationAccepted}
+                      isDark={isDark}
+                    />
+                  </div>
+
                   {/* Checkout Button */}
                   <Button
                     onClick={handleInitiateCheckout}
-                    disabled={processing || !mpReady}
+                    disabled={processing || !mpReady || !regulationAccepted}
                     className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {processing ? (
