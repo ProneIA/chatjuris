@@ -94,31 +94,18 @@ Deno.serve(async (req) => {
           );
         }
 
-        // Enviar notificações por email
+        // Enviar email de ativação da assinatura
         try {
-          const planNames = {
-            'pro_monthly': 'Profissional Mensal',
-            'pro_yearly': 'Profissional Anual'
-          };
-
-          // Buscar usuário para pegar o nome
-          const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
-          const userName = users.length > 0 ? users[0].full_name : 'Cliente';
-
-          // Email de ativação de assinatura
           await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
-            templateType: 'subscription_activated',
+            type: 'subscription_activated',
+            userEmail: userEmail,
+            userName: 'Cliente',
             data: {
-              userEmail,
-              userName,
-              planName: planNames[planId] || planId,
-              nextBillingDate: subscription.next_billing_date || null
+              planName: planId === 'pro_monthly' ? 'Juris Pro Mensal' : 'Juris Pro Anual'
             }
           });
-
-          console.log('Email de ativação enviado');
         } catch (emailError) {
-          console.error('Erro ao enviar email:', emailError);
+          console.error('Erro ao enviar email de ativação:', emailError);
         }
       }
     }
