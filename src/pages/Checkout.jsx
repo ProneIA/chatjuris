@@ -36,6 +36,10 @@ export default function Checkout({ theme = 'light' }) {
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [mpReady, setMpReady] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
+  const [couponCode, setCouponCode] = React.useState('');
+  const [couponValidating, setCouponValidating] = React.useState(false);
+  const [couponData, setCouponData] = React.useState(null);
+  const [couponError, setCouponError] = React.useState('');
 
   
   const planId = new URLSearchParams(location.search).get("plan");
@@ -106,6 +110,34 @@ export default function Checkout({ theme = 'light' }) {
     setShowPaymentForm(true);
   };
 
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponData(null);
+      setCouponError('');
+      return;
+    }
+
+    setCouponValidating(true);
+    setCouponError('');
+    
+    try {
+      const response = await base44.functions.invoke('validateCoupon', {
+        plano: planId,
+        cupom: couponCode.trim().toUpperCase()
+      });
+
+      if (response.data.valid) {
+        setCouponData(response.data);
+        setCouponError('');
+      }
+    } catch (error) {
+      setCouponData(null);
+      setCouponError(error.response?.data?.message || 'Cupom inválido');
+    } finally {
+      setCouponValidating(false);
+    }
+  };
+
   const onSubmit = async (formData) => {
     setProcessing(true);
     console.log('Dados do formulário Mercado Pago:', formData);
@@ -133,7 +165,8 @@ export default function Checkout({ theme = 'light' }) {
         formData,
         planId,
         userEmail: user.email,
-        affiliateCode
+        affiliateCode,
+        couponCode: couponData ? couponCode.trim().toUpperCase() : null
       });
 
       console.log('Resposta do pagamento:', response.data);
@@ -175,6 +208,7 @@ export default function Checkout({ theme = 'light' }) {
   }
 
   const isDark = theme === 'dark';
+  const finalPrice = couponData?.precoFinal || plan.price;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'} py-12`}>
@@ -217,14 +251,65 @@ export default function Checkout({ theme = 'light' }) {
                 ))}
               </div>
 
+              {/* Coupon Section */}
+              <div className="mb-6">
+                <Label className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Cupom de Desconto
+                </Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Digite seu cupom"
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      if (couponData || couponError) {
+                        setCouponData(null);
+                        setCouponError('');
+                      }
+                    }}
+                    className={`flex-1 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white'}`}
+                  />
+                  <Button
+                    onClick={handleValidateCoupon}
+                    disabled={!couponCode.trim() || couponValidating}
+                    variant="outline"
+                    className={isDark ? 'border-neutral-700 text-gray-300' : ''}
+                  >
+                    {couponValidating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Aplicar'
+                    )}
+                  </Button>
+                </div>
+                {couponError && (
+                  <p className="text-sm text-red-500 mt-2">{couponError}</p>
+                )}
+                {couponData && (
+                  <div className="mt-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <p className="text-sm text-green-600 font-medium">
+                      ✓ Cupom aplicado! {couponData.percentual}% de desconto
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Price */}
               <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} pt-6`}>
                 <div className="flex justify-between items-baseline mb-2">
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Subtotal</span>
-                  <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     R$ {plan.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
+                {couponData && (
+                  <div className="flex justify-between items-baseline mb-2">
+                    <span className="text-green-600 font-medium">Desconto ({couponData.percentual}%)</span>
+                    <span className="text-green-600 font-semibold">
+                      - R$ {couponData.desconto.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                )}
                 {plan.priceMonthly && (
                   <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     R$ {plan.priceMonthly.toFixed(2).replace('.', ',')} por mês
@@ -238,7 +323,7 @@ export default function Checkout({ theme = 'light' }) {
                 <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-dashed border-gray-300">
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Total</span>
                   <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {plan.price.toFixed(2).replace('.', ',')}
+                    R$ {finalPrice.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
               </div>
@@ -331,7 +416,7 @@ export default function Checkout({ theme = 'light' }) {
                         Carregando sistema de pagamento...
                       </>
                     ) : (
-                      `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
+                      `Continuar para Pagamento - R$ ${finalPrice.toFixed(2).replace('.', ',')}`
                     )}
                   </Button>
 
@@ -357,10 +442,10 @@ export default function Checkout({ theme = 'light' }) {
 
                   {mpReady ? (
                     <div className="space-y-4">
-                      {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
+                      {console.log('Renderizando CardPayment com:', { amount: finalPrice, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
-                          amount: plan.price,
+                          amount: finalPrice,
                           payer: {
                             email: user?.email
                           }
