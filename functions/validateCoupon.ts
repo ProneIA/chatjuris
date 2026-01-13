@@ -7,43 +7,53 @@ const PLANOS = {
   },
   anual: {
     id: "pro_yearly",
-    preco: 99.90
+    precoMensal: 99.90,
+    meses: 12
   }
 };
 
 function aplicarCupom({ plano, cupom }) {
   let precoBase = 0;
   let desconto = 0;
+  let percentual = 0;
+  let precoMensalEquivalente = 0;
 
+  // PLANO MENSAL
   if (plano === "pro_monthly" || plano === "mensal") {
     precoBase = 119.90;
 
     if (cupom === "JURIS25") {
       desconto = precoBase * 0.25;
+      percentual = 25;
     } else if (cupom) {
       throw new Error("Cupom inválido para o plano mensal");
     }
+    
+    precoMensalEquivalente = Number((precoBase - desconto).toFixed(2));
   }
 
+  // PLANO ANUAL (99,90 x 12 = 1198.80)
   if (plano === "pro_yearly" || plano === "anual") {
-    precoBase = 99.90;
+    precoBase = 99.90 * 12; // 1198.80
 
     if (cupom === "JURIS50") {
-      desconto = precoBase * 0.5;
+      desconto = precoBase * 0.5; // 599.40 de desconto
+      percentual = 50;
     } else if (cupom) {
       throw new Error("Cupom inválido para o plano anual");
     }
+    
+    precoMensalEquivalente = Number(((precoBase - desconto) / 12).toFixed(2));
   }
 
-  const precoFinal = Number(
-    Math.max(precoBase - desconto, 0).toFixed(2)
-  );
+  const precoFinal = Number(Math.max(precoBase - desconto, 0).toFixed(2));
 
   return {
-    precoBase,
+    precoBase: Number(precoBase.toFixed(2)),
     desconto: Number(desconto.toFixed(2)),
     precoFinal,
-    percentual: desconto > 0 ? Math.round((desconto / precoBase) * 100) : 0
+    percentual,
+    precoMensalEquivalente
   };
 }
 
