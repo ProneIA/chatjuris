@@ -19,6 +19,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
+    // Pagamento via PIX foi desativado
+    return Response.json({ 
+      success: false,
+      error: 'Pagamento via PIX não está mais disponível. Use cartão de crédito.' 
+    }, { status: 400, headers });
+
+    /* PIX DESATIVADO
     const MP_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
     if (!MP_ACCESS_TOKEN) {
       return Response.json({ 
@@ -142,6 +149,7 @@ Deno.serve(async (req) => {
       payment_id: data.id,
       has_affiliate: !!affiliateCode
     }, { headers });
+    */ // FIM PIX DESATIVADO
 
   } catch (error) {
     console.error('Error:', error);

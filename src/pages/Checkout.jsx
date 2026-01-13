@@ -33,12 +33,9 @@ export default function Checkout({ theme = 'light' }) {
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [processing, setProcessing] = React.useState(false);
-  const [paymentMethod, setPaymentMethod] = React.useState("credit_card");
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [mpReady, setMpReady] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
-  const [pixCode, setPixCode] = React.useState(null);
-  const [pixQrCode, setPixQrCode] = React.useState(null);
 
   
   const planId = new URLSearchParams(location.search).get("plan");
@@ -102,52 +99,6 @@ export default function Checkout({ theme = 'light' }) {
 
 
   const handleInitiateCheckout = async () => {
-    if (paymentMethod === "pix") {
-      setProcessing(true);
-      try {
-        // Recuperar código de afiliado do localStorage
-        const getAffiliateCode = () => {
-          try {
-            const stored = localStorage.getItem('affiliate_ref');
-            if (!stored) return null;
-            const data = JSON.parse(stored);
-            if (new Date().getTime() > data.expires) {
-              localStorage.removeItem('affiliate_ref');
-              return null;
-            }
-            return data.code;
-          } catch (error) {
-            return null;
-          }
-        };
-
-        const affiliateCode = getAffiliateCode();
-        console.log('Iniciando pagamento PIX...', { planId, userEmail: user.email, affiliateCode });
-        const response = await base44.functions.invoke('createPixPayment', { 
-          planId,
-          userEmail: user.email,
-          userName: user.full_name,
-          affiliateCode
-        });
-
-        console.log('Resposta PIX completa:', response.data);
-
-        if (response.data?.success && response.data.qr_code) {
-          setPixCode(response.data.qr_code);
-          setPixQrCode(response.data.qr_code_base64);
-          setProcessing(false);
-          setShowPaymentForm(true);
-        } else {
-          setProcessing(false);
-          console.error('Erro na resposta PIX:', response.data);
-          alert('Erro ao gerar PIX: ' + (response.data?.error || 'QR Code não gerado'));
-        }
-      } catch (error) {
-        setProcessing(false);
-        console.error('Erro ao gerar PIX:', error);
-        alert('Erro ao gerar PIX: ' + error.message);
-      }
-    } else {
       if (!mpReady) {
         alert('Sistema de pagamento ainda carregando. Aguarde...');
         return;
@@ -209,10 +160,6 @@ export default function Checkout({ theme = 'light' }) {
     setProcessing(false);
   };
 
-  const copyPixCode = () => {
-    navigator.clipboard.writeText(pixCode);
-    alert('Código PIX copiado!');
-  };
 
 
 
@@ -356,35 +303,7 @@ export default function Checkout({ theme = 'light' }) {
                         </div>
                       </label>
 
-                      {/* PIX */}
-                      <label
-                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          paymentMethod === "pix"
-                            ? isDark 
-                              ? 'border-white bg-white/5' 
-                              : 'border-gray-900 bg-gray-50'
-                            : isDark
-                            ? 'border-neutral-800 hover:border-neutral-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <RadioGroupItem value="pix" id="pix" />
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                            isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                          }`}>
-                            <QrCode className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-                          </div>
-                          <div>
-                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              PIX
-                            </div>
-                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Aprovação instantânea
-                            </div>
-                          </div>
-                        </div>
-                      </label>
+
                     </div>
                   </RadioGroup>
 
@@ -410,13 +329,13 @@ export default function Checkout({ theme = 'light' }) {
                   {/* Checkout Button */}
                   <Button
                     onClick={handleInitiateCheckout}
-                    disabled={processing || (paymentMethod === 'credit_card' && !mpReady)}
+                    disabled={processing || !mpReady}
                     className="w-full mt-8 h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {processing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        {paymentMethod === 'pix' ? 'Gerando PIX...' : 'Processando...'}
+                        Processando...
                       </>
                     ) : !mpPublicKey ? (
                       <>
@@ -436,11 +355,7 @@ export default function Checkout({ theme = 'light' }) {
                 <>
                   <div className="mb-6">
                     <button
-                      onClick={() => {
-                        setShowPaymentForm(false);
-                        setPixCode(null);
-                        setPixQrCode(null);
-                      }}
+                      onClick={() => setShowPaymentForm(false)}
                       className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                       <ArrowLeft className="w-4 h-4" />
@@ -449,37 +364,10 @@ export default function Checkout({ theme = 'light' }) {
                   </div>
                   
                   <h2 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {paymentMethod === "pix" ? "Pagamento via PIX" : "Dados do Cartão"}
+                    Dados do Cartão
                   </h2>
 
-                  {paymentMethod === "pix" && pixCode ? (
-                    <div className="space-y-6">
-                      <div className={`p-6 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'} text-center`}>
-                        {pixQrCode && (
-                          <img 
-                            src={`data:image/png;base64,${pixQrCode}`} 
-                            alt="QR Code PIX" 
-                            className="w-64 h-64 mx-auto mb-4" 
-                          />
-                        )}
-                        <p className={`text-sm mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          Escaneie o QR Code com o app do seu banco ou copie o código PIX abaixo:
-                        </p>
-                        <div className={`p-3 rounded border ${isDark ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-gray-200'} mb-3`}>
-                          <code className={`text-xs break-all ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {pixCode}
-                          </code>
-                        </div>
-                        <Button onClick={copyPixCode} variant="outline" className="w-full">
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copiar Código PIX
-                        </Button>
-                      </div>
-                      <p className={`text-xs text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                        Após o pagamento, sua assinatura será ativada automaticamente.
-                      </p>
-                    </div>
-                  ) : paymentMethod === "credit_card" && mpReady ? (
+                  {mpReady ? (
                     <div className="space-y-4">
                       {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
