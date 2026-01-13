@@ -37,8 +37,8 @@ export default function Checkout({ theme = 'light' }) {
   const [mpReady, setMpReady] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
   const [couponCode, setCouponCode] = React.useState('');
-  const [couponValidating, setCouponValidating] = React.useState(false);
-  const [couponData, setCouponData] = React.useState(null);
+  const [couponApplied, setCouponApplied] = React.useState(null);
+  const [validatingCoupon, setValidatingCoupon] = React.useState(false);
   const [couponError, setCouponError] = React.useState('');
 
   
@@ -112,30 +112,35 @@ export default function Checkout({ theme = 'light' }) {
 
   const handleValidateCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponData(null);
-      setCouponError('');
+      setCouponError('Digite um cupom');
       return;
     }
 
-    setCouponValidating(true);
+    setValidatingCoupon(true);
     setCouponError('');
-    
+
     try {
       const response = await base44.functions.invoke('validateCoupon', {
         plano: planId,
-        cupom: couponCode.trim().toUpperCase()
+        cupom: couponCode.toUpperCase()
       });
 
       if (response.data.valid) {
-        setCouponData(response.data);
+        setCouponApplied(response.data);
         setCouponError('');
       }
     } catch (error) {
-      setCouponData(null);
       setCouponError(error.response?.data?.message || 'Cupom inválido');
+      setCouponApplied(null);
     } finally {
-      setCouponValidating(false);
+      setValidatingCoupon(false);
     }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponApplied(null);
+    setCouponError('');
   };
 
   const onSubmit = async (formData) => {
@@ -166,7 +171,8 @@ export default function Checkout({ theme = 'light' }) {
         planId,
         userEmail: user.email,
         affiliateCode,
-        couponCode: couponData ? couponCode.trim().toUpperCase() : null
+        couponCode: couponApplied ? couponCode.toUpperCase() : null,
+        finalPrice: couponApplied ? couponApplied.precoFinal : null
       });
 
       console.log('Resposta do pagamento:', response.data);
@@ -208,7 +214,6 @@ export default function Checkout({ theme = 'light' }) {
   }
 
   const isDark = theme === 'dark';
-  const finalPrice = couponData?.precoFinal || plan.price;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'} py-12`}>
@@ -251,46 +256,53 @@ export default function Checkout({ theme = 'light' }) {
                 ))}
               </div>
 
-              {/* Coupon Section */}
-              <div className="mb-6">
-                <Label className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              {/* Coupon Input */}
+              <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} pt-6 mb-6`}>
+                <Label className={`mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   Cupom de Desconto
                 </Label>
-                <div className="flex gap-2 mt-2">
-                  <Input
-                    placeholder="Digite seu cupom"
-                    value={couponCode}
-                    onChange={(e) => {
-                      setCouponCode(e.target.value.toUpperCase());
-                      if (couponData || couponError) {
-                        setCouponData(null);
-                        setCouponError('');
-                      }
-                    }}
-                    className={`flex-1 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white'}`}
-                  />
-                  <Button
-                    onClick={handleValidateCoupon}
-                    disabled={!couponCode.trim() || couponValidating}
-                    variant="outline"
-                    className={isDark ? 'border-neutral-700 text-gray-300' : ''}
-                  >
-                    {couponValidating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      'Aplicar'
-                    )}
-                  </Button>
-                </div>
+                {!couponApplied ? (
+                  <div className="flex gap-2">
+                    <Input
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Digite o cupom"
+                      disabled={validatingCoupon}
+                      className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
+                    />
+                    <Button
+                      onClick={handleValidateCoupon}
+                      disabled={validatingCoupon || !couponCode.trim()}
+                      variant="outline"
+                      className="whitespace-nowrap"
+                    >
+                      {validatingCoupon ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Aplicar'
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${
+                    isDark ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+                        {couponCode} aplicado (-{couponApplied.percentual}%)
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleRemoveCoupon}
+                      className={`text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
                 {couponError && (
                   <p className="text-sm text-red-500 mt-2">{couponError}</p>
-                )}
-                {couponData && (
-                  <div className="mt-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                    <p className="text-sm text-green-600 font-medium">
-                      ✓ Cupom aplicado! {couponData.percentual}% de desconto
-                    </p>
-                  </div>
                 )}
               </div>
 
@@ -298,24 +310,24 @@ export default function Checkout({ theme = 'light' }) {
               <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} pt-6`}>
                 <div className="flex justify-between items-baseline mb-2">
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Subtotal</span>
-                  <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {plan.price.toFixed(2).replace('.', ',')}
+                  <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    R$ {(couponApplied?.precoBase || plan.price).toFixed(2).replace('.', ',')}
                   </span>
                 </div>
-                {couponData && (
+                {couponApplied && (
                   <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-green-600 font-medium">Desconto ({couponData.percentual}%)</span>
-                    <span className="text-green-600 font-semibold">
-                      - R$ {couponData.desconto.toFixed(2).replace('.', ',')}
+                    <span className="text-green-600 font-medium">Desconto ({couponApplied.percentual}%)</span>
+                    <span className="text-green-600 font-bold">
+                      - R$ {couponApplied.desconto.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                 )}
-                {plan.priceMonthly && (
+                {plan.priceMonthly && !couponApplied && (
                   <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     R$ {plan.priceMonthly.toFixed(2).replace('.', ',')} por mês
                   </div>
                 )}
-                {plan.savings && (
+                {plan.savings && !couponApplied && (
                   <div className="text-sm text-green-500 font-medium mt-1">
                     {plan.savings}
                   </div>
@@ -323,7 +335,7 @@ export default function Checkout({ theme = 'light' }) {
                 <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-dashed border-gray-300">
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Total</span>
                   <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {finalPrice.toFixed(2).replace('.', ',')}
+                    R$ {(couponApplied?.precoFinal || plan.price).toFixed(2).replace('.', ',')}
                   </span>
                 </div>
               </div>
@@ -416,7 +428,7 @@ export default function Checkout({ theme = 'light' }) {
                         Carregando sistema de pagamento...
                       </>
                     ) : (
-                      `Continuar para Pagamento - R$ ${finalPrice.toFixed(2).replace('.', ',')}`
+                      `Continuar para Pagamento - R$ ${(couponApplied?.precoFinal || plan.price).toFixed(2).replace('.', ',')}`
                     )}
                   </Button>
 
@@ -442,10 +454,10 @@ export default function Checkout({ theme = 'light' }) {
 
                   {mpReady ? (
                     <div className="space-y-4">
-                      {console.log('Renderizando CardPayment com:', { amount: finalPrice, email: user?.email, mpReady })}
+                      {console.log('Renderizando CardPayment com:', { amount: couponApplied?.precoFinal || plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
-                          amount: finalPrice,
+                          amount: couponApplied?.precoFinal || plan.price,
                           payer: {
                             email: user?.email
                           }
