@@ -13,6 +13,27 @@ import { createPageUrl } from "@/utils";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 
+const legalAreas = [
+  { id: 'civil', name: 'Direito Civil', emoji: '📜' },
+  { id: 'penal', name: 'Direito Penal', emoji: '⚖️' },
+  { id: 'trabalhista', name: 'Direito Trabalhista', emoji: '👔' },
+  { id: 'tributario', name: 'Direito Tributário', emoji: '💰' },
+  { id: 'empresarial', name: 'Direito Empresarial', emoji: '🏢' },
+  { id: 'consumidor', name: 'Direito do Consumidor', emoji: '🛒' },
+  { id: 'familia', name: 'Direito de Família', emoji: '👨‍👩‍👧‍👦' },
+  { id: 'previdenciario', name: 'Direito Previdenciário', emoji: '🏥' },
+  { id: 'constitucional', name: 'Direito Constitucional', emoji: '🏛️' },
+  { id: 'administrativo', name: 'Direito Administrativo', emoji: '🏛️' },
+  { id: 'ambiental', name: 'Direito Ambiental', emoji: '🌳' },
+  { id: 'eleitoral', name: 'Direito Eleitoral', emoji: '🗳️' },
+  { id: 'internacional', name: 'Direito Internacional', emoji: '🌍' },
+  { id: 'processual_civil', name: 'Processo Civil', emoji: '📋' },
+  { id: 'processual_penal', name: 'Processo Penal', emoji: '⚖️' },
+  { id: 'imobiliario', name: 'Direito Imobiliário', emoji: '🏠' },
+  { id: 'digital', name: 'Direito Digital', emoji: '💻' },
+  { id: 'bancario', name: 'Direito Bancário', emoji: '🏦' },
+];
+
 const documentTemplates = [
   {
     id: "peticao",
@@ -78,7 +99,8 @@ export default function DocumentGenerator({ theme = 'light' }) {
   const [user, setUser] = useState(null);
   
   // Controle de etapas
-  const [step, setStep] = useState(1); // 1: Escolher tipo, 2: Preencher dados, 3: Gerar e revisar, 4: Salvar
+  const [step, setStep] = useState(1); // 1: Escolher área, 2: Escolher tipo, 3: Preencher dados, 4: Gerar e revisar, 5: Salvar
+  const [selectedLegalArea, setSelectedLegalArea] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [formData, setFormData] = useState({});
   const [generatedContent, setGeneratedContent] = useState("");
@@ -107,7 +129,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
       const template = documentTemplates.find(t => t.id === selectedTemplate);
       
       // Construir prompt estruturado
-      let prompt = `Você é um advogado sênior experiente. Crie um documento jurídico profissional do tipo: ${template.name}.\n\n`;
+      let prompt = `Você é um advogado sênior experiente especializado em ${selectedLegalArea}. Crie um documento jurídico profissional do tipo: ${template.name}.\n\n`;
       prompt += "DADOS FORNECIDOS:\n";
       
       template.fields.forEach(field => {
@@ -136,7 +158,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
         const template = documentTemplates.find(t => t.id === selectedTemplate);
         setDocumentTitle(`${template.name} - ${new Date().toLocaleDateString()}`);
       }
-      setStep(3);
+      setStep(4);
       toast.success("Documento gerado com sucesso!");
     },
     onError: (e) => toast.error("Erro ao gerar: " + e.message)
@@ -163,10 +185,15 @@ export default function DocumentGenerator({ theme = 'light' }) {
     onError: (e) => toast.error("Erro ao salvar: " + e.message)
   });
 
+  const handleAreaSelect = (areaName) => {
+    setSelectedLegalArea(areaName);
+    setStep(2);
+  };
+
   const handleTemplateSelect = (templateId) => {
     setSelectedTemplate(templateId);
     setFormData({});
-    setStep(2);
+    setStep(3);
   };
 
   const handleNext = () => {
@@ -183,10 +210,11 @@ export default function DocumentGenerator({ theme = 'light' }) {
   };
 
   const steps = [
-    { number: 1, label: "Escolher Tipo" },
-    { number: 2, label: "Preencher Dados" },
-    { number: 3, label: "Revisar" },
-    { number: 4, label: "Salvar" }
+    { number: 1, label: "Área Jurídica" },
+    { number: 2, label: "Tipo Documento" },
+    { number: 3, label: "Preencher Dados" },
+    { number: 4, label: "Revisar" },
+    { number: 5, label: "Salvar" }
   ];
 
   return (
@@ -242,7 +270,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
 
         {/* Content */}
         <AnimatePresence mode="wait">
-          {/* STEP 1: Escolher tipo de documento */}
+          {/* STEP 1: Escolher área jurídica */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -252,7 +280,51 @@ export default function DocumentGenerator({ theme = 'light' }) {
             >
               <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
                 <CardHeader>
-                  <CardTitle className={isDark ? 'text-white' : ''}>Escolha o tipo de documento</CardTitle>
+                  <CardTitle className={isDark ? 'text-white' : ''}>Escolha a área jurídica</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {legalAreas.map((area) => (
+                      <motion.div
+                        key={area.id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Card 
+                          className={`cursor-pointer transition-all border-2 hover:border-purple-500 ${
+                            isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white hover:shadow-lg'
+                          }`}
+                          onClick={() => handleAreaSelect(area.name)}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <div className="text-3xl mb-2">{area.emoji}</div>
+                            <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {area.name}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* STEP 2: Escolher tipo de documento */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className={isDark ? 'text-white' : ''}>Escolha o tipo de documento</CardTitle>
+                    <Badge className="bg-purple-600">{selectedLegalArea}</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
@@ -303,10 +375,10 @@ export default function DocumentGenerator({ theme = 'light' }) {
             </motion.div>
           )}
 
-          {/* STEP 2: Preencher dados */}
-          {step === 2 && (
+          {/* STEP 3: Preencher dados */}
+          {step === 3 && (
             <motion.div
-              key="step2"
+              key="step3"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -361,7 +433,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
                   ))}
                   
                   <div className="flex gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                    <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
                       Voltar
                     </Button>
                     <Button 
@@ -387,10 +459,10 @@ export default function DocumentGenerator({ theme = 'light' }) {
             </motion.div>
           )}
 
-          {/* STEP 3: Revisar documento gerado */}
-          {step === 3 && (
+          {/* STEP 4: Revisar documento gerado */}
+          {step === 4 && (
             <motion.div
-              key="step3"
+              key="step4"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -410,11 +482,11 @@ export default function DocumentGenerator({ theme = 'light' }) {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setStep(2)}>
+                    <Button variant="outline" onClick={() => setStep(3)}>
                       Refazer
                     </Button>
                     <Button 
-                      onClick={() => setStep(4)}
+                      onClick={() => setStep(5)}
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
                       Continuar para Salvar
@@ -426,10 +498,10 @@ export default function DocumentGenerator({ theme = 'light' }) {
             </motion.div>
           )}
 
-          {/* STEP 4: Salvar */}
-          {step === 4 && (
+          {/* STEP 5: Salvar */}
+          {step === 5 && (
             <motion.div
-              key="step4"
+              key="step5"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -489,7 +561,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setStep(3)}>
+                    <Button variant="outline" onClick={() => setStep(4)}>
                       Voltar
                     </Button>
                     <Button 
