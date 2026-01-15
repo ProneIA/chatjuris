@@ -3,7 +3,6 @@ Deno.serve(async (req) => {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Content-Type': 'application/json'
   };
 
   if (req.method === 'OPTIONS') {
@@ -11,90 +10,79 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('🚀 Iniciando createTesterPayment...');
-    
     const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     
+    console.log('🔍 DEBUG - Token existe?', accessToken ? 'SIM' : 'NÃO');
+    console.log('🔍 DEBUG - Token (primeiros 20 chars):', accessToken?.substring(0, 20));
+
     if (!accessToken) {
-      console.error('❌ Token não encontrado');
+      console.error('❌ MERCADOPAGO_ACCESS_TOKEN não configurado no ambiente');
       return new Response(
-        JSON.stringify({ error: 'Token não configurado' }),
-        { status: 500, headers: corsHeaders }
+        JSON.stringify({ 
+          error: 'Token do Mercado Pago não encontrado',
+          hint: 'Configure MERCADOPAGO_ACCESS_TOKEN nas Environment Variables'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Token encontrado:', accessToken.substring(0, 15) + '...');
+    console.log('📤 Fazendo requisição para Mercado Pago...');
 
-    const preferenceData = {
-      items: [{
-        title: 'Teste Mercado Pago',
-        quantity: 1,
-        currency_id: 'BRL',
-        unit_price: 1.00
-      }],
-      back_urls: {
-        success: 'https://seusite.com/sucesso',
-        failure: 'https://seusite.com/erro',
-        pending: 'https://seusite.com/pendente'
-      },
-      auto_return: 'approved'
-    };
-
-    console.log('📤 Enviando para MP:', JSON.stringify(preferenceData, null, 2));
-
-    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+    const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(preferenceData)
+      body: JSON.stringify({
+        items: [
+          {
+            title: 'tester',
+            quantity: 1,
+            currency_id: 'BRL',
+            unit_price: 1,
+          },
+        ],
+      }),
     });
 
-    console.log('📥 Status MP:', response.status);
-    
-    const responseText = await response.text();
-    console.log('📥 Resposta bruta:', responseText);
-    
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('❌ Erro ao parsear JSON:', e);
+    const data = await mpResponse.json();
+
+    console.log('📥 Resposta Mercado Pago - Status:', mpResponse.status);
+    console.log('📥 Resposta Mercado Pago - Data:', data);
+
+    if (!mpResponse.ok) {
+      console.error('❌ Erro na API do Mercado Pago:', data);
       return new Response(
-        JSON.stringify({ error: 'Resposta inválida do MP', raw: responseText }),
-        { status: 500, headers: corsHeaders }
+        JSON.stringify({ 
+          error: 'Erro na API do Mercado Pago', 
+          status: mpResponse.status,
+          details: data 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!response.ok) {
-      console.error('❌ MP retornou erro:', data);
-      return new Response(
-        JSON.stringify({ error: 'Erro do Mercado Pago', details: data }),
-        { status: response.status, headers: corsHeaders }
-      );
-    }
-
-    console.log('✅ Sucesso! init_point:', data.init_point);
+    console.log('✅ Pagamento criado com sucesso!');
 
     return new Response(
       JSON.stringify({
         init_point: data.init_point,
-        sandbox_init_point: data.sandbox_init_point
+        sandbox_init_point: data.sandbox_init_point,
+        id: data.id
       }),
-      { status: 200, headers: corsHeaders }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('💥 Erro fatal:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('💥 Erro interno:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Erro interno', 
+        error: 'Erro ao criar pagamento teste',
         message: error.message,
-        type: error.constructor.name
+        stack: error.stack
       }),
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

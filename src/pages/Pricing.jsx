@@ -192,20 +192,12 @@ export default function Pricing({ theme = 'light' }) {
     // Plano teste - redireciona para Mercado Pago
     if (planId === "tester") {
       try {
-        console.log('🔵 Chamando createTesterPayment...');
         const response = await base44.functions.invoke('createTesterPayment');
-        console.log('🔵 Resposta:', response);
-        
         if (response.data?.init_point) {
-          console.log('✅ Redirecionando para:', response.data.init_point);
           window.location.href = response.data.init_point;
-        } else {
-          console.error('❌ Sem init_point na resposta:', response);
-          alert('Erro: ' + JSON.stringify(response.data || response));
         }
       } catch (error) {
-        console.error('❌ Erro completo:', error);
-        alert('Erro ao criar pagamento: ' + (error.response?.data?.error || error.message));
+        alert('Erro ao criar pagamento teste: ' + error.message);
       }
       return;
     }
