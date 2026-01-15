@@ -36,31 +36,7 @@ const plans = [
       daily_actions_used: 0
     }
   },
-  {
-    id: "starter",
-    name: "Starter",
-    icon: Zap,
-    price: 9.90,
-    period: "/mês",
-    description: "Plano inicial para experimentar",
-    popular: false,
-    features: [
-      { text: "20 ações de IA por dia", included: true, highlight: true },
-      { text: "Até 10 clientes", included: true },
-      { text: "Até 10 processos", included: true },
-      { text: "Até 20 documentos", included: true },
-      { text: "Modo Assistente Geral", included: true },
-      { text: "Templates básicos", included: true },
-      { text: "Suporte por email", included: true },
-      { text: "Equipes e Workspace", included: false },
-      { text: "Jurisprudência", included: false },
-      { text: "Análise LEXIA", included: false },
-    ],
-    limits: {
-      daily_actions_limit: 20,
-      daily_actions_used: 0
-    }
-  },
+
   {
     id: "pro_monthly",
     name: "Profissional Mensal",
