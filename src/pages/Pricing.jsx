@@ -172,25 +172,6 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Plano Starter - checkout Mercado Pago
-    if (planId === "starter") {
-      try {
-        const response = await base44.functions.invoke('createStarterPayment', {
-          userEmail: user.email,
-          userName: user.full_name
-        });
-        
-        if (response.data?.init_point) {
-          window.location.href = response.data.init_point;
-        } else {
-          alert('Erro ao gerar pagamento');
-        }
-      } catch (error) {
-        alert('Erro: ' + (error.response?.data?.error || error.message));
-      }
-      return;
-    }
-
     // Planos mensal e anual redirecionam para página de checkout personalizada
     if (planId === "pro_monthly" || planId === "pro_yearly") {
       navigate(createPageUrl("Checkout") + `?plan=${planId}`);
@@ -252,7 +233,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id;
