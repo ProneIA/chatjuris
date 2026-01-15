@@ -76,11 +76,11 @@ Deno.serve(async (req) => {
     }
 
     console.log('✅ Sucesso! init_point:', data.init_point);
-    console.log('✅ sandbox_init_point:', data.sandbox_init_point);
 
     return new Response(
       JSON.stringify({
-        init_point: data.sandbox_init_point || data.init_point
+        init_point: data.init_point,
+        sandbox_init_point: data.sandbox_init_point
       }),
       { status: 200, headers: corsHeaders }
     );
