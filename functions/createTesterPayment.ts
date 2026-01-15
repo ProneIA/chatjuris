@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { MercadoPagoConfig, Preference } from 'npm:mercadopago@2.0.15';
 
 Deno.serve(async (req) => {
   // CORS headers
@@ -26,62 +25,73 @@ Deno.serve(async (req) => {
 
     const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) {
-      return Response.json({ error: 'Mercado Pago não configurado' }, { 
+      console.error('MERCADOPAGO_ACCESS_TOKEN não configurado');
+      return Response.json({ error: 'Access Token do Mercado Pago não configurado' }, { 
         status: 500, 
         headers: corsHeaders 
       });
     }
 
-    // Configurar cliente do Mercado Pago
-    const client = new MercadoPagoConfig({ 
-      accessToken,
-      options: { timeout: 5000 }
-    });
-    const preference = new Preference(client);
+    const publicUrl = Deno.env.get('PUBLIC_URL') || 'https://seusite.com';
 
-    // Criar preferência de pagamento
-    const preferenceData = {
-      items: [
-        {
-          title: "tester",
-          description: "Pagamento de teste",
-          quantity: 1,
-          currency_id: "BRL",
-          unit_price: 1.0,
+    // Criar preferência usando fetch direto (mais estável no Base44)
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            title: 'tester',
+            description: 'Pagamento de teste',
+            quantity: 1,
+            currency_id: 'BRL',
+            unit_price: 1,
+          },
+        ],
+        back_urls: {
+          success: `${publicUrl}/payment-success?status=success`,
+          failure: `${publicUrl}/payment-success?status=error`,
+          pending: `${publicUrl}/payment-success?status=pending`,
         },
-      ],
-      back_urls: {
-        success: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=success`,
-        failure: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=error`,
-        pending: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=pending`,
-      },
-      auto_return: "approved",
-      payer: {
-        email: user.email,
-        name: user.full_name
-      },
-      metadata: {
-        user_id: user.id,
-        user_email: user.email,
-        type: "tester"
-      }
-    };
+        auto_return: 'approved',
+        payer: {
+          email: user.email,
+          name: user.full_name
+        },
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+          type: 'tester'
+        }
+      }),
+    });
 
-    const response = await preference.create({ body: preferenceData });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Erro Mercado Pago:', data);
+      return Response.json({ error: 'Erro na API do Mercado Pago', details: data }, { 
+        status: 500, 
+        headers: corsHeaders 
+      });
+    }
 
     return Response.json({
-      id: response.id,
-      init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point
+      id: data.id,
+      init_point: data.init_point,
+      sandbox_init_point: data.sandbox_init_point
     }, { 
       status: 200, 
       headers: corsHeaders 
     });
 
   } catch (error) {
-    console.error("Erro ao criar pagamento teste:", error);
+    console.error('Erro interno:', error);
     return Response.json({ 
-      error: "Erro ao criar pagamento",
+      error: 'Erro ao criar pagamento teste',
       details: error.message 
     }, { 
       status: 500, 
