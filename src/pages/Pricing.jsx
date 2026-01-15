@@ -37,24 +37,6 @@ const plans = [
     }
   },
   {
-    id: "tester",
-    name: "Teste - R$1,00",
-    icon: Zap,
-    price: 1.0,
-    period: "/único",
-    description: "Teste o pagamento e checkout",
-    popular: false,
-    features: [
-      { text: "Pagamento único de R$1,00", included: true, highlight: true },
-      { text: "Testar sistema de checkout", included: true },
-      { text: "Ideal para homologação", included: true },
-    ],
-    limits: {
-      daily_actions_limit: 5,
-      daily_actions_used: 0
-    }
-  },
-  {
     id: "pro_monthly",
     name: "Profissional Mensal",
     icon: Zap,
@@ -186,19 +168,6 @@ export default function Pricing({ theme = 'light' }) {
 
     if (planId === "free") {
       subscribeMutation.mutate(planId);
-      return;
-    }
-
-    // Plano teste - redireciona para Mercado Pago
-    if (planId === "tester") {
-      try {
-        const response = await base44.functions.invoke('createTesterPayment');
-        if (response.data?.init_point) {
-          window.location.href = response.data.init_point;
-        }
-      } catch (error) {
-        alert('Erro ao criar pagamento teste: ' + error.message);
-      }
       return;
     }
 
