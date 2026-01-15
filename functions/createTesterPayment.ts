@@ -1,16 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { MercadoPagoConfig, Preference } from 'npm:mercadopago@2.0.15';
 
 Deno.serve(async (req) => {
-  // CORS
+  // CORS headers
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
@@ -18,69 +18,74 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { 
+        status: 401, 
+        headers: corsHeaders 
+      });
     }
 
     const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) {
-      return Response.json({ error: 'Mercado Pago não configurado' }, { status: 500 });
+      return Response.json({ error: 'Mercado Pago não configurado' }, { 
+        status: 500, 
+        headers: corsHeaders 
+      });
     }
 
-    const publicUrl = Deno.env.get('PUBLIC_URL') || 'https://seusite.com';
+    // Configurar cliente do Mercado Pago
+    const client = new MercadoPagoConfig({ 
+      accessToken,
+      options: { timeout: 5000 }
+    });
+    const preference = new Preference(client);
 
     // Criar preferência de pagamento
-    const preference = {
+    const preferenceData = {
       items: [
         {
-          title: 'tester',
-          description: 'Pagamento de teste',
+          title: "tester",
+          description: "Pagamento de teste",
           quantity: 1,
-          currency_id: 'BRL',
+          currency_id: "BRL",
           unit_price: 1.0,
         },
       ],
       back_urls: {
-        success: `${publicUrl}/paymentSuccess?status=success`,
-        failure: `${publicUrl}/paymentSuccess?status=error`,
-        pending: `${publicUrl}/paymentSuccess?status=pending`,
+        success: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=success`,
+        failure: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=error`,
+        pending: `${Deno.env.get('PUBLIC_URL')}/payment-success?status=pending`,
       },
-      auto_return: 'approved',
+      auto_return: "approved",
       payer: {
         email: user.email,
-        name: user.full_name || 'Tester',
+        name: user.full_name
       },
       metadata: {
         user_id: user.id,
         user_email: user.email,
-        test_payment: true,
-      },
+        type: "tester"
+      }
     };
 
-    // Fazer requisição para o Mercado Pago
-    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(preference),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Erro Mercado Pago:', error);
-      return Response.json({ error: 'Erro ao criar pagamento' }, { status: 500 });
-    }
-
-    const data = await response.json();
+    const response = await preference.create({ body: preferenceData });
 
     return Response.json({
-      id: data.id,
-      init_point: data.init_point,
-      sandbox_init_point: data.sandbox_init_point,
+      id: response.id,
+      init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point
+    }, { 
+      status: 200, 
+      headers: corsHeaders 
     });
+
   } catch (error) {
-    console.error('Erro ao criar pagamento de teste:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("Erro ao criar pagamento teste:", error);
+    return Response.json({ 
+      error: "Erro ao criar pagamento",
+      details: error.message 
+    }, { 
+      status: 500, 
+      headers: corsHeaders 
+    });
   }
 });
