@@ -37,10 +37,6 @@ export default function Checkout({ theme = 'light' }) {
   const [mpPublicKey, setMpPublicKey] = React.useState(null);
   const [mpReady, setMpReady] = React.useState(false);
   const [showPaymentForm, setShowPaymentForm] = React.useState(false);
-  const [couponCode, setCouponCode] = React.useState('');
-  const [couponApplied, setCouponApplied] = React.useState(null);
-  const [validatingCoupon, setValidatingCoupon] = React.useState(false);
-  const [couponError, setCouponError] = React.useState('');
   const [regulationAccepted, setRegulationAccepted] = React.useState(false);
 
   
@@ -112,38 +108,7 @@ export default function Checkout({ theme = 'light' }) {
     setShowPaymentForm(true);
   };
 
-  const handleValidateCoupon = async () => {
-    if (!couponCode.trim()) {
-      setCouponError('Digite um cupom');
-      return;
-    }
 
-    setValidatingCoupon(true);
-    setCouponError('');
-
-    try {
-      const response = await base44.functions.invoke('validateCoupon', {
-        plano: planId,
-        cupom: couponCode.toUpperCase()
-      });
-
-      if (response.data.valid) {
-        setCouponApplied(response.data);
-        setCouponError('');
-      }
-    } catch (error) {
-      setCouponError(error.response?.data?.message || 'Cupom inválido');
-      setCouponApplied(null);
-    } finally {
-      setValidatingCoupon(false);
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setCouponCode('');
-    setCouponApplied(null);
-    setCouponError('');
-  };
 
   const onSubmit = async (formData) => {
     setProcessing(true);
@@ -173,8 +138,8 @@ export default function Checkout({ theme = 'light' }) {
         planId,
         userEmail: user.email,
         affiliateCode,
-        couponCode: couponApplied ? couponCode.toUpperCase() : null,
-        finalPrice: couponApplied ? couponApplied.precoFinal : null
+        couponCode: null,
+        finalPrice: null
       });
 
       console.log('Resposta do pagamento:', response.data);
@@ -258,78 +223,20 @@ export default function Checkout({ theme = 'light' }) {
                 ))}
               </div>
 
-              {/* Coupon Input */}
-              <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} pt-6 mb-6`}>
-                <Label className={`mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Cupom de Desconto
-                </Label>
-                {!couponApplied ? (
-                  <div className="flex gap-2">
-                    <Input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="Digite o cupom"
-                      disabled={validatingCoupon}
-                      className={isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}
-                    />
-                    <Button
-                      onClick={handleValidateCoupon}
-                      disabled={validatingCoupon || !couponCode.trim()}
-                      variant="outline"
-                      className="whitespace-nowrap"
-                    >
-                      {validatingCoupon ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        'Aplicar'
-                      )}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className={`flex items-center justify-between p-3 rounded-lg ${
-                    isDark ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-700'}`}>
-                        {couponCode} aplicado (-{couponApplied.percentual}%)
-                      </span>
-                    </div>
-                    <button
-                      onClick={handleRemoveCoupon}
-                      className={`text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                      Remover
-                    </button>
-                  </div>
-                )}
-                {couponError && (
-                  <p className="text-sm text-red-500 mt-2">{couponError}</p>
-                )}
-              </div>
-
               {/* Price */}
               <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'} pt-6`}>
                 <div className="flex justify-between items-baseline mb-2">
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>Subtotal</span>
                   <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {(couponApplied?.precoBase || plan.price).toFixed(2).replace('.', ',')}
+                    R$ {plan.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
-                {couponApplied && (
-                  <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-green-600 font-medium">Desconto ({couponApplied.percentual}%)</span>
-                    <span className="text-green-600 font-bold">
-                      - R$ {couponApplied.desconto.toFixed(2).replace('.', ',')}
-                    </span>
-                  </div>
-                )}
-                {plan.priceMonthly && !couponApplied && (
+                {plan.priceMonthly && (
                   <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                     R$ {plan.priceMonthly.toFixed(2).replace('.', ',')} por mês
                   </div>
                 )}
-                {plan.savings && !couponApplied && (
+                {plan.savings && (
                   <div className="text-sm text-green-500 font-medium mt-1">
                     {plan.savings}
                   </div>
@@ -337,7 +244,7 @@ export default function Checkout({ theme = 'light' }) {
                 <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-dashed border-gray-300">
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Total</span>
                   <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    R$ {(couponApplied?.precoFinal || plan.price).toFixed(2).replace('.', ',')}
+                    R$ {plan.price.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
               </div>
@@ -439,7 +346,7 @@ export default function Checkout({ theme = 'light' }) {
                         Carregando sistema de pagamento...
                       </>
                     ) : (
-                      `Continuar para Pagamento - R$ ${(couponApplied?.precoFinal || plan.price).toFixed(2).replace('.', ',')}`
+                      `Continuar para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
                     )}
                   </Button>
 
@@ -465,10 +372,10 @@ export default function Checkout({ theme = 'light' }) {
 
                   {mpReady ? (
                     <div className="space-y-4">
-                      {console.log('Renderizando CardPayment com:', { amount: couponApplied?.precoFinal || plan.price, email: user?.email, mpReady })}
+                      {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
-                          amount: couponApplied?.precoFinal || plan.price,
+                          amount: plan.price,
                           payer: {
                             email: user?.email
                           }
