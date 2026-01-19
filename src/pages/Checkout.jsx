@@ -464,6 +464,7 @@ export default function Checkout({ theme = 'light' }) {
 
                   {mpReady ? (
                     <div className="space-y-4">
+                      <div id="cardPaymentBrick_container"></div>
                       <CardPayment
                         initialization={{ 
                           amount: finalPrice,
