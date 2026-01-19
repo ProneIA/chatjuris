@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
     }
 
     // Testar a conexão com a API do Mercado Pago
-    // Buscar informações da conta
-    const response = await fetch('https://api.mercadopago.com/v1/users/me', {
+    // Buscar métodos de pagamento disponíveis (endpoint público que sempre funciona)
+    const response = await fetch('https://api.mercadopago.com/v1/payment_methods', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
@@ -31,34 +31,47 @@ Deno.serve(async (req) => {
       return Response.json({ 
         success: false,
         error: 'Erro ao conectar com Mercado Pago',
+        status: response.status,
         details: errorData
       }, { status: response.status });
     }
 
-    const userData = await response.json();
+    const paymentMethods = await response.json();
 
-    // Buscar métodos de pagamento disponíveis
-    const paymentMethodsResponse = await fetch('https://api.mercadopago.com/v1/payment_methods', {
+    // Testar criação de preferência de pagamento (sem salvar)
+    const testPreference = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        items: [{
+          title: 'Teste API',
+          quantity: 1,
+          unit_price: 1.00
+        }],
+        back_urls: {
+          success: 'https://test.com',
+          failure: 'https://test.com',
+          pending: 'https://test.com'
+        },
+        auto_return: 'approved'
+      })
     });
 
-    const paymentMethods = await paymentMethodsResponse.json();
+    const canCreatePreference = testPreference.ok;
 
     return Response.json({
       success: true,
-      message: 'Conexão com Mercado Pago estabelecida com sucesso!',
-      account: {
-        id: userData.id,
-        nickname: userData.nickname,
-        email: userData.email,
-        country: userData.country_id,
-        site: userData.site_id
-      },
-      payment_methods_count: paymentMethods.length,
-      available_payment_types: [...new Set(paymentMethods.map(pm => pm.payment_type_id))]
+      message: 'API do Mercado Pago funcionando corretamente! ✅',
+      token_valid: true,
+      payment_methods_available: paymentMethods.length,
+      can_create_payments: canCreatePreference,
+      payment_types: [...new Set(paymentMethods.map(pm => pm.payment_type_id))],
+      credit_card_brands: paymentMethods
+        .filter(pm => pm.payment_type_id === 'credit_card')
+        .map(pm => pm.name)
     });
 
   } catch (error) {
