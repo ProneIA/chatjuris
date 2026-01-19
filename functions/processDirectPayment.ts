@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
 
     const priceMap = {
       pro_monthly: 119.9,
-      pro_yearly: 1198.8
+      pro_yearly: 1198.8,
+      pro_yearly_oferta: 599.4
     };
 
     let price = finalPrice || priceMap[planId];
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
         const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id });
         
         const subscriptionData = {
-          plan: planId,
+          plan: planId === 'pro_yearly_oferta' ? 'pro_yearly' : planId,
           status: 'active',
           payment_status: 'paid',
           payment_method: 'credit_card',
