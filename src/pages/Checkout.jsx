@@ -177,7 +177,7 @@ export default function Checkout({ theme = 'light' }) {
         userEmail: user.email,
         affiliateCode,
         couponCode: appliedCoupon ? couponCode.trim() : null,
-        finalPrice: appliedCoupon ? finalPrice : null
+        finalPrice: finalPrice
       });
 
       console.log('Resposta do pagamento:', response.data);
