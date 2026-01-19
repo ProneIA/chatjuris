@@ -76,7 +76,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
-    const { plano, cupom } = await req.json();
+    const { planId, couponCode } = await req.json();
+    const plano = planId;
+    const cupom = couponCode;
 
     if (!plano) {
       return Response.json({ error: 'Plano é obrigatório' }, { status: 400, headers });
@@ -89,7 +91,11 @@ Deno.serve(async (req) => {
 
       return Response.json({ 
         valid: true, 
-        ...result 
+        discount_percentage: result.percentual,
+        original_price: result.precoBase,
+        discount_amount: result.desconto,
+        final_price: result.precoFinal,
+        monthly_equivalent: result.precoMensalEquivalente
       }, { headers });
     } catch (err) {
       console.log('Cupom inválido:', err.message);
