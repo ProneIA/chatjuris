@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     console.log(`Encontradas ${subscriptions.length} assinaturas mensais ativas`);
 
     const today = new Date();
-    const remindersTo Send = [];
+    const remindersToSend = [];
 
     for (const sub of subscriptions) {
       if (!sub.next_billing_date) continue;
