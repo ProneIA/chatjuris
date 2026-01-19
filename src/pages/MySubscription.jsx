@@ -104,7 +104,9 @@ export default function MySubscription({ theme = 'light' }) {
     }
   });
 
-  const isPro = subscription?.plan === 'pro' && subscription?.status === 'active';
+  const isPro = (subscription?.plan?.startsWith('pro') || subscription?.plan === 'pro') && subscription?.status === 'active';
+  const isMonthly = subscription?.plan === 'pro_monthly';
+  const isYearly = subscription?.plan === 'pro_yearly';
   const StatusIcon = statusConfig[subscription?.status]?.icon || Clock;
 
   if (isLoading) {
@@ -151,7 +153,7 @@ export default function MySubscription({ theme = 'light' }) {
                 </div>
                 <div>
                   <CardTitle className={isDark ? 'text-white' : ''}>
-                    Plano {isPro ? 'Profissional' : 'Gratuito'}
+                    Plano {isPro ? (isYearly ? 'Profissional Anual' : 'Profissional Mensal') : 'Gratuito'}
                   </CardTitle>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={`${statusConfig[subscription?.status || 'active']?.color} text-white`}>
@@ -164,8 +166,21 @@ export default function MySubscription({ theme = 'light' }) {
               
               {isPro && (
                 <div className={`text-right ${isDark ? 'text-white' : ''}`}>
-                  <p className="text-2xl font-light">R$ 49,99</p>
-                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
+                  {isMonthly && (
+                    <>
+                      <p className="text-2xl font-light">R$ 119,90</p>
+                      <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
+                    </>
+                  )}
+                  {isYearly && (
+                    <>
+                      <p className="text-2xl font-light">R$ 99,90</p>
+                      <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
+                      <p className={`text-xs ${isDark ? 'text-neutral-600' : 'text-gray-400'} mt-1`}>
+                        R$ 1.198,80/ano
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
