@@ -95,6 +95,39 @@ const plans = [
       daily_actions_used: 0
     },
     savingsText: "Economize R$ 240/ano - 2 meses grátis!"
+  },
+  {
+    id: "pro_yearly_oferta",
+    name: "Exclusiva Anual",
+    icon: Crown,
+    price: 49.95,
+    originalPrice: 99.90,
+    period: "/mês",
+    billingType: "yearly",
+    annualTotal: 599.40,
+    description: "Oferta especial exclusiva",
+    popular: false,
+    exclusive: true,
+    discount: 50,
+    features: [
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Templates ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
+      { text: "Gerador de imagens IA", included: true },
+      { text: "Suporte prioritário 24/7", included: true },
+    ],
+    limits: {
+      daily_actions_limit: 999999,
+      daily_actions_used: 0
+    },
+    savingsText: "OFERTA EXCLUSIVA - 50% DE DESCONTO!"
   }
 ];
 
@@ -172,7 +205,7 @@ export default function Pricing({ theme = 'light' }) {
     }
 
     // Planos mensal e anual redirecionam para página de checkout personalizada
-    if (planId === "pro_monthly" || planId === "pro_yearly") {
+    if (planId === "pro_monthly" || planId === "pro_yearly" || planId === "pro_yearly_oferta") {
       navigate(createPageUrl("Checkout") + `?plan=${planId}`);
       return;
     }
@@ -232,7 +265,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id;
@@ -247,13 +280,24 @@ export default function Pricing({ theme = 'light' }) {
                 className={`relative overflow-hidden rounded-none ${
                   isPro 
                     ? "bg-gray-900 text-white border-2 border-gray-900" 
+                    : plan.exclusive
+                    ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white border-2 border-amber-500"
                     : "bg-white border border-gray-200"
                 }`}
               >
                 {/* Discount Badge */}
-                {plan.discount && (
+                {plan.discount && !plan.exclusive && (
                   <div className="absolute top-0 right-0">
                     <div className="bg-gray-700 text-white text-xs font-medium px-4 py-2">
+                      -{plan.discount}% OFF
+                    </div>
+                  </div>
+                )}
+
+                {/* Exclusive Badge */}
+                {plan.exclusive && (
+                  <div className="absolute top-0 right-0">
+                    <div className="bg-red-600 text-white text-xs font-bold px-4 py-2">
                       -{plan.discount}% OFF
                     </div>
                   </div>
@@ -265,6 +309,16 @@ export default function Pricing({ theme = 'light' }) {
                     <span className="bg-white text-gray-900 text-xs font-medium px-3 py-1 flex items-center gap-1">
                       <Crown className="w-3 h-3" />
                       RECOMENDADO
+                    </span>
+                  </div>
+                )}
+                
+                {/* Exclusive Banner */}
+                {plan.exclusive && (
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-white text-orange-600 text-xs font-bold px-3 py-1 flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      OFERTA EXCLUSIVA
                     </span>
                   </div>
                 )}

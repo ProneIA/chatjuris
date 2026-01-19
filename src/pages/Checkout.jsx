@@ -25,6 +25,14 @@ const plans = {
     period: "ano",
     savings: "Economize R$ 240/ano",
     features: ["IA Ilimitada", "Todos os recursos", "Suporte prioritário", "2 meses grátis"]
+  },
+  pro_yearly_oferta: {
+    name: "Exclusiva Anual",
+    price: 599.40,
+    priceMonthly: 49.95,
+    period: "ano",
+    savings: "OFERTA EXCLUSIVA - 50% DE DESCONTO",
+    features: ["IA Ilimitada", "Todos os recursos", "Suporte prioritário", "Desconto especial de 50%"]
   }
 };
 
