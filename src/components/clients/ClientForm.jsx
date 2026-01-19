@@ -168,7 +168,7 @@ export default function ClientForm({ client, onSubmit, onCancel, isLoading }) {
                   <SelectItem value="married">Casado(a)</SelectItem>
                   <SelectItem value="divorced">Divorciado(a)</SelectItem>
                   <SelectItem value="widowed">Viúvo(a)</SelectItem>
-                  <SelectItem value="stable_union">União Estável</SelectItem>
+                  <SelectItem value="common_law">União Estável</SelectItem>
                 </SelectContent>
               </Select>
             </div>
