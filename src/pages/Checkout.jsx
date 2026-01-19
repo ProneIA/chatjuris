@@ -467,7 +467,7 @@ export default function Checkout({ theme = 'light' }) {
                       {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
-                          amount: plan.price,
+                          amount: finalPrice,
                           payer: {
                             email: user?.email
                           }
@@ -482,7 +482,8 @@ export default function Checkout({ theme = 'light' }) {
                             }
                           },
                           paymentMethods: {
-                            maxInstallments: 12
+                            maxInstallments: 12,
+                            minInstallments: 1
                           }
                         }}
                       />
