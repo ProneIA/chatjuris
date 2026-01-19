@@ -464,7 +464,6 @@ export default function Checkout({ theme = 'light' }) {
 
                   {mpReady ? (
                     <div className="space-y-4">
-                      {console.log('Renderizando CardPayment com:', { amount: plan.price, email: user?.email, mpReady })}
                       <CardPayment
                         initialization={{ 
                           amount: finalPrice,
@@ -482,6 +481,8 @@ export default function Checkout({ theme = 'light' }) {
                             }
                           },
                           paymentMethods: {
+                            creditCard: 'all',
+                            debitCard: 'all',
                             maxInstallments: 12,
                             minInstallments: 1
                           }
