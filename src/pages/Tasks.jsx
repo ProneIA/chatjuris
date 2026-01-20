@@ -243,7 +243,9 @@ export default function Tasks({ theme = 'light' }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Ninguém</SelectItem>
-                    <SelectItem value={user?.email || ""}>{user?.full_name || "Eu"}</SelectItem>
+                    {user?.email && (
+                      <SelectItem value={user.email}>{user.full_name || "Eu"}</SelectItem>
+                    )}
                     {allTeamMembers.filter(m => m !== user?.email).map(member => (
                       <SelectItem key={member} value={member}>{member}</SelectItem>
                     ))}
@@ -387,7 +389,9 @@ export default function Tasks({ theme = 'light' }) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value={user?.email || ""}>Minhas tarefas</SelectItem>
+                {user?.email && (
+                  <SelectItem value={user.email}>Minhas tarefas</SelectItem>
+                )}
                 {allTeamMembers.filter(m => m !== user?.email).map(member => (
                   <SelectItem key={member} value={member}>{member}</SelectItem>
                 ))}
