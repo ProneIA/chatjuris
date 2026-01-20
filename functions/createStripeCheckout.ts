@@ -45,6 +45,18 @@ Deno.serve(async (req) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
+      payment_method_options: {
+        card: {
+          installments: {
+            enabled: true,
+            plan: {
+              count: 12,
+              interval: 'month',
+              type: 'fixed_count'
+            }
+          }
+        }
+      }
     });
 
     return Response.json({ 
