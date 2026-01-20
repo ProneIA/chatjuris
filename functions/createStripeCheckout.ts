@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     // IDs de preços do Stripe
     const stripePrices = {
       pro_monthly: 'price_1SrUfeQMQSfdrKYGVq2zoMTA',
-      pro_yearly: null // Adicionar quando configurado
+      pro_yearly: 'price_1SrV9bQMQSfdrKYGEIP6Smhc'
     };
 
     const priceId = stripePrices[planId];
