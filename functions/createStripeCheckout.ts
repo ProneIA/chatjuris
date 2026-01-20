@@ -49,14 +49,9 @@ Deno.serve(async (req) => {
         card: {
           installments: {
             enabled: true,
-            plan: {
-              count: 12,
-              interval: 'month',
-              type: 'fixed_count'
-            }
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     return Response.json({ 

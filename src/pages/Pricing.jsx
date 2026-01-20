@@ -42,6 +42,7 @@ const plans = [
     period: "/mês",
     billingType: "monthly",
     description: "Tudo ilimitado com renovação mensal",
+    installments: "ou 12x de R$ 11,99",
     popular: false,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
@@ -72,6 +73,7 @@ const plans = [
     billingType: "yearly",
     annualTotal: 1198.80,
     description: "Melhor valor - pague anualmente e economize",
+    installments: "ou 12x de R$ 119,88",
     popular: true,
     discount: 17,
     features: [
@@ -292,6 +294,11 @@ export default function Pricing({ theme = 'light' }) {
                    {plan.annualTotal && (
                      <p className="text-xs sm:text-sm text-gray-400 mt-1">
                        R$ {plan.annualTotal.toFixed(2).replace('.', ',')} cobrado anualmente
+                     </p>
+                   )}
+                   {plan.installments && (
+                     <p className={`text-xs sm:text-sm mt-1 ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
+                       {plan.installments}
                      </p>
                    )}
                   </div>
