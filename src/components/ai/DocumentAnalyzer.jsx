@@ -610,7 +610,7 @@ Seja profissional e cite artigos legais quando relevante.`;
             {analysisTypes.map((type) => {
               const Icon = type.icon;
               return (
-                <TabsTrigger key={type.id} value={type.id} className="text-xs">
+                <TabsTrigger key={type.id} value={type.id || "identify"} className="text-xs">
                   <Icon className="w-3 h-3 mr-1" />
                   {type.label}
                 </TabsTrigger>
