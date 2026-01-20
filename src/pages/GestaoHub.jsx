@@ -1,14 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Users2, FolderOpen, FileText, CheckSquare, ChevronRight } from "lucide-react";
+import { Users, Users2, FolderOpen, FileText, ChevronRight } from "lucide-react";
 
 const gestaoItems = [
   { title: "Clientes", description: "Gerencie seus clientes e contatos", url: createPageUrl("Clients"), icon: Users },
   { title: "Portal do Cliente", description: "Acesso e comunicação com clientes", url: createPageUrl("ClientPortal"), icon: Users2 },
   { title: "Processos", description: "Acompanhe casos e processos", url: createPageUrl("Cases"), icon: FolderOpen },
   { title: "Documentos", description: "Gerencie documentos jurídicos", url: createPageUrl("DocumentsEnhanced"), icon: FileText },
-  { title: "Tarefas", description: "Organize suas atividades", url: createPageUrl("Tasks"), icon: CheckSquare },
 ];
 
 export default function GestaoHub({ theme = 'light' }) {
@@ -22,7 +21,7 @@ export default function GestaoHub({ theme = 'light' }) {
             Gestão
           </h1>
           <p className={`mt-2 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-            Gerencie clientes, processos, documentos e tarefas
+            Gerencie clientes, processos e documentos
           </p>
         </div>
 

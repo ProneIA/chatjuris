@@ -44,6 +44,7 @@ const navigationItems = [
   { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
+  { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
 ];
