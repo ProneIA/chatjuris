@@ -8,7 +8,7 @@ const ferramentasItems = [
   { title: "Calculadora Jurídica", description: "Cálculos trabalhistas, juros e prazos", url: createPageUrl("LegalCalculator"), icon: Calculator },
   { title: "Monitor de Diários", description: "Acompanhe publicações oficiais", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
   { title: "Jurisprudência", description: "Pesquise decisões e precedentes", url: createPageUrl("Jurisprudence"), icon: BookOpen, proBadge: true },
-  { title: "Templates", description: "Modelos de documentos prontos", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
+  { title: "Modelos de Peças", description: "Modelos de documentos prontos", url: createPageUrl("Templates"), icon: BookTemplate, proBadge: true },
   { title: "Calendário", description: "Agenda inteligente de compromissos", url: createPageUrl("Calendar"), icon: CalendarDays, proBadge: true },
 ];
 
