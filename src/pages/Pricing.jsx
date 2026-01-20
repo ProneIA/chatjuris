@@ -74,7 +74,7 @@ const plans = [
     annualTotal: 1198.80,
     description: "Melhor valor - pague anualmente e economize",
     installments: "ou 12x de R$ 119,88",
-    popular: false,
+    popular: true,
     discount: 17,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
