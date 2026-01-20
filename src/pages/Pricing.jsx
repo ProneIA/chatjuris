@@ -43,7 +43,7 @@ const plans = [
     billingType: "monthly",
     description: "Tudo ilimitado com renovação mensal",
     installments: "ou 12x de R$ 11,99",
-    popular: true,
+    popular: false,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
       { text: "Clientes ILIMITADOS", included: true, highlight: true },
