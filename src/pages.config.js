@@ -35,6 +35,7 @@ import LegalResearchAI from './pages/LegalResearchAI';
 import Library from './pages/Library';
 import MyData from './pages/MyData';
 import MySubscription from './pages/MySubscription';
+import OfertaEspecial from './pages/OfertaEspecial';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Pricing from './pages/Pricing';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -46,7 +47,6 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
-import OfertaEspecial from './pages/OfertaEspecial';
 import __Layout from './Layout.jsx';
 
 
@@ -88,6 +88,7 @@ export const PAGES = {
     "Library": Library,
     "MyData": MyData,
     "MySubscription": MySubscription,
+    "OfertaEspecial": OfertaEspecial,
     "PaymentSuccess": PaymentSuccess,
     "Pricing": Pricing,
     "PrivacyPolicy": PrivacyPolicy,
@@ -99,7 +100,6 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
-    "OfertaEspecial": OfertaEspecial,
 }
 
 export const pagesConfig = {

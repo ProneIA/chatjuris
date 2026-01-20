@@ -41,7 +41,7 @@ const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
   { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: Users2 },
-  { title: "Biblioteca", url: createPageUrl("Library"), icon: BookOpen },
+  { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
