@@ -1,22 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@17.5.0';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
-  apiVersion: '2024-12-18.acacia',
-});
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
-  }
-
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -27,62 +14,59 @@ Deno.serve(async (req) => {
 
     const { planId, successUrl, cancelUrl } = await req.json();
 
-    // Define preços dos planos
-    const plans = {
+    // Definir preços e intervalos
+    const priceData = {
       pro_monthly: {
-        price: 119.90,
-        interval: 'month',
-        name: 'Plano Profissional Mensal'
+        unit_amount: 11990, // R$ 119.90 em centavos
+        recurring: { interval: 'month' }
       },
       pro_yearly: {
-        price: 1198.80,
-        interval: 'year',
-        name: 'Plano Profissional Anual'
+        unit_amount: 119880, // R$ 1.198,80 em centavos
+        recurring: { interval: 'year' }
       }
     };
 
-    const plan = plans[planId];
-    if (!plan) {
+    const planConfig = priceData[planId];
+    if (!planConfig) {
       return Response.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
-    // Criar sessão de checkout
+    // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create({
-      customer_email: user.email,
-      client_reference_id: user.id,
+      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
             currency: 'brl',
             product_data: {
-              name: plan.name,
-              description: 'Acesso total à plataforma Juris'
+              name: planId === 'pro_monthly' ? 'Plano Mensal' : 'Plano Anual',
+              description: 'Acesso completo à plataforma Juris',
             },
-            unit_amount: Math.round(plan.price * 100), // Converter para centavos
-            recurring: {
-              interval: plan.interval,
-            },
+            unit_amount: planConfig.unit_amount,
+            recurring: planConfig.recurring,
           },
           quantity: 1,
         },
       ],
       mode: 'subscription',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      customer_email: user.email,
+      client_reference_id: user.id,
       metadata: {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
       },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      allow_promotion_codes: true,
     });
 
     return Response.json({ 
       sessionId: session.id,
       url: session.url 
     });
-
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('Erro ao criar checkout:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });

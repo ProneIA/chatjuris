@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users, Scale } from "lucide-react";
+import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
-import PaymentModal from "@/components/subscription/PaymentModal";
-import CaktoCheckoutModal from "@/components/subscription/CaktoCheckoutModal";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
 
 const plans = [
@@ -28,7 +26,7 @@ const plans = [
       { text: "Suporte por email", included: true },
       { text: "Equipes e Workspace", included: false },
       { text: "Jurisprudência", included: false },
-      { text: "Templates", included: false },
+      { text: "Modelos de Peças", included: false },
       { text: "Análise LEXIA", included: false },
     ],
     limits: {
@@ -53,7 +51,7 @@ const plans = [
       { text: "Todos os modos de IA", included: true },
       { text: "Equipes e Workspace", included: true },
       { text: "Jurisprudência completa", included: true },
-      { text: "Templates ilimitados", included: true },
+      { text: "Modelos de Peças ilimitados", included: true },
       { text: "Calendário inteligente", included: true },
       { text: "Análise de documentos LEXIA", included: true },
       { text: "Gerador de imagens IA", included: true },
@@ -75,7 +73,7 @@ const plans = [
     annualTotal: 1198.80,
     description: "Melhor valor - pague anualmente e economize",
     popular: true,
-    discount: 9,
+    discount: 17,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
       { text: "Clientes ILIMITADOS", included: true, highlight: true },
@@ -84,7 +82,7 @@ const plans = [
       { text: "Todos os modos de IA", included: true },
       { text: "Equipes e Workspace", included: true },
       { text: "Jurisprudência completa", included: true },
-      { text: "Templates ilimitados", included: true },
+      { text: "Modelos de Peças ilimitados", included: true },
       { text: "Calendário inteligente", included: true },
       { text: "Análise de documentos LEXIA", included: true },
       { text: "Gerador de imagens IA", included: true },
@@ -95,39 +93,6 @@ const plans = [
       daily_actions_used: 0
     },
     savingsText: "Economize R$ 240/ano - 2 meses grátis!"
-  },
-  {
-    id: "pro_yearly_oferta",
-    name: "Exclusiva Anual",
-    icon: Crown,
-    price: 49.95,
-    originalPrice: 99.90,
-    period: "/mês",
-    billingType: "yearly",
-    annualTotal: 599.40,
-    description: "Oferta especial exclusiva",
-    popular: false,
-    exclusive: true,
-    discount: 50,
-    features: [
-      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
-      { text: "Clientes ILIMITADOS", included: true, highlight: true },
-      { text: "Processos ILIMITADOS", included: true, highlight: true },
-      { text: "Documentos ILIMITADOS", included: true, highlight: true },
-      { text: "Todos os modos de IA", included: true },
-      { text: "Equipes e Workspace", included: true },
-      { text: "Jurisprudência completa", included: true },
-      { text: "Templates ilimitados", included: true },
-      { text: "Calendário inteligente", included: true },
-      { text: "Análise de documentos LEXIA", included: true },
-      { text: "Gerador de imagens IA", included: true },
-      { text: "Suporte prioritário 24/7", included: true },
-    ],
-    limits: {
-      daily_actions_limit: 999999,
-      daily_actions_used: 0
-    },
-    savingsText: "OFERTA EXCLUSIVA - 50% DE DESCONTO!"
   }
 ];
 
@@ -141,9 +106,6 @@ export default function Pricing({ theme = 'light' }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showCaktoCheckout, setShowCaktoCheckout] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -165,7 +127,7 @@ export default function Pricing({ theme = 'light' }) {
       
       if (subscription) {
         return base44.entities.Subscription.update(subscription.id, {
-          plan: planId,
+          plan: planId === 'free' ? 'free' : 'pro',
           status: "active",
           ...planData.limits,
           price: planData.price,
@@ -175,7 +137,7 @@ export default function Pricing({ theme = 'light' }) {
       } else {
         return base44.entities.Subscription.create({
           user_id: user.id,
-          plan: planId,
+          plan: planId === 'free' ? 'free' : 'pro',
           status: "active",
           ...planData.limits,
           price: planData.price,
@@ -204,20 +166,8 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Planos mensal e anual redirecionam para página de checkout personalizada
-    if (planId === "pro_monthly" || planId === "pro_yearly" || planId === "pro_yearly_oferta") {
-      navigate(createPageUrl("Checkout") + `?plan=${planId}`);
-      return;
-    }
-
-    const plan = plans.find(p => p.id === planId);
-    setSelectedPlan(plan);
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentComplete = () => {
-    subscribeMutation.mutate(selectedPlan.id);
-    setShowPaymentModal(false);
+    // Planos pagos vão para checkout com Stripe
+    navigate(createPageUrl("Checkout") + `?plan=${planId}`);
   };
 
   const currentPlan = subscription?.plan || 'free';
@@ -265,11 +215,11 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
-            const isCurrentPlan = currentPlan === plan.id;
-            const isPro = plan.id === "pro";
+            const isCurrentPlan = currentPlan === plan.id || (currentPlan === 'pro' && plan.id.startsWith('pro_'));
+            const isPro = plan.id.startsWith('pro_');
 
             return (
               <motion.div
@@ -278,26 +228,15 @@ export default function Pricing({ theme = 'light' }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={`relative overflow-hidden rounded-none ${
-                  isPro 
+                  plan.popular
                     ? "bg-gray-900 text-white border-2 border-gray-900" 
-                    : plan.exclusive
-                    ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white border-2 border-amber-500"
                     : "bg-white border border-gray-200"
                 }`}
               >
                 {/* Discount Badge */}
-                {plan.discount && !plan.exclusive && (
+                {plan.discount && (
                   <div className="absolute top-0 right-0">
                     <div className="bg-gray-700 text-white text-xs font-medium px-4 py-2">
-                      -{plan.discount}% OFF
-                    </div>
-                  </div>
-                )}
-
-                {/* Exclusive Badge */}
-                {plan.exclusive && (
-                  <div className="absolute top-0 right-0">
-                    <div className="bg-red-600 text-white text-xs font-bold px-4 py-2">
                       -{plan.discount}% OFF
                     </div>
                   </div>
@@ -312,30 +251,20 @@ export default function Pricing({ theme = 'light' }) {
                     </span>
                   </div>
                 )}
-                
-                {/* Exclusive Banner */}
-                {plan.exclusive && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-white text-orange-600 text-xs font-bold px-3 py-1 flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      OFERTA EXCLUSIVA
-                    </span>
-                  </div>
-                )}
 
                 <div className="p-5 sm:p-8">
                   {/* Plan Header */}
                   <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
                     <div className={`w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center mb-3 sm:mb-4 ${
-                      isPro ? "bg-white" : "bg-gray-100"
+                      plan.popular ? "bg-white" : "bg-gray-100"
                     }`}>
-                      <Icon className={`w-5 h-5 sm:w-7 sm:h-7 ${isPro ? "text-gray-900" : "text-gray-700"}`} />
+                      <Icon className={`w-5 h-5 sm:w-7 sm:h-7 ${plan.popular ? "text-gray-900" : "text-gray-700"}`} />
                     </div>
                     
-                    <h3 className={`text-xl sm:text-2xl font-semibold mb-1 sm:mb-2 ${isPro ? "text-white" : "text-gray-900"}`}>
+                    <h3 className={`text-xl sm:text-2xl font-semibold mb-1 sm:mb-2 ${plan.popular ? "text-white" : "text-gray-900"}`}>
                       {plan.name}
                     </h3>
-                    <p className={`text-sm sm:text-base ${isPro ? "text-gray-400" : "text-gray-600"}`}>
+                    <p className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-600"}`}>
                       {plan.description}
                     </p>
                   </div>
@@ -344,19 +273,19 @@ export default function Pricing({ theme = 'light' }) {
                   <div className="mb-6 sm:mb-8">
                    <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
                      {plan.originalPrice && (
-                       <span className={`text-sm sm:text-lg line-through ${isPro ? "text-gray-500" : "text-gray-400"}`}>
+                       <span className={`text-sm sm:text-lg line-through ${plan.popular ? "text-gray-500" : "text-gray-400"}`}>
                          R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
                        </span>
                      )}
-                     <span className={`text-3xl sm:text-5xl font-semibold ${isPro ? "text-white" : "text-gray-900"}`}>
+                     <span className={`text-3xl sm:text-5xl font-semibold ${plan.popular ? "text-white" : "text-gray-900"}`}>
                        R$ {plan.price.toFixed(2).replace('.', ',')}
                      </span>
-                     <span className={`text-sm sm:text-base ${isPro ? "text-gray-400" : "text-gray-500"}`}>
+                     <span className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
                        {plan.period}
                      </span>
                    </div>
                    {plan.savingsText && (
-                     <p className={`text-xs sm:text-sm mt-2 font-semibold ${isPro ? "text-green-400" : "text-green-600"}`}>
+                     <p className={`text-xs sm:text-sm mt-2 font-semibold ${plan.popular ? "text-green-400" : "text-green-600"}`}>
                        {plan.savingsText}
                      </p>
                    )}
@@ -373,8 +302,8 @@ export default function Pricing({ theme = 'light' }) {
                     disabled={isCurrentPlan || subscribeMutation.isPending}
                     className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 rounded-none border-0 ${
                       isCurrentPlan
-                        ? isPro ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : isPro
+                        ? plan.popular ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : plan.popular
                         ? "bg-white text-gray-900 hover:bg-gray-100"
                         : "bg-gray-900 text-white hover:bg-gray-800"
                     }`}
@@ -395,7 +324,7 @@ export default function Pricing({ theme = 'light' }) {
                   {/* Features List */}
                   <div className="space-y-2.5 sm:space-y-3">
                     <p className={`text-xs sm:text-sm font-medium uppercase tracking-wider mb-3 sm:mb-4 ${
-                      isPro ? "text-gray-400" : "text-gray-500"
+                      plan.popular ? "text-gray-400" : "text-gray-500"
                     }`}>
                       {isPro ? "Tudo incluso:" : "Inclui:"}
                     </p>
@@ -403,13 +332,13 @@ export default function Pricing({ theme = 'light' }) {
                       <div key={idx} className="flex items-start gap-2 sm:gap-3">
                         <div className={`shrink-0 w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mt-0.5 ${
                           feature.included 
-                            ? isPro ? "bg-white/10" : "bg-gray-100"
-                            : isPro ? "bg-gray-800" : "bg-gray-50"
+                            ? plan.popular ? "bg-white/10" : "bg-gray-100"
+                            : plan.popular ? "bg-gray-800" : "bg-gray-50"
                         }`}>
                           {feature.included ? (
-                            <Check className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isPro ? "text-white" : "text-gray-700"}`} />
+                            <Check className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${plan.popular ? "text-white" : "text-gray-700"}`} />
                           ) : (
-                            <X className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${isPro ? "text-gray-600" : "text-gray-400"}`} />
+                            <X className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${plan.popular ? "text-gray-600" : "text-gray-400"}`} />
                           )}
                         </div>
                         <span className={`text-xs sm:text-sm ${
@@ -418,7 +347,7 @@ export default function Pricing({ theme = 'light' }) {
                             : feature.included 
                             ? "font-medium" 
                             : "line-through opacity-50"
-                        } ${isPro ? (feature.included ? "text-white" : "text-gray-500") : (feature.included ? "text-gray-700" : "text-gray-400")}`}>
+                        } ${plan.popular ? (feature.included ? "text-white" : "text-gray-500") : (feature.included ? "text-gray-700" : "text-gray-400")}`}>
                           {feature.text}
                         </span>
                       </div>
@@ -475,13 +404,13 @@ export default function Pricing({ theme = 'light' }) {
           <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Pagamento Seguro</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Cartão de crédito</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Stripe</p>
           </div>
 
           <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
-            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">7 Dias Grátis</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Teste sem compromisso</p>
+            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Cancele Quando Quiser</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Sem compromisso</p>
           </div>
 
           <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
@@ -516,25 +445,6 @@ export default function Pricing({ theme = 'light' }) {
           </p>
         </motion.div>
       </div>
-
-      {/* Payment Modal */}
-      {showPaymentModal && selectedPlan && (
-        <PaymentModal
-          plan={selectedPlan}
-          onClose={() => setShowPaymentModal(false)}
-          onComplete={handlePaymentComplete}
-        />
-      )}
-
-      {/* Cakto Checkout Modal */}
-      {showCaktoCheckout && selectedPlan && (
-        <CaktoCheckoutModal
-          checkoutUrl={selectedPlan.id === "pro_yearly" 
-            ? "https://pay.cakto.com.br/bk2kqs4_710675" 
-            : "https://pay.cakto.com.br/8nuuzas_661861"}
-          onClose={() => setShowCaktoCheckout(false)}
-        />
-      )}
     </div>
   );
 }
