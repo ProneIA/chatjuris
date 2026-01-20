@@ -40,27 +40,18 @@ Deno.serve(async (req) => {
           daily_actions_used: 0
         };
 
-        // Para plano anual (pagamento único), definir data de fim
-        const isYearly = planId === 'pro_yearly';
-        const startDate = new Date();
-        const endDate = isYearly ? new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate()) : null;
-
         const subscriptionData = {
           user_id: userId,
           plan: 'pro',
           status: 'active',
           payment_method: 'credit_card',
           payment_status: 'paid',
-          payment_external_id: session.subscription || session.payment_intent,
-          price: planId === 'pro_monthly' ? 119.90 : 1198.80,
-          start_date: startDate.toISOString().split('T')[0],
-          last_reset_date: startDate.toISOString().split('T')[0],
+          payment_external_id: session.subscription,
+          price: 119.90,
+          start_date: new Date().toISOString().split('T')[0],
+          last_reset_date: new Date().toISOString().split('T')[0],
           ...planLimits
         };
-
-        if (endDate) {
-          subscriptionData.end_date = endDate.toISOString().split('T')[0];
-        }
 
         if (subscriptions.length > 0) {
           await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subscriptionData);
