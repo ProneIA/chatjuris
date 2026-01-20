@@ -62,6 +62,39 @@ const plans = [
       daily_actions_limit: 999999,
       daily_actions_used: 0
     }
+  },
+  {
+    id: "pro_yearly",
+    name: "Profissional Anual",
+    icon: Crown,
+    price: 99.90,
+    originalPrice: 119.90,
+    period: "/mês",
+    billingType: "yearly",
+    annualTotal: 1198.80,
+    description: "Melhor valor - pague anualmente e economize",
+    installments: "ou 12x de R$ 119,88",
+    popular: false,
+    discount: 17,
+    features: [
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Modelos de Peças ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
+      { text: "Gerador de imagens IA", included: true },
+      { text: "Suporte prioritário 24/7", included: true },
+    ],
+    limits: {
+      daily_actions_limit: 999999,
+      daily_actions_used: 0
+    },
+    savingsText: "Economize R$ 240/ano - 2 meses grátis!"
   }
 ];
 
@@ -408,10 +441,10 @@ export default function Pricing({ theme = 'light' }) {
             Comece hoje e veja a diferença em minutos. Sem cartão de crédito necessário.
           </p>
           <button
-            onClick={() => handleSelectPlan("pro_monthly")}
+            onClick={() => handleSelectPlan("pro_yearly")}
             className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto rounded-none border-0"
           >
-            Começar Agora
+            Começar com o Plano Anual - Economize R$ 240
             <ArrowRight className="w-4 h-4" />
           </button>
           <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">

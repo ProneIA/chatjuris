@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
           payment_method: 'credit_card',
           payment_status: 'paid',
           payment_external_id: session.subscription,
-          price: 119.90,
+          price: planId === 'pro_monthly' ? 119.90 : 1198.80,
           start_date: new Date().toISOString().split('T')[0],
           last_reset_date: new Date().toISOString().split('T')[0],
           ...planLimits

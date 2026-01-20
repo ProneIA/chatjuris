@@ -12,6 +12,15 @@ const plans = {
     period: "mês",
     installments: "12x de R$ 11,99",
     features: ["IA Ilimitada", "Todos os recursos", "Suporte prioritário"]
+  },
+  pro_yearly: {
+    name: "Profissional Anual",
+    price: 1198.80,
+    priceMonthly: 99.90,
+    period: "ano",
+    installments: "12x de R$ 119,88",
+    savings: "Economize R$ 240/ano",
+    features: ["IA Ilimitada", "Todos os recursos", "Suporte prioritário", "2 meses grátis"]
   }
 };
 
