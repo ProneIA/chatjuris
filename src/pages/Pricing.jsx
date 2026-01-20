@@ -62,8 +62,7 @@ const plans = [
       daily_actions_limit: 999999,
       daily_actions_used: 0
     }
-  },
-
+  }
 ];
 
 const testimonials = [
