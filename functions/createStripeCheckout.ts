@@ -49,21 +49,7 @@ Deno.serve(async (req) => {
       allow_promotion_codes: true,
     };
 
-    // Habilitar parcelamento para plano anual (Brasil)
-    if (isYearly) {
-      sessionConfig.payment_method_options = {
-        card: {
-          installments: {
-            enabled: true,
-            plan: {
-              count: 12,
-              interval: 'month',
-              type: 'fixed_count'
-            }
-          },
-        },
-      };
-    }
+
 
     // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create(sessionConfig);
