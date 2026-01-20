@@ -25,9 +25,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid plan or price not configured' }, { status: 400 });
     }
 
-    // Configuração específica para plano anual com parcelamento
-    const isYearly = planId === 'pro_yearly';
-    
+    // Criar sessão de checkout do Stripe
     const sessionConfig = {
       payment_method_types: ['card'],
       line_items: [
@@ -36,7 +34,7 @@ Deno.serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: isYearly ? 'payment' : 'subscription',
+      mode: 'subscription',
       customer_email: user.email,
       client_reference_id: user.id,
       metadata: {
@@ -47,17 +45,13 @@ Deno.serve(async (req) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
-    };
-
-    // Habilitar parcelamento apenas para plano anual
-    if (isYearly) {
-      sessionConfig.payment_method_options = {
+      payment_method_options: {
         card: {
           installments: {
             enabled: true,
           },
         },
-      };
+      },
     }
 
     // Criar sessão de checkout do Stripe
