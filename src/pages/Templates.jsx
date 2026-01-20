@@ -81,7 +81,7 @@ export default function Templates({ theme = 'light' }) {
         <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Templates</h1>
+              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Modelos de Peças</h1>
               <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Modelos de documentos jurídicos</p>
             </div>
             <Button
@@ -93,13 +93,13 @@ export default function Templates({ theme = 'light' }) {
               className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Novo Template
+              Novo Modelo
             </Button>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total de Templates</p>
+              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total de Modelos</p>
               <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{templates.length}</p>
             </div>
             <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
@@ -114,7 +114,7 @@ export default function Templates({ theme = 'light' }) {
           <div className="relative">
             <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
             <Input
-              placeholder="Buscar templates..."
+              placeholder="Buscar modelos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
