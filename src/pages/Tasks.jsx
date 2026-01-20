@@ -85,7 +85,15 @@ export default function Tasks({ theme = 'light' }) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (taskData) => base44.entities.Task.create(taskData),
+    mutationFn: (taskData) => {
+      const cleanedData = {
+        ...taskData,
+        case_id: taskData.case_id && taskData.case_id !== "none" ? taskData.case_id : null,
+        client_id: taskData.client_id && taskData.client_id !== "none" ? taskData.client_id : null,
+        assigned_to: taskData.assigned_to && taskData.assigned_to !== "none" ? taskData.assigned_to : null,
+      };
+      return base44.entities.Task.create(cleanedData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success("Tarefa criada com sucesso!");
@@ -234,7 +242,7 @@ export default function Tasks({ theme = 'light' }) {
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Ninguém</SelectItem>
+                    <SelectItem value="none">Ninguém</SelectItem>
                     <SelectItem value={user?.email || ""}>{user?.full_name || "Eu"}</SelectItem>
                     {allTeamMembers.filter(m => m !== user?.email).map(member => (
                       <SelectItem key={member} value={member}>{member}</SelectItem>
@@ -250,7 +258,7 @@ export default function Tasks({ theme = 'light' }) {
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {cases.map(c => (
                       <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
                     ))}
@@ -265,7 +273,7 @@ export default function Tasks({ theme = 'light' }) {
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {clients.map(c => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
