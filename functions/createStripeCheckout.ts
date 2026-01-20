@@ -14,10 +14,10 @@ Deno.serve(async (req) => {
 
     const { planId, successUrl, cancelUrl } = await req.json();
 
-    // IDs de preços configurados no Stripe
+    // IDs de preços do Stripe
     const stripePrices = {
       pro_monthly: 'price_1SrUfeQMQSfdrKYGVq2zoMTA',
-      pro_yearly: null // Configure no Stripe e adicione aqui
+      pro_yearly: null // Adicionar quando configurado
     };
 
     const priceId = stripePrices[planId];
