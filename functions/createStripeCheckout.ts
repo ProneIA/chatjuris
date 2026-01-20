@@ -14,21 +14,15 @@ Deno.serve(async (req) => {
 
     const { planId, successUrl, cancelUrl } = await req.json();
 
-    // Definir preços e intervalos
-    const priceData = {
-      pro_monthly: {
-        unit_amount: 11990, // R$ 119.90 em centavos
-        recurring: { interval: 'month' }
-      },
-      pro_yearly: {
-        unit_amount: 119880, // R$ 1.198,80 em centavos
-        recurring: { interval: 'year' }
-      }
+    // IDs de preços configurados no Stripe
+    const stripePrices = {
+      pro_monthly: 'price_1SrUfeQMQSfdrKYGVq2zoMTA',
+      pro_yearly: null // Configure no Stripe e adicione aqui
     };
 
-    const planConfig = priceData[planId];
-    if (!planConfig) {
-      return Response.json({ error: 'Invalid plan' }, { status: 400 });
+    const priceId = stripePrices[planId];
+    if (!priceId) {
+      return Response.json({ error: 'Invalid plan or price not configured' }, { status: 400 });
     }
 
     // Criar sessão de checkout do Stripe
@@ -36,15 +30,7 @@ Deno.serve(async (req) => {
       payment_method_types: ['card'],
       line_items: [
         {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: planId === 'pro_monthly' ? 'Plano Mensal' : 'Plano Anual',
-              description: 'Acesso completo à plataforma Juris',
-            },
-            unit_amount: planConfig.unit_amount,
-            recurring: planConfig.recurring,
-          },
+          price: priceId,
           quantity: 1,
         },
       ],
