@@ -17,22 +17,26 @@ Deno.serve(async (req) => {
     // IDs de preços do Stripe
     const stripePrices = {
       pro_monthly: 'price_1SrVPkQMQSfdrKYGFJqpJ4a6',
-      pro_yearly: 'price_1SrVjEQMQSfdrKYGJhVU24f5'
     };
 
-    const priceId = stripePrices[planId];
-    if (!priceId) {
-      return Response.json({ error: 'Invalid plan or price not configured' }, { status: 400 });
-    }
-
-    // Configuração para plano anual com parcelamento
     const isYearly = planId === 'pro_yearly';
     
     const sessionConfig = {
       payment_method_types: ['card'],
-      line_items: [
+      line_items: isYearly ? [
         {
-          price: priceId,
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: 'Plano Juris - Profissional Anual',
+            },
+            unit_amount: 119880, // R$ 1.198,80
+          },
+          quantity: 1,
+        },
+      ] : [
+        {
+          price: stripePrices[planId],
           quantity: 1,
         },
       ],
