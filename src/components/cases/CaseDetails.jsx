@@ -11,13 +11,11 @@ import {
   DollarSign,
   Building2,
   Users,
-  FileText,
-  CheckSquare
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import CommentSection from "@/components/collaboration/CommentSection";
-import CaseTasksSection from "@/components/cases/CaseTasksSection";
 
 export default function CaseDetails({ caseData, onClose, onEdit, isPage = false, theme = 'dark' }) {
   const isDark = theme === 'dark';
@@ -118,10 +116,6 @@ export default function CaseDetails({ caseData, onClose, onEdit, isPage = false,
               <FileText className="w-4 h-4 mr-2" />
               Visão Geral
             </TabsTrigger>
-            <TabsTrigger value="tasks" className={isDark ? 'data-[state=active]:bg-neutral-800' : ''}>
-              <CheckSquare className="w-4 h-4 mr-2" />
-              Tarefas
-            </TabsTrigger>
             <TabsTrigger value="comments" className={isDark ? 'data-[state=active]:bg-neutral-800' : ''}>
               <Users className="w-4 h-4 mr-2" />
               Comentários
@@ -217,13 +211,6 @@ export default function CaseDetails({ caseData, onClose, onEdit, isPage = false,
                   </p>
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          {/* Tasks Tab */}
-          <TabsContent value="tasks" className="mt-6">
-            <div className={`p-6 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <CaseTasksSection caseData={caseData} theme={theme} />
             </div>
           </TabsContent>
 
