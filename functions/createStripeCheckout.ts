@@ -51,7 +51,19 @@ Deno.serve(async (req) => {
       success_url: successUrl,
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
+      locale: 'pt-BR',
     };
+
+    // Habilitar parcelamento para plano anual (Brasil)
+    if (isYearly) {
+      sessionConfig.payment_method_options = {
+        card: {
+          installments: {
+            enabled: true,
+          },
+        },
+      };
+    }
 
 
 
