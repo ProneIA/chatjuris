@@ -127,9 +127,9 @@ export default function CaseForm({ caseData, clients = [], onSubmit, onCancel, i
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="_none" disabled>
+                    <div className="px-2 py-1.5 text-sm text-gray-500">
                       Nenhum cliente cadastrado
-                    </SelectItem>
+                    </div>
                   )}
                 </SelectContent>
               </Select>
