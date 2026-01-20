@@ -172,8 +172,8 @@ Gere o documento completo agora:`;
       await base44.entities.LegalDocument.create({
         title: formData.title,
         type: selectedTemplate?.category || "outros",
-        case_id: formData.case_id || null,
-        client_id: formData.client_id || null,
+        case_id: formData.case_id && formData.case_id !== "none" ? formData.case_id : null,
+        client_id: formData.client_id && formData.client_id !== "none" ? formData.client_id : null,
         template_used: selectedTemplate?.name || null,
         content: generatedContent,
         status: "draft",
@@ -310,7 +310,7 @@ Gere o documento completo agora:`;
                       <SelectValue placeholder="Selecione um processo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={null}>Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {cases.map(caseItem => (
                         <SelectItem key={caseItem.id} value={caseItem.id}>
                           {caseItem.title}
@@ -327,7 +327,7 @@ Gere o documento completo agora:`;
                       <SelectValue placeholder="Selecione um cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={null}>Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {clients.map(client => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
