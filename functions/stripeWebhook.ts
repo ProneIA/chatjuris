@@ -32,7 +32,6 @@ Deno.serve(async (req) => {
         const planId = session.metadata.plan_id;
         const userEmail = session.metadata.user_email;
 
-        // Buscar ou criar assinatura
         const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
         
         const planLimits = {
@@ -40,10 +39,12 @@ Deno.serve(async (req) => {
           daily_actions_used: 0
         };
 
-        // Para plano anual (pagamento único), definir data de fim
         const isYearly = planId === 'pro_yearly';
         const startDate = new Date();
-        const endDate = isYearly ? new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate()) : null;
+        
+        // Calcular data de expiração: 12 meses a partir de hoje
+        const endDate = new Date(startDate);
+        endDate.setFullYear(endDate.getFullYear() + 1);
 
         const subscriptionData = {
           user_id: userId,
@@ -51,16 +52,14 @@ Deno.serve(async (req) => {
           status: 'active',
           payment_method: 'credit_card',
           payment_status: 'paid',
-          payment_external_id: session.subscription || session.payment_intent,
-          price: planId === 'pro_monthly' ? 119.90 : 1198.80,
+          payment_external_id: isYearly ? session.payment_intent : session.subscription,
+          price: isYearly ? 1198.80 : 119.90,
           start_date: startDate.toISOString().split('T')[0],
           last_reset_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          next_billing_date: isYearly ? null : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           ...planLimits
         };
-
-        if (endDate) {
-          subscriptionData.end_date = endDate.toISOString().split('T')[0];
-        }
 
         if (subscriptions.length > 0) {
           await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subscriptionData);
@@ -72,11 +71,12 @@ Deno.serve(async (req) => {
         try {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: userEmail,
-            subject: 'Assinatura Ativada - Juris',
+            subject: 'Pagamento Confirmado - Juris Pro',
             body: `
               <h2>Bem-vindo ao Juris Pro! 🎉</h2>
-              <p>Sua assinatura foi ativada com sucesso.</p>
-              <p><strong>Plano:</strong> ${planId === 'pro_monthly' ? 'Mensal' : 'Anual'}</p>
+              <p>Seu pagamento foi processado com sucesso.</p>
+              <p><strong>Plano:</strong> ${isYearly ? 'Profissional Anual (12 meses)' : 'Profissional Mensal'}</p>
+              <p><strong>Acesso até:</strong> ${endDate.toLocaleDateString('pt-BR')}</p>
               <p>Acesse agora: ${Deno.env.get('PUBLIC_URL') || 'https://juris.app'}</p>
             `
           });

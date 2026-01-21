@@ -14,47 +14,38 @@ Deno.serve(async (req) => {
 
     const { planId, successUrl, cancelUrl } = await req.json();
 
-    // Product ID do plano mensal
+    // Product IDs Stripe
     const stripeProducts = {
-      pro_monthly: 'prod_Tp8xL74cLlKBpd',
+      pro_monthly: 'prod_Tp8xL74cLlKBpd', // Produto mensal (recorrente)
+      pro_yearly: 'prod_YourYearlyProd',   // Produto anual (one-time) - substituir com seu ID
     };
 
     const isYearly = planId === 'pro_yearly';
-    
-    // Para plano mensal, buscar o Price ID ativo do produto
-    let priceId = null;
-    if (!isYearly) {
-      const productId = stripeProducts[planId];
-      console.log('Buscando Price ativo para produto:', productId);
-      
-      const prices = await stripe.prices.list({
-        product: productId,
-        active: true,
-        limit: 1
-      });
-      
-      if (prices.data.length === 0) {
-        throw new Error('Nenhum preço ativo encontrado para este produto');
-      }
-      
-      priceId = prices.data[0].id;
-      console.log('Price ID encontrado:', priceId);
+    const productId = stripeProducts[planId];
+
+    if (!productId) {
+      throw new Error(`Produto não encontrado para plano: ${planId}`);
     }
+
+    // Buscar o Price ID ativo do produto
+    console.log(`Buscando Price ativo para produto ${planId}:`, productId);
+    
+    const prices = await stripe.prices.list({
+      product: productId,
+      active: true,
+      limit: 1
+    });
+    
+    if (prices.data.length === 0) {
+      throw new Error(`Nenhum preço ativo encontrado para o produto ${planId}`);
+    }
+    
+    const priceId = prices.data[0].id;
+    console.log('Price ID encontrado:', priceId);
     
     const sessionConfig = {
       payment_method_types: ['card'],
-      line_items: isYearly ? [
-        {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: 'Plano Juris - Profissional Anual',
-            },
-            unit_amount: 119880, // R$ 1.198,80
-          },
-          quantity: 1,
-        },
-      ] : [
+      line_items: [
         {
           price: priceId,
           quantity: 1,
@@ -74,7 +65,6 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
-        subscription_type: isYearly ? 'yearly_onetime' : 'monthly_recurring'
       },
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -82,19 +72,9 @@ Deno.serve(async (req) => {
       locale: 'pt-BR',
     };
 
-    // Habilitar parcelamento automático para plano anual (Brasil)
-    if (isYearly) {
-      sessionConfig.payment_method_options = {
-        card: {
-          installments: {
-            enabled: true,
-            plan: null, // Deixa o Stripe decidir as opções (até 12x)
-          },
-        },
-      };
-    }
+    // Para pagamento único (anual), Stripe automaticamente oferece parcelamento
+    // (não precisa configurar payment_method_options, é automático para valores > R$50)
 
-    // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return Response.json({ 
@@ -103,12 +83,6 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Erro ao criar checkout:', error);
-    console.error('Detalhes do erro:', {
-      message: error.message,
-      type: error.type,
-      code: error.code,
-      statusCode: error.statusCode
-    });
     return Response.json({ 
       error: error.message,
       details: error.type || error.code || 'Unknown error'
