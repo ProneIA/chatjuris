@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
         },
       ],
       mode: isYearly ? 'payment' : 'subscription',
+      currency: 'brl',
       customer_email: user.email,
       subscription_data: !isYearly ? {
         metadata: {
@@ -65,6 +66,7 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
+        subscription_type: isYearly ? 'one_time' : 'recurring'
       },
       success_url: successUrl,
       cancel_url: cancelUrl,
