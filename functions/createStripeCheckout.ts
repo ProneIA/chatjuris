@@ -14,35 +14,32 @@ Deno.serve(async (req) => {
 
     const { planId, successUrl, cancelUrl } = await req.json();
 
-    // IDs de preços do Stripe
-    const stripePrices = {
-      pro_monthly: 'prod_Tp8xL74cLlKBpd', // Temporário - precisa ser o Price ID
+    // Product ID do plano mensal
+    const stripeProducts = {
+      pro_monthly: 'prod_Tp8xL74cLlKBpd',
     };
 
-    console.log('Tentando criar checkout com:', {
-      planId,
-      priceId: stripePrices[planId],
-      userEmail: user.email
-    });
-
-    // Se o ID fornecido for um Product ID (começa com "prod_"), buscar o price ativo
-    let priceId = stripePrices[planId];
-    if (priceId && priceId.startsWith('prod_')) {
-      console.log('Detectado Product ID, buscando Price ativo...');
+    const isYearly = planId === 'pro_yearly';
+    
+    // Para plano mensal, buscar o Price ID ativo do produto
+    let priceId = null;
+    if (!isYearly) {
+      const productId = stripeProducts[planId];
+      console.log('Buscando Price ativo para produto:', productId);
+      
       const prices = await stripe.prices.list({
-        product: priceId,
+        product: productId,
         active: true,
         limit: 1
       });
-      if (prices.data.length > 0) {
-        priceId = prices.data[0].id;
-        console.log('Price ID encontrado:', priceId);
-      } else {
+      
+      if (prices.data.length === 0) {
         throw new Error('Nenhum preço ativo encontrado para este produto');
       }
+      
+      priceId = prices.data[0].id;
+      console.log('Price ID encontrado:', priceId);
     }
-
-    const isYearly = planId === 'pro_yearly';
     
     const sessionConfig = {
       payment_method_types: ['card'],
@@ -95,8 +92,6 @@ Deno.serve(async (req) => {
       };
     }
 
-
-
     // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
@@ -110,8 +105,7 @@ Deno.serve(async (req) => {
       message: error.message,
       type: error.type,
       code: error.code,
-      statusCode: error.statusCode,
-      raw: error.raw
+      statusCode: error.statusCode
     });
     return Response.json({ 
       error: error.message,
