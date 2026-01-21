@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: isYearly ? 'payment' : 'subscription',
-      currency: 'brl',
       customer_email: user.email,
+      billing_address_collection: 'required',
       subscription_data: !isYearly ? {
         metadata: {
           user_id: user.id,
