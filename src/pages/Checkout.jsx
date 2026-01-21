@@ -137,9 +137,14 @@ export default function Checkout({ theme = 'light' }) {
                     R$ {plan.priceMonthly.toFixed(2).replace('.', ',')} por mês
                   </div>
                 )}
-                {plan.installments && (
-                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {plan.installments}
+                {planId === 'pro_yearly' && (
+                  <div className={`text-sm mt-2 p-3 rounded-lg ${isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
+                    <div className={`${isDark ? 'text-blue-400' : 'text-blue-700'} font-medium`}>
+                      💳 Parcelamento disponível
+                    </div>
+                    <div className={`text-xs ${isDark ? 'text-blue-300' : 'text-blue-600'} mt-1`}>
+                      Até 12x de R$ {(plan.price / 12).toFixed(2).replace('.', ',')}
+                    </div>
                   </div>
                 )}
                 {plan.savings && (
