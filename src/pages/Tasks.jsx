@@ -15,7 +15,8 @@ import { format, isPast, isToday, isTomorrow, startOfMonth, endOfMonth, eachDayO
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import BackNavigation from "@/components/common/BackNavigation";
+import BackNavigation from "../components/common/BackNavigation";
+import { createPageUrl } from "@/utils";
 
 export default function Tasks({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -147,11 +148,9 @@ export default function Tasks({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
-      <BackNavigation theme={theme} />
-      
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <BackNavigation to={createPageUrl("Dashboard")} theme={theme} />
         <div className="flex items-center justify-between">
           <div>
             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -641,7 +640,6 @@ export default function Tasks({ theme = 'light' }) {
           </CardContent>
         </Card>
       )}
-        </div>
       </div>
     </div>
   );
