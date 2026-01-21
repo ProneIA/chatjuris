@@ -20,12 +20,15 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
     identity: {
       type: "object",
       properties: {
-        nome_completo: { type: "string", description: "Nome completo da pessoa" },
-        cpf: { type: "string", description: "Número do CPF (somente números)" },
-        rg: { type: "string", description: "Número do RG" },
+        nome_completo: { type: "string", description: "Nome completo da pessoa exatamente como aparece no documento" },
+        cpf: { type: "string", description: "Número do CPF - apenas números, sem pontos ou traços" },
+        rg: { type: "string", description: "Número do RG completo" },
         data_nascimento: { type: "string", description: "Data de nascimento no formato DD/MM/AAAA" },
-        nome_mae: { type: "string", description: "Nome da mãe" },
-        orgao_emissor: { type: "string", description: "Órgão emissor do documento" }
+        nome_mae: { type: "string", description: "Nome completo da mãe" },
+        nome_pai: { type: "string", description: "Nome completo do pai (se disponível)" },
+        orgao_emissor: { type: "string", description: "Órgão emissor do documento (ex: SSP/SP)" },
+        naturalidade: { type: "string", description: "Cidade e estado de nascimento (se disponível)" },
+        endereco: { type: "string", description: "Endereço completo se constar no documento" }
       }
     },
     cnh: {
@@ -42,10 +45,13 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
     cnpj: {
       type: "object",
       properties: {
-        razao_social: { type: "string", description: "Razão social da empresa" },
-        cnpj: { type: "string", description: "Número do CNPJ" },
-        nome_fantasia: { type: "string", description: "Nome fantasia" },
-        endereco: { type: "string", description: "Endereço completo" }
+        razao_social: { type: "string", description: "Razão social completa da empresa" },
+        cnpj: { type: "string", description: "Número do CNPJ - apenas números, sem pontos, traços ou barras" },
+        nome_fantasia: { type: "string", description: "Nome fantasia da empresa (se disponível)" },
+        endereco: { type: "string", description: "Endereço completo: rua, número, complemento, bairro, cidade, estado, CEP" },
+        data_abertura: { type: "string", description: "Data de abertura/constituição no formato DD/MM/AAAA (se disponível)" },
+        natureza_juridica: { type: "string", description: "Natureza jurídica (se disponível)" },
+        capital_social: { type: "string", description: "Capital social (se disponível)" }
       }
     }
   };
@@ -56,13 +62,7 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
       // Validar tipo de arquivo
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
       if (!validTypes.includes(file.type)) {
-        toast.error('Formato inválido. Use JPG, PNG, WEBP ou PDF');
-        return;
-      }
-
-      // Validar tamanho (máximo 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Arquivo muito grande. Máximo 10MB');
+        toast.error("Formato não suportado. Use JPG, PNG ou PDF.");
         return;
       }
 
@@ -109,18 +109,20 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
 
 ${documentTypeInstructions[documentType]}
 
-IMPORTANTE:
-- Analise MINUCIOSAMENTE todo o documento (pode ser imagem ou PDF)
-- Retorne TODOS os dados que você conseguir ler claramente
-- Para CPF e CNPJ, retorne APENAS os números, sem pontos, traços ou barras
-- Para datas, use o formato DD/MM/AAAA
-- Para endereços, inclua rua, número, complemento, bairro, cidade e CEP quando disponíveis
-- Se não conseguir ler algum campo COM CERTEZA, omita-o do JSON
-- Seja extremamente preciso e detalhista
-- Não invente dados, apenas extraia o que está visível
-- Se o documento estiver em PDF, analise todas as páginas disponíveis
+INSTRUÇÕES CRÍTICAS:
+- Analise CUIDADOSAMENTE o documento fornecido (pode ser PDF ou imagem)
+- Extraia TODOS os dados visíveis e legíveis que correspondam aos campos solicitados
+- Para CPF e CNPJ: retorne APENAS números, sem pontos, traços ou barras (ex: "12345678900")
+- Para datas: use sempre o formato DD/MM/AAAA (ex: "01/01/1990")
+- Para nomes: capture o nome completo exatamente como aparece no documento
+- Para endereços: inclua rua, número, complemento, bairro, cidade e estado
+- Se um campo não estiver visível ou legível, NÃO o inclua no JSON de resposta
+- NÃO invente ou deduza dados que não estão claramente escritos no documento
+- Seja extremamente preciso na transcrição dos textos
 
-Analise o documento anexado e retorne TODOS os dados extraídos no formato JSON solicitado.`,
+ATENÇÃO: Este é um documento legal importante. A precisão é ESSENCIAL.
+
+Analise o documento anexado e retorne os dados no formato JSON solicitado.`,
         file_urls: [file_url],
         response_json_schema: schema
       });
@@ -204,7 +206,7 @@ Analise o documento anexado e retorne TODOS os dados extraídos no formato JSON 
               <Input
                 ref={cameraInputRef}
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*"
                 capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
@@ -233,12 +235,10 @@ Analise o documento anexado e retorne TODOS os dados extraídos no formato JSON 
             >
               <div className={`relative rounded-lg overflow-hidden border ${isDark ? "border-neutral-700" : "border-gray-300"}`}>
                 {image?.type === 'application/pdf' ? (
-                  <div className="w-full h-64 flex items-center justify-center bg-gray-100">
-                    <div className="text-center">
-                      <FileImage className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm text-gray-600 font-medium">{image.name}</p>
-                      <p className="text-xs text-gray-400 mt-1">PDF - {(image.size / 1024).toFixed(0)} KB</p>
-                    </div>
+                  <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-100">
+                    <FileImage className="w-16 h-16 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 font-medium">{image.name}</p>
+                    <p className="text-xs text-gray-400 mt-1">PDF carregado - pronto para escanear</p>
                   </div>
                 ) : (
                   <img 
@@ -334,8 +334,8 @@ Analise o documento anexado e retorne TODOS os dados extraídos no formato JSON 
         {/* Dica */}
         {!imagePreview && (
           <div className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"} text-center space-y-1`}>
-            <p>💡 Tire uma foto clara ou selecione da galeria</p>
-            <p>📄 Aceita: JPG, PNG, WEBP e PDF (até 10MB)</p>
+            <p>💡 Aceita: Fotos (JPG, PNG) ou PDFs</p>
+            <p className="text-[10px]">Tire uma foto clara ou selecione um arquivo da galeria</p>
           </div>
         )}
       </CardContent>

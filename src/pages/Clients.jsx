@@ -7,8 +7,7 @@ import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
-import BackNavigation from "../components/common/BackNavigation";
-import { createPageUrl } from "@/utils";
+import BackNavigation from "@/components/common/BackNavigation";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -89,11 +88,13 @@ export default function Clients({ theme = 'light' }) {
   const companyClients = clients.filter(c => c.type === 'company').length;
 
   return (
-    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className={`border-b px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <BackNavigation to={createPageUrl("GestaoHub")} theme={theme} className="mb-4" />
+    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <BackNavigation theme={theme} />
+      
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Clientes</h1>
@@ -168,15 +169,16 @@ export default function Clients({ theme = 'light' }) {
         </div>
       </div>
 
-      {/* Details Sidebar */}
-      {selectedClient && !showForm && (
-        <ClientDetails
-          client={selectedClient}
-          onClose={() => setSelectedClient(null)}
-          onEdit={handleEdit}
-          theme={theme}
-        />
-      )}
+        {/* Details Sidebar */}
+        {selectedClient && !showForm && (
+          <ClientDetails
+            client={selectedClient}
+            onClose={() => setSelectedClient(null)}
+            onEdit={handleEdit}
+            theme={theme}
+          />
+        )}
+      </div>
     </div>
   );
 }
