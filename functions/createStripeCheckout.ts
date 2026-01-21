@@ -76,8 +76,16 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Erro ao criar checkout:', error);
+    console.error('Detalhes do erro:', {
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      statusCode: error.statusCode,
+      raw: error.raw
+    });
     return Response.json({ 
-      error: error.message 
+      error: error.message,
+      details: error.type || error.code || 'Unknown error'
     }, { status: 500 });
   }
 });

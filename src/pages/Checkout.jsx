@@ -61,7 +61,10 @@ export default function Checkout({ theme = 'light' }) {
       }
     } catch (error) {
       console.error('Erro ao criar checkout:', error);
-      alert('Erro ao processar pagamento. Tente novamente.');
+      console.error('Response completa:', error.response);
+      const errorMessage = error.response?.data?.error || error.message || 'Erro desconhecido';
+      const errorDetails = error.response?.data?.details || '';
+      alert(`Erro ao processar pagamento: ${errorMessage}${errorDetails ? ` (${errorDetails})` : ''}. Tente novamente.`);
       setProcessing(false);
     }
   };
