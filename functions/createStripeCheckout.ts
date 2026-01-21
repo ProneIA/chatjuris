@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     // Product IDs Stripe
     const stripeProducts = {
       pro_monthly: 'prod_Tp8xL74cLlKBpd', // Produto mensal (recorrente)
-      pro_yearly: 'prod_YourYearlyProd',   // Produto anual (one-time) - substituir com seu ID
+      pro_yearly: 'prod_TpA34NAXJfiFIn',   // Produto anual (one-time)
     };
 
     const isYearly = planId === 'pro_yearly';
