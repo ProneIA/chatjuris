@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
+        subscription_type: isYearly ? 'yearly_onetime' : 'monthly_recurring'
       },
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -81,12 +82,13 @@ Deno.serve(async (req) => {
       locale: 'pt-BR',
     };
 
-    // Habilitar parcelamento para plano anual (Brasil)
+    // Habilitar parcelamento automático para plano anual (Brasil)
     if (isYearly) {
       sessionConfig.payment_method_options = {
         card: {
           installments: {
             enabled: true,
+            plan: null, // Deixa o Stripe decidir as opções (até 12x)
           },
         },
       };
