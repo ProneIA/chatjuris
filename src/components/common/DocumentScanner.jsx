@@ -53,6 +53,19 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tipo de arquivo
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Formato inválido. Use JPG, PNG, WEBP ou PDF');
+        return;
+      }
+
+      // Validar tamanho (máximo 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Arquivo muito grande. Máximo 10MB');
+        return;
+      }
+
       setImage(file);
       setError(null);
       setExtractedData(null);
@@ -97,13 +110,17 @@ export default function DocumentScanner({ onDataExtracted, documentType = "ident
 ${documentTypeInstructions[documentType]}
 
 IMPORTANTE:
-- Retorne APENAS os dados que você conseguir ler claramente no documento
-- Para CPF e CNPJ, retorne APENAS os números, sem pontos ou traços
+- Analise MINUCIOSAMENTE todo o documento (pode ser imagem ou PDF)
+- Retorne TODOS os dados que você conseguir ler claramente
+- Para CPF e CNPJ, retorne APENAS os números, sem pontos, traços ou barras
 - Para datas, use o formato DD/MM/AAAA
-- Se não conseguir ler algum campo, omita-o do JSON
-- Seja preciso e não invente dados
+- Para endereços, inclua rua, número, complemento, bairro, cidade e CEP quando disponíveis
+- Se não conseguir ler algum campo COM CERTEZA, omita-o do JSON
+- Seja extremamente preciso e detalhista
+- Não invente dados, apenas extraia o que está visível
+- Se o documento estiver em PDF, analise todas as páginas disponíveis
 
-Analise o documento na imagem anexada e retorne os dados no formato JSON solicitado.`,
+Analise o documento anexado e retorne TODOS os dados extraídos no formato JSON solicitado.`,
         file_urls: [file_url],
         response_json_schema: schema
       });
@@ -168,7 +185,7 @@ Analise o documento na imagem anexada e retorne os dados no formato JSON solicit
               <Input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="file-upload"
@@ -187,7 +204,7 @@ Analise o documento na imagem anexada e retorne os dados no formato JSON solicit
               <Input
                 ref={cameraInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 capture="environment"
                 onChange={handleFileSelect}
                 className="hidden"
@@ -215,11 +232,21 @@ Analise o documento na imagem anexada e retorne os dados no formato JSON solicit
               className="space-y-3"
             >
               <div className={`relative rounded-lg overflow-hidden border ${isDark ? "border-neutral-700" : "border-gray-300"}`}>
-                <img 
-                  src={imagePreview} 
-                  alt="Documento" 
-                  className="w-full h-auto max-h-64 object-contain bg-gray-100"
-                />
+                {image?.type === 'application/pdf' ? (
+                  <div className="w-full h-64 flex items-center justify-center bg-gray-100">
+                    <div className="text-center">
+                      <FileImage className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600 font-medium">{image.name}</p>
+                      <p className="text-xs text-gray-400 mt-1">PDF - {(image.size / 1024).toFixed(0)} KB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <img 
+                    src={imagePreview} 
+                    alt="Documento" 
+                    className="w-full h-auto max-h-64 object-contain bg-gray-100"
+                  />
+                )}
                 <div className="absolute top-2 right-2">
                   <Button
                     onClick={reset}
@@ -306,8 +333,9 @@ Analise o documento na imagem anexada e retorne os dados no formato JSON solicit
 
         {/* Dica */}
         {!imagePreview && (
-          <div className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"} text-center`}>
-            💡 Tire uma foto clara do documento ou selecione da galeria
+          <div className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"} text-center space-y-1`}>
+            <p>💡 Tire uma foto clara ou selecione da galeria</p>
+            <p>📄 Aceita: JPG, PNG, WEBP e PDF (até 10MB)</p>
           </div>
         )}
       </CardContent>
