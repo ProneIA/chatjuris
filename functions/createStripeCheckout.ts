@@ -15,10 +15,8 @@ Deno.serve(async (req) => {
     const { planId, successUrl, cancelUrl } = await req.json();
 
     // IDs de preços do Stripe
-    // IMPORTANTE: Atualize este Price ID com o correto do seu Dashboard Stripe
-    // Vá em: Stripe Dashboard → Products → [Seu Produto] → Copie o Price ID
     const stripePrices = {
-      pro_monthly: 'price_1SrVPkQMQSfdrKYGFJqpJ4a6', // ⚠️ ATUALIZE COM O PRICE ID CORRETO
+      pro_monthly: 'prod_Tp8xL74cLlKBpd', // Temporário - precisa ser o Price ID
     };
 
     console.log('Tentando criar checkout com:', {
@@ -26,6 +24,23 @@ Deno.serve(async (req) => {
       priceId: stripePrices[planId],
       userEmail: user.email
     });
+
+    // Se o ID fornecido for um Product ID (começa com "prod_"), buscar o price ativo
+    let priceId = stripePrices[planId];
+    if (priceId && priceId.startsWith('prod_')) {
+      console.log('Detectado Product ID, buscando Price ativo...');
+      const prices = await stripe.prices.list({
+        product: priceId,
+        active: true,
+        limit: 1
+      });
+      if (prices.data.length > 0) {
+        priceId = prices.data[0].id;
+        console.log('Price ID encontrado:', priceId);
+      } else {
+        throw new Error('Nenhum preço ativo encontrado para este produto');
+      }
+    }
 
     const isYearly = planId === 'pro_yearly';
     
@@ -44,12 +59,19 @@ Deno.serve(async (req) => {
         },
       ] : [
         {
-          price: stripePrices[planId],
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: isYearly ? 'payment' : 'subscription',
       customer_email: user.email,
+      subscription_data: !isYearly ? {
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+          plan_id: planId,
+        }
+      } : undefined,
       client_reference_id: user.id,
       metadata: {
         user_id: user.id,
