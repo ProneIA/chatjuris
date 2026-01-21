@@ -15,9 +15,17 @@ Deno.serve(async (req) => {
     const { planId, successUrl, cancelUrl } = await req.json();
 
     // IDs de preços do Stripe
+    // IMPORTANTE: Atualize este Price ID com o correto do seu Dashboard Stripe
+    // Vá em: Stripe Dashboard → Products → [Seu Produto] → Copie o Price ID
     const stripePrices = {
-      pro_monthly: 'price_1SrVPkQMQSfdrKYGFJqpJ4a6',
+      pro_monthly: 'price_1SrVPkQMQSfdrKYGFJqpJ4a6', // ⚠️ ATUALIZE COM O PRICE ID CORRETO
     };
+
+    console.log('Tentando criar checkout com:', {
+      planId,
+      priceId: stripePrices[planId],
+      userEmail: user.email
+    });
 
     const isYearly = planId === 'pro_yearly';
     
