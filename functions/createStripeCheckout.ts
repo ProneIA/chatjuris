@@ -74,10 +74,30 @@ Deno.serve(async (req) => {
       locale: 'pt-BR',
     };
 
-    // Para pagamento único (anual), Stripe automaticamente oferece parcelamento
-    // (não precisa configurar payment_method_options, é automático para valores > R$50)
+    // Para pagamento único (anual), habilitar parcelamento explicitamente
+    if (isYearly) {
+      sessionConfig.payment_method_options = {
+        card: {
+          installments: {
+            enabled: true,
+          }
+        }
+      };
+    }
+
+    console.log('Criando sessão Stripe:', {
+      mode: sessionConfig.mode,
+      planId,
+      hasInstallments: isYearly
+    });
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
+    
+    console.log('Sessão criada:', {
+      sessionId: session.id,
+      mode: session.mode,
+      paymentMethodTypes: session.payment_method_types
+    });
 
     return Response.json({ 
       sessionId: session.id,
