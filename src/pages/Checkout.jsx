@@ -33,6 +33,7 @@ export default function Checkout({ theme = 'light' }) {
 
   const planId = new URLSearchParams(location.search).get("plan");
   const plan = plans[planId];
+  const isDark = theme === 'dark';
 
   React.useEffect(() => {
     base44.auth.me()
@@ -77,11 +78,6 @@ export default function Checkout({ theme = 'light' }) {
             amount: plan.price,
             payer: {
               email: user.email,
-            },
-          },
-          customization: {
-            paymentMethods: {
-              maxInstallments: planId === 'pro_yearly' ? 12 : 1,
             },
           },
           callbacks: {
@@ -174,8 +170,6 @@ export default function Checkout({ theme = 'light' }) {
   if (!loading && !plan) {
     return null;
   }
-
-  const isDark = theme === 'dark';
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'} py-12`}>

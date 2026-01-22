@@ -45,11 +45,15 @@ Deno.serve(async (req) => {
       issuer_id: paymentData.issuer_id,
       payer: {
         email: user.email,
-        identification: paymentData.payer?.identification,
       },
       external_reference: user.id,
       notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`,
     };
+
+    // Adicionar identification apenas se fornecido
+    if (paymentData.payer?.identification) {
+      paymentRequest.payer.identification = paymentData.payer.identification;
+    }
 
     const result = await payment.create({ body: paymentRequest });
 

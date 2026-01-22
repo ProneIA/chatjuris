@@ -5,7 +5,6 @@ import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
 import CaseDetails from './pages/CaseDetails';
 import Cases from './pages/Cases';
-import Checkout from './pages/Checkout';
 import ClientAccess from './pages/ClientAccess';
 import ClientPortal from './pages/ClientPortal';
 import Clients from './pages/Clients';
@@ -47,6 +46,7 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
+import Checkout from './pages/Checkout';
 import __Layout from './Layout.jsx';
 
 
@@ -58,7 +58,6 @@ export const PAGES = {
     "Calendar": Calendar,
     "CaseDetails": CaseDetails,
     "Cases": Cases,
-    "Checkout": Checkout,
     "ClientAccess": ClientAccess,
     "ClientPortal": ClientPortal,
     "Clients": Clients,
@@ -100,6 +99,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
+    "Checkout": Checkout,
 }
 
 export const pagesConfig = {
