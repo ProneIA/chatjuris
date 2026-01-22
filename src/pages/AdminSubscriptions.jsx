@@ -38,7 +38,8 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const activateProMutation = useMutation({
     mutationFn: async ({ userId, userEmail }) => {
-      const existingSubs = subscriptions.filter(s => s.user_id === userId);
+      // Buscar assinaturas atualizadas diretamente do banco
+      const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
       
       const subData = {
         user_id: userId,
@@ -52,8 +53,8 @@ export default function AdminSubscriptions({ theme = 'light' }) {
         last_reset_date: new Date().toISOString().split('T')[0]
       };
 
-      if (existingSubs.length > 0) {
-        return await base44.entities.Subscription.update(existingSubs[0].id, subData);
+      if (allSubs.length > 0) {
+        return await base44.entities.Subscription.update(allSubs[0].id, subData);
       } else {
         return await base44.entities.Subscription.create(subData);
       }
@@ -69,10 +70,11 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const deactivateProMutation = useMutation({
     mutationFn: async ({ userId }) => {
-      const existingSubs = subscriptions.filter(s => s.user_id === userId);
+      // Buscar assinaturas atualizadas diretamente do banco
+      const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
       
-      if (existingSubs.length > 0) {
-        return await base44.entities.Subscription.update(existingSubs[0].id, {
+      if (allSubs.length > 0) {
+        return await base44.entities.Subscription.update(allSubs[0].id, {
           plan: "free",
           status: "active",
           daily_actions_limit: 5,
@@ -84,6 +86,9 @@ export default function AdminSubscriptions({ theme = 'light' }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-subscriptions'] });
       toast.success('Plano alterado para Free');
+    },
+    onError: (error) => {
+      toast.error('Erro ao desativar: ' + error.message);
     }
   });
 
