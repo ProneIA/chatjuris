@@ -47,6 +47,7 @@ const navigationItems = [
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
+  { title: "Admin", url: createPageUrl("AdminSubscriptions"), icon: Settings, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -200,6 +201,10 @@ export default function Layout({ children, currentPageName }) {
     // Mostrar "Afiliados" apenas para usuários afiliados cadastrados
     if (item.title === "Afiliados") {
       return userAffiliate;
+    }
+    // Mostrar "Admin" apenas para administradores
+    if (item.adminOnly) {
+      return user?.role === 'admin';
     }
     return true;
   });
