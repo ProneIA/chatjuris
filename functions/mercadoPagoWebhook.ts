@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
         payment_method: paymentData.payment_type_id || 'mercadopago',
         payment_status: 'paid',
         payment_external_id: paymentData.id.toString(),
-        price: planId === 'pro_monthly' ? 1.00 : 1198.80,
+        price: planId === 'pro_monthly' ? 119.90 : 1198.80,
         start_date: startDate.toISOString().split('T')[0],
         last_reset_date: startDate.toISOString().split('T')[0],
         daily_actions_limit: 999999,
@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         const userEmail = metadata?.user_email || paymentData.payer?.email;
         if (userEmail) {
           const planName = planId === 'pro_monthly' 
-            ? 'Mensal (R$ 1,00/mês)' 
+            ? 'Mensal (R$ 119,90/mês)' 
             : 'Anual (R$ 1.198,80/ano)';
           
           const accessInfo = isYearly 
