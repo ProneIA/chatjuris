@@ -15,13 +15,24 @@ export default function AdminSubscriptions({ theme = 'light' }) {
   const isDark = theme === 'dark';
 
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        console.log('Current user:', currentUser);
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error loading user:', error);
+      }
+    };
+    loadUser();
   }, []);
 
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['all-users'],
     queryFn: async () => {
+      console.log('Fetching users with service role...');
       const users = await base44.asServiceRole.entities.User.list();
+      console.log('Fetched users:', users);
       return users;
     },
     enabled: !!user && user.role === 'admin'
@@ -30,7 +41,9 @@ export default function AdminSubscriptions({ theme = 'light' }) {
   const { data: subscriptions = [], isLoading: loadingSubs } = useQuery({
     queryKey: ['all-subscriptions'],
     queryFn: async () => {
+      console.log('Fetching subscriptions with service role...');
       const subs = await base44.asServiceRole.entities.Subscription.list();
+      console.log('Fetched subscriptions:', subs);
       return subs;
     },
     enabled: !!user && user.role === 'admin'
