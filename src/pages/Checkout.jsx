@@ -77,6 +77,10 @@ export default function Checkout({ theme = 'light' }) {
             amount: plan.price,
             payer: {
               email: user.email,
+              identification: {
+                type: "CPF",
+                number: "00000000000"
+              }
             },
           },
           customization: {
