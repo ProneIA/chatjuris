@@ -41,6 +41,9 @@ Deno.serve(async (req) => {
     }
 
     // Criar pagamento
+    const publicUrl = Deno.env.get('PUBLIC_URL');
+    const notificationUrl = publicUrl ? `${publicUrl}/api/functions/mercadoPagoWebhook` : undefined;
+    
     const paymentRequest = {
       transaction_amount: planData.price,
       token: paymentData.token,
@@ -52,8 +55,12 @@ Deno.serve(async (req) => {
         email: user.email,
       },
       external_reference: user.id,
-      notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`,
     };
+    
+    // Adicionar notification_url apenas se a PUBLIC_URL estiver configurada e válida
+    if (notificationUrl && (notificationUrl.startsWith('https://') || notificationUrl.startsWith('http://'))) {
+      paymentRequest.notification_url = notificationUrl;
+    }
 
     // Adicionar identification apenas se fornecido
     if (paymentData.payer?.identification) {
@@ -61,6 +68,8 @@ Deno.serve(async (req) => {
     }
 
     console.log('=== ENVIANDO PARA MERCADO PAGO ===');
+    console.log('PUBLIC_URL:', publicUrl);
+    console.log('Notification URL:', notificationUrl);
     console.log('Payment Request:', JSON.stringify(paymentRequest, null, 2));
 
     const result = await payment.create({ body: paymentRequest });
