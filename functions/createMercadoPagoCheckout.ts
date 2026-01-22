@@ -21,6 +21,11 @@ Deno.serve(async (req) => {
     if (planId === 'pro_yearly') {
       const preference = new Preference(client);
       
+      const publicUrl = Deno.env.get('PUBLIC_URL');
+      const notificationUrl = publicUrl && (publicUrl.startsWith('https://') || publicUrl.startsWith('http://')) 
+        ? `${publicUrl}/api/functions/mercadoPagoWebhook` 
+        : undefined;
+
       const preferenceData = {
         items: [
           {
@@ -52,9 +57,13 @@ Deno.serve(async (req) => {
           installments: 12,
           default_installments: 1
         },
-        statement_descriptor: 'Juris IA',
-        notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`
+        statement_descriptor: 'Juris IA'
       };
+
+      // Adicionar notification_url apenas se válida
+      if (notificationUrl) {
+        preferenceData.notification_url = notificationUrl;
+      }
 
       console.log('Criando preferência MP (Anual):', { planId, userId: user.id });
 
