@@ -217,6 +217,36 @@ export default function Dashboard({ theme = 'light' }) {
           </div>
         </motion.div>
 
+        {/* Admin Quick Access */}
+        {user?.role === 'admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className={`p-5 rounded-xl border ${
+              isDark 
+                ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-800/30' 
+                : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className={`text-lg font-bold mb-1 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  🛠️ Painel Admin
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Libere planos Pro manualmente para usuários de teste ou pagamento externo
+                </p>
+              </div>
+              <Link to={createPageUrl("AdminSubscriptions")}>
+                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2">
+                  Gerenciar Usuários
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Actions */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
