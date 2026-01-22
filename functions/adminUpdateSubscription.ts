@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         result = await base44.asServiceRole.entities.Subscription.create(subData);
       }
 
-      // Log de auditoria (opcional - apenas se a entidade existir)
+      // Log de auditoria
       try {
         await base44.asServiceRole.entities.AuditLog.create({
           action: 'activate_pro_subscription',
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
           timestamp
         });
       } catch (logError) {
-        console.log('AuditLog não disponível, mas assinatura foi criada:', logError.message);
+        console.log('Aviso: Falha ao criar log de auditoria:', logError.message);
       }
 
     } else if (action === 'deactivate_pro') {
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
           price: 0
         });
 
-        // Log de auditoria (opcional - apenas se a entidade existir)
+        // Log de auditoria
         try {
           await base44.asServiceRole.entities.AuditLog.create({
             action: 'deactivate_pro_subscription',
@@ -75,14 +75,14 @@ Deno.serve(async (req) => {
             timestamp
           });
         } catch (logError) {
-          console.log('AuditLog não disponível, mas assinatura foi atualizada:', logError.message);
+          console.log('Aviso: Falha ao criar log de auditoria:', logError.message);
         }
       }
     } else if (action === 'update') {
       if (existingSubs.length > 0 && subscriptionData) {
         result = await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
 
-        // Log de auditoria (opcional - apenas se a entidade existir)
+        // Log de auditoria
         try {
           await base44.asServiceRole.entities.AuditLog.create({
             action: 'update_subscription',
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
             timestamp
           });
         } catch (logError) {
-          console.log('AuditLog não disponível, mas assinatura foi atualizada:', logError.message);
+          console.log('Aviso: Falha ao criar log de auditoria:', logError.message);
         }
       }
     }
