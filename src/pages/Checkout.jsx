@@ -124,7 +124,8 @@ export default function Checkout({ theme = 'light' }) {
             visual: {
               style: {
                 theme: isDark ? 'dark' : 'default'
-              }
+              },
+              hideFormTitle: true,
             }
           },
         });
