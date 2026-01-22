@@ -42,14 +42,18 @@ Deno.serve(async (req) => {
         result = await base44.asServiceRole.entities.Subscription.create(subData);
       }
 
-      // Log de auditoria
-      await base44.asServiceRole.entities.AuditLog.create({
-        action: 'activate_pro_subscription',
-        performed_by: adminUser.email,
-        target_user_id: userId,
-        details: `Admin ${adminUser.email} ativou plano Pro para user ${userId}`,
-        timestamp
-      });
+      // Log de auditoria (opcional - apenas se a entidade existir)
+      try {
+        await base44.asServiceRole.entities.AuditLog.create({
+          action: 'activate_pro_subscription',
+          performed_by: adminUser.email,
+          target_user_id: userId,
+          details: `Admin ${adminUser.email} ativou plano Pro para user ${userId}`,
+          timestamp
+        });
+      } catch (logError) {
+        console.log('AuditLog não disponível, mas assinatura foi criada:', logError.message);
+      }
 
     } else if (action === 'deactivate_pro') {
       if (existingSubs.length > 0) {
@@ -61,27 +65,35 @@ Deno.serve(async (req) => {
           price: 0
         });
 
-        // Log de auditoria
-        await base44.asServiceRole.entities.AuditLog.create({
-          action: 'deactivate_pro_subscription',
-          performed_by: adminUser.email,
-          target_user_id: userId,
-          details: `Admin ${adminUser.email} alterou plano para Free para user ${userId}`,
-          timestamp
-        });
+        // Log de auditoria (opcional - apenas se a entidade existir)
+        try {
+          await base44.asServiceRole.entities.AuditLog.create({
+            action: 'deactivate_pro_subscription',
+            performed_by: adminUser.email,
+            target_user_id: userId,
+            details: `Admin ${adminUser.email} alterou plano para Free para user ${userId}`,
+            timestamp
+          });
+        } catch (logError) {
+          console.log('AuditLog não disponível, mas assinatura foi atualizada:', logError.message);
+        }
       }
     } else if (action === 'update') {
       if (existingSubs.length > 0 && subscriptionData) {
         result = await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
 
-        // Log de auditoria
-        await base44.asServiceRole.entities.AuditLog.create({
-          action: 'update_subscription',
-          performed_by: adminUser.email,
-          target_user_id: userId,
-          details: `Admin ${adminUser.email} atualizou assinatura de user ${userId}: ${JSON.stringify(subscriptionData)}`,
-          timestamp
-        });
+        // Log de auditoria (opcional - apenas se a entidade existir)
+        try {
+          await base44.asServiceRole.entities.AuditLog.create({
+            action: 'update_subscription',
+            performed_by: adminUser.email,
+            target_user_id: userId,
+            details: `Admin ${adminUser.email} atualizou assinatura de user ${userId}: ${JSON.stringify(subscriptionData)}`,
+            timestamp
+          });
+        } catch (logError) {
+          console.log('AuditLog não disponível, mas assinatura foi atualizada:', logError.message);
+        }
       }
     }
 
