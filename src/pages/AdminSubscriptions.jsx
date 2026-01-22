@@ -230,27 +230,33 @@ export default function AdminSubscriptions({ theme = 'light' }) {
                       </div>
 
                       <div className="flex gap-2">
-                        {isPro ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deactivateProMutation.mutate({ userId: u.id })}
-                            disabled={deactivateProMutation.isPending}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Remover Pro
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => activateProMutation.mutate({ userId: u.id, userEmail: u.email })}
-                            disabled={activateProMutation.isPending}
-                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Ativar Pro
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (isPro) {
+                              deactivateProMutation.mutate({ userId: u.id });
+                            } else {
+                              activateProMutation.mutate({ userId: u.id, userEmail: u.email });
+                            }
+                          }}
+                          disabled={activateProMutation.isPending || deactivateProMutation.isPending}
+                          className={isPro 
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                          }
+                        >
+                          {isPro ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-1 fill-white" />
+                              Pro Ativo (clique para remover)
+                            </>
+                          ) : (
+                            <>
+                              <Crown className="w-4 h-4 mr-1" />
+                              Ativar Pro
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
                   );
