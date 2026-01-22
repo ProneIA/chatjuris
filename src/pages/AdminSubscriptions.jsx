@@ -38,7 +38,6 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const activateProMutation = useMutation({
     mutationFn: async ({ userId, userEmail }) => {
-      // Buscar assinaturas atualizadas diretamente do banco
       const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
       
       const subData = {
@@ -70,7 +69,6 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const deactivateProMutation = useMutation({
     mutationFn: async ({ userId }) => {
-      // Buscar assinaturas atualizadas diretamente do banco
       const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
       
       if (allSubs.length > 0) {
@@ -88,7 +86,7 @@ export default function AdminSubscriptions({ theme = 'light' }) {
       toast.success('Plano alterado para Free');
     },
     onError: (error) => {
-      toast.error('Erro ao desativar: ' + error.message);
+      toast.error('Erro ao desativar plano: ' + error.message);
     }
   });
 
