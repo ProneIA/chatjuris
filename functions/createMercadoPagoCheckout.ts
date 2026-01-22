@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { MercadoPagoConfig, Preference } from 'npm:mercadopago@2.0.15';
+import { MercadoPagoConfig, Preference, PreApproval } from 'npm:mercadopago@2.0.15';
 
 Deno.serve(async (req) => {
   try {
@@ -16,75 +16,91 @@ Deno.serve(async (req) => {
     const client = new MercadoPagoConfig({ 
       accessToken: Deno.env.get('MP_ACCESS_TOKEN') 
     });
-    
-    const preference = new Preference(client);
 
-    // Definir planos e preços
-    const plans = {
-      pro_monthly: {
-        title: 'Juris - Plano Profissional Mensal',
-        unit_price: 119.90,
-        description: 'Assinatura mensal com IA ilimitada e todos os recursos'
-      },
-      pro_yearly: {
-        title: 'Juris - Plano Profissional Anual',
-        unit_price: 1198.80,
-        description: 'Pagamento único anual com IA ilimitada e todos os recursos - Economize R$ 240'
-      }
-    };
+    // PLANO ANUAL: Pagamento único com parcelamento
+    if (planId === 'pro_yearly') {
+      const preference = new Preference(client);
+      
+      const preferenceData = {
+        items: [
+          {
+            id: 'PROD-ANUAL-001',
+            title: 'Plano Anual - Acesso Completo',
+            description: 'Pagamento único com desconto anual',
+            quantity: 1,
+            currency_id: 'BRL',
+            unit_price: 1198.80
+          }
+        ],
+        payer: {
+          name: user.full_name || 'Cliente',
+          email: user.email
+        },
+        back_urls: {
+          success: successUrl,
+          failure: failureUrl,
+          pending: pendingUrl
+        },
+        auto_return: 'approved',
+        external_reference: user.id,
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+          plan_id: planId
+        },
+        payment_methods: {
+          installments: 12,
+          default_installments: 1
+        },
+        statement_descriptor: 'Juris IA',
+        notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`
+      };
 
-    const selectedPlan = plans[planId];
+      console.log('Criando preferência MP (Anual):', { planId, userId: user.id });
 
-    if (!selectedPlan) {
-      throw new Error(`Plano inválido: ${planId}`);
+      const result = await preference.create({ body: preferenceData });
+
+      console.log('Preferência criada:', { id: result.id, initPoint: result.init_point });
+
+      return Response.json({
+        preferenceId: result.id,
+        url: result.init_point
+      });
     }
 
-    // Criar preferência de pagamento
-    const preferenceData = {
-      items: [
-        {
-          id: planId,
-          title: selectedPlan.title,
-          description: selectedPlan.description,
-          quantity: 1,
-          unit_price: selectedPlan.unit_price,
-          currency_id: 'BRL'
-        }
-      ],
-      payer: {
-        name: user.full_name || 'Cliente',
-        email: user.email
-      },
-      back_urls: {
-        success: successUrl,
-        failure: failureUrl,
-        pending: pendingUrl
-      },
-      auto_return: 'approved',
-      external_reference: user.id,
-      metadata: {
-        user_id: user.id,
-        user_email: user.email,
-        plan_id: planId
-      },
-      payment_methods: {
-        excluded_payment_types: [],
-        installments: planId === 'pro_yearly' ? 12 : 1,
-        default_installments: planId === 'pro_yearly' ? 12 : 1
-      },
-      notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`
-    };
+    // PLANO MENSAL: Assinatura recorrente
+    if (planId === 'pro_monthly') {
+      const preApproval = new PreApproval(client);
 
-    console.log('Criando preferência MP:', { planId, userId: user.id });
+      const subscriptionData = {
+        reason: 'Plano Mensal - Assinatura Contínua',
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: 'months',
+          transaction_amount: 119.90,
+          currency_id: 'BRL',
+          start_date: new Date().toISOString(),
+          billing_day: new Date().getDate()
+        },
+        back_url: successUrl,
+        external_reference: user.id,
+        payer_email: user.email,
+        status: 'pending'
+      };
 
-    const result = await preference.create({ body: preferenceData });
+      console.log('Criando assinatura MP (Mensal):', { planId, userId: user.id });
 
-    console.log('Preferência criada:', { id: result.id, initPoint: result.init_point });
+      const result = await preApproval.create({ body: subscriptionData });
 
-    return Response.json({
-      preferenceId: result.id,
-      url: result.init_point
-    });
+      console.log('Assinatura criada:', { id: result.id, initPoint: result.init_point });
+
+      return Response.json({
+        preferenceId: result.id,
+        url: result.init_point
+      });
+    }
+
+    throw new Error(`Plano inválido: ${planId}`);
 
   } catch (error) {
     console.error('Erro ao criar checkout MP:', error);
