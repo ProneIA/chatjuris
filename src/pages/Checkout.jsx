@@ -79,6 +79,11 @@ export default function Checkout({ theme = 'light' }) {
               email: user.email,
             },
           },
+          customization: {
+            paymentMethods: {
+              maxInstallments: planId === 'pro_yearly' ? 12 : 1,
+            },
+          },
           callbacks: {
             onReady: () => {
               setBrickReady(true);
@@ -113,6 +118,9 @@ export default function Checkout({ theme = 'light' }) {
             },
           },
           customization: {
+            paymentMethods: {
+              maxInstallments: planId === 'pro_yearly' ? 12 : 1,
+            },
             visual: {
               style: {
                 theme: isDark ? 'dark' : 'default'
