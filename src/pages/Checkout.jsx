@@ -75,6 +75,9 @@ export default function Checkout({ theme = 'light' }) {
         await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', {
           initialization: {
             amount: plan.price,
+            payer: {
+              email: user.email,
+            },
           },
           callbacks: {
             onReady: () => {
