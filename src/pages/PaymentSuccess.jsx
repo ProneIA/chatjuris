@@ -18,7 +18,10 @@ export default function PaymentSuccess() {
       origin: { y: 0.6 }
     });
 
-    // Verificar status do pagamento
+    let attempts = 0;
+    const maxAttempts = 6;
+    
+    // Verificar status do pagamento com retry
     const checkPayment = async () => {
       try {
         const user = await base44.auth.me();
@@ -26,21 +29,44 @@ export default function PaymentSuccess() {
           const subs = await base44.entities.Subscription.filter({ user_id: user.id });
           const subscription = subs[0];
 
-          if (subscription && subscription.status === "active") {
+          if (subscription && subscription.status === "active" && subscription.plan === "pro") {
             setStatus("success");
             setMessage("Pagamento confirmado! Bem-vindo ao Juris Pro!");
-          } else {
+            return true; // Sucesso, parar tentativas
+          } else if (attempts >= maxAttempts) {
             setStatus("pending");
             setMessage("Seu pagamento está sendo processado. Você receberá uma confirmação em breve.");
+            return true; // Parar tentativas
           }
         }
+        return false; // Continuar tentando
       } catch (error) {
-        setStatus("error");
-        setMessage("Erro ao verificar pagamento. Entre em contato com o suporte.");
+        if (attempts >= maxAttempts) {
+          setStatus("error");
+          setMessage("Erro ao verificar pagamento. Entre em contato com o suporte.");
+          return true;
+        }
+        return false;
       }
     };
 
-    setTimeout(checkPayment, 2000);
+    // Verificar a cada 2 segundos, até 6 tentativas (12 segundos total)
+    const interval = setInterval(async () => {
+      attempts++;
+      const shouldStop = await checkPayment();
+      if (shouldStop) {
+        clearInterval(interval);
+      }
+    }, 2000);
+
+    // Primeira verificação imediata
+    checkPayment().then(shouldStop => {
+      if (shouldStop) {
+        clearInterval(interval);
+      }
+    });
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleContinue = () => {
