@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { Check, Shield, Lock, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Shield, Lock, ArrowLeft, Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const plans = {
@@ -28,6 +28,8 @@ export default function Checkout({ theme = 'light' }) {
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [processing, setProcessing] = React.useState(false);
+  const [mpLoaded, setMpLoaded] = React.useState(false);
+  const [brickReady, setBrickReady] = React.useState(false);
 
   const planId = new URLSearchParams(location.search).get("plan");
   const plan = plans[planId];
@@ -44,6 +46,85 @@ export default function Checkout({ theme = 'light' }) {
       navigate(createPageUrl("Pricing"));
     }
   }, [loading, plan, navigate]);
+
+  // Carregar SDK do Mercado Pago
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.mercadopago.com/js/v2';
+    script.async = true;
+    script.onload = () => setMpLoaded(true);
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // Inicializar Brick do Mercado Pago quando tudo estiver pronto
+  useEffect(() => {
+    if (!mpLoaded || !user || !plan || brickReady) return;
+
+    const initializeBrick = async () => {
+      try {
+        // Buscar a public key
+        const { data: keysData } = await base44.functions.invoke('getMercadoPagoKeys');
+        
+        const mp = new window.MercadoPago(keysData.publicKey);
+        const bricksBuilder = mp.bricks();
+
+        await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', {
+          initialization: {
+            amount: plan.price,
+          },
+          callbacks: {
+            onReady: () => {
+              setBrickReady(true);
+              setProcessing(false);
+            },
+            onSubmit: async (formData) => {
+              setProcessing(true);
+              try {
+                const response = await base44.functions.invoke('processMercadoPagoPayment', {
+                  planId,
+                  paymentData: formData,
+                  successUrl: window.location.origin + createPageUrl("PaymentSuccess") + "?status=success",
+                  failureUrl: window.location.origin + createPageUrl("Pricing") + "?status=failed"
+                });
+
+                if (response.data?.success) {
+                  window.location.href = window.location.origin + createPageUrl("PaymentSuccess") + "?status=success";
+                } else {
+                  throw new Error(response.data?.error || 'Erro ao processar pagamento');
+                }
+              } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao processar pagamento. Tente novamente.');
+                setProcessing(false);
+                return;
+              }
+            },
+            onError: (error) => {
+              console.error('Brick error:', error);
+              alert('Erro ao carregar formulário de pagamento.');
+              setProcessing(false);
+            },
+          },
+          customization: {
+            visual: {
+              style: {
+                theme: isDark ? 'dark' : 'default'
+              }
+            }
+          },
+        });
+      } catch (error) {
+        console.error('Erro ao inicializar brick:', error);
+        alert('Erro ao carregar formulário de pagamento.');
+      }
+    };
+
+    initializeBrick();
+  }, [mpLoaded, user, plan, planId, brickReady]);
 
   const handleCheckout = async () => {
     setProcessing(true);
@@ -200,23 +281,25 @@ export default function Checkout({ theme = 'light' }) {
                 </div>
               </div>
 
-              <Button
-                onClick={handleCheckout}
-                disabled={processing}
-                className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white disabled:opacity-50"
-              >
-                {processing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  `Ir para Pagamento - R$ ${plan.price.toFixed(2).replace('.', ',')}`
-                )}
-              </Button>
+              {/* Formulário de Pagamento Mercado Pago */}
+              <div className={`mb-6 ${!brickReady ? 'opacity-0' : 'opacity-100'} transition-opacity`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <CreditCard className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Dados do Cartão
+                  </h3>
+                </div>
+                <div id="cardPaymentBrick_container"></div>
+              </div>
+
+              {!brickReady && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                </div>
+              )}
 
               <p className={`text-xs text-center mt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                Você será redirecionado para o checkout seguro do Mercado Pago
+                Pagamento 100% seguro processado pelo Mercado Pago
               </p>
             </div>
           </div>
