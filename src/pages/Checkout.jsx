@@ -48,10 +48,11 @@ export default function Checkout({ theme = 'light' }) {
   const handleCheckout = async () => {
     setProcessing(true);
     try {
-      const response = await base44.functions.invoke('createStripeCheckout', {
+      const response = await base44.functions.invoke('createMercadoPagoCheckout', {
         planId,
         successUrl: window.location.origin + createPageUrl("PaymentSuccess") + "?status=success",
-        cancelUrl: window.location.origin + createPageUrl("Pricing")
+        failureUrl: window.location.origin + createPageUrl("Pricing") + "?status=failed",
+        pendingUrl: window.location.origin + createPageUrl("PaymentSuccess") + "?status=pending"
       });
 
       if (response.data?.url) {
@@ -160,7 +161,7 @@ export default function Checkout({ theme = 'light' }) {
               <div className="flex items-center gap-3 mb-3">
                 <Shield className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
                 <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Pagamento 100% Seguro via Stripe
+                  Pagamento 100% Seguro via Mercado Pago
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -215,7 +216,7 @@ export default function Checkout({ theme = 'light' }) {
               </Button>
 
               <p className={`text-xs text-center mt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                Você será redirecionado para o checkout seguro do Stripe
+                Você será redirecionado para o checkout seguro do Mercado Pago
               </p>
             </div>
           </div>
