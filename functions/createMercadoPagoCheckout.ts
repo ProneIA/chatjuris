@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
           failure: failureUrl,
           pending: pendingUrl
         },
-        auto_return: 'approved',
+        auto_return: 'all',
         external_reference: user.id,
         metadata: {
           user_id: user.id,
