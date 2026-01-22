@@ -76,6 +76,11 @@ Deno.serve(async (req) => {
       const startDate = new Date();
       startDate.setMinutes(startDate.getMinutes() + 1);
 
+      const publicUrl = Deno.env.get('PUBLIC_URL');
+      const notificationUrl = publicUrl && (publicUrl.startsWith('https://') || publicUrl.startsWith('http://')) 
+        ? `${publicUrl}/api/functions/mercadoPagoWebhook` 
+        : undefined;
+
       const subscriptionData = {
         reason: 'Plano Mensal - Assinatura Contínua',
         auto_recurring: {
@@ -90,6 +95,11 @@ Deno.serve(async (req) => {
         payer_email: user.email,
         status: 'pending'
       };
+
+      // Adicionar notification_url apenas se válida
+      if (notificationUrl) {
+        subscriptionData.notification_url = notificationUrl;
+      }
 
       console.log('Criando assinatura MP (Mensal):', { planId, userId: user.id });
 
