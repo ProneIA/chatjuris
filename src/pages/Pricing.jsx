@@ -166,7 +166,7 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Planos pagos vão para checkout com Stripe
+    // Planos pagos vão para checkout com Mercado Pago
     navigate(createPageUrl("Checkout") + `?plan=${planId}`);
   };
 
@@ -409,7 +409,7 @@ export default function Pricing({ theme = 'light' }) {
           <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
             <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
             <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Pagamento Seguro</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Stripe</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Mercado Pago</p>
           </div>
 
           <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
