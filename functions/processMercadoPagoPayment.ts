@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     // Configurar dados do pagamento
     const plans = {
       pro_yearly: { price: 1198.80, name: 'Plano Anual' },
-      pro_monthly: { price: 119.90, name: 'Plano Mensal' }
+      pro_monthly: { price: 1.00, name: 'Plano Mensal' }
     };
 
     const planData = plans[planId];

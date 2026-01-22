@@ -38,7 +38,7 @@ const plans = [
     id: "pro_monthly",
     name: "Profissional Mensal",
     icon: Zap,
-    price: 119.90,
+    price: 1.00,
     period: "/mês",
     billingType: "monthly",
     description: "Tudo ilimitado com renovação mensal",

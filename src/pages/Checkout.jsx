@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const plans = {
   pro_monthly: {
     name: "Profissional Mensal",
-    price: 119.90,
+    price: 1.00,
     period: "mês",
     features: ["IA Ilimitada", "Todos os recursos", "Suporte prioritário"]
   },
