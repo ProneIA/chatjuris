@@ -12,6 +12,11 @@ Deno.serve(async (req) => {
 
     const { planId, paymentData, successUrl, failureUrl } = await req.json();
 
+    console.log('=== PROCESSANDO PAGAMENTO ===');
+    console.log('User:', user.email);
+    console.log('Plan ID:', planId);
+    console.log('Payment Data:', JSON.stringify(paymentData, null, 2));
+
     if (!planId || !paymentData) {
       return Response.json({ error: 'Dados incompletos' }, { status: 400 });
     }
@@ -55,7 +60,15 @@ Deno.serve(async (req) => {
       paymentRequest.payer.identification = paymentData.payer.identification;
     }
 
+    console.log('=== ENVIANDO PARA MERCADO PAGO ===');
+    console.log('Payment Request:', JSON.stringify(paymentRequest, null, 2));
+
     const result = await payment.create({ body: paymentRequest });
+
+    console.log('=== RESPOSTA MERCADO PAGO ===');
+    console.log('Status:', result.status);
+    console.log('Status Detail:', result.status_detail);
+    console.log('Payment ID:', result.id);
 
     // Se pagamento aprovado, criar/atualizar assinatura
     if (result.status === 'approved') {
@@ -103,10 +116,15 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Erro ao processar pagamento:', error);
+    console.error('=== ERRO NO PROCESSAMENTO ===');
+    console.error('Error Message:', error.message);
+    console.error('Error Stack:', error.stack);
+    console.error('Error Response:', JSON.stringify(error.response?.data || error.cause, null, 2));
+    
     return Response.json({ 
       error: error.message || 'Erro ao processar pagamento',
-      details: error.response?.data || error.cause
-    }, { status: 500 });
+      details: error.response?.data || error.cause,
+      status: error.status || 500
+    }, { status: error.status || 500 });
   }
 });

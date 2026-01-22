@@ -101,8 +101,11 @@ export default function Checkout({ theme = 'light' }) {
                   throw new Error(response.data?.error || 'Erro ao processar pagamento');
                 }
               } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao processar pagamento. Tente novamente.');
+                console.error('Erro completo:', error);
+                console.error('Response data:', error.response?.data);
+                const errorMsg = error.response?.data?.error || error.message || 'Erro ao processar pagamento';
+                const errorDetails = error.response?.data?.details ? JSON.stringify(error.response.data.details) : '';
+                alert(`Erro: ${errorMsg}\n${errorDetails ? `Detalhes: ${errorDetails}` : 'Tente novamente.'}`);
                 setProcessing(false);
                 return;
               }
