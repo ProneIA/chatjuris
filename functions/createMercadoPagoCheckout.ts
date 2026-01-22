@@ -72,6 +72,10 @@ Deno.serve(async (req) => {
     if (planId === 'pro_monthly') {
       const preApproval = new PreApproval(client);
 
+      // Data de início deve ser futura (adicionar 1 minuto)
+      const startDate = new Date();
+      startDate.setMinutes(startDate.getMinutes() + 1);
+
       const subscriptionData = {
         reason: 'Plano Mensal - Assinatura Contínua',
         auto_recurring: {
@@ -79,8 +83,7 @@ Deno.serve(async (req) => {
           frequency_type: 'months',
           transaction_amount: 119.90,
           currency_id: 'BRL',
-          start_date: new Date().toISOString(),
-          billing_day: new Date().getDate()
+          start_date: startDate.toISOString()
         },
         back_url: successUrl,
         external_reference: user.id,
