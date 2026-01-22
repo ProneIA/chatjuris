@@ -21,7 +21,7 @@ export default function AdminSubscriptions({ theme = 'light' }) {
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ['all-users'],
     queryFn: async () => {
-      const users = await base44.entities.User.list();
+      const users = await base44.asServiceRole.entities.User.list();
       return users;
     },
     enabled: !!user && user.role === 'admin'
@@ -30,7 +30,7 @@ export default function AdminSubscriptions({ theme = 'light' }) {
   const { data: subscriptions = [], isLoading: loadingSubs } = useQuery({
     queryKey: ['all-subscriptions'],
     queryFn: async () => {
-      const subs = await base44.entities.Subscription.list();
+      const subs = await base44.asServiceRole.entities.Subscription.list();
       return subs;
     },
     enabled: !!user && user.role === 'admin'
@@ -38,7 +38,7 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const activateProMutation = useMutation({
     mutationFn: async ({ userId, userEmail }) => {
-      const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
+      const allSubs = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
       
       const subData = {
         user_id: userId,
@@ -53,9 +53,9 @@ export default function AdminSubscriptions({ theme = 'light' }) {
       };
 
       if (allSubs.length > 0) {
-        return await base44.entities.Subscription.update(allSubs[0].id, subData);
+        return await base44.asServiceRole.entities.Subscription.update(allSubs[0].id, subData);
       } else {
-        return await base44.entities.Subscription.create(subData);
+        return await base44.asServiceRole.entities.Subscription.create(subData);
       }
     },
     onSuccess: () => {
@@ -69,10 +69,10 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const deactivateProMutation = useMutation({
     mutationFn: async ({ userId }) => {
-      const allSubs = await base44.entities.Subscription.filter({ user_id: userId });
+      const allSubs = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
       
       if (allSubs.length > 0) {
-        return await base44.entities.Subscription.update(allSubs[0].id, {
+        return await base44.asServiceRole.entities.Subscription.update(allSubs[0].id, {
           plan: "free",
           status: "active",
           daily_actions_limit: 5,
