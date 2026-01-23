@@ -60,24 +60,31 @@ export default function AdminSubscriptions({ theme = 'light' }) {
 
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ userId, action, subscriptionData }) => {
+      console.log('Iniciando atualização:', { userId, action, subscriptionData });
       const response = await base44.functions.invoke('adminUpdateSubscription', {
         userId,
         action,
         subscriptionData
       });
+      console.log('Resposta da função:', response.data);
       if (!response.data.success) {
-        throw new Error(response.data.error);
+        throw new Error(response.data.error || 'Erro desconhecido');
       }
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-data'] });
+    onSuccess: async (data) => {
+      console.log('Atualização bem-sucedida:', data);
+      // Invalidar queries para forçar refetch
+      await queryClient.invalidateQueries({ queryKey: ['admin-data'] });
+      // Refetch imediato
+      await queryClient.refetchQueries({ queryKey: ['admin-data'] });
       toast.success('Assinatura atualizada com sucesso!');
       setEditDialogOpen(false);
       setEditingUser(null);
       setEndDate("");
     },
     onError: (error) => {
+      console.error('Erro na atualização:', error);
       toast.error('Erro: ' + error.message);
     }
   });
