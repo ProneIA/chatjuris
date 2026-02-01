@@ -126,31 +126,11 @@ export default function AIAssistant({ theme = 'light' }) {
       });
     }
 
-    if (subscription && subscription.plan === "free") {
-      const used = subscription.daily_actions_used || 0;
-      const limit = subscription.daily_actions_limit || 5;
-      if (used >= limit) {
-        alert('🚫 Limite diário atingido! Faça upgrade para o Plano Pro.');
-        navigate(createPageUrl('Pricing'));
-        return;
-      }
-    }
-
     setSelectedConversation(null);
     setTempMessages([]);
   };
 
   const handleSendMessageFromWelcome = async (messageContent) => {
-    if (subscription && subscription.plan === "free") {
-      const used = subscription.daily_actions_used || 0;
-      const limit = subscription.daily_actions_limit || 5;
-      if (used >= limit) {
-        alert('🚫 Limite diário atingido! Faça upgrade para o Plano Pro.');
-        navigate(createPageUrl('Pricing'));
-        return;
-      }
-    }
-
     const userMessage = {
       role: "user",
       content: messageContent,
@@ -193,13 +173,6 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
       };
 
       setTempMessages(prev => [...prev, assistantResponse]);
-
-      if (subscription && subscription.plan === 'free') {
-        await base44.entities.Subscription.update(subscription.id, {
-          daily_actions_used: (subscription.daily_actions_used || 0) + 1
-        });
-        queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      }
     } catch (error) {
       console.error("Erro:", error);
       alert("Erro ao gerar resposta. Tente novamente.");
@@ -245,17 +218,6 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
               >
                 <History className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Histórico</span>
-              </Button>
-            )}
-
-            {subscription && subscription.plan === 'free' && (
-              <Button
-                onClick={() => navigate(createPageUrl('Pricing'))}
-                size="sm"
-                variant="outline"
-                className="hidden md:flex h-9 border-gray-300 text-gray-700 hover:bg-gray-100"
-              >
-                Assinar Pro
               </Button>
             )}
           </div>

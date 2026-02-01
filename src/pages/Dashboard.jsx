@@ -217,35 +217,7 @@ export default function Dashboard({ theme = 'light' }) {
           </div>
         </motion.div>
 
-        {/* Admin Quick Access */}
-        {user?.role === 'admin' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className={`p-5 rounded-xl border ${
-              isDark 
-                ? 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border-purple-800/30' 
-                : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className={`text-lg font-bold mb-1 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  🛠️ Painel Admin
-                </h3>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Libere planos Pro manualmente para usuários de teste ou pagamento externo
-                </p>
-              </div>
-              <Link to={createPageUrl("AdminSubscriptions")}>
-                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2">
-                  Gerenciar Usuários
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        )}
+
 
         {/* Quick Actions */}
         <motion.div 
@@ -406,67 +378,7 @@ export default function Dashboard({ theme = 'light' }) {
             </div>
           </motion.div>
 
-          {/* Feature Highlight */}
-          {!(userSubscription?.plan === 'pro' && userSubscription?.status === 'active') && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-4"
-            >
-              {/* Calculadora Jurídica Promo */}
-              <Link to={createPageUrl("LegalCalculator")}>
-                <div className={`p-5 rounded-xl border transition-all hover:shadow-lg group relative overflow-hidden ${
-                  isDark ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-800/50 hover:border-blue-700' : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-300'
-                }`}>
-                  <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-blue-500/10 blur-2xl" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calculator className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
-                        NOVO
-                      </span>
-                    </div>
-                    <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      Calculadora Jurídica
-                    </h3>
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      Liquidação, trabalhista, previdenciário e mais
-                    </p>
-                    <div className={`mt-3 flex items-center gap-1 text-sm font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                      Acessar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
 
-              {/* Pesquisa Jurídica Promo */}
-              <Link to={createPageUrl("LegalResearchAI")}>
-                <div className={`p-5 rounded-xl border transition-all hover:shadow-lg group relative overflow-hidden ${
-                  isDark ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/30 border-amber-800/50 hover:border-amber-700' : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:border-amber-300'
-                }`}>
-                  <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-amber-500/10 blur-2xl" />
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileSearch className={`w-5 h-5 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
-                        IA
-                      </span>
-                    </div>
-                    <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      Pesquisa Jurídica
-                    </h3>
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                      Encontre jurisprudências e precedentes relevantes
-                    </p>
-                    <div className={`mt-3 flex items-center gap-1 text-sm font-medium ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                      Pesquisar <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          )}
         </div>
 
         {/* Recent Cases */}
