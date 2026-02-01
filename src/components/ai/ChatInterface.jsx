@@ -11,7 +11,6 @@ import SuggestedQuestions from "./SuggestedQuestions";
 import LegalDocumentGeneratorInterface from "./LegalDocumentGeneratorInterface";
 import CaseSummarizerDialog from "./CaseSummarizerDialog";
 import AdvancedDocumentAnalyzer from "./AdvancedDocumentAnalyzer";
-import { usePlanAccess } from "../common/PlanGuard";
 
 export default function ChatInterface({ conversation, onUpdate, subscription, userName }) {
   const [input, setInput] = useState("");
@@ -35,8 +34,6 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
       toast.success(isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos ⭐");
     }
   });
-
-  const { canUseAI } = usePlanAccess();
 
   const { data: cases = [] } = useQuery({
     queryKey: ['cases'],
@@ -146,12 +143,6 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || !conversation) return;
-
-    const aiAccess = canUseAI();
-    if (!aiAccess.allowed) {
-      alert(`Limite de ${aiAccess.limit} requisições atingido. Faça upgrade!`);
-      return;
-    }
 
     const userMessage = {
       role: "user",
