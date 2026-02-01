@@ -11,7 +11,6 @@ import {
   Menu,
   X,
   Settings,
-  Crown,
   Moon,
   Sun,
   FolderOpen,
@@ -47,13 +46,11 @@ const navigationItems = [
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Colaboração", url: createPageUrl("ColaboracaoHub"), icon: Users2 },
-  { title: "Admin", url: createPageUrl("AdminSubscriptions"), icon: Settings, adminOnly: true },
 ];
 
 export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
-    const [subscription, setSubscription] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [deferredPrompt, setDeferredPrompt] = React.useState(null);
@@ -78,9 +75,6 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
-              const subs = await base44.entities.Subscription.filter({ user_id: u.id });
-              setSubscription(subs[0] || null);
-
               // Verificar se o usuário é um afiliado
               const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
               setUserAffiliate(affiliates[0] || null);
@@ -107,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
               }
               setHasCheckedConsent(true);
             } catch (err) {
-              console.error("Erro ao buscar assinatura:", err);
+              console.error("Erro ao carregar dados:", err);
               setHasCheckedConsent(true);
             }
           }
@@ -202,10 +196,6 @@ export default function Layout({ children, currentPageName }) {
     if (item.title === "Afiliados") {
       return userAffiliate;
     }
-    // Mostrar "Admin" apenas para administradores
-    if (item.adminOnly) {
-      return user?.role === 'admin';
-    }
     return true;
   });
 
@@ -271,15 +261,6 @@ export default function Layout({ children, currentPageName }) {
                   <Download className="w-4 h-4" />
                   <span>Instalar App</span>
                 </Button>
-              )}
-              {!(subscription?.plan === 'pro' && subscription?.status === 'active') && (
-                <Link
-                  to={createPageUrl("Pricing")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors text-amber-400 hover:text-amber-300"
-                >
-                  <Crown className="w-4 h-4" />
-                  <span className="font-bold">Pro</span>
-                </Link>
               )}
             </div>
 
@@ -371,16 +352,6 @@ export default function Layout({ children, currentPageName }) {
                 {visibleNavItems.map((item) => (
                   <NavLink key={item.title} item={item} mobile />
                 ))}
-                {!(subscription?.plan === 'pro' && subscription?.status === 'active') && (
-                  <Link
-                    to={createPageUrl("Pricing")}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-amber-400 w-full text-left mt-2 border-t border-neutral-800 pt-3"
-                  >
-                    <Crown className="w-4 h-4" />
-                    <span>Assinar Pro</span>
-                  </Link>
-                )}
                 {!isStandalone && (
                   <button
                     onClick={() => {
