@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Settings,
+  Crown,
   Moon,
   Sun,
   FolderOpen,
@@ -51,6 +52,7 @@ const navigationItems = [
 export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
+    const [subscription, setSubscription] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [deferredPrompt, setDeferredPrompt] = React.useState(null);
@@ -75,6 +77,9 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
+              const subs = await base44.entities.Subscription.filter({ user_id: u.id });
+              setSubscription(subs[0] || null);
+
               // Verificar se o usuário é um afiliado
               const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
               setUserAffiliate(affiliates[0] || null);
@@ -101,7 +106,7 @@ export default function Layout({ children, currentPageName }) {
               }
               setHasCheckedConsent(true);
             } catch (err) {
-              console.error("Erro ao carregar dados:", err);
+              console.error("Erro ao buscar assinatura:", err);
               setHasCheckedConsent(true);
             }
           }

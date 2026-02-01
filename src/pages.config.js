@@ -49,6 +49,7 @@
  */
 import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
+import AdminSubscriptions from './pages/AdminSubscriptions';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
@@ -102,6 +103,7 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "AIAssistant": AIAssistant,
     "AboutUs": AboutUs,
+    "AdminSubscriptions": AdminSubscriptions,
     "AffiliatesDashboard": AffiliatesDashboard,
     "Analytics": Analytics,
     "Calendar": Calendar,
