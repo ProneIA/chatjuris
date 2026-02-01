@@ -96,6 +96,7 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
+import AdminSubscriptions from './pages/AdminSubscriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -149,6 +150,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
+    "AdminSubscriptions": AdminSubscriptions,
 }
 
 export const pagesConfig = {
