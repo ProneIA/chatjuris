@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
+import CheckoutModal from "@/components/checkout/CheckoutModal";
 
 const plans = [
   {
@@ -106,6 +107,7 @@ export default function Pricing({ theme = 'light' }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
+  const [checkoutModal, setCheckoutModal] = useState({ open: false, plan: null });
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -166,18 +168,8 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Planos pagos vão para checkout da Hotmart
-    const hotmartUrls = {
-      'pro_monthly': 'https://pay.hotmart.com/Q104225643H',
-      'pro_yearly': 'https://pay.hotmart.com/T104226080W'
-    };
-    
-    const checkoutUrl = hotmartUrls[planId];
-    if (user?.email) {
-      window.location.href = `${checkoutUrl}?email=${encodeURIComponent(user.email)}`;
-    } else {
-      window.location.href = checkoutUrl;
-    }
+    // Planos pagos - abrir modal de checkout transparente
+    setCheckoutModal({ open: true, plan: planId });
   };
 
   const currentPlan = subscription?.plan || 'free';
