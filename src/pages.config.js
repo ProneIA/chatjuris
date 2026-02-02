@@ -98,6 +98,7 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import AccessDenied from './pages/AccessDenied';
+import HotmartSetup from './pages/HotmartSetup';
 import __Layout from './Layout.jsx';
 
 
@@ -153,6 +154,7 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "AccessDenied": AccessDenied,
+    "HotmartSetup": HotmartSetup,
 }
 
 export const pagesConfig = {
