@@ -477,6 +477,14 @@ export default function Pricing({ theme = 'light' }) {
           </p>
         </motion.div>
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        open={checkoutModal.open}
+        onClose={() => setCheckoutModal({ open: false, plan: null })}
+        plan={checkoutModal.plan}
+        userEmail={user?.email}
+      />
     </div>
   );
 }
