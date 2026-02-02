@@ -39,9 +39,7 @@ export default function AccessDenied() {
   ];
 
   const handleCheckout = () => {
-    // Redirecionar para página de vendas da Hotmart
-    // SUBSTITUA ESTE LINK PELO SEU LINK DE CHECKOUT DA HOTMART
-    const hotmartCheckoutUrl = "https://pay.hotmart.com/SEU_PRODUTO_ID";
+    const hotmartCheckoutUrl = "https://pay.hotmart.com/Q104225643H";
     
     // Adicionar email do usuário no checkout se disponível
     if (user?.email) {
