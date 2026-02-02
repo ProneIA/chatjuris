@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users } from "lucide-react";
+import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users, Sparkles, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -83,9 +83,22 @@ export default function Pricing({ theme = 'light' }) {
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
   const [checkoutModal, setCheckoutModal] = useState({ open: false, plan: null });
+  const [trialDaysLeft, setTrialDaysLeft] = React.useState(0);
 
   React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(async (u) => {
+        setUser(u);
+        
+        // Calcular dias restantes do trial
+        if (u?.trial_status === 'active' && u?.trial_end_date) {
+          const today = new Date();
+          const endDate = new Date(u.trial_end_date);
+          const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+          setTrialDaysLeft(daysLeft > 0 ? daysLeft : 0);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const { data: subscription } = useQuery({
@@ -142,12 +155,37 @@ export default function Pricing({ theme = 'light' }) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10 sm:mb-16"
         >
-          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Planos e Preços</p>
-          
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
-            Transforme sua Advocacia<br className="hidden sm:block" />
-            <span className="font-semibold">com Inteligência Artificial</span>
-          </h1>
+          {user && user.trial_status === 'active' && trialDaysLeft > 0 ? (
+            <>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 font-semibold mb-4">
+                <Sparkles className="w-5 h-5" />
+                <span>Período de Teste: {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'} restantes</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
+                Aproveite seu Teste Grátis<br className="hidden sm:block" />
+                <span className="font-semibold">Continue com Acesso Completo</span>
+              </h1>
+            </>
+          ) : user && user.trial_status === 'expired' ? (
+            <>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-800 font-semibold mb-4">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Período de Teste Expirado</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
+                Assine para Continuar<br className="hidden sm:block" />
+                <span className="font-semibold">Seu teste de 7 dias terminou</span>
+              </h1>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Planos e Preços</p>
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
+                Transforme sua Advocacia<br className="hidden sm:block" />
+                <span className="font-semibold">com Inteligência Artificial</span>
+              </h1>
+            </>
+          )}
 
           <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
           
