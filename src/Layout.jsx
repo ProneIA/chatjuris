@@ -79,15 +79,18 @@ export default function Layout({ children, currentPageName }) {
             try {
               let subs = await base44.entities.Subscription.filter({ user_id: u.id });
 
-              // Se não tem subscription, criar uma free
+              // Se não tem subscription, usuário antigo recebe Pro automático (grandfathered)
               if (subs.length === 0) {
                 const newSub = await base44.entities.Subscription.create({
                   user_id: u.id,
-                  plan: 'free',
-                  status: 'pending',
-                  daily_actions_limit: 0,
+                  plan: 'pro',
+                  status: 'active',
+                  daily_actions_limit: 999999,
                   daily_actions_used: 0,
-                  last_reset_date: new Date().toISOString().split('T')[0]
+                  last_reset_date: new Date().toISOString().split('T')[0],
+                  price: 0,
+                  payment_method: 'manual',
+                  start_date: new Date().toISOString().split('T')[0]
                 });
                 subs = [newSub];
               }

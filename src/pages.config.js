@@ -49,6 +49,7 @@
  */
 import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
+import AccessDenied from './pages/AccessDenied';
 import AdminSubscriptions from './pages/AdminSubscriptions';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import Analytics from './pages/Analytics';
@@ -77,6 +78,7 @@ import FinancialDashboard from './pages/FinancialDashboard';
 import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
+import HotmartSetup from './pages/HotmartSetup';
 import Jurisprudence from './pages/Jurisprudence';
 import LandingPage from './pages/LandingPage';
 import LegalCalculator from './pages/LegalCalculator';
@@ -87,7 +89,6 @@ import MyData from './pages/MyData';
 import MySubscription from './pages/MySubscription';
 import OfertaEspecial from './pages/OfertaEspecial';
 import PaymentSuccess from './pages/PaymentSuccess';
-import Pricing from './pages/Pricing';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import QuemSomos from './pages/QuemSomos';
 import Reports from './pages/Reports';
@@ -97,14 +98,14 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
-import AccessDenied from './pages/AccessDenied';
-import HotmartSetup from './pages/HotmartSetup';
+import Pricing from './pages/Pricing';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AIAssistant": AIAssistant,
     "AboutUs": AboutUs,
+    "AccessDenied": AccessDenied,
     "AdminSubscriptions": AdminSubscriptions,
     "AffiliatesDashboard": AffiliatesDashboard,
     "Analytics": Analytics,
@@ -133,6 +134,7 @@ export const PAGES = {
     "Funcionalidades": Funcionalidades,
     "GestaoHub": GestaoHub,
     "Home": Home,
+    "HotmartSetup": HotmartSetup,
     "Jurisprudence": Jurisprudence,
     "LandingPage": LandingPage,
     "LegalCalculator": LegalCalculator,
@@ -143,7 +145,6 @@ export const PAGES = {
     "MySubscription": MySubscription,
     "OfertaEspecial": OfertaEspecial,
     "PaymentSuccess": PaymentSuccess,
-    "Pricing": Pricing,
     "PrivacyPolicy": PrivacyPolicy,
     "QuemSomos": QuemSomos,
     "Reports": Reports,
@@ -153,8 +154,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
-    "AccessDenied": AccessDenied,
-    "HotmartSetup": HotmartSetup,
+    "Pricing": Pricing,
 }
 
 export const pagesConfig = {
