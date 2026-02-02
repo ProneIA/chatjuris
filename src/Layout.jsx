@@ -77,7 +77,21 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
-              const subs = await base44.entities.Subscription.filter({ user_id: u.id });
+              let subs = await base44.entities.Subscription.filter({ user_id: u.id });
+
+              // Se não tem subscription, criar uma free
+              if (subs.length === 0) {
+                const newSub = await base44.entities.Subscription.create({
+                  user_id: u.id,
+                  plan: 'free',
+                  status: 'pending',
+                  daily_actions_limit: 0,
+                  daily_actions_used: 0,
+                  last_reset_date: new Date().toISOString().split('T')[0]
+                });
+                subs = [newSub];
+              }
+
               setSubscription(subs[0] || null);
 
               // Verificar se o usuário é um afiliado
@@ -162,7 +176,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     // Public pages - no layout (always, even if logged in)
-    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing", "ClientAccess"];
+    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing", "ClientAccess", "AccessDenied"];
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
     }
@@ -175,6 +189,18 @@ export default function Layout({ children, currentPageName }) {
     // If not logged in and not a public page, show without layout
     if (!user) {
       return <>{children}</>;
+    }
+
+    // BLOQUEIO: Verificar se usuário tem assinatura ativa
+    // Permitir acesso apenas se status for 'active'
+    const hasActiveSubscription = subscription && subscription.status === 'active';
+
+    if (!hasActiveSubscription) {
+      // Redirecionar para página de acesso negado
+      if (typeof window !== 'undefined' && window.location.pathname !== '/AccessDenied') {
+        window.location.href = '/AccessDenied';
+        return null;
+      }
     }
 
     const NavLink = ({ item, mobile = false }) => {

@@ -49,6 +49,7 @@
  */
 import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
+import AdminSubscriptions from './pages/AdminSubscriptions';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
@@ -96,13 +97,14 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
-import AdminSubscriptions from './pages/AdminSubscriptions';
+import AccessDenied from './pages/AccessDenied';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AIAssistant": AIAssistant,
     "AboutUs": AboutUs,
+    "AdminSubscriptions": AdminSubscriptions,
     "AffiliatesDashboard": AffiliatesDashboard,
     "Analytics": Analytics,
     "Calendar": Calendar,
@@ -150,7 +152,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
-    "AdminSubscriptions": AdminSubscriptions,
+    "AccessDenied": AccessDenied,
 }
 
 export const pagesConfig = {
