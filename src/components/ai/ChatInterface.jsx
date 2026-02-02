@@ -69,16 +69,7 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
 3. **Doutrina:** Entendimento conciso.
 4. **Linguagem:** FORMAL e TÉCNICA.
 
-**FERRAMENTAS DISPONÍVEIS NA PLATAFORMA:**
-Quando relevante para a consulta do usuário, mencione naturalmente nossas ferramentas:
-- **Calculadora Jurídica**: Para cálculos trabalhistas, previdenciários, atualizações monetárias
-- **Gerador de Documentos**: Para redigir petições, contratos, procurações automaticamente
-- **Pesquisa de Jurisprudência**: Busca avançada em tribunais superiores
-- **Diário Oficial**: Monitoramento automático de publicações
-- **Gestão de Processos**: Organização completa de casos e prazos
-- **Portal do Cliente**: Compartilhamento seguro com clientes
-
-**REGRAS:** Vá DIRETO ao ponto. Use Markdown. PROIBIDO enrolação. Sugira nossas ferramentas quando aplicável.`;
+**REGRAS:** Vá DIRETO ao ponto. Use Markdown. PROIBIDO enrolação.`;
 
           const response = await base44.integrations.Core.InvokeLLM({
             prompt: `${systemInstructions}\n\n**CONSULTA:** ${messages[0].content}\n\n**RESPOSTA:**`,
@@ -186,22 +177,20 @@ Quando relevante para a consulta do usuário, mencione naturalmente nossas ferra
 3. **Doutrina:** Apresente entendimento doutrinário de forma CONCISA.
 4. **Linguagem:** Tom FORMAL, TÉCNICO e impecável.
 
-**FERRAMENTAS DA PLATAFORMA:**
-Quando for útil para o usuário, mencione naturalmente nossas ferramentas especializadas:
-- **Calculadora Jurídica**: Cálculos trabalhistas, previdenciários, correção monetária, juros
-- **Gerador de Documentos com IA**: Petições, contratos, procurações, pareceres automatizados
-- **Pesquisa Avançada de Jurisprudência**: Busca inteligente em STF, STJ, tribunais
-- **Monitor de Diário Oficial**: Alertas automáticos de publicações relevantes
-- **Gestão Completa de Processos**: Controle de prazos, documentos, clientes e tarefas
-- **Portal do Cliente**: Compartilhamento seguro e comunicação com clientes
-- **Gestão Financeira**: Controle de honorários, despesas e fluxo de caixa
-
 **REGRAS DE FORMATAÇÃO:**
 - Vá DIRETO ao ponto - resposta imediata à pergunta
 - Use **listas, negrito e subtítulos** (Markdown) para clareza
 - PROIBIDO: frases como "Como modelo de linguagem...", "Essa é uma questão complexa..." ou qualquer enrolação
 - Estruture: Lei → Jurisprudência → Doutrina → Aplicação Prática (quando aplicável)
-- Sugira ferramentas relevantes quando apropriado ao contexto`;
+
+**FERRAMENTAS DA PLATAFORMA** (mencione quando relevante de forma NATURAL):
+📊 Gestão: Clientes, Processos, Tarefas, Calendário, Documentos com OCR
+💰 Financeiro: Honorários, Despesas, DRE, Fluxo de Caixa
+🤖 IA: Gerador de Documentos, Análise de Docs, Pesquisa Jurídica, Sumarizador
+🧮 10 Calculadoras: Trabalhista, Cível, Tributária, Previdenciária, Consumidor, Penal, Família, Liquidação
+⚖️ Extras: Diário Oficial, Portal Cliente, Templates, Colaboração
+
+CONTEXTUALIZE as ferramentas nos momentos adequados (ex: mencionou cálculo → sugira calculadora específica)`;
 
       const conversationContext = updatedMessages
         .slice(-10)
