@@ -182,7 +182,7 @@ export default function Layout({ children, currentPageName }) {
     };
 
     // Public pages - no layout (always, even if logged in)
-    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing", "ClientAccess", "AccessDenied"];
+    const publicPages = ["LandingPage", "QuemSomos", "Funcionalidades", "ContactPublic", "Pricing", "ClientAccess", "AccessDenied", "Checkout"];
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
     }
@@ -202,9 +202,9 @@ export default function Layout({ children, currentPageName }) {
     const hasActiveSubscription = subscription && subscription.status === 'active';
 
     if (!hasActiveSubscription) {
-      // Redirecionar para página de acesso negado
-      if (typeof window !== 'undefined' && window.location.pathname !== '/AccessDenied') {
-        window.location.href = '/AccessDenied';
+      // Redirecionar para página Pricing
+      if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
+        window.location.href = '/Pricing';
         return null;
       }
     }

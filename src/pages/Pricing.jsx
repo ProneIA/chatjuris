@@ -166,8 +166,18 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Planos pagos vão para checkout com Mercado Pago
-    navigate(createPageUrl("Checkout") + `?plan=${planId}`);
+    // Planos pagos vão para checkout da Hotmart
+    const hotmartUrls = {
+      'pro_monthly': 'https://pay.hotmart.com/Q104225643H',
+      'pro_yearly': 'https://pay.hotmart.com/Q104225643H'
+    };
+    
+    const checkoutUrl = hotmartUrls[planId];
+    if (user?.email) {
+      window.location.href = `${checkoutUrl}?email=${encodeURIComponent(user.email)}`;
+    } else {
+      window.location.href = checkoutUrl;
+    }
   };
 
   const currentPlan = subscription?.plan || 'free';
