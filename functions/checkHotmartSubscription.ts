@@ -1,9 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-/**
- * Função para verificar status da assinatura na API da Hotmart
- * Útil para sincronização manual ou verificações pontuais
- */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -14,109 +10,48 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Apenas admins podem fazer verificações manuais
-    if (user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
-    const { email } = await req.json();
-    
-    if (!email) {
-      return Response.json({ error: 'Email is required' }, { status: 400 });
-    }
-
-    const clientId = Deno.env.get('HOTMART_CLIENT_ID');
-    const clientSecret = Deno.env.get('HOTMART_CLIENT_SECRET');
-
-    if (!clientId || !clientSecret) {
-      return Response.json({ error: 'Hotmart credentials not configured' }, { status: 500 });
-    }
-
-    // 1. Obter token de acesso
-    const authResponse = await fetch('https://api-sec-vlc.hotmart.com/security/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
-      },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials'
-      })
+    // Buscar subscription do usuário
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ 
+      user_id: user.id 
     });
 
-    if (!authResponse.ok) {
-      const errorText = await authResponse.text();
-      console.error('Erro ao obter token Hotmart:', errorText);
+    if (subscriptions.length === 0) {
+      // Criar subscription free se não existir
+      const newSub = await base44.asServiceRole.entities.Subscription.create({
+        user_id: user.id,
+        plan: 'free',
+        status: 'trial',
+        payment_status: 'pending',
+        daily_actions_limit: 0,
+        daily_actions_used: 0,
+        price: 0,
+        start_date: new Date().toISOString().split('T')[0],
+        last_reset_date: new Date().toISOString().split('T')[0]
+      });
+
       return Response.json({ 
-        error: 'Failed to authenticate with Hotmart',
-        details: errorText
-      }, { status: 500 });
+        subscription: newSub,
+        hasAccess: false,
+        message: 'Assinatura necessária para acessar a plataforma'
+      });
     }
 
-    const { access_token } = await authResponse.json();
-
-    // 2. Buscar assinaturas do usuário
-    const subscriptionsResponse = await fetch(
-      `https://developers.hotmart.com/payments/api/v1/subscriptions?subscriber_email=${encodeURIComponent(email)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${access_token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    if (!subscriptionsResponse.ok) {
-      const errorText = await subscriptionsResponse.text();
-      console.error('Erro ao buscar assinaturas:', errorText);
-      return Response.json({ 
-        error: 'Failed to fetch subscriptions',
-        details: errorText
-      }, { status: 500 });
-    }
-
-    const subscriptions = await subscriptionsResponse.json();
-
-    // 3. Atualizar subscription no banco de dados
-    const users = await base44.asServiceRole.entities.User.filter({ email });
+    const subscription = subscriptions[0];
     
-    if (users.length > 0) {
-      const targetUser = users[0];
-      const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ 
-        user_id: targetUser.id 
-      });
-
-      const hasActiveHotmartSub = subscriptions.items?.some(
-        sub => sub.status === 'ACTIVE' || sub.status === 'OVERDUE'
-      );
-
-      if (existingSubs.length > 0) {
-        await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
-          status: hasActiveHotmartSub ? 'active' : 'cancelled',
-          plan: hasActiveHotmartSub ? 'pro' : 'free',
-          daily_actions_limit: hasActiveHotmartSub ? 999999 : 5
-        });
-      }
-
-      return Response.json({ 
-        success: true,
-        email,
-        hasActiveSubscription: hasActiveHotmartSub,
-        subscriptions: subscriptions.items || []
-      });
-    }
+    // Verificar se tem acesso (plan PRO e status active)
+    const hasAccess = subscription.plan === 'pro' && subscription.status === 'active';
 
     return Response.json({ 
-      success: false,
-      message: 'User not found in system',
-      email
+      subscription,
+      hasAccess,
+      message: hasAccess ? 'Acesso liberado' : 'Assinatura inativa ou expirada'
     });
 
   } catch (error) {
-    console.error('Erro:', error);
+    console.error('Erro ao verificar assinatura:', error);
     return Response.json({ 
-      error: error.message,
-      stack: error.stack 
+      error: 'Internal server error', 
+      message: error.message 
     }, { status: 500 });
   }
 });

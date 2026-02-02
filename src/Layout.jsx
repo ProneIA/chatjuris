@@ -122,10 +122,16 @@ export default function Layout({ children, currentPageName }) {
             } catch (err) {
               console.error("Erro ao buscar assinatura:", err);
               setHasCheckedConsent(true);
+              setCheckingAccess(false);
             }
+          } else {
+            setCheckingAccess(false);
           }
         })
-        .catch(() => setUser(null))
+        .catch(() => {
+          setUser(null);
+          setCheckingAccess(false);
+        })
         .finally(() => setIsLoading(false));
     }, []);
 
