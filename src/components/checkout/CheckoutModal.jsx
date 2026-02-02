@@ -52,6 +52,10 @@ export default function CheckoutModal({ open, onClose, plan, userEmail }) {
 
   const currentPlan = planDetails[plan];
 
+  if (!currentPlan) {
+    return null;
+  }
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
