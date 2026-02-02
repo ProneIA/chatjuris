@@ -169,7 +169,7 @@ export default function Pricing({ theme = 'light' }) {
     // Planos pagos vão para checkout da Hotmart
     const hotmartUrls = {
       'pro_monthly': 'https://pay.hotmart.com/Q104225643H',
-      'pro_yearly': 'https://pay.hotmart.com/Q104225643H'
+      'pro_yearly': 'https://pay.hotmart.com/T104226080W'
     };
     
     const checkoutUrl = hotmartUrls[planId];
@@ -187,6 +187,23 @@ export default function Pricing({ theme = 'light' }) {
       <AffiliateTracker />
       
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-16">
+        {/* Back Button - only show if user is logged in */}
+        {user && (
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-6"
+          >
+            <Link 
+              to={createPageUrl("Dashboard")} 
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Voltar ao Painel
+            </Link>
+          </motion.div>
+        )}
+      
         {/* Hero Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
