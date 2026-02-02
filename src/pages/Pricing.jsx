@@ -98,37 +98,7 @@ export default function Pricing({ theme = 'light' }) {
     enabled: !!user?.id
   });
 
-  const subscribeMutation = useMutation({
-    mutationFn: async (planId) => {
-      const planData = plans.find(p => p.id === planId);
-      
-      if (subscription) {
-        return base44.entities.Subscription.update(subscription.id, {
-          plan: planId === 'free' ? 'free' : 'pro',
-          status: "active",
-          ...planData.limits,
-          price: planData.price,
-          start_date: new Date().toISOString().split('T')[0],
-          last_reset_date: new Date().toISOString().split('T')[0]
-        });
-      } else {
-        return base44.entities.Subscription.create({
-          user_id: user.id,
-          plan: planId === 'free' ? 'free' : 'pro',
-          status: "active",
-          ...planData.limits,
-          price: planData.price,
-          start_date: new Date().toISOString().split('T')[0],
-          last_reset_date: new Date().toISOString().split('T')[0]
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      alert('Plano ativado com sucesso!');
-      navigate(createPageUrl('AIAssistant'));
-    }
-  });
+
 
   const handleSelectPlan = async (planId) => {
     const isAuthenticated = await base44.auth.isAuthenticated();
@@ -142,7 +112,7 @@ export default function Pricing({ theme = 'light' }) {
     setCheckoutModal({ open: true, plan: planId });
   };
 
-  const currentPlan = subscription?.plan || 'free';
+  const currentPlan = subscription?.plan || 'pro';
 
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
@@ -292,15 +262,15 @@ export default function Pricing({ theme = 'light' }) {
 
                   {/* CTA Button */}
                   <button
-                    onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                    disabled={isCurrentPlan || subscribeMutation.isPending}
-                    className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 rounded-none border-0 ${
-                      isCurrentPlan
-                        ? plan.popular ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : plan.popular
-                        ? "bg-white text-gray-900 hover:bg-gray-100"
-                        : "bg-gray-900 text-white hover:bg-gray-800"
-                    }`}
+                   onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
+                   disabled={isCurrentPlan}
+                   className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 rounded-none border-0 ${
+                     isCurrentPlan
+                       ? plan.popular ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                       : plan.popular
+                       ? "bg-white text-gray-900 hover:bg-gray-100"
+                       : "bg-gray-900 text-white hover:bg-gray-800"
+                   }`}
                   >
                     {isCurrentPlan ? (
                       <>

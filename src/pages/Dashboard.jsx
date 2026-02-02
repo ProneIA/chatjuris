@@ -40,17 +40,18 @@ export default function Dashboard({ theme = 'light' }) {
         const userData = await base44.auth.me();
         setUser(userData);
         
-        // Verificar/criar subscription Free para novos usuários
+        // Verificar subscription - todos usuários têm plano Pro
         if (userData) {
           const subs = await base44.entities.Subscription.filter({ user_id: userData.id });
           if (subs.length === 0) {
             const newSub = await base44.entities.Subscription.create({
               user_id: userData.id,
-              plan: 'free',
+              plan: 'pro',
               status: 'active',
-              daily_actions_limit: 5,
+              daily_actions_limit: 999999,
               daily_actions_used: 0,
               price: 0,
+              payment_method: 'manual',
               start_date: new Date().toISOString().split('T')[0],
               last_reset_date: new Date().toISOString().split('T')[0]
             });

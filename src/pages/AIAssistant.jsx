@@ -73,12 +73,13 @@ export default function AIAssistant({ theme = 'light' }) {
       if (subs.length === 0) {
         return await base44.entities.Subscription.create({
           user_id: user.id,
-          plan: "free",
+          plan: "pro",
           status: "active",
-          daily_actions_limit: 5,
+          daily_actions_limit: 999999,
           daily_actions_used: 0,
           last_reset_date: new Date().toISOString().split('T')[0],
-          price: 0
+          price: 0,
+          payment_method: 'manual'
         });
       }
       
