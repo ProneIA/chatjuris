@@ -107,20 +107,10 @@ export default function Pricing({ theme = 'light' }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
-  const [checkoutStep, setCheckoutStep] = useState(0); // 0 = plans, 1 = checkout step 1, 2 = checkout step 2
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    cpf: "",
-    phone: ""
-  });
+  const [checkoutModal, setCheckoutModal] = useState({ open: false, plan: null });
 
   React.useEffect(() => {
-    base44.auth.me().then((u) => {
-      setUser(u);
-      setFormData(prev => ({ ...prev, email: u?.email || "", name: u?.full_name || "" }));
-    }).catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const { data: subscription } = useQuery({
@@ -178,270 +168,36 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Planos pagos - ir para checkout integrado
-    setSelectedPlan(planId);
-    setCheckoutStep(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleCheckoutContinue = () => {
-    if (checkoutStep === 1) {
-      setCheckoutStep(2);
-    } else if (checkoutStep === 2) {
-      const hotmartUrls = {
-        'pro_monthly': 'https://pay.hotmart.com/Q104225643H',
-        'pro_yearly': 'https://pay.hotmart.com/T104226080W'
-      };
-      
-      const checkoutUrl = new URL(hotmartUrls[selectedPlan]);
-      if (formData.email) checkoutUrl.searchParams.set('email', formData.email);
-      if (formData.name) checkoutUrl.searchParams.set('name', formData.name);
-      window.location.href = checkoutUrl.toString();
-    }
-  };
-
-  const handleBackToPlans = () => {
-    setCheckoutStep(0);
-    setSelectedPlan(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Planos pagos - abrir modal de checkout transparente
+    setCheckoutModal({ open: true, plan: planId });
   };
 
   const currentPlan = subscription?.plan || 'free';
-  
-  const selectedPlanDetails = selectedPlan ? plans.find(p => p.id === selectedPlan) : null;
-  const isStep1Valid = formData.name && formData.email;
-  const isStep2Valid = formData.cpf && formData.phone;
 
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
       <AffiliateTracker />
       
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-16">
-        {/* Back Button */}
+        {/* Back Button - only show if user is logged in */}
         {user && (
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="mb-6"
           >
-            {checkoutStep > 0 ? (
-              <button
-                onClick={handleBackToPlans}
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180" />
-                Voltar aos Planos
-              </button>
-            ) : (
-              <Link 
-                to={createPageUrl("Dashboard")} 
-                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
-              >
-                <ArrowRight className="w-4 h-4 rotate-180" />
-                Voltar ao Painel
-              </Link>
-            )}
+            <Link 
+              to={createPageUrl("Dashboard")} 
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Voltar ao Painel
+            </Link>
           </motion.div>
         )}
-        
-        {/* Checkout Integrado */}
-        {checkoutStep > 0 && selectedPlanDetails && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-2xl mx-auto mb-16"
-          >
-            {checkoutStep === 1 ? (
-              <div className="bg-white border border-gray-200 p-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Complete sua assinatura
-                </h2>
-                <p className="text-gray-600 mb-8">
-                  Você está a poucos passos de ter acesso completo à plataforma
-                </p>
-
-                {/* Plan Summary */}
-                <div className="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100 mb-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-5 h-5 text-purple-600" />
-                        <h3 className="text-xl font-semibold text-gray-900">{selectedPlanDetails.name}</h3>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-bold text-gray-900">
-                          R$ {selectedPlanDetails.price.toFixed(2).replace('.', ',')}
-                        </span>
-                        <span className="text-gray-600">{selectedPlanDetails.period}</span>
-                      </div>
-                      {selectedPlanDetails.annualTotal && (
-                        <p className="text-sm text-purple-700 font-medium mt-1">
-                          R$ {selectedPlanDetails.annualTotal.toFixed(2).replace('.', ',')} cobrado anualmente
-                        </p>
-                      )}
-                      {selectedPlanDetails.savingsText && (
-                        <span className="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                          {selectedPlanDetails.savingsText}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-purple-200">
-                    <p className="text-sm font-medium text-gray-700 mb-3">Incluído no plano:</p>
-                    <div className="grid gap-2">
-                      {selectedPlanDetails.features.filter(f => f.included).slice(0, 4).map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-700">
-                          <Check className="w-4 h-4 text-green-600 shrink-0" />
-                          <span>{feature.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form */}
-                <div className="space-y-5 mb-8">
-                  <div>
-                    <label className="block text-gray-900 font-medium mb-2">Nome completo *</label>
-                    <input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Seu nome completo"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-medium mb-2">E-mail *</label>
-                    <input
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="seu@email.com"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleCheckoutContinue}
-                  disabled={!isStep1Valid}
-                  className="w-full h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-lg rounded-lg flex items-center justify-center gap-2 transition-all"
-                >
-                  Continuar
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-
-                <p className="text-xs text-center text-gray-500 mt-4">
-                  Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade
-                </p>
-              </div>
-            ) : (
-              <div className="bg-white border border-gray-200 p-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  Finalize sua assinatura
-                </h2>
-                <p className="text-gray-600 mb-8">
-                  Mais alguns dados para garantir a segurança da sua compra
-                </p>
-
-                {/* Form Step 2 */}
-                <div className="space-y-5 mb-8">
-                  <div>
-                    <label className="block text-gray-900 font-medium mb-2">CPF *</label>
-                    <input
-                      name="cpf"
-                      value={formData.cpf}
-                      onChange={handleChange}
-                      placeholder="000.000.000-00"
-                      maxLength={14}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-900 font-medium mb-2">Telefone/WhatsApp *</label>
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="(00) 00000-0000"
-                      maxLength={15}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Security badges */}
-                <div className="p-5 bg-gray-50 rounded-lg border border-gray-200 mb-8">
-                  <div className="flex items-start gap-3 mb-4">
-                    <Shield className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Pagamento 100% seguro</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Processado pela Hotmart, a maior plataforma de produtos digitais da América Latina
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 mb-4">
-                    <Shield className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Dados criptografados</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Certificado SSL e conformidade com LGPD
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Zap className="w-6 h-6 text-purple-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Múltiplas formas de pagamento</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Cartão de crédito, PIX, boleto e mais
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setCheckoutStep(1)}
-                    className="flex-1 h-14 border-2 border-gray-300 text-gray-900 hover:bg-gray-50 font-semibold text-lg rounded-lg transition-all"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    onClick={handleCheckoutContinue}
-                    disabled={!isStep2Valid}
-                    className="flex-1 h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-lg rounded-lg flex items-center justify-center gap-2 transition-all"
-                  >
-                    Ir para pagamento
-                    <Shield className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <p className="text-xs text-center text-gray-500 mt-4">
-                  Você será redirecionado para o ambiente seguro de pagamento
-                </p>
-              </div>
-            )}
-          </motion.div>
-        )}
-        
-        {/* Hero Header - Hide when in checkout */}
-        {checkoutStep === 0 && (
-          <motion.div 
+      
+        {/* Hero Header */}
+        <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10 sm:mb-16"
@@ -476,10 +232,8 @@ export default function Pricing({ theme = 'light' }) {
             </div>
           </div>
         </motion.div>
-        )}
 
-        {/* Plans Grid - Hide when in checkout */}
-        {checkoutStep === 0 && (
+        {/* Plans Grid */}
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
@@ -628,11 +382,8 @@ export default function Pricing({ theme = 'light' }) {
             );
           })}
         </div>
-        )}
 
-        {/* Testimonials - Hide when in checkout */}
-        {checkoutStep === 0 && (
-        <>
+        {/* Testimonials */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -717,9 +468,15 @@ export default function Pricing({ theme = 'light' }) {
             Cancele a qualquer momento. Sem taxas ocultas.
           </p>
         </motion.div>
-        </>
-        )}
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        open={checkoutModal.open}
+        onClose={() => setCheckoutModal({ open: false, plan: null })}
+        plan={checkoutModal.plan}
+        userEmail={user?.email}
+      />
     </div>
   );
 }
