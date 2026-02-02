@@ -11,31 +11,6 @@ import CheckoutModal from "@/components/checkout/CheckoutModal";
 
 const plans = [
   {
-    id: "free",
-    name: "Gratuito",
-    icon: Star,
-    price: 0,
-    period: "/sempre",
-    description: "Ideal para conhecer a plataforma",
-    popular: false,
-    features: [
-      { text: "5 ações de IA por dia", included: true, highlight: true },
-      { text: "Até 3 clientes", included: true },
-      { text: "Até 3 processos", included: true },
-      { text: "Até 3 documentos", included: true },
-      { text: "Modo Assistente Geral", included: true },
-      { text: "Suporte por email", included: true },
-      { text: "Equipes e Workspace", included: false },
-      { text: "Jurisprudência", included: false },
-      { text: "Modelos de Peças", included: false },
-      { text: "Análise LEXIA", included: false },
-    ],
-    limits: {
-      daily_actions_limit: 5,
-      daily_actions_used: 0
-    }
-  },
-  {
     id: "pro_monthly",
     name: "Profissional Mensal",
     icon: Zap,
@@ -163,12 +138,7 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    if (planId === "free") {
-      subscribeMutation.mutate(planId);
-      return;
-    }
-
-    // Planos pagos - abrir modal de checkout transparente
+    // Abrir modal de checkout
     setCheckoutModal({ open: true, plan: planId });
   };
 
@@ -234,7 +204,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id || (currentPlan === 'pro' && plan.id.startsWith('pro_'));
@@ -339,7 +309,7 @@ export default function Pricing({ theme = 'light' }) {
                       </>
                     ) : (
                      <>
-                       {plan.id === "free" ? "Começar Grátis" : "Assinar Agora"}
+                       Assinar Agora
                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                      </>
                     )}
@@ -455,7 +425,7 @@ export default function Pricing({ theme = 'light' }) {
             Pronto para Revolucionar sua Prática?
           </h2>
           <p className="text-sm sm:text-base text-gray-400 mb-5 sm:mb-6 px-2">
-            Comece hoje e veja a diferença em minutos. Sem cartão de crédito necessário.
+            Comece hoje e veja a diferença em minutos.
           </p>
           <button
             onClick={() => handleSelectPlan("pro_yearly")}
