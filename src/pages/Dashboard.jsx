@@ -40,25 +40,10 @@ export default function Dashboard({ theme = 'light' }) {
         const userData = await base44.auth.me();
         setUser(userData);
         
-        // Verificar subscription - todos usuários têm plano Pro
+        // Buscar subscription do usuário
         if (userData) {
           const subs = await base44.entities.Subscription.filter({ user_id: userData.id });
-          if (subs.length === 0) {
-            const newSub = await base44.entities.Subscription.create({
-              user_id: userData.id,
-              plan: 'pro',
-              status: 'active',
-              daily_actions_limit: 999999,
-              daily_actions_used: 0,
-              price: 0,
-              payment_method: 'manual',
-              start_date: new Date().toISOString().split('T')[0],
-              last_reset_date: new Date().toISOString().split('T')[0]
-            });
-            setUserSubscription(newSub);
-          } else {
-            setUserSubscription(subs[0]);
-          }
+          setUserSubscription(subs[0] || null);
         }
       } catch (e) {
         console.log('Usuário não logado');

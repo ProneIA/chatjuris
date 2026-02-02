@@ -77,15 +77,59 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
+              // Verificar se precisa iniciar teste de 7 dias
+              if (!u.has_used_trial && (!u.trial_status || u.trial_status === 'pending')) {
+                const trialStartDate = new Date();
+                const trialEndDate = new Date();
+                trialEndDate.setDate(trialEndDate.getDate() + 7);
+
+                await base44.auth.updateMe({
+                  trial_start_date: trialStartDate.toISOString().split('T')[0],
+                  trial_end_date: trialEndDate.toISOString().split('T')[0],
+                  trial_status: 'active',
+                  has_used_trial: true
+                });
+
+                // Criar subscription de trial
+                await base44.entities.Subscription.create({
+                  user_id: u.id,
+                  plan: 'pro',
+                  status: 'trial',
+                  daily_actions_limit: 999999,
+                  daily_actions_used: 0,
+                  last_reset_date: new Date().toISOString().split('T')[0],
+                  price: 0,
+                  payment_method: 'manual',
+                  start_date: trialStartDate.toISOString().split('T')[0],
+                  end_date: trialEndDate.toISOString().split('T')[0]
+                });
+
+                // Recarregar user data
+                const updatedUser = await base44.auth.me();
+                setUser(updatedUser);
+              }
+
+              // Verificar se teste expirou
+              if (u.trial_status === 'active' && u.trial_end_date) {
+                const today = new Date().toISOString().split('T')[0];
+                if (today > u.trial_end_date) {
+                  await base44.auth.updateMe({
+                    trial_status: 'expired'
+                  });
+                  const updatedUser = await base44.auth.me();
+                  setUser(updatedUser);
+                }
+              }
+
               let subs = await base44.entities.Subscription.filter({ user_id: u.id });
 
-              // Se não tem subscription, usuário antigo recebe Pro automático (grandfathered)
+              // Se não tem subscription, criar uma pendente
               if (subs.length === 0) {
                 const newSub = await base44.entities.Subscription.create({
                   user_id: u.id,
                   plan: 'pro',
-                  status: 'active',
-                  daily_actions_limit: 999999,
+                  status: 'pending',
+                  daily_actions_limit: 0,
                   daily_actions_used: 0,
                   last_reset_date: new Date().toISOString().split('T')[0],
                   price: 0,
@@ -200,12 +244,12 @@ export default function Layout({ children, currentPageName }) {
       return <>{children}</>;
     }
 
-    // BLOQUEIO: Verificar se usuário tem assinatura ativa
-    // Permitir acesso apenas se status for 'active'
+    // BLOQUEIO: Verificar se usuário tem assinatura ativa OU está em trial válido
     const hasActiveSubscription = subscription && subscription.status === 'active';
-
-    if (!hasActiveSubscription) {
-      // Redirecionar para página Pricing
+    const isInValidTrial = user && user.trial_status === 'active' && subscription && subscription.status === 'trial';
+    
+    if (!hasActiveSubscription && !isInValidTrial) {
+      // Redirecionar para página Pricing se teste expirou ou não tem acesso
       if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
         window.location.href = '/Pricing';
         return null;
