@@ -78,8 +78,8 @@ export default function Templates({ theme = 'light' }) {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <div className={`h-full flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className={`min-h-screen flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <div className="flex-1 flex flex-col">
         <div className={`border-b px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
           <BackNavigation to={createPageUrl("Dashboard")} theme={theme} className="mb-4" />
           <div className="flex items-center justify-between mb-6">
