@@ -62,8 +62,10 @@ Deno.serve(async (req) => {
       case 'PURCHASE_COMPLETE':
       case 'PURCHASE_APPROVED':
       case 'PURCHASE_BILLET_PRINTED':
-        // Ativar assinatura PRO
+        console.log('💳 DEBUG - Payment received, activating PRO for:', userEmail);
+        // Ativar assinatura PRO com limite ilimitado
         if (existingSubs.length > 0) {
+          console.log('📝 DEBUG - Updating existing subscription:', existingSubs[0].id);
           await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
             plan: 'pro',
             status: 'active',
@@ -71,10 +73,14 @@ Deno.serve(async (req) => {
             payment_method: purchase?.payment?.type || 'hotmart',
             payment_external_id: hotmartData.transaction_id,
             price: (purchase?.price?.value || 0) / 100,
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            last_reset_date: new Date().toISOString().split('T')[0],
             start_date: new Date().toISOString().split('T')[0],
             ...hotmartData
           });
         } else {
+          console.log('✨ DEBUG - Creating new PRO subscription');
           await base44.asServiceRole.entities.Subscription.create({
             user_id: user.id,
             plan: 'pro',
@@ -83,38 +89,47 @@ Deno.serve(async (req) => {
             payment_method: purchase?.payment?.type || 'hotmart',
             payment_external_id: hotmartData.transaction_id,
             price: (purchase?.price?.value || 0) / 100,
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            last_reset_date: new Date().toISOString().split('T')[0],
             start_date: new Date().toISOString().split('T')[0],
             ...hotmartData
           });
         }
-        console.log('Assinatura PRO ativada para:', userEmail);
+        console.log('✅ DEBUG - PRO subscription activated with unlimited access for:', userEmail);
         break;
 
       case 'PURCHASE_CANCELED':
       case 'PURCHASE_REFUNDED':
       case 'PURCHASE_CHARGEBACK':
       case 'SUBSCRIPTION_CANCELLATION':
-        // Cancelar assinatura
+        console.log('❌ DEBUG - Payment cancelled/refunded, blocking access for:', userEmail);
+        // Cancelar assinatura e bloquear acesso
         if (existingSubs.length > 0) {
           await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
             status: 'cancelled',
             payment_status: 'cancelled',
+            daily_actions_limit: 0,
             end_date: new Date().toISOString().split('T')[0]
           });
+          console.log('🔒 DEBUG - Access blocked for:', userEmail);
         }
-        console.log('Assinatura cancelada para:', userEmail);
         break;
 
       case 'SUBSCRIPTION_REACTIVATION':
+        console.log('🔄 DEBUG - Subscription reactivated, restoring access for:', userEmail);
         // Reativar assinatura
         if (existingSubs.length > 0) {
           await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
             status: 'active',
             payment_status: 'paid',
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            last_reset_date: new Date().toISOString().split('T')[0],
             end_date: null
           });
+          console.log('✅ DEBUG - Access restored for:', userEmail);
         }
-        console.log('Assinatura reativada para:', userEmail);
         break;
 
       default:
