@@ -88,22 +88,34 @@ export default function Tasks({ theme = 'light' }) {
 
   const createMutation = useMutation({
     mutationFn: async (taskData) => {
-      console.log('🚀 DEBUG - Creating task:', taskData);
+      console.log('🔄 DEBUG - Creating task with data:', taskData);
+      
+      // Validação explícita
+      if (!taskData.title?.trim()) {
+        throw new Error('Título é obrigatório');
+      }
+      if (!taskData.due_date) {
+        throw new Error('Data de vencimento é obrigatória');
+      }
+      
       const cleanedData = {
         ...taskData,
-        case_id: taskData.case_id && taskData.case_id !== "none" ? taskData.case_id : null,
-        client_id: taskData.client_id && taskData.client_id !== "none" ? taskData.client_id : null,
-        assigned_to: taskData.assigned_to && taskData.assigned_to !== "none" ? taskData.assigned_to : null,
+        title: taskData.title.trim(),
+        description: taskData.description?.trim() || "",
+        case_id: taskData.case_id && taskData.case_id !== "none" && taskData.case_id !== "" ? taskData.case_id : null,
+        client_id: taskData.client_id && taskData.client_id !== "none" && taskData.client_id !== "" ? taskData.client_id : null,
+        assigned_to: taskData.assigned_to && taskData.assigned_to !== "none" && taskData.assigned_to !== "" ? taskData.assigned_to : null,
       };
-      console.log('📝 DEBUG - Cleaned data:', cleanedData);
+      
+      console.log('✅ DEBUG - Cleaned data:', cleanedData);
+      
       const result = await base44.entities.Task.create(cleanedData);
-      console.log('✅ DEBUG - Task created:', result);
+      console.log('✅ DEBUG - Task created successfully:', result);
       return result;
     },
     onSuccess: () => {
-      console.log('✨ DEBUG - Task creation successful, updating UI');
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success("Tarefa criada com sucesso!");
+      toast.success("✅ Tarefa criada com sucesso!");
       setShowForm(false);
       setNewTask({
         title: "",
@@ -118,8 +130,8 @@ export default function Tasks({ theme = 'light' }) {
       });
     },
     onError: (error) => {
-      console.error('❌ DEBUG - Task creation failed:', error);
-      toast.error("Erro ao criar tarefa: " + (error.message || "Tente novamente"));
+      console.error('❌ DEBUG - Error creating task:', error);
+      toast.error(`Erro ao criar tarefa: ${error.message || 'Tente novamente'}`);
     }
   });
 
@@ -183,38 +195,28 @@ export default function Tasks({ theme = 'light' }) {
           <CardHeader>
             <CardTitle className={isDark ? 'text-white' : ''}>Criar Nova Tarefa</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              console.log('📤 DEBUG - Form submitted, task data:', newTask);
-              if (!newTask.title || !newTask.due_date) {
-                toast.error("Preencha os campos obrigatórios: Título e Data de Vencimento");
-                return;
-              }
-              createMutation.mutate(newTask);
-            }} className="space-y-4">
-              <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Título *</Label>
-                <Input
-                  placeholder="Ex: Protocolar petição inicial"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
-                  required
-                />
-              </div>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className={isDark ? 'text-neutral-300' : ''}>Título *</Label>
+              <Input
+                placeholder="Ex: Protocolar petição inicial"
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Descrição</Label>
-                <Textarea
-                  placeholder="Detalhes da tarefa..."
-                  value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className={`h-20 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className={isDark ? 'text-neutral-300' : ''}>Descrição</Label>
+              <Textarea
+                placeholder="Detalhes da tarefa..."
+                value={newTask.description}
+                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                className={`h-20 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+              />
+            </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className={isDark ? 'text-neutral-300' : ''}>Data de Vencimento *</Label>
                 <Input
@@ -222,7 +224,6 @@ export default function Tasks({ theme = 'light' }) {
                   value={newTask.due_date}
                   onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
                   className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
-                  required
                 />
               </div>
 
@@ -307,43 +308,61 @@ export default function Tasks({ theme = 'light' }) {
               </div>
             </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button
-                  type="submit"
-                  disabled={!newTask.title || !newTask.due_date || createMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {createMutation.isPending ? (
-                    <>
-                      <span className="animate-spin mr-2">⏳</span>
-                      Criando...
-                    </>
-                  ) : (
-                    "Criar Tarefa"
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowForm(false);
-                    setNewTask({
-                      title: "",
-                      description: "",
-                      due_date: "",
-                      priority: "medium",
-                      type: "other",
-                      status: "pending",
-                      case_id: "",
-                      client_id: "",
-                      assigned_to: ""
-                    });
-                  }}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
+            <div className="flex gap-3 pt-2">
+              <Button
+                onClick={async (e) => {
+                  e.preventDefault();
+                  console.log('🚀 DEBUG - Create button clicked, current data:', newTask);
+                  
+                  // Validação visual
+                  if (!newTask.title?.trim()) {
+                    toast.error("❌ Título é obrigatório");
+                    return;
+                  }
+                  if (!newTask.due_date) {
+                    toast.error("❌ Data de vencimento é obrigatória");
+                    return;
+                  }
+                  
+                  try {
+                    await createMutation.mutateAsync(newTask);
+                  } catch (error) {
+                    console.error('❌ DEBUG - Button handler error:', error);
+                  }
+                }}
+                disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createMutation.isPending ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Criando...
+                  </>
+                ) : (
+                  "Criar Tarefa"
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowForm(false);
+                  setNewTask({
+                    title: "",
+                    description: "",
+                    due_date: "",
+                    priority: "medium",
+                    type: "other",
+                    status: "pending",
+                    case_id: "",
+                    client_id: "",
+                    assigned_to: ""
+                  });
+                }}
+                disabled={createMutation.isPending}
+              >
+                Cancelar
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
