@@ -355,15 +355,16 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
 
         {/* History Sidebar */}
         {showHistory && (
-          <div className={`mb-4 p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`mb-4 p-4 rounded-xl border max-h-[40vh] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-3 sticky top-0 pb-2 ${isDark ? 'bg-neutral-900' : 'bg-white'}">
+              <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Últimas 5 Conversas
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowHistory(false)}
+                className="h-7 w-7 p-0"
               >
                 ✕
               </Button>
@@ -378,7 +379,7 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
                   <button
                     key={conv.id}
                     onClick={() => loadConversation(conv)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                    className={`w-full text-left p-2.5 rounded-lg transition-all ${
                       currentConversationId === conv.id
                         ? isDark ? 'bg-purple-900/30 border border-purple-700' : 'bg-purple-50 border border-purple-200'
                         : isDark ? 'bg-neutral-800 hover:bg-neutral-700' : 'bg-gray-50 hover:bg-gray-100'
@@ -386,15 +387,15 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <p className={`font-medium text-xs truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {conv.title}
                         </p>
-                        <p className={`text-xs mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                        <p className={`text-[10px] mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
                           {conv.messages?.length || 0} mensagens • {new Date(conv.last_message_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                       {currentConversationId === conv.id && (
-                        <div className="w-2 h-2 rounded-full bg-purple-500 mt-1" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1 shrink-0" />
                       )}
                     </div>
                   </button>
