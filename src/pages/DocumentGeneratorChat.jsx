@@ -124,28 +124,33 @@ export default function DocumentGeneratorChat({ theme = 'light' }) {
     }
 
     const userMessage = { role: "user", content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setInput("");
     setIsGenerating(true);
 
     try {
-      const conversationHistory = messages
-        .concat(userMessage)
+      console.log('📨 DEBUG - Enviando mensagem. Total de mensagens:', currentMessages.length);
+      console.log('📜 DEBUG - Documento atual existe:', !!currentDocument);
+      
+      const conversationHistory = currentMessages
         .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
         .join('\n\n');
+
+      console.log('💬 DEBUG - Histórico completo sendo enviado:', conversationHistory.substring(0, 200) + '...');
 
       const areaContext = selectedLegalArea ? `\nÁREA DO DIREITO: ${selectedLegalArea}` : '';
       const docTypeContext = selectedDocType ? `\nTIPO DE DOCUMENTO: ${selectedDocType}` : '';
 
       const contextInstruction = currentDocument
-        ? `DOCUMENTO ATUAL EM EDIÇÃO:\n\n${currentDocument}\n\nATUALIZE ESTE DOCUMENTO com as informações fornecidas pelo usuário. NÃO crie um documento novo, apenas modifique o existente.`
-        : 'Gere um novo documento jurídico completo.';
+        ? `DOCUMENTO ATUAL EM EDIÇÃO:\n\n${currentDocument}\n\nATUALIZE ESTE DOCUMENTO com as informações fornecidas pelo usuário. IMPORTANTE: Mantenha o contexto de todas as mensagens anteriores. NÃO crie um documento novo, apenas modifique o existente com base no histórico completo da conversa.`
+        : 'Gere um novo documento jurídico completo baseado no contexto da conversa.';
 
       const prompt = `Você é um advogado brasileiro experiente especializado em redação de peças jurídicas.${areaContext}${docTypeContext}
 
 ${contextInstruction}
 
-HISTÓRICO DA CONVERSA:
+HISTÓRICO COMPLETO DA CONVERSA:
 ${conversationHistory}
 
 DIRETRIZES:
@@ -153,27 +158,27 @@ DIRETRIZES:
 2. Siga estrutura padrão para o tipo de documento
 3. Inclua fundamentação legal completa
 4. Use formatação clara (Markdown)
-5. Se informação estiver faltando, indique com [COMPLETAR]
-${currentDocument ? '6. MANTENHA o formato e estrutura do documento atual, apenas atualizando conforme solicitado' : ''}
+5. CONSIDERE TODO O HISTÓRICO DA CONVERSA ao responder
+6. Se informação estiver faltando, indique com [COMPLETAR]
+${currentDocument ? '7. MANTENHA o formato e estrutura do documento atual, apenas atualizando conforme o histórico completo da conversa' : ''}
 
-Responda ao último pedido do usuário ${currentDocument ? 'atualizando o documento' : 'gerando o documento'}.`;
+Responda ao último pedido do usuário ${currentDocument ? 'atualizando o documento considerando TODO o contexto anterior' : 'gerando o documento com base em todas as informações fornecidas'}.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: true,
       });
 
+      console.log('✅ DEBUG - Resposta recebida da IA:', response.substring(0, 100));
+
       const assistantMessage = { role: "assistant", content: response };
-      const updatedMessages = [...messages, userMessage, assistantMessage];
+      const updatedMessages = [...currentMessages, assistantMessage];
       setMessages(updatedMessages);
       setCurrentDocument(response);
-      
-      console.log('✅ DEBUG - Documento gerado e setado:', response.substring(0, 100));
 
       if (!documentTitle) {
         const newTitle = `Documento - ${new Date().toLocaleDateString('pt-BR')}`;
         setDocumentTitle(newTitle);
-        console.log('📝 DEBUG - Título setado:', newTitle);
       }
 
       // Salvar conversa automaticamente
@@ -191,10 +196,13 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
       };
 
       if (currentConversationId) {
+        console.log('💾 DEBUG - Atualizando conversa existente:', currentConversationId);
         await saveConversationMutation.mutateAsync({ id: currentConversationId, data: conversationData });
       } else {
+        console.log('💾 DEBUG - Criando nova conversa');
         const newConv = await saveConversationMutation.mutateAsync({ id: null, data: conversationData });
         setCurrentConversationId(newConv.id);
+        console.log('✅ DEBUG - Nova conversa criada com ID:', newConv.id);
       }
 
       if (subscription?.plan === "free") {
@@ -204,7 +212,7 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
         queryClient.invalidateQueries({ queryKey: ["subscription"] });
       }
     } catch (error) {
-      console.error(error);
+      console.error('❌ DEBUG - Erro ao enviar mensagem:', error);
       toast.error("Erro ao gerar resposta. Tente novamente.");
     }
 
