@@ -274,12 +274,13 @@ export default function Layout({ children, currentPageName }) {
       return <>{children}</>;
     }
 
-    // BLOQUEIO: Verificar se usuário tem assinatura ativa OU está em trial válido
+    // BLOQUEIO: Verificar se usuário tem acesso
     const hasActiveSubscription = subscription && subscription.status === 'active';
     const isInValidTrial = user && user.trial_status === 'active' && subscription && subscription.status === 'trial';
+    const hasAccess = hasActiveSubscription || isInValidTrial;
     
-    if (!hasActiveSubscription && !isInValidTrial) {
-      // Redirecionar para página Pricing se teste expirou ou não tem acesso
+    if (!hasAccess) {
+      // Redirecionar para página Pricing
       if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
         window.location.href = '/Pricing';
         return null;
