@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { FileText, Send, Loader2, Copy, Download, Save, Sparkles, MessageSquare, FileDown } from "lucide-react";
+import { FileText, Send, Loader2, Copy, Download, Save, Sparkles, MessageSquare, FileDown, Plus } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,6 +50,8 @@ export default function DocumentGeneratorChat({ theme = 'light' }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocument, setCurrentDocument] = useState("");
   const [documentTitle, setDocumentTitle] = useState("");
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -71,11 +73,41 @@ export default function DocumentGeneratorChat({ theme = 'light' }) {
     enabled: !!user?.id,
   });
 
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["doc-conversations", user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const convs = await base44.entities.Conversation.filter(
+        { 
+          created_by: user.email,
+          mode: "legal_document_generator"
+        },
+        '-updated_date',
+        5
+      );
+      return convs;
+    },
+    enabled: !!user?.email,
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data) => base44.entities.LegalDocument.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       toast.success("Documento salvo!");
+    },
+  });
+
+  const saveConversationMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      if (id) {
+        return base44.entities.Conversation.update(id, data);
+      } else {
+        return base44.entities.Conversation.create(data);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doc-conversations"] });
     },
   });
 
@@ -132,7 +164,8 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
       });
 
       const assistantMessage = { role: "assistant", content: response };
-      setMessages(prev => [...prev, assistantMessage]);
+      const updatedMessages = [...messages, userMessage, assistantMessage];
+      setMessages(updatedMessages);
       setCurrentDocument(response);
       
       console.log('✅ DEBUG - Documento gerado e setado:', response.substring(0, 100));
@@ -141,6 +174,27 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
         const newTitle = `Documento - ${new Date().toLocaleDateString('pt-BR')}`;
         setDocumentTitle(newTitle);
         console.log('📝 DEBUG - Título setado:', newTitle);
+      }
+
+      // Salvar conversa automaticamente
+      const conversationData = {
+        title: documentTitle || `${selectedDocType || 'Documento'} - ${new Date().toLocaleDateString('pt-BR')}`,
+        mode: "legal_document_generator",
+        messages: updatedMessages,
+        last_message_at: new Date().toISOString(),
+        metadata: {
+          legal_area: selectedLegalArea,
+          doc_type: selectedDocType,
+          current_document: response,
+          document_title: documentTitle
+        }
+      };
+
+      if (currentConversationId) {
+        await saveConversationMutation.mutateAsync({ id: currentConversationId, data: conversationData });
+      } else {
+        const newConv = await saveConversationMutation.mutateAsync({ id: null, data: conversationData });
+        setCurrentConversationId(newConv.id);
       }
 
       if (subscription?.plan === "free") {
@@ -227,25 +281,120 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
     }
   };
 
+  const loadConversation = (conv) => {
+    setMessages(conv.messages || []);
+    setCurrentDocument(conv.metadata?.current_document || "");
+    setDocumentTitle(conv.metadata?.document_title || conv.title);
+    setSelectedLegalArea(conv.metadata?.legal_area || null);
+    setSelectedDocType(conv.metadata?.doc_type || null);
+    setCurrentConversationId(conv.id);
+    setShowHistory(false);
+    toast.success("Conversa carregada!");
+  };
+
+  const startNewConversation = () => {
+    setMessages([]);
+    setCurrentDocument("");
+    setDocumentTitle("");
+    setSelectedLegalArea(null);
+    setSelectedDocType(null);
+    setCurrentConversationId(null);
+    setShowHistory(false);
+    toast.success("Nova conversa iniciada!");
+  };
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-5xl mx-auto p-4 sm:p-6 h-screen flex flex-col">
         {/* Header */}
         <div className="mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
+                <MessageSquare className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Gerador de Peças - Chat
+                </h1>
+                <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  Converse com a IA para criar e editar documentos jurídicos
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Gerador de Peças - Chat
-              </h1>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                Converse com a IA para criar e editar documentos jurídicos
-              </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className={isDark ? 'border-neutral-700 text-white' : ''}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Histórico
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startNewConversation}
+                className={isDark ? 'border-neutral-700 text-white' : ''}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nova
+              </Button>
             </div>
           </div>
         </div>
+
+        {/* History Sidebar */}
+        {showHistory && (
+          <div className={`mb-4 p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Últimas 5 Conversas
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {conversations.length === 0 ? (
+                <p className={`text-sm text-center py-4 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                  Nenhuma conversa salva ainda
+                </p>
+              ) : (
+                conversations.map(conv => (
+                  <button
+                    key={conv.id}
+                    onClick={() => loadConversation(conv)}
+                    className={`w-full text-left p-3 rounded-lg transition-all ${
+                      currentConversationId === conv.id
+                        ? isDark ? 'bg-purple-900/30 border border-purple-700' : 'bg-purple-50 border border-purple-200'
+                        : isDark ? 'bg-neutral-800 hover:bg-neutral-700' : 'bg-gray-50 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {conv.title}
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                          {conv.messages?.length || 0} mensagens • {new Date(conv.last_message_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      {currentConversationId === conv.id && (
+                        <div className="w-2 h-2 rounded-full bg-purple-500 mt-1" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Chat Area */}
         <div className={`flex-1 rounded-xl border overflow-hidden flex flex-col ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
