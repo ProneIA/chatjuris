@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { FileText, Send, Loader2, Copy, Download, Save, Sparkles, MessageSquare } from "lucide-react";
+import { FileText, Send, Loader2, Copy, Download, Save, Sparkles, MessageSquare, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { jsPDF } from "jspdf";
 
 const legalAreas = [
   { id: 'civil', name: 'Direito Civil', emoji: '📜' },
@@ -169,7 +170,7 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
     toast.success("Documento copiado!");
   };
 
-  const handleDownload = () => {
+  const handleDownloadTxt = () => {
     const blob = new Blob([currentDocument], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -177,7 +178,49 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
     a.download = `${documentTitle || "documento"}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Download iniciado!");
+    toast.success("Arquivo TXT baixado!");
+  };
+
+  const handleDownloadPdf = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxWidth = pageWidth - 2 * margin;
+      
+      // Remove Markdown formatting for plain text
+      const plainText = currentDocument
+        .replace(/#{1,6}\s/g, '')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\*(.+?)\*/g, '$1')
+        .replace(/\[(.+?)\]\(.+?\)/g, '$1');
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text(documentTitle || 'Documento Jurídico', margin, margin);
+      
+      // Content
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      let yPos = margin + 10;
+      
+      const lines = doc.splitTextToSize(plainText, maxWidth);
+      lines.forEach(line => {
+        if (yPos > 280) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.text(line, margin, yPos);
+        yPos += 6;
+      });
+      
+      doc.save(`${documentTitle || 'documento'}.pdf`);
+      toast.success("PDF baixado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF. Tente novamente.");
+    }
   };
 
   return (
@@ -358,9 +401,13 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
                   <Copy className="w-4 h-4 mr-1" />
                   Copiar
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleDownload}>
+                <Button variant="outline" size="sm" onClick={handleDownloadTxt}>
+                  <FileDown className="w-4 h-4 mr-1" />
+                  TXT
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDownloadPdf} className="bg-red-50 hover:bg-red-100 border-red-200">
                   <Download className="w-4 h-4 mr-1" />
-                  Baixar
+                  PDF
                 </Button>
                 <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? (
