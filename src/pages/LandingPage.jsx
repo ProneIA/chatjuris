@@ -20,6 +20,10 @@ export default function LandingPage() {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
+  const handleFreeTrial = () => {
+    base44.auth.redirectToLogin(createPageUrl("Dashboard") + "?trial=true");
+  };
+
   React.useEffect(() => {
     const checkAuth = async () => {
       const isAuth = await base44.auth.isAuthenticated();
@@ -132,10 +136,10 @@ export default function LandingPage() {
                 Entrar
               </button>
               <button 
-                onClick={handleLogin}
+                onClick={handleFreeTrial}
                 className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
               >
-                Teste grátis
+                Teste grátis por 7 dias
               </button>
             </div>
 
@@ -148,10 +152,10 @@ export default function LandingPage() {
                 Entrar
               </button>
               <button 
-                onClick={goToPricing}
+                onClick={handleFreeTrial}
                 className="px-4 py-2 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
               >
-                Assinar
+                Teste Grátis
               </button>
             </div>
           </nav>
@@ -168,12 +172,20 @@ export default function LandingPage() {
               
               <div className="w-16 sm:w-20 h-0.5 bg-white mx-auto mt-6 sm:mt-8" />
 
-              <button 
-                onClick={goToPricing}
-                className="inline-block mt-8 sm:mt-10 px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
-              >
-                Assinar agora
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 sm:mt-10">
+                <button 
+                  onClick={handleFreeTrial}
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
+                >
+                  Teste grátis por 7 dias
+                </button>
+                <button 
+                  onClick={goToPricing}
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-transparent text-white border border-white rounded-none hover:bg-white hover:text-gray-900 transition-all"
+                >
+                  Ver planos
+                </button>
+              </div>
             </div>
           </div>
 
@@ -235,10 +247,10 @@ export default function LandingPage() {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button 
-                onClick={goToPricing}
+                onClick={handleFreeTrial}
                 className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
               >
-                Começar agora
+                Teste grátis por 7 dias
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
