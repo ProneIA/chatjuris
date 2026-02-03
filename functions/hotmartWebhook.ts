@@ -49,6 +49,20 @@ Deno.serve(async (req) => {
       user_id: user.id 
     });
 
+    // Detectar plano baseado no produto/preço
+    const price = (purchase?.price?.value || 0) / 100;
+    const isAnnual = price > 100 || (data.product?.name || '').toLowerCase().includes('anual');
+    const plan = isAnnual ? 'annual' : 'monthly';
+    
+    // Calcular data de expiração
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    if (isAnnual) {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1);
+    }
+
     const hotmartData = {
       transaction_id: purchase?.transaction || subscription?.subscriber_code,
       product_id: data.product?.id,
@@ -56,6 +70,14 @@ Deno.serve(async (req) => {
       hotmart_subscription_id: subscription?.subscriber_code,
       purchase_date: purchase?.approved_date || new Date().toISOString(),
     };
+    
+    console.log('📅 DEBUG - Plan detection:', { 
+      price, 
+      plan, 
+      isAnnual, 
+      startDate: startDate.toISOString().split('T')[0], 
+      endDate: endDate.toISOString().split('T')[0] 
+    });
 
     // Processar eventos
     switch (event) {
@@ -63,40 +85,36 @@ Deno.serve(async (req) => {
       case 'PURCHASE_APPROVED':
       case 'PURCHASE_BILLET_PRINTED':
         console.log('💳 DEBUG - Payment received, activating PRO for:', userEmail);
-        // Ativar assinatura PRO com limite ilimitado
+        console.log('📋 DEBUG - Plan:', plan, '| Price:', price, '| Valid until:', endDate.toISOString().split('T')[0]);
+        
+        // Ativar assinatura PRO com limite ilimitado e data de expiração
+        const subscriptionData = {
+          plan: 'pro',
+          status: 'active',
+          payment_status: 'paid',
+          payment_method: purchase?.payment?.type || 'hotmart',
+          payment_external_id: hotmartData.transaction_id,
+          price: price,
+          daily_actions_limit: 999999,
+          daily_actions_used: 0,
+          last_reset_date: startDate.toISOString().split('T')[0],
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          next_billing_date: endDate.toISOString().split('T')[0],
+          ...hotmartData
+        };
+        
         if (existingSubs.length > 0) {
           console.log('📝 DEBUG - Updating existing subscription:', existingSubs[0].id);
-          await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
-            plan: 'pro',
-            status: 'active',
-            payment_status: 'paid',
-            payment_method: purchase?.payment?.type || 'hotmart',
-            payment_external_id: hotmartData.transaction_id,
-            price: (purchase?.price?.value || 0) / 100,
-            daily_actions_limit: 999999,
-            daily_actions_used: 0,
-            last_reset_date: new Date().toISOString().split('T')[0],
-            start_date: new Date().toISOString().split('T')[0],
-            ...hotmartData
-          });
+          await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
         } else {
           console.log('✨ DEBUG - Creating new PRO subscription');
           await base44.asServiceRole.entities.Subscription.create({
             user_id: user.id,
-            plan: 'pro',
-            status: 'active',
-            payment_status: 'paid',
-            payment_method: purchase?.payment?.type || 'hotmart',
-            payment_external_id: hotmartData.transaction_id,
-            price: (purchase?.price?.value || 0) / 100,
-            daily_actions_limit: 999999,
-            daily_actions_used: 0,
-            last_reset_date: new Date().toISOString().split('T')[0],
-            start_date: new Date().toISOString().split('T')[0],
-            ...hotmartData
+            ...subscriptionData
           });
         }
-        console.log('✅ DEBUG - PRO subscription activated with unlimited access for:', userEmail);
+        console.log('✅ DEBUG - PRO subscription activated with unlimited access until:', endDate.toISOString().split('T')[0]);
         break;
 
       case 'PURCHASE_CANCELED':
@@ -132,8 +150,31 @@ Deno.serve(async (req) => {
         }
         break;
 
+      case 'SUBSCRIPTION_PAYMENT_APPROVED':
+        console.log('🔄 DEBUG - Subscription renewal payment approved for:', userEmail);
+        // Renovar assinatura
+        if (existingSubs.length > 0) {
+          const newEndDate = new Date();
+          if (isAnnual) {
+            newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+          } else {
+            newEndDate.setMonth(newEndDate.getMonth() + 1);
+          }
+          
+          await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, {
+            status: 'active',
+            payment_status: 'paid',
+            daily_actions_limit: 999999,
+            end_date: newEndDate.toISOString().split('T')[0],
+            next_billing_date: newEndDate.toISOString().split('T')[0],
+            ...hotmartData
+          });
+          console.log('✅ DEBUG - Subscription renewed until:', newEndDate.toISOString().split('T')[0]);
+        }
+        break;
+
       default:
-        console.log('Evento não tratado:', event);
+        console.log('⚠️ DEBUG - Unhandled event:', event);
     }
 
     // Log de auditoria
