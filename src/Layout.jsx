@@ -340,6 +340,21 @@ export default function Layout({ children, currentPageName }) {
 
   const visibleNavItems = navigationItems;
 
+  // Páginas que NÃO devem mostrar o botão Voltar
+  const pagesWithoutBackButton = [
+    "Dashboard",
+    "LandingPage",
+    "QuemSomos",
+    "Funcionalidades",
+    "ContactPublic",
+    "Pricing",
+    "ClientAccess",
+    "AccessDenied",
+    "Checkout"
+  ];
+  
+  const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
+
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <PWAHead />
