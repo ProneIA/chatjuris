@@ -40,7 +40,6 @@ import {
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
   { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
-  { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: Users2 },
   { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
@@ -66,7 +65,6 @@ export default function Layout({ children, currentPageName }) {
       return 'light';
     });
 
-    const [userAffiliate, setUserAffiliate] = React.useState(null);
     const [showConsentModal, setShowConsentModal] = React.useState(false);
     const [hasCheckedConsent, setHasCheckedConsent] = React.useState(false);
     const [consentAccepted, setConsentAccepted] = React.useState(false);
@@ -201,13 +199,9 @@ export default function Layout({ children, currentPageName }) {
                   const updatedUser = await base44.auth.me();
                   setUser(updatedUser);
                 }
-              }
+                }
 
-              // Verificar se o usuário é um afiliado
-              const affiliates = await base44.entities.Affiliate.filter({ user_email: u.email });
-              setUserAffiliate(affiliates[0] || null);
-
-              // Verificar consentimentos LGPD
+                // Verificar consentimentos LGPD
               const localConsentKey = `consent_accepted_${u.email}`;
               const localConsent = localStorage.getItem(localConsentKey);
 
@@ -343,14 +337,7 @@ export default function Layout({ children, currentPageName }) {
       );
     };
 
-  // Filtrar itens de navegação baseado no usuário
-  const visibleNavItems = navigationItems.filter(item => {
-    // Mostrar "Afiliados" apenas para usuários afiliados cadastrados
-    if (item.title === "Afiliados") {
-      return userAffiliate;
-    }
-    return true;
-  });
+  const visibleNavItems = navigationItems;
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
