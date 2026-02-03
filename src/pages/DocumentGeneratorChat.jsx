@@ -134,9 +134,13 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
       const assistantMessage = { role: "assistant", content: response };
       setMessages(prev => [...prev, assistantMessage]);
       setCurrentDocument(response);
+      
+      console.log('✅ DEBUG - Documento gerado e setado:', response.substring(0, 100));
 
       if (!documentTitle) {
-        setDocumentTitle(`Documento - ${new Date().toLocaleDateString('pt-BR')}`);
+        const newTitle = `Documento - ${new Date().toLocaleDateString('pt-BR')}`;
+        setDocumentTitle(newTitle);
+        console.log('📝 DEBUG - Título setado:', newTitle);
       }
 
       if (subscription?.plan === "free") {
@@ -389,36 +393,76 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
 
           {/* Input Area */}
           <div className={`border-t p-4 ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-            {currentDocument && (
-              <div className="mb-3 flex items-center gap-2 flex-wrap">
-                <Input
-                  value={documentTitle}
-                  onChange={(e) => setDocumentTitle(e.target.value)}
-                  placeholder="Título do documento"
-                  className="flex-1 min-w-[200px]"
-                />
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  <Copy className="w-4 h-4 mr-1" />
-                  Copiar
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleDownloadTxt}>
-                  <FileDown className="w-4 h-4 mr-1" />
-                  TXT
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleDownloadPdf} className="bg-red-50 hover:bg-red-100 border-red-200">
-                  <Download className="w-4 h-4 mr-1" />
-                  PDF
-                </Button>
-                <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-1" />
-                      Salvar
-                    </>
-                  )}
-                </Button>
+            {currentDocument && currentDocument.trim().length > 0 && (
+              <div className={`mb-3 p-3 rounded-lg ${isDark ? 'bg-green-900/20 border border-green-700' : 'bg-green-50 border border-green-200'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className={`text-xs font-medium ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                    Documento Pronto - Baixe ou Salve
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Input
+                    value={documentTitle}
+                    onChange={(e) => setDocumentTitle(e.target.value)}
+                    placeholder="Título do documento"
+                    className={`flex-1 min-w-[200px] ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white'}`}
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log('🔍 DEBUG - Copiando documento');
+                      handleCopy();
+                    }}
+                    className={isDark ? 'border-neutral-700 hover:bg-neutral-800' : ''}
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copiar
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log('📄 DEBUG - Baixando TXT');
+                      handleDownloadTxt();
+                    }}
+                    className={isDark ? 'border-neutral-700 hover:bg-neutral-800' : ''}
+                  >
+                    <FileDown className="w-4 h-4 mr-1" />
+                    TXT
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log('📕 DEBUG - Baixando PDF');
+                      handleDownloadPdf();
+                    }}
+                    className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      console.log('💾 DEBUG - Salvando documento');
+                      handleSave();
+                    }}
+                    disabled={saveMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {saveMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-1" />
+                        Salvar
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
 
