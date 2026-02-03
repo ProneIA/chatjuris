@@ -77,26 +77,61 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
-              let subs = await base44.entities.Subscription.filter({ user_id: u.id });
+              const today = new Date().toISOString().split('T')[0];
+              const userCreatedDate = u.created_date ? new Date(u.created_date).toISOString().split('T')[0] : null;
+              const isOldUser = userCreatedDate && userCreatedDate < today;
+              
+              console.log('🔍 DEBUG - User Check:', {
+                userId: u.id,
+                email: u.email,
+                createdDate: userCreatedDate,
+                today: today,
+                isOldUser: isOldUser,
+                hasUsedTrial: u.has_used_trial,
+                trialStatus: u.trial_status
+              });
 
-              // USUÁRIOS EXISTENTES: Se já tem subscription, liberar como Pro (grandfathered)
-              if (subs.length > 0) {
-                // Usuário já existe, garantir que está ativo se não estava antes
-                if (subs[0].status === 'pending') {
+              let subs = await base44.entities.Subscription.filter({ user_id: u.id });
+              console.log('📊 DEBUG - Subscriptions found:', subs.length > 0 ? subs[0] : 'none');
+
+              // REGRA 1: Usuários antigos (criados antes de hoje) recebem Pro automático
+              if (isOldUser && subs.length > 0) {
+                console.log('✅ DEBUG - Old user with subscription, ensuring Pro access');
+                if (subs[0].status !== 'active') {
                   await base44.entities.Subscription.update(subs[0].id, {
                     status: 'active',
                     daily_actions_limit: 999999
                   });
                   subs = await base44.entities.Subscription.filter({ user_id: u.id });
+                  console.log('✅ DEBUG - Updated to active');
                 }
                 setSubscription(subs[0]);
+              } else if (isOldUser && subs.length === 0) {
+                console.log('✅ DEBUG - Old user without subscription, creating Pro');
+                const newSub = await base44.entities.Subscription.create({
+                  user_id: u.id,
+                  plan: 'pro',
+                  status: 'active',
+                  daily_actions_limit: 999999,
+                  daily_actions_used: 0,
+                  last_reset_date: today,
+                  price: 0,
+                  payment_method: 'manual',
+                  start_date: today
+                });
+                subs = [newSub];
+                setSubscription(newSub);
+              } else if (!isOldUser && subs.length > 0) {
+                console.log('🆕 DEBUG - New user with existing subscription');
+                setSubscription(subs[0]);
               } else {
-                // NOVOS USUÁRIOS: Verificar se tem parâmetro trial=true na URL
+                // Novo usuário sem subscription
                 const urlParams = new URLSearchParams(window.location.search);
                 const hasTrialParam = urlParams.get('trial') === 'true';
+                console.log('🆕 DEBUG - New user without subscription, trial param:', hasTrialParam);
 
                 if (hasTrialParam && !u.has_used_trial) {
-                  // Iniciar teste de 7 dias
+                  console.log('🎁 DEBUG - Starting 7-day trial');
                   const trialStartDate = new Date();
                   const trialEndDate = new Date();
                   trialEndDate.setDate(trialEndDate.getDate() + 7);
@@ -108,60 +143,57 @@ export default function Layout({ children, currentPageName }) {
                     has_used_trial: true
                   });
 
-                  // Criar subscription de trial
                   const newSub = await base44.entities.Subscription.create({
                     user_id: u.id,
                     plan: 'pro',
                     status: 'trial',
                     daily_actions_limit: 999999,
                     daily_actions_used: 0,
-                    last_reset_date: new Date().toISOString().split('T')[0],
+                    last_reset_date: today,
                     price: 0,
                     payment_method: 'manual',
                     start_date: trialStartDate.toISOString().split('T')[0],
                     end_date: trialEndDate.toISOString().split('T')[0]
                   });
 
-                  // Remover parâmetro trial da URL
                   urlParams.delete('trial');
                   const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
                   window.history.replaceState({}, '', newUrl);
 
                   setSubscription(newSub);
 
-                  // Recarregar user data
                   const updatedUser = await base44.auth.me();
                   setUser(updatedUser);
+                  console.log('✅ DEBUG - Trial created successfully');
                 } else {
-                  // Criar subscription pendente (bloqueado)
+                  console.log('🔒 DEBUG - Creating pending subscription (blocked)');
                   const newSub = await base44.entities.Subscription.create({
                     user_id: u.id,
                     plan: 'pro',
                     status: 'pending',
                     daily_actions_limit: 0,
                     daily_actions_used: 0,
-                    last_reset_date: new Date().toISOString().split('T')[0],
+                    last_reset_date: today,
                     price: 0,
                     payment_method: 'manual',
-                    start_date: new Date().toISOString().split('T')[0]
+                    start_date: today
                   });
                   setSubscription(newSub);
                 }
               }
 
-              // Verificar se teste expirou (para quem está em trial)
+              // REGRA 2: Verificar se teste expirou
               if (u.trial_status === 'active' && u.trial_end_date) {
-                const today = new Date().toISOString().split('T')[0];
                 if (today > u.trial_end_date) {
+                  console.log('⏰ DEBUG - Trial expired, blocking access');
                   await base44.auth.updateMe({
                     trial_status: 'expired'
                   });
 
-                  // Atualizar subscription para pendente
                   const currentSubs = await base44.entities.Subscription.filter({ user_id: u.id });
                   if (currentSubs.length > 0 && currentSubs[0].status === 'trial') {
                     await base44.entities.Subscription.update(currentSubs[0].id, {
-                      status: 'pending',
+                      status: 'expired',
                       daily_actions_limit: 0
                     });
                   }
@@ -275,12 +307,22 @@ export default function Layout({ children, currentPageName }) {
     const isInValidTrial = user && user.trial_status === 'active' && subscription && subscription.status === 'trial';
     const hasAccess = hasActiveSubscription || isInValidTrial;
     
+    console.log('🔐 DEBUG - Access Check:', {
+      hasActiveSubscription,
+      isInValidTrial,
+      hasAccess,
+      subscriptionStatus: subscription?.status,
+      userTrialStatus: user?.trial_status
+    });
+    
     if (!hasAccess) {
-      // Redirecionar para página Pricing
+      console.log('❌ DEBUG - Access DENIED, redirecting to Pricing');
       if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
         window.location.href = '/Pricing';
         return null;
       }
+    } else {
+      console.log('✅ DEBUG - Access GRANTED');
     }
 
     const NavLink = ({ item, mobile = false }) => {
