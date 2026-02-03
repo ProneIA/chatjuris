@@ -18,7 +18,8 @@ import {
   Users2,
   Download,
   DollarSign,
-  Bookmark
+  Bookmark,
+  ArrowLeft
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -512,6 +513,21 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Main Content */}
       <main className="min-h-screen pt-14">
+        {showBackButton && (
+          <div className={`border-b ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+            <div className="max-w-[1800px] mx-auto px-6 py-3">
+              <Link 
+                to={createPageUrl("Dashboard")}
+                className={`inline-flex items-center gap-2 text-sm transition-colors ${
+                  isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar</span>
+              </Link>
+            </div>
+          </div>
+        )}
         <div className={`min-h-[calc(100vh-3.5rem)] ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {React.cloneElement(children, { theme })}
         </div>
