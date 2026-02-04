@@ -12,12 +12,41 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
 const tribunals = [
-  { id: "all", name: "Todos os Tribunais", icon: Scale },
-  { id: "stf", name: "STF - Supremo Tribunal Federal", icon: Gavel },
-  { id: "stj", name: "STJ - Superior Tribunal de Justiça", icon: BookOpen },
-  { id: "trf", name: "TRF - Tribunais Regionais Federais", icon: FileText },
-  { id: "tjsp", name: "TJSP - Tribunal de Justiça de São Paulo", icon: FileText },
-  { id: "tst", name: "TST - Tribunal Superior do Trabalho", icon: FileText }
+  { id: "all", name: "Todos os Tribunais", icon: Scale, url: null },
+  
+  // Tribunais Superiores
+  { id: "stf", name: "STF - Supremo Tribunal Federal", icon: Gavel, url: "https://portal.stf.jus.br/jurisprudencia/" },
+  { id: "stj", name: "STJ - Superior Tribunal de Justiça", icon: BookOpen, url: "https://www.stj.jus.br" },
+  { id: "tst", name: "TST - Tribunal Superior do Trabalho", icon: FileText, url: "https://jurisprudencia.tst.jus.br/" },
+  { id: "tse", name: "TSE - Tribunal Superior Eleitoral", icon: FileText, url: "https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia" },
+  { id: "stm", name: "STM - Superior Tribunal Militar", icon: FileText, url: "https://jurisprudencia.stm.jus.br/" },
+  
+  // Tribunais Regionais Federais
+  { id: "trf1", name: "TRF1 - Tribunal Regional Federal 1ª Região", icon: FileText, url: "https://www2.cjf.jus.br/jurisprudencia/trf1/" },
+  { id: "trf2", name: "TRF2 - Tribunal Regional Federal 2ª Região", icon: FileText, url: "https://www10.trf2.jus.br/consultas/?site=v2_jurisprudencia" },
+  { id: "trf3", name: "TRF3 - Tribunal Regional Federal 3ª Região", icon: FileText, url: "https://web.trf3.jus.br/jurisprudencia/" },
+  { id: "trf4", name: "TRF4 - Tribunal Regional Federal 4ª Região", icon: FileText, url: "https://jurisprudencia.trf4.jus.br/pesquisa/pesquisa.php?tipo=1" },
+  { id: "trf5", name: "TRF5 - Tribunal Regional Federal 5ª Região", icon: FileText, url: "https://julia-pesquisa.trf5.jus.br/julia-pesquisa/#consulta" },
+  
+  // Tribunais Regionais do Trabalho (principais)
+  { id: "trt1", name: "TRT1 - Regional do Trabalho 1ª Região (RJ)", icon: FileText, url: "https://www.trt1.jus.br" },
+  { id: "trt2", name: "TRT2 - Regional do Trabalho 2ª Região (SP Capital)", icon: FileText, url: "https://www.trt2.jus.br" },
+  { id: "trt3", name: "TRT3 - Regional do Trabalho 3ª Região (MG)", icon: FileText, url: "https://www.trt3.jus.br" },
+  { id: "trt4", name: "TRT4 - Regional do Trabalho 4ª Região (RS)", icon: FileText, url: "https://www.trt4.jus.br" },
+  { id: "trt15", name: "TRT15 - Regional do Trabalho 15ª Região (SP Interior)", icon: FileText, url: "https://www.trt15.jus.br" },
+  
+  // Tribunais de Justiça (principais estados)
+  { id: "tjsp", name: "TJSP - Tribunal de Justiça de São Paulo", icon: FileText, url: "https://www.tjsp.jus.br" },
+  { id: "tjrj", name: "TJRJ - Tribunal de Justiça do Rio de Janeiro", icon: FileText, url: "https://www.tjrj.jus.br" },
+  { id: "tjmg", name: "TJMG - Tribunal de Justiça de Minas Gerais", icon: FileText, url: "https://www.tjmg.jus.br" },
+  { id: "tjrs", name: "TJRS - Tribunal de Justiça do Rio Grande do Sul", icon: FileText, url: "https://www.tjrs.jus.br" },
+  { id: "tjpr", name: "TJPR - Tribunal de Justiça do Paraná", icon: FileText, url: "https://www.tjpr.jus.br" },
+  { id: "tjsc", name: "TJSC - Tribunal de Justiça de Santa Catarina", icon: FileText, url: "https://www.tjsc.jus.br" },
+  { id: "tjba", name: "TJBA - Tribunal de Justiça da Bahia", icon: FileText, url: "https://www.tjba.jus.br" },
+  { id: "tjpe", name: "TJPE - Tribunal de Justiça de Pernambuco", icon: FileText, url: "https://www.tjpe.jus.br" },
+  { id: "tjce", name: "TJCE - Tribunal de Justiça do Ceará", icon: FileText, url: "https://www.tjce.jus.br" },
+  { id: "tjgo", name: "TJGO - Tribunal de Justiça de Goiás", icon: FileText, url: "https://www.tjgo.jus.br" },
+  { id: "tjdft", name: "TJDFT - Tribunal de Justiça do Distrito Federal", icon: FileText, url: "https://www.tjdft.jus.br" }
 ];
 
 const searchTypes = [
@@ -51,12 +80,18 @@ TAREFA: Pesquisar jurisprudências relevantes sobre: "${searchQuery}"
 
 ${selectedTribunal !== 'all' ? `TRIBUNAL ESPECÍFICO: ${tribunals.find(t => t.id === selectedTribunal)?.name}` : 'TODOS OS TRIBUNAIS'}
 
-FONTES RECOMENDADAS:
-- JusBrasil: https://www.jusbrasil.com.br/jurisprudencia/
-- STJ: https://www.stj.jus.br/sites/portalp/paginas/Sob-medida/Advogado/Jurisprudencia/Pesquisa-de-Jurisprudencia.aspx
+FONTES OFICIAIS OBRIGATÓRIAS:
 - STF: https://portal.stf.jus.br/jurisprudencia/
+- STJ: https://www.stj.jus.br
+- TST: https://jurisprudencia.tst.jus.br/
+- TSE: https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia
+- TRFs: sites oficiais dos Tribunais Regionais Federais (TRF1 a TRF5)
+- TRTs: sites oficiais dos Tribunais Regionais do Trabalho (TRT1 a TRT24)
+- TJs: sites oficiais dos Tribunais de Justiça Estaduais
+- CJF: https://jurisprudencia.cjf.jus.br/
+- JusBrasil (agregador): https://www.jusbrasil.com.br/jurisprudencia/
 
-IMPORTANTE: Busque informações reais e atualizadas dos sites de jurisprudência.
+IMPORTANTE: Priorize fontes OFICIAIS dos tribunais. Busque informações reais e atualizadas.
 
 Retorne um JSON estruturado com:
 
@@ -280,23 +315,7 @@ Retorne JSON estruturado com casos similares e análise comparativa.`;
 
           {/* Quick Links */}
           <div className="flex flex-wrap gap-2 mt-4">
-            <span className="text-xs text-slate-500">Acesso direto:</span>
-            <a
-              href="https://www.jusbrasil.com.br/jurisprudencia/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-            >
-              JusBrasil <ExternalLink className="w-3 h-3" />
-            </a>
-            <a
-              href="https://www.stj.jus.br/sites/portalp/paginas/Sob-medida/Advogado/Jurisprudencia/Pesquisa-de-Jurisprudencia.aspx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-            >
-              STJ <ExternalLink className="w-3 h-3" />
-            </a>
+            <span className="text-xs text-slate-500">Acesso direto aos tribunais:</span>
             <a
               href="https://portal.stf.jus.br/jurisprudencia/"
               target="_blank"
@@ -305,6 +324,48 @@ Retorne JSON estruturado com casos similares e análise comparativa.`;
             >
               STF <ExternalLink className="w-3 h-3" />
             </a>
+            <a
+              href="https://www.stj.jus.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            >
+              STJ <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="https://jurisprudencia.tst.jus.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            >
+              TST <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            >
+              TSE <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="https://jurisprudencia.cjf.jus.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+            >
+              CJF <ExternalLink className="w-3 h-3" />
+            </a>
+            {selectedTribunal !== 'all' && tribunals.find(t => t.id === selectedTribunal)?.url && (
+              <a
+                href={tribunals.find(t => t.id === selectedTribunal).url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-semibold"
+              >
+                Ver {tribunals.find(t => t.id === selectedTribunal).name} <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
           </div>
         </div>
       </div>
