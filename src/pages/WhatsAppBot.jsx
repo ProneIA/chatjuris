@@ -80,7 +80,7 @@ export default function WhatsAppBot({ theme }) {
     }
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.agent_name || !formData.office_name) {
       toast.error('Preencha os campos obrigatórios');
       return;
@@ -105,8 +105,17 @@ export default function WhatsAppBot({ theme }) {
     });
   };
 
-  const agentName = config?.agent_name?.toLowerCase().replace(/\s+/g, '_') || 'whatsapp_assistant';
+  const agentName = 'whatsapp_assistant';
   const whatsappURL = base44.agents.getWhatsAppConnectURL(agentName);
+
+  const syncAgent = async () => {
+    try {
+      await base44.functions.invoke('syncWhatsAppAgent');
+      toast.success('Configurações sincronizadas! Conecte seu WhatsApp.');
+    } catch (error) {
+      toast.error('Erro ao sincronizar: ' + error.message);
+    }
+  };
 
   const features = [
     {
@@ -396,13 +405,23 @@ export default function WhatsAppBot({ theme }) {
                     </div>
                   )}
 
-                  <a href={whatsappURL} target="_blank" rel="noopener noreferrer" className="block">
-                    <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white">
-                      <Smartphone className="w-5 h-5 mr-2" />
-                      Conectar WhatsApp Business
-                      <ExternalLink className="w-4 h-4 ml-2" />
+                  <div className="space-y-3">
+                    <Button 
+                      size="lg" 
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      onClick={syncAgent}
+                    >
+                      <Save className="w-5 h-5 mr-2" />
+                      Sincronizar Configurações
                     </Button>
-                  </a>
+                    <a href={whatsappURL} target="_blank" rel="noopener noreferrer" className="block">
+                      <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                        <Smartphone className="w-5 h-5 mr-2" />
+                        Conectar WhatsApp Business
+                        <ExternalLink className="w-4 h-4 ml-2" />
+                      </Button>
+                    </a>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
