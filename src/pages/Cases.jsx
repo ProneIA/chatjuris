@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import CaseCard from "@/components/cases/CaseCard";
-import BackNavigation from "@/components/common/BackNavigation";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -164,8 +163,6 @@ export default function Cases({ theme = 'light' }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <BackNavigation theme={theme} />
-      
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
