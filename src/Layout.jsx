@@ -563,7 +563,7 @@ export default function Layout({ children, currentPageName }) {
       <main className="min-h-screen pt-14 lg:pl-64">
         {showBackButton && (
           <div className={`border-b ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-            <div className="px-6 py-3">
+            <div className="px-6 py-3 flex items-center justify-between">
               <Link 
                 to={createPageUrl("Dashboard")}
                 className={`inline-flex items-center gap-2 text-sm transition-colors ${
@@ -573,6 +573,23 @@ export default function Layout({ children, currentPageName }) {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Voltar</span>
               </Link>
+              
+              {currentPageName === "AIAssistant" && (
+                <button
+                  onClick={() => {
+                    const event = new CustomEvent('openAIHistory');
+                    window.dispatchEvent(event);
+                  }}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors border ${
+                    isDark 
+                      ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <History className="w-4 h-4" />
+                  <span>Histórico</span>
+                </button>
+              )}
             </div>
           </div>
         )}
