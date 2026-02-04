@@ -34,6 +34,15 @@ export default function AIAssistant({ theme = 'light' }) {
   }, []);
 
   useEffect(() => {
+    const handleOpenHistory = () => {
+      setShowHistoryDialog(true);
+    };
+    
+    window.addEventListener('openAIHistory', handleOpenHistory);
+    return () => window.removeEventListener('openAIHistory', handleOpenHistory);
+  }, []);
+
+  useEffect(() => {
     const handleBeforeUnload = async () => {
       if (tempMessages.length > 0 && !selectedConversation) {
         await base44.entities.Conversation.create({
