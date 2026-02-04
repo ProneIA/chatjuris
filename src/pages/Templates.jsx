@@ -7,8 +7,6 @@ import { Plus, Search, Star } from "lucide-react";
 import TemplateList from "../components/templates/TemplateList";
 import TemplateForm from "../components/templates/TemplateForm";
 import TemplateDetails from "../components/templates/TemplateDetails";
-import BackNavigation from "../components/common/BackNavigation";
-import { createPageUrl } from "@/utils";
 
 export default function Templates({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -81,7 +79,6 @@ export default function Templates({ theme = 'light' }) {
     <div className={`min-h-screen flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="flex-1 flex flex-col">
         <div className={`border-b px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <BackNavigation to={createPageUrl("Dashboard")} theme={theme} className="mb-4" />
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Modelos de Peças</h1>
