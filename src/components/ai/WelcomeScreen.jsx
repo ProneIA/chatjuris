@@ -88,8 +88,8 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
   return (
     <div className="h-full flex flex-col bg-stone-50">
       {/* Messages Area - Compacta */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="max-w-full mx-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+        <div className="w-full mx-auto px-4 py-3">
           {showWelcome ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
