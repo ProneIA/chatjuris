@@ -186,37 +186,34 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
   };
 
   return (
-    <div className="h-screen flex overflow-hidden bg-white">
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="border-b px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 flex-shrink-0 border-gray-200 bg-white">
-          <div className="flex-1 flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-black">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <h2 className="font-semibold text-base sm:text-lg text-black">
-              {selectedConversation ? selectedConversation.title : 'Assistente Jurídico'}
-            </h2>
+    <div className={`h-screen flex flex-col overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      {/* Top Bar - Fixo */}
+      <div className={`border-b px-4 py-2.5 flex items-center justify-between flex-shrink-0 ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'}`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
+            <Sparkles className={`w-4 h-4 ${isDark ? 'text-black' : 'text-white'}`} />
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {conversations.length > 0 && (
-              <Button
-                onClick={() => setShowHistoryDialog(true)}
-                size="sm"
-                variant="outline"
-                className="h-9 px-3 border-gray-300 text-gray-700 hover:bg-gray-100"
-              >
-                <History className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Histórico</span>
-              </Button>
-            )}
-          </div>
+          <h2 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-black'}`}>
+            {selectedConversation ? selectedConversation.title : 'Assistente Jurídico'}
+          </h2>
         </div>
 
-        {/* Chat Area */}
-        <div className="flex-1 overflow-hidden bg-white">
+        {conversations.length > 0 && (
+          <Button
+            onClick={() => setShowHistoryDialog(true)}
+            size="sm"
+            variant="outline"
+            className={`h-8 px-2.5 text-xs ${isDark ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+          >
+            <History className="w-3.5 h-3.5 mr-1.5" />
+            <span>Histórico</span>
+          </Button>
+        )}
+      </div>
+
+      {/* Chat Area Centralizada */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden">
+        <div className="w-full max-w-4xl h-full flex flex-col">
           <AnimatePresence mode="wait">
             {selectedConversation ? (
               <ChatInterface
