@@ -320,23 +320,7 @@ export default function Layout({ children, currentPageName }) {
       console.log('✅ DEBUG - Access GRANTED');
     }
 
-    const NavLink = ({ item, mobile = false }) => {
-      const isActive = location.pathname === item.url;
-      return (
-        <Link
-          to={item.url}
-          onClick={() => mobile && setIsMobileMenuOpen(false)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-            isActive
-              ? 'text-white font-bold'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          <item.icon className="w-4 h-4" />
-          <span>{item.title}</span>
-        </Link>
-      );
-    };
+
 
   const visibleNavItems = navigationItems;
 
@@ -380,51 +364,47 @@ export default function Layout({ children, currentPageName }) {
         ::-webkit-scrollbar-thumb:hover { background: ${isDark ? '#444' : '#94a3b8'}; }
       `}</style>
 
-      {/* Top Navigation Bar */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-black border-b border-neutral-800 z-50">
-        <div className="h-full max-w-[1800px] mx-auto px-4 flex items-center justify-between">
-          {/* Left - Logo & Nav */}
-          <div className="flex items-center gap-6">
-            <Link 
-              to={createPageUrl("Dashboard")} 
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                <Scale className="w-4 h-4 text-black" />
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-white">Juris</span>
-            </Link>
+      {/* Top Bar - Minimalista */}
+      <header className={`fixed top-0 left-0 right-0 h-14 border-b z-50 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div className="h-full px-4 flex items-center justify-between">
+          {/* Left - Mobile Menu */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={`lg:hidden p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-neutral-800 text-white' : 'hover:bg-gray-100 text-gray-900'}`}
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {visibleNavItems.map((item) => (
-                <NavLink key={item.title} item={item} />
-              ))}
-            </nav>
-          </div>
+          {/* Center - Logo (mobile) */}
+          <Link 
+            to={createPageUrl("Dashboard")} 
+            className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
+              <Scale className={`w-4 h-4 ${isDark ? 'text-black' : 'text-white'}`} />
+            </div>
+            <span className={`text-base font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Juris</span>
+          </Link>
 
           {/* Right - Actions */}
           <div className="flex items-center gap-2">
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-2">
-              {!isStandalone && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleInstallApp}
-                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white mr-2 border border-purple-500/20 shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Instalar App</span>
-                </Button>
-              )}
-            </div>
+            {!isStandalone && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleInstallApp}
+                className="hidden md:flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden xl:inline">Instalar App</span>
+              </Button>
+            )}
 
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="h-9 w-9 text-white hover:bg-neutral-800"
+              className="h-9 w-9"
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -435,57 +415,90 @@ export default function Layout({ children, currentPageName }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:opacity-80">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center bg-white">
-                    <span className="font-medium text-xs text-black">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
+                    <span className={`font-medium text-xs ${isDark ? 'text-black' : 'text-white'}`}>
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </span>
                   </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white border-gray-200">
+              <DropdownMenuContent align="end" className={`w-56 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
                 <div className="px-3 py-2">
-                  <p className="font-medium text-sm text-gray-900">
+                  <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {user?.full_name || 'Usuário'}
                   </p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{user?.email}</p>
                 </div>
-                <DropdownMenuSeparator className="bg-gray-200" />
+                <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
                 <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Settings")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                  <Link to={createPageUrl("Settings")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
                     <Settings className="w-4 h-4" />
                     <span>Preferências</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("MyData")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                  <Link to={createPageUrl("MyData")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
                     <Bookmark className="w-4 h-4" />
                     <span>Meus Dados</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Contact")} className="flex items-center gap-2 cursor-pointer text-gray-700">
+                  <Link to={createPageUrl("Contact")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
                     <MessageSquare className="w-4 h-4" />
                     <span>Contato</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-gray-200" />
+                <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
                 <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-600">
                   <LogOut className="w-4 h-4" />
                   <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-neutral-800 text-white"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
       </header>
+
+      {/* Sidebar - Desktop */}
+      <aside className={`hidden lg:block fixed left-0 top-14 bottom-0 w-64 border-r overflow-y-auto ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div className="p-4 space-y-2">
+          {/* Logo */}
+          <Link 
+            to={createPageUrl("Dashboard")} 
+            className="flex items-center gap-3 px-3 py-3 mb-2 hover:opacity-80 transition-opacity"
+          >
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
+              <Scale className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
+            </div>
+            <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Juris</span>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="space-y-1">
+            {visibleNavItems.map((item) => {
+              const isActive = location.pathname === item.url;
+              return (
+                <Link
+                  key={item.title}
+                  to={item.url}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? isDark 
+                        ? 'bg-neutral-800 text-white' 
+                        : 'bg-gray-100 text-gray-900'
+                      : isDark
+                        ? 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 shrink-0" />
+                  <span>{item.title}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </aside>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -499,24 +512,44 @@ export default function Layout({ children, currentPageName }) {
               className="lg:hidden fixed inset-0 bg-black/50 z-40 pt-14"
             />
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="lg:hidden fixed top-14 left-0 right-0 bg-neutral-900 z-40 border-b border-neutral-800 max-h-[80vh] overflow-y-auto"
+              initial={{ x: -280, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -280, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={`lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 border-r overflow-y-auto ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}
             >
               <nav className="p-4 space-y-1">
-                {visibleNavItems.map((item) => (
-                  <NavLink key={item.title} item={item} mobile />
-                ))}
+                {visibleNavItems.map((item) => {
+                  const isActive = location.pathname === item.url;
+                  return (
+                    <Link
+                      key={item.title}
+                      to={item.url}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        isActive
+                          ? isDark 
+                            ? 'bg-neutral-800 text-white' 
+                            : 'bg-gray-100 text-gray-900'
+                          : isDark
+                            ? 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.title}</span>
+                    </Link>
+                  );
+                })}
                 {!isStandalone && (
                   <button
                     onClick={() => {
                       handleInstallApp();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full text-left mt-2"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full mt-4"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-5 h-5" />
                     <span>Instalar Aplicativo</span>
                   </button>
                 )}
@@ -527,10 +560,10 @@ export default function Layout({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="min-h-screen pt-14">
+      <main className="min-h-screen pt-14 lg:pl-64">
         {showBackButton && (
           <div className={`border-b ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-            <div className="max-w-[1800px] mx-auto px-6 py-3">
+            <div className="px-6 py-3">
               <Link 
                 to={createPageUrl("Dashboard")}
                 className={`inline-flex items-center gap-2 text-sm transition-colors ${
