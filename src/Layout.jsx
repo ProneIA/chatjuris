@@ -19,7 +19,8 @@ import {
   Download,
   DollarSign,
   Bookmark,
-  ArrowLeft
+  ArrowLeft,
+  History as HistoryIcon
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -586,7 +587,7 @@ export default function Layout({ children, currentPageName }) {
                       : 'border-gray-300 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <History className="w-4 h-4" />
+                  <HistoryIcon className="w-4 h-4" />
                   <span>Histórico</span>
                 </button>
               )}
