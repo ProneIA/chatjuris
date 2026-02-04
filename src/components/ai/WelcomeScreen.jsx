@@ -87,33 +87,33 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
   return (
     <div className="h-full flex flex-col bg-stone-50">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-4">
+      {/* Messages Area - Scrollável e compacta */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-3xl mx-auto px-4 py-3">
           {showWelcome ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center py-6 sm:py-8 px-4"
+              className="text-center py-4 px-4"
             >
               {/* Classic Icon */}
-              <div className="inline-block mb-4">
-                <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center">
-                  <Scale className="w-7 h-7 text-white" />
+              <div className="inline-block mb-3">
+                <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-white" />
                 </div>
               </div>
 
               {/* Welcome Message */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-light text-stone-900 mb-2">
+              <h1 className="text-xl sm:text-2xl font-light text-stone-900 mb-1.5">
                 Assistente Jurídico
               </h1>
-              <p className="text-stone-500 text-sm sm:text-base max-w-md mx-auto mb-4">
+              <p className="text-stone-500 text-sm max-w-md mx-auto mb-3">
                 Tire suas dúvidas, pesquise jurisprudências e obtenha orientações jurídicas precisas.
               </p>
             </motion.div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <AnimatePresence mode="popLayout">
                 {messages.map((message, index) => (
                   <MessageBubble key={index} message={message} />
@@ -124,15 +124,15 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-4"
+                  className="flex gap-3"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
-                    <span className="text-sm">🤖</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
+                    <span className="text-xs">🤖</span>
                   </div>
-                  <div className="flex-1 pt-1">
+                  <div className="flex-1 pt-0.5">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                      <span className="text-sm text-slate-600">Pensando...</span>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                      <span className="text-xs text-slate-600">Pensando...</span>
                     </div>
                   </div>
                 </motion.div>
@@ -140,7 +140,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
               {/* Document Analyzer */}
               {uploadedFile && !isProcessing && (
-                <div className="mt-6">
+                <div className="mt-4">
                   <DocumentAnalyzer 
                     uploadedFile={uploadedFile}
                     onAnalysisComplete={(result, type) => {
@@ -153,7 +153,7 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
 
               {/* Suggested Questions */}
               {!isProcessing && messages.length > 0 && (
-                <div className="mt-6">
+                <div className="mt-4">
                   <SuggestedQuestions 
                     messages={messages}
                     onQuestionClick={(question) => setInput(question)}
@@ -167,33 +167,32 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
         </div>
       </div>
 
-      {/* Input Area - Fixed at bottom, full width */}
-      <div className="border-t border-stone-200 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
+      {/* Input Area - Fixo, compacto */}
+      <div className="border-t border-stone-200 bg-white flex-shrink-0">
+        <div className="max-w-3xl mx-auto px-4 py-2.5">
           {uploadedFile && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-3 p-3 bg-stone-100 border border-stone-200 rounded-lg flex items-center gap-3"
+              className="mb-2 p-2 bg-stone-100 border border-stone-200 rounded-lg flex items-center gap-2"
             >
-              <FileText className="w-5 h-5 text-stone-600 shrink-0" />
+              <FileText className="w-4 h-4 text-stone-600 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-stone-900 truncate">{uploadedFile.name}</p>
-                <p className="text-xs text-stone-500">Documento pronto para análise</p>
+                <p className="text-xs font-medium text-stone-900 truncate">{uploadedFile.name}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => onFileUpload(null)}
-                className="shrink-0 h-8 w-8 hover:bg-stone-200"
+                className="shrink-0 h-6 w-6 hover:bg-stone-200"
               >
-                <X className="w-4 h-4 text-stone-600" />
+                <X className="w-3 h-3 text-stone-600" />
               </Button>
             </motion.div>
           )}
 
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-end gap-2 sm:gap-3 bg-stone-100 border border-stone-300 rounded-xl p-2 sm:p-3 focus-within:border-stone-400 focus-within:ring-1 focus-within:ring-stone-400 transition-all">
+            <div className="flex items-center gap-2 bg-stone-100 border border-stone-300 rounded-lg p-2 focus-within:border-stone-400 focus-within:ring-1 focus-within:ring-stone-400 transition-all">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -207,13 +206,13 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingFile || isProcessing}
-                className="shrink-0 hover:bg-stone-200 h-10 w-10"
+                className="shrink-0 hover:bg-stone-200 h-8 w-8"
                 title="Anexar documento"
               >
                 {uploadingFile ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-stone-500" />
+                  <Loader2 className="w-4 h-4 animate-spin text-stone-500" />
                 ) : (
-                  <Paperclip className="w-5 h-5 text-stone-500" />
+                  <Paperclip className="w-4 h-4 text-stone-500" />
                 )}
               </Button>
 
@@ -221,8 +220,8 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={uploadedFile ? "Adicione instruções para análise..." : "Digite sua pergunta jurídica..."}
-                className="flex-1 bg-transparent border-none outline-none resize-none px-2 py-2 max-h-40 text-base text-stone-900 placeholder:text-stone-400"
+                placeholder={uploadedFile ? "Adicione instruções..." : "Digite sua pergunta..."}
+                className="flex-1 bg-transparent border-none outline-none resize-none px-1 py-1 max-h-20 text-sm text-stone-900 placeholder:text-stone-400"
                 rows={1}
                 disabled={isProcessing}
                 onKeyDown={(e) => {
@@ -237,9 +236,9 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                 type="submit"
                 disabled={(!input.trim() && !uploadedFile) || isProcessing}
                 size="icon"
-                className="shrink-0 bg-black hover:bg-gray-800 disabled:bg-stone-300 rounded-lg h-10 w-10"
+                className="shrink-0 bg-black hover:bg-gray-800 disabled:bg-stone-300 rounded-lg h-8 w-8"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </Button>
             </div>
           </form>
