@@ -79,11 +79,9 @@ import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
 import HotmartSetup from './pages/HotmartSetup';
-import Jurisprudence from './pages/Jurisprudence';
 import LandingPage from './pages/LandingPage';
 import LegalCalculator from './pages/LegalCalculator';
 import LegalResearch from './pages/LegalResearch';
-import LegalResearchAI from './pages/LegalResearchAI';
 import Library from './pages/Library';
 import MyData from './pages/MyData';
 import MySubscription from './pages/MySubscription';
@@ -135,11 +133,9 @@ export const PAGES = {
     "GestaoHub": GestaoHub,
     "Home": Home,
     "HotmartSetup": HotmartSetup,
-    "Jurisprudence": Jurisprudence,
     "LandingPage": LandingPage,
     "LegalCalculator": LegalCalculator,
     "LegalResearch": LegalResearch,
-    "LegalResearchAI": LegalResearchAI,
     "Library": Library,
     "MyData": MyData,
     "MySubscription": MySubscription,

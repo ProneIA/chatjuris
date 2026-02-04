@@ -1,462 +1,628 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Search, 
-  Sparkles, 
-  BookOpen, 
+import {
+  Search,
+  BookOpen,
+  Sparkles,
   Star,
-  StarOff,
   Copy,
-  Check,
-  Loader2,
-  Filter,
-  Clock,
-  FileText,
-  Scale,
-  Bookmark,
-  Plus,
   Trash2,
-  ExternalLink
+  Save,
+  Loader2,
+  ExternalLink,
+  Scale,
+  Gavel,
+  FileText,
+  Filter,
+  BookMarked,
+  ChevronRight
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
 
-const legalAreas = [
-  { value: "civil", label: "Civil" },
-  { value: "criminal", label: "Criminal" },
-  { value: "trabalhista", label: "Trabalhista" },
-  { value: "tributario", label: "Tributário" },
-  { value: "familia", label: "Família" },
-  { value: "empresarial", label: "Empresarial" },
-  { value: "consumidor", label: "Consumidor" },
-  { value: "previdenciario", label: "Previdenciário" },
-  { value: "constitucional", label: "Constitucional" },
-  { value: "administrativo", label: "Administrativo" },
-  { value: "outros", label: "Outros" }
+// Dados completos de tribunais com URLs oficiais
+const tribunaisCompleto = [
+  { value: "all", label: "Todos os Tribunais", url: null },
+  { value: "STF", label: "STF - Supremo Tribunal Federal", url: "https://portal.stf.jus.br/jurisprudencia/" },
+  { value: "STJ", label: "STJ - Superior Tribunal de Justiça", url: "https://www.stj.jus.br" },
+  { value: "TST", label: "TST - Tribunal Superior do Trabalho", url: "https://jurisprudencia.tst.jus.br/" },
+  { value: "TSE", label: "TSE - Tribunal Superior Eleitoral", url: "https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia" },
+  { value: "STM", label: "STM - Superior Tribunal Militar", url: "https://jurisprudencia.stm.jus.br/" },
+  { value: "TRF1", label: "TRF1 - Tribunal Regional Federal 1ª Região", url: "https://www2.cjf.jus.br/jurisprudencia/trf1/" },
+  { value: "TRF2", label: "TRF2 - Tribunal Regional Federal 2ª Região", url: "https://www10.trf2.jus.br/consultas/?site=v2_jurisprudencia" },
+  { value: "TRF3", label: "TRF3 - Tribunal Regional Federal 3ª Região", url: "https://web.trf3.jus.br/jurisprudencia/" },
+  { value: "TRF4", label: "TRF4 - Tribunal Regional Federal 4ª Região", url: "https://jurisprudencia.trf4.jus.br/pesquisa/pesquisa.php?tipo=1" },
+  { value: "TRF5", label: "TRF5 - Tribunal Regional Federal 5ª Região", url: "https://julia-pesquisa.trf5.jus.br/julia-pesquisa/#consulta" },
+  { value: "TJSP", label: "TJSP - Tribunal de Justiça de São Paulo", url: "https://www.tjsp.jus.br" },
+  { value: "TJRJ", label: "TJRJ - Tribunal de Justiça do Rio de Janeiro", url: "https://www.tjrj.jus.br" },
+  { value: "TJMG", label: "TJMG - Tribunal de Justiça de Minas Gerais", url: "https://www.tjmg.jus.br" },
+  { value: "TJRS", label: "TJRS - Tribunal de Justiça do Rio Grande do Sul", url: "https://www.tjrs.jus.br" },
+];
+
+const researchTypes = [
+  { id: "jurisprudence", label: "Jurisprudência", icon: Gavel, description: "Decisões judiciais e acórdãos" },
+  { id: "law", label: "Legislação", icon: Scale, description: "Leis, códigos e normas" },
+  { id: "doctrine", label: "Doutrina", icon: BookMarked, description: "Artigos e obras acadêmicas" },
+];
+
+const areas = [
+  "Civil", "Criminal", "Trabalhista", "Tributário", "Família", "Empresarial", 
+  "Consumidor", "Previdenciário", "Constitucional", "Administrativo"
 ];
 
 export default function LegalResearch({ theme = 'light' }) {
   const isDark = theme === 'dark';
-  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("search");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState("jurisprudence");
   const [selectedArea, setSelectedArea] = useState("");
+  const [selectedTribunal, setSelectedTribunal] = useState("all");
+  const [context, setContext] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedResearch, setSelectedResearch] = useState(null);
-  const [copiedCitation, setCopiedCitation] = useState(null);
+  const [currentResult, setCurrentResult] = useState(null);
+  const [selectedSaved, setSelectedSaved] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
-  const [currentTab, setCurrentTab] = useState("search");
+  const [searchFilter, setSearchFilter] = useState("");
+  const queryClient = useQueryClient();
 
-  const { data: researches = [] } = useQuery({
-    queryKey: ['legal-researches'],
-    queryFn: () => base44.entities.LegalResearch.list('-created_date'),
+  // Queries
+  const { data: savedResearches = [] } = useQuery({
+    queryKey: ['jurisprudences'],
+    queryFn: () => base44.entities.Jurisprudence.list('-created_date'),
   });
 
   const { data: cases = [] } = useQuery({
     queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list(),
+    queryFn: () => base44.entities.Case.list('title'),
   });
 
-  const createResearchMutation = useMutation({
-    mutationFn: (data) => base44.entities.LegalResearch.create(data),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['legal-researches'] });
-      setSelectedResearch(data);
-      setCurrentTab("history");
-    }
-  });
-
-  const updateResearchMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.LegalResearch.update(id, data),
+  // Mutations
+  const saveMutation = useMutation({
+    mutationFn: (data) => base44.entities.Jurisprudence.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['legal-researches'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['jurisprudences'] });
+      toast.success("Pesquisa salva!");
+      setActiveTab("library");
+    },
   });
 
-  const deleteResearchMutation = useMutation({
-    mutationFn: (id) => base44.entities.LegalResearch.delete(id),
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Jurisprudence.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['legal-researches'] });
-      setSelectedResearch(null);
-    }
+      queryClient.invalidateQueries({ queryKey: ['jurisprudences'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Jurisprudence.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jurisprudences'] });
+      setSelectedSaved(null);
+      toast.success("Pesquisa excluída!");
+    },
   });
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
-    
+    setCurrentResult(null);
+
     try {
-      const prompt = `Você é um assistente jurídico especializado em direito brasileiro. 
-Realize uma pesquisa jurídica completa sobre: "${searchQuery}"
-${selectedArea ? `Área do direito: ${legalAreas.find(a => a.value === selectedArea)?.label}` : ''}
+      const selectedTribunalData = tribunaisCompleto.find(t => t.value === selectedTribunal);
+      const tribunalInfo = selectedTribunal !== "all" && selectedTribunalData?.url
+        ? `\n\nFONTE OFICIAL PRIORITÁRIA: ${selectedTribunalData.label} - ${selectedTribunalData.url}`
+        : '';
 
-Forneça:
-1. Um resumo executivo da questão jurídica
-2. Principais fundamentos legais (leis, artigos, códigos)
-3. Jurisprudências relevantes (com número do processo, tribunal e ementa resumida)
-4. Doutrinas e entendimentos majoritários
-5. Conclusões e recomendações práticas
+      let prompt = "";
 
-Formate a resposta de forma clara e organizada.`;
+      if (searchType === "jurisprudence") {
+        prompt = `Você é um especialista em pesquisa jurisprudencial brasileira.
+
+TAREFA: Pesquisar jurisprudências sobre: "${searchQuery}"
+${selectedArea ? `\nÁREA DO DIREITO: ${selectedArea}` : ''}
+${selectedTribunal !== "all" ? `\nTRIBUNAL ESPECÍFICO: ${selectedTribunalData?.label}` : ''}
+${context ? `\n\nCONTEXTO ADICIONAL: ${context}` : ''}
+${tribunalInfo}
+
+INSTRUÇÕES:
+1. Busque EXCLUSIVAMENTE em fontes oficiais:
+   - STF: https://portal.stf.jus.br/jurisprudencia/
+   - STJ: https://www.stj.jus.br
+   - TST: https://jurisprudencia.tst.jus.br/
+   - TRFs, TJs: sites oficiais de cada tribunal
+
+2. Para cada jurisprudência encontrada, forneça:
+   - Tribunal
+   - Número do processo/acórdão
+   - Data da decisão
+   - Ementa resumida
+   - Relevância para a busca
+   - Link oficial
+
+3. Encontre 5-8 jurisprudências relevantes
+4. Forneça análise jurídica consolidada
+5. Use Markdown formatado
+
+IMPORTANTE: Cite APENAS decisões reais com números de processos verificáveis.`;
+
+      } else if (searchType === "law") {
+        prompt = `Você é um especialista em legislação brasileira.
+
+TAREFA: Pesquisar LEIS sobre: "${searchQuery}"
+${selectedArea ? `\nÁREA: ${selectedArea}` : ''}
+${context ? `\n\nCONTEXTO: ${context}` : ''}
+
+INSTRUÇÕES:
+1. Consulte fontes oficiais (Planalto.gov.br, legislação federal/estadual)
+2. Para cada lei:
+   - Nome completo e número
+   - Artigos relevantes
+   - Resumo do conteúdo
+   - Link oficial
+   - Aplicabilidade ao tema
+
+3. Ordene por relevância
+4. Análise sobre aplicação prática
+5. Use Markdown formatado`;
+
+      } else if (searchType === "doctrine") {
+        prompt = `Você é um especialista em doutrina jurídica brasileira.
+
+TAREFA: Pesquisar DOUTRINA sobre: "${searchQuery}"
+${selectedArea ? `\nÁREA: ${selectedArea}` : ''}
+${context ? `\n\nCONTEXTO: ${context}` : ''}
+
+INSTRUÇÕES:
+1. Busque artigos, livros e teses de doutrinadores renomados
+2. Para cada referência:
+   - Autor(es)
+   - Título da obra/artigo
+   - Ano
+   - Resumo da tese
+   - Citação relevante
+   - Fonte
+
+3. Priorize fontes atualizadas
+4. Síntese das correntes doutrinárias
+5. Use Markdown formatado`;
+      }
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            summary: { type: "string", description: "Resumo executivo" },
-            legal_basis: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  type: { type: "string" },
-                  reference: { type: "string" },
-                  description: { type: "string" }
-                }
-              }
-            },
-            jurisprudence: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  court: { type: "string" },
-                  case_number: { type: "string" },
-                  summary: { type: "string" },
-                  date: { type: "string" }
-                }
-              }
-            },
-            doctrine: { type: "string" },
-            conclusions: { type: "string" }
-          }
-        }
       });
 
-      const results = [
-        ...(response.legal_basis || []).map(item => ({
-          type: "legislacao",
-          title: item.reference,
-          summary: item.description,
-          source: item.type,
-          citation: item.reference,
-          relevance: 90
-        })),
-        ...(response.jurisprudence || []).map(item => ({
-          type: "jurisprudencia",
-          title: `${item.court} - ${item.case_number}`,
-          summary: item.summary,
-          source: item.court,
-          citation: `${item.court}, ${item.case_number}`,
-          relevance: 85
-        }))
-      ];
-
-      const aiSummary = `## Resumo\n${response.summary}\n\n## Doutrina\n${response.doctrine}\n\n## Conclusões\n${response.conclusions}`;
-
-      await createResearchMutation.mutateAsync({
-        title: searchQuery.slice(0, 100),
+      setCurrentResult({
         query: searchQuery,
-        area: selectedArea || "outros",
-        results,
-        ai_summary: aiSummary,
-        is_favorite: false,
-        tags: []
+        type: searchType,
+        area: selectedArea,
+        tribunal: selectedTribunal !== "all" ? selectedTribunal : null,
+        content: response,
+        timestamp: new Date().toISOString()
       });
 
     } catch (error) {
       console.error("Erro na pesquisa:", error);
-      alert("Erro ao realizar pesquisa. Tente novamente.");
+      toast.error("Erro ao realizar pesquisa");
     }
-    
+
     setIsSearching(false);
   };
 
-  const toggleFavorite = (research) => {
-    updateResearchMutation.mutate({
-      id: research.id,
-      data: { is_favorite: !research.is_favorite }
+  const handleSave = () => {
+    if (!currentResult) return;
+
+    const titlePrefix = 
+      searchType === "jurisprudence" ? "Jurisprudência" :
+      searchType === "law" ? "Legislação" : "Doutrina";
+
+    saveMutation.mutate({
+      title: `${titlePrefix}: ${currentResult.query}`,
+      court: currentResult.tribunal || "outros",
+      summary: currentResult.content.substring(0, 500),
+      full_text: currentResult.content,
+      tags: [currentResult.query, searchType, selectedArea].filter(Boolean),
+      source_url: selectedTribunalData?.url || "Pesquisa com IA",
+      relevance_score: 85,
+      is_favorite: false
     });
   };
 
-  const copyCitation = (citation) => {
-    navigator.clipboard.writeText(citation);
-    setCopiedCitation(citation);
-    setTimeout(() => setCopiedCitation(null), 2000);
+  const filteredResearches = savedResearches.filter(r => {
+    const matchesSearch = r.title?.toLowerCase().includes(searchFilter.toLowerCase());
+    const matchesFavorite = !filterFavorites || r.is_favorite;
+    return matchesSearch && matchesFavorite;
+  });
+
+  const stats = {
+    total: savedResearches.length,
+    stf: savedResearches.filter(r => r.court === 'STF').length,
+    stj: savedResearches.filter(r => r.court === 'STJ').length,
+    favorites: savedResearches.filter(r => r.is_favorite).length,
   };
 
-  const filteredResearches = researches.filter(r => 
-    filterFavorites ? r.is_favorite : true
-  );
-
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Pesquisa Jurídica com IA
-          </h1>
-          <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-            Pesquise jurisprudências, leis e doutrinas com inteligência artificial
-          </p>
-        </div>
+    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      {/* Header */}
+      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Pesquisa Jurídica
+              </h1>
+              <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                Jurisprudência, legislação e doutrina com IA - {tribunaisCompleto.length} tribunais disponíveis
+              </p>
+            </div>
+          </div>
 
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="search">
-              <Search className="w-4 h-4 mr-2" />
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
+              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Salvas</p>
+              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
+            </div>
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
+              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>STF</p>
+              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.stf}</p>
+            </div>
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
+              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>STJ</p>
+              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.stj}</p>
+            </div>
+            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
+              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Favoritas</p>
+              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.favorites}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className={isDark ? 'bg-neutral-900' : 'bg-white border'}>
+            <TabsTrigger value="search" className="gap-2">
+              <Search className="w-4 h-4" />
               Nova Pesquisa
             </TabsTrigger>
-            <TabsTrigger value="history">
-              <Clock className="w-4 h-4 mr-2" />
-              Histórico ({researches.length})
+            <TabsTrigger value="library" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Biblioteca ({savedResearches.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="search">
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : ''}`}>
-                  <Sparkles className="w-5 h-5" />
-                  Pesquisa com IA
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-white' : ''}`}>
-                    O que você deseja pesquisar?
-                  </label>
-                  <Textarea
-                    placeholder="Ex: Qual o prazo prescricional para ações de indenização por danos morais no direito do consumidor?"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`min-h-[120px] ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
-                  />
+          {/* Search Tab */}
+          <TabsContent value="search" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Search Form */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                  <div className="space-y-4">
+                    {/* Type Selection */}
+                    <div>
+                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                        Tipo de Pesquisa
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {researchTypes.map((type) => {
+                          const Icon = type.icon;
+                          return (
+                            <button
+                              key={type.id}
+                              onClick={() => setSearchType(type.id)}
+                              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                searchType === type.id
+                                  ? isDark 
+                                    ? 'border-blue-500 bg-blue-500/10' 
+                                    : 'border-blue-500 bg-blue-50'
+                                  : isDark
+                                    ? 'border-neutral-700 hover:border-neutral-600'
+                                    : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <Icon className={`w-5 h-5 mb-2 ${searchType === type.id ? 'text-blue-500' : isDark ? 'text-neutral-400' : 'text-gray-600'}`} />
+                              <div className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{type.label}</div>
+                              <div className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{type.description}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          Área do Direito
+                        </label>
+                        <select
+                          value={selectedArea}
+                          onChange={(e) => setSelectedArea(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="">Todas as áreas</option>
+                          {areas.map(area => (
+                            <option key={area} value={area}>{area}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {searchType === "jurisprudence" && (
+                        <div>
+                          <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                            Tribunal
+                          </label>
+                          <select
+                            value={selectedTribunal}
+                            onChange={(e) => setSelectedTribunal(e.target.value)}
+                            className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                          >
+                            {tribunaisCompleto.slice(0, 15).map(t => (
+                              <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                          </select>
+                          {selectedTribunal !== "all" && tribunaisCompleto.find(t => t.value === selectedTribunal)?.url && (
+                            <a
+                              href={tribunaisCompleto.find(t => t.value === selectedTribunal).url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Ver portal oficial
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Search Query */}
+                    <div>
+                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                        Consulta
+                      </label>
+                      <Textarea
+                        placeholder="Ex: Prescrição em contratos de seguro, Danos morais por negativação indevida..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="min-h-[100px]"
+                      />
+                    </div>
+
+                    {/* Context */}
+                    <div>
+                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                        Contexto Adicional (Opcional)
+                      </label>
+                      <Textarea
+                        placeholder="Descreva o contexto do caso ou situação específica..."
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleSearch}
+                      disabled={!searchQuery.trim() || isSearching}
+                      className="w-full gap-2"
+                      size="lg"
+                    >
+                      {isSearching ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Pesquisando...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5" />
+                          Pesquisar com IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-white' : ''}`}>
-                    Área do Direito (opcional)
-                  </label>
-                  <select
-                    value={selectedArea}
-                    onChange={(e) => setSelectedArea(e.target.value)}
-                    className={`w-full border rounded-lg p-2.5 ${
-                      isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'border-gray-200'
-                    }`}
-                  >
-                    <option value="">Todas as áreas</option>
-                    {legalAreas.map(area => (
-                      <option key={area.value} value={area.value}>{area.label}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Results */}
+                <AnimatePresence>
+                  {currentResult && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex gap-2">
+                          <Badge>{researchTypes.find(t => t.id === currentResult.type)?.label}</Badge>
+                          {currentResult.area && <Badge variant="outline">{currentResult.area}</Badge>}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(currentResult.content);
+                              toast.success("Copiado!");
+                            }}
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copiar
+                          </Button>
+                          <Button size="sm" onClick={handleSave}>
+                            <Save className="w-4 h-4 mr-2" />
+                            Salvar
+                          </Button>
+                        </div>
+                      </div>
 
-                <Button
-                  onClick={handleSearch}
-                  disabled={!searchQuery.trim() || isSearching}
-                  className={`w-full py-6 ${isDark ? 'bg-white text-black hover:bg-gray-100' : ''}`}
-                >
-                  {isSearching ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Pesquisando...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-5 h-5 mr-2" />
-                      Pesquisar com IA
-                    </>
+                      <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
+                        <ReactMarkdown
+                          components={{
+                            a: ({ href, children }) => (
+                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+                                {children}
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            ),
+                          }}
+                        >
+                          {currentResult.content}
+                        </ReactMarkdown>
+                      </div>
+                    </motion.div>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
+                </AnimatePresence>
+              </div>
+
+              {/* Quick Links */}
+              <div className={`p-6 rounded-xl border h-fit ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Acesso Rápido aos Tribunais
+                </h3>
+                <div className="space-y-2">
+                  {tribunaisCompleto.slice(1, 11).filter(t => t.url).map(tribunal => (
+                    <a
+                      key={tribunal.value}
+                      href={tribunal.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                        isDark 
+                          ? 'border-neutral-700 hover:bg-neutral-800' 
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {tribunal.label.split(' - ')[0]}
+                      </span>
+                      <ExternalLink className={`w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="history">
+          {/* Library Tab */}
+          <TabsContent value="library">
             <div className="grid lg:grid-cols-3 gap-6">
-              {/* Lista de Pesquisas */}
-              <div className="lg:col-span-1">
-                <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className={`text-base ${isDark ? 'text-white' : ''}`}>
-                        Pesquisas Salvas
-                      </CardTitle>
+              {/* Saved List */}
+              <div className="lg:col-span-2">
+                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Pesquisas Salvas
+                    </h3>
+                    <div className="flex gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="Buscar..."
+                          value={searchFilter}
+                          onChange={(e) => setSearchFilter(e.target.value)}
+                          className="pl-10 w-64"
+                        />
+                      </div>
                       <Button
-                        variant="ghost"
-                        size="sm"
+                        variant={filterFavorites ? "default" : "outline"}
+                        size="icon"
                         onClick={() => setFilterFavorites(!filterFavorites)}
-                        className={filterFavorites ? 'text-yellow-500' : ''}
                       >
                         <Star className="w-4 h-4" />
                       </Button>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2 max-h-[600px] overflow-y-auto">
-                    {filteredResearches.map(research => (
+                  </div>
+
+                  <div className="space-y-2">
+                    {filteredResearches.map((research) => (
                       <div
                         key={research.id}
-                        onClick={() => setSelectedResearch(research)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedResearch?.id === research.id
-                            ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
-                            : isDark ? 'hover:bg-neutral-800' : 'hover:bg-gray-100'
+                        onClick={() => setSelectedSaved(research)}
+                        className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                          selectedSaved?.id === research.id
+                            ? isDark ? 'border-blue-500 bg-blue-500/10' : 'border-blue-500 bg-blue-50'
+                            : isDark ? 'border-neutral-700 hover:border-neutral-600' : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-medium text-sm truncate ${
-                              selectedResearch?.id === research.id
-                                ? isDark ? 'text-black' : 'text-white'
-                                : isDark ? 'text-white' : 'text-gray-900'
-                            }`}>
-                              {research.title}
-                            </p>
-                            <p className={`text-xs mt-1 ${
-                              selectedResearch?.id === research.id
-                                ? isDark ? 'text-gray-600' : 'text-gray-300'
-                                : isDark ? 'text-neutral-500' : 'text-gray-500'
-                            }`}>
-                              {format(new Date(research.created_date), "dd/MM/yyyy")}
-                            </p>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {research.title}
+                              </h4>
+                              {research.is_favorite && <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <Badge variant="outline">{research.court || 'Geral'}</Badge>
+                              <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
+                                {new Date(research.created_date).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
                           </div>
-                          {research.is_favorite && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
-                          )}
+                          <ChevronRight className={`w-5 h-5 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
                         </div>
-                        {research.area && (
-                          <Badge variant="secondary" className="mt-2 text-xs">
-                            {legalAreas.find(a => a.value === research.area)?.label}
-                          </Badge>
-                        )}
                       </div>
                     ))}
                     {filteredResearches.length === 0 && (
-                      <p className={`text-center py-8 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                        Nenhuma pesquisa encontrada
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Detalhes da Pesquisa */}
-              <div className="lg:col-span-2">
-                {selectedResearch ? (
-                  <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className={isDark ? 'text-white' : ''}>
-                            {selectedResearch.title}
-                          </CardTitle>
-                          <p className={`text-sm mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                            {format(new Date(selectedResearch.created_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleFavorite(selectedResearch)}
-                          >
-                            {selectedResearch.is_favorite ? (
-                              <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                            ) : (
-                              <StarOff className="w-5 h-5" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteResearchMutation.mutate(selectedResearch.id)}
-                            className="text-red-500"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </Button>
-                        </div>
+                      <div className="text-center py-12">
+                        <BookOpen className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                        <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                          Nenhuma pesquisa salva
+                        </p>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs defaultValue="summary">
-                        <TabsList className="mb-4">
-                          <TabsTrigger value="summary">Resumo IA</TabsTrigger>
-                          <TabsTrigger value="results">
-                            Resultados ({selectedResearch.results?.length || 0})
-                          </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="summary">
-                          <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                            <ReactMarkdown>{selectedResearch.ai_summary}</ReactMarkdown>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="results" className="space-y-3">
-                          {selectedResearch.results?.map((result, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-4 rounded-lg border ${isDark ? 'border-neutral-700 bg-neutral-800' : 'border-gray-200'}`}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Badge variant="outline" className="text-xs">
-                                      {result.type === 'jurisprudencia' ? 'Jurisprudência' : 'Legislação'}
-                                    </Badge>
-                                    <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                                      {result.source}
-                                    </span>
-                                  </div>
-                                  <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {result.title}
-                                  </p>
-                                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                                    {result.summary}
-                                  </p>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => copyCitation(result.citation)}
-                                >
-                                  {copiedCitation === result.citation ? (
-                                    <Check className="w-4 h-4 text-green-500" />
-                                  ) : (
-                                    <Copy className="w-4 h-4" />
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className={`h-full flex items-center justify-center min-h-[400px] ${isDark ? 'bg-neutral-900 border-neutral-800' : ''}`}>
-                    <CardContent className="text-center py-16">
-                      <BookOpen className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                      <p className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
-                        Selecione uma pesquisa para ver detalhes
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                    )}
+                  </div>
+                </div>
               </div>
+
+              {/* Details */}
+              {selectedSaved && (
+                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Detalhes
+                    </h3>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => updateMutation.mutate({
+                          id: selectedSaved.id,
+                          data: { is_favorite: !selectedSaved.is_favorite }
+                        })}
+                      >
+                        <Star className={`w-4 h-4 ${selectedSaved.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm('Deseja excluir esta pesquisa?')) {
+                            deleteMutation.mutate(selectedSaved.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
+                    <ReactMarkdown>{selectedSaved.full_text || selectedSaved.summary}</ReactMarkdown>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
