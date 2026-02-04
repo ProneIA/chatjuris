@@ -97,6 +97,7 @@ import TeamWorkspace from './pages/TeamWorkspace';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
+import WhatsAppBot from './pages/WhatsAppBot';
 import __Layout from './Layout.jsx';
 
 
@@ -151,6 +152,7 @@ export const PAGES = {
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
+    "WhatsAppBot": WhatsAppBot,
 }
 
 export const pagesConfig = {
