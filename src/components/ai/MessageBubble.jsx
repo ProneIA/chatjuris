@@ -30,34 +30,34 @@ export default function MessageBubble({ message }) {
       </div>
 
       {/* Message Content */}
-      <div className={`flex flex-col gap-1 max-w-[80%] sm:max-w-[75%] ${isUser ? "items-end" : "items-start"}`}>
-        <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 ${
+      <div className={`flex flex-col gap-1 min-w-0 ${isUser ? "items-end max-w-[85%]" : "items-start max-w-[90%]"}`}>
+        <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 break-words overflow-hidden ${
           isUser
             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
             : "bg-white border border-slate-200 text-slate-900 shadow-sm"
         }`}>
           {message.content && (
             isUser ? (
-              <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
+              <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{message.content}</p>
             ) : (
               <ReactMarkdown
-                className="prose prose-sm max-w-none text-xs sm:text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                className="prose prose-sm max-w-none text-xs sm:text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words"
                 components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  p: ({ children }) => <p className="mb-2 last:mb-0 break-words">{children}</p>,
                   ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
                   code: ({ inline, children }) => 
                     inline ? (
-                      <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs">{children}</code>
+                      <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs break-all">{children}</code>
                     ) : (
-                      <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg my-2 overflow-x-auto text-xs">
+                      <code className="block bg-slate-900 text-slate-100 p-3 rounded-lg my-2 overflow-x-auto text-xs whitespace-pre-wrap break-words">
                         {children}
                       </code>
                     ),
                   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                   em: ({ children }) => <em className="italic">{children}</em>,
                   a: ({ href, children }) => (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">
                       {children}
                     </a>
                   ),
