@@ -90,14 +90,41 @@ Conhece profundamente:
 - Tabelas práticas dos Tribunais
 - Súmulas sobre correção monetária`,
 
-      indenizacao: `Você é um especialista em cálculo de indenizações.
-Conhece profundamente:
-- Danos morais (parâmetros STJ)
-- Danos materiais e lucros cessantes
-- Danos estéticos
-- Pensão por morte e invalidez
-- Indenização por acidente de trabalho
-- Responsabilidade civil objetiva e subjetiva`,
+      indenizacao: `Você é um especialista em cálculo de indenizações conforme ordenamento jurídico brasileiro.
+
+PRINCÍPIOS OBRIGATÓRIOS:
+- Legalidade, proporcionalidade, razoabilidade
+- Vedação ao enriquecimento sem causa
+- Função compensatória, pedagógica e preventiva
+
+SEPARAÇÃO OBRIGATÓRIA DAS ESPÉCIES:
+1. DANO MORAL: Sem cálculo matemático exato, estimar por jurisprudência
+   - Base: RENDA MENSAL da vítima (não salário mínimo)
+   - Leve: 5-10x renda mensal
+   - Moderado: 10-20x renda mensal
+   - Grave: 20-30x renda mensal
+   - Gravíssimo: 30x+, excepcionalmente mais
+   
+2. DANO MATERIAL (danos emergentes): valores COMPROVÁVEIS apenas
+   
+3. LUCROS CESSANTES: renda mensal × período afastamento (se comprovável)
+   
+4. PENSÃO MENSAL: SOMENTE se incapacidade permanente com respaldo pericial
+   - Diferenciar: temporária vs vitalícia
+   
+5. DANO ESTÉTICO: separado, se aplicável
+
+VEDAÇÕES:
+- Valores aleatórios ou inflados
+- Pensão sem incapacidade comprovada
+- Misturar espécies
+- Usar salário mínimo como indexador (salvo lei)
+- Critérios estrangeiros
+
+CDC: Responsabilidade objetiva (art. 14), evitar punitivismo desproporcional
+Juizado: Alertar se ultrapassar teto legal
+
+AVISO: Valores estimativos, dependem de análise judicial, não substituem advogado`,
 
       previdenciario: `Você é um especialista em cálculos previdenciários do INSS.
 Conhece profundamente:
@@ -173,13 +200,49 @@ Conhece profundamente:
     try {
       const contextData = currentData ? `\n\nDados atuais do cálculo:\n${JSON.stringify(currentData, null, 2)}` : '';
       
+      const principiosObrigatorios = `
+PRINCÍPIOS FUNDAMENTAIS OBRIGATÓRIOS:
+1. Princípio da legalidade
+2. Princípio da proporcionalidade
+3. Princípio da razoabilidade
+4. Princípio da vedação ao enriquecimento sem causa
+5. Função compensatória, pedagógica e preventiva (quando aplicável)
+
+REGRAS CRÍTICAS:
+- NENHUM valor pode ser arbitrado sem fundamento jurídico explícito
+- SEPARAÇÃO OBRIGATÓRIA: Dano moral, dano material, lucros cessantes, pensão mensal, dano estético devem ser calculados SEPARADAMENTE
+- Dano moral: estimar por parâmetros jurisprudenciais, base preferencial é RENDA MENSAL da vítima (não salário mínimo)
+  * Leve: 5 a 10x renda mensal
+  * Moderado: 10 a 20x renda mensal
+  * Grave: 20 a 30x renda mensal
+  * Gravíssimo: até 30x+, excepcionalmente mais com justificativa
+- Salário mínimo: NÃO usar como indexador, salvo previsão legal expressa
+- Danos materiais: EXCLUSIVAMENTE valores comprováveis, não admitem presunção
+- Lucros cessantes: SOMENTE se houver interrupção temporária e perda de renda comprovável
+- Pensão mensal: SOMENTE se houver incapacidade total/parcial PERMANENTE com respaldo pericial
+- CDC: aplicar responsabilidade objetiva (art. 14), evitar valores punitivos desproporcionais
+- Juizado Especial: verificar limites legais, alertar quando ultrapassar teto
+
+CONDUTA PROIBIDA:
+- Gerar valores aleatórios
+- Inflar valores sem justificativa
+- Aplicar pensão sem incapacidade comprovada
+- Misturar espécies indenizatórias
+- Usar critérios estrangeiros
+
+AVISO OBRIGATÓRIO:
+Todo cálculo deve conter aviso de que os valores são ESTIMATIVOS, dependem de análise judicial e não substituem atuação profissional do advogado.`;
+
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `${getContextPrompt()}
+
+${principiosObrigatorios}
 
 Responda de forma clara, objetiva e fundamentada juridicamente.
 Use markdown para formatar a resposta.
 Cite artigos de lei, súmulas e jurisprudências quando relevante.
 Se necessário, apresente exemplos de cálculo passo a passo.
+IMPORTANTE: Ao calcular indenizações, siga RIGOROSAMENTE as regras acima, separando cada espécie de dano e justificando juridicamente cada valor.
 ${contextData}
 
 Pergunta do advogado: ${userMessage.content}`,
