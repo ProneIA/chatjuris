@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Save, Loader2, ArrowLeft, FileText, ChevronRight, Check, Scale, Briefcase, Users, FileSignature } from "lucide-react";
+import { Sparkles, Save, Loader2, ArrowLeft, FileText, ChevronRight, Check, Scale, Briefcase, Users, FileSignature, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -185,6 +185,61 @@ export default function DocumentGenerator({ theme = 'light' }) {
     onError: (e) => toast.error("Erro ao salvar: " + e.message)
   });
 
+  // Download em PDF
+  const handleDownloadPDF = async () => {
+    try {
+      toast.info("Preparando PDF...");
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - (margin * 2);
+      
+      // Título
+      doc.setFontSize(16);
+      doc.text(documentTitle, margin, margin);
+      
+      // Conteúdo
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(generatedContent, maxWidth);
+      let y = margin + 10;
+      
+      lines.forEach((line) => {
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += 6;
+      });
+      
+      doc.save(`${documentTitle}.pdf`);
+      toast.success("PDF baixado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao gerar PDF: " + error.message);
+    }
+  };
+
+  // Download em Word (DOCX)
+  const handleDownloadWord = () => {
+    try {
+      const blob = new Blob([generatedContent], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${documentTitle}.doc`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Documento Word baixado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao gerar Word: " + error.message);
+    }
+  };
+
   const handleAreaSelect = (areaName) => {
     setSelectedLegalArea(areaName);
     setStep(2);
@@ -221,18 +276,13 @@ export default function DocumentGenerator({ theme = 'light' }) {
     <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" onClick={() => navigate(createPageUrl('Documents'))}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-          </Button>
-          <div className="flex-1">
-            <h1 className={`text-2xl md:text-3xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              <Sparkles className="text-purple-600" /> Gerador de Documentos IA
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              Crie documentos jurídicos profissionais em etapas simples
-            </p>
-          </div>
+        <div className="mb-6">
+          <h1 className={`text-2xl md:text-3xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <Sparkles className="text-purple-600" /> Gerador de Documentos IA
+          </h1>
+          <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+            Crie documentos jurídicos profissionais em etapas simples
+          </p>
         </div>
 
         {/* Progress Steps */}
@@ -471,15 +521,19 @@ export default function DocumentGenerator({ theme = 'light' }) {
               <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
                 <CardHeader>
                   <CardTitle className={isDark ? 'text-white' : ''}>Documento Gerado</CardTitle>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    Você pode editar o documento abaixo antes de salvar
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className={`p-6 rounded-lg border max-h-[500px] overflow-y-auto ${
-                    isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-gray-50 border-gray-200'
-                  }`}>
-                    <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                      <ReactMarkdown>{generatedContent}</ReactMarkdown>
-                    </div>
-                  </div>
+                  <Textarea
+                    value={generatedContent}
+                    onChange={(e) => setGeneratedContent(e.target.value)}
+                    className={`min-h-[500px] font-mono text-sm ${
+                      isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'
+                    }`}
+                    placeholder="O conteúdo do documento aparecerá aqui..."
+                  />
                   
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={() => setStep(3)}>
@@ -560,27 +614,48 @@ export default function DocumentGenerator({ theme = 'light' }) {
                     </select>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setStep(4)}>
-                      Voltar
-                    </Button>
-                    <Button 
-                      onClick={() => saveMutation.mutate(formData)}
-                      disabled={saveMutation.isPending || !documentTitle.trim()}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      {saveMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Salvar Documento
-                        </>
-                      )}
-                    </Button>
+                  <div className="space-y-3 pt-4 border-t">
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="outline"
+                        onClick={handleDownloadPDF}
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar PDF
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={handleDownloadWord}
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar Word
+                      </Button>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => setStep(4)}>
+                        Voltar
+                      </Button>
+                      <Button 
+                        onClick={() => saveMutation.mutate(formData)}
+                        disabled={saveMutation.isPending || !documentTitle.trim()}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      >
+                        {saveMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Salvar Documento
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
