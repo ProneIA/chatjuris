@@ -1,19 +1,40 @@
 import React, { useState } from "react";
-import { Calculator, AlertTriangle, Heart } from "lucide-react";
+import { Calculator, AlertTriangle, Heart, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 
 // Parâmetros baseados em jurisprudência do STJ e RENDA MENSAL da vítima
 // Base: RENDA MENSAL (não salário mínimo como indexador)
 const multiplicadoresPorGravidade = {
-  "leve": { min: 5, max: 10, descricao: "Aborrecimento, constrangimento leve" },
-  "medio": { min: 10, max: 20, descricao: "Constrangimento, sofrimento moderado" },
-  "grave": { min: 20, max: 30, descricao: "Sofrimento intenso, sequelas temporárias" },
-  "gravissimo": { min: 30, max: 50, descricao: "Sequelas permanentes, invalidez, morte" }
+  "leve": { 
+    min: 5, 
+    max: 10, 
+    descricao: "Aborrecimento, constrangimento leve",
+    tooltip: "Faixa baseada em jurisprudência do STJ para aborrecimentos e constrangimentos sem maiores desdobramentos."
+  },
+  "medio": { 
+    min: 10, 
+    max: 20, 
+    descricao: "Constrangimento, sofrimento moderado",
+    tooltip: "Faixa baseada em jurisprudência do STJ para constrangimentos relevantes com sofrimento moderado mas reversível."
+  },
+  "grave": { 
+    min: 20, 
+    max: 30, 
+    descricao: "Sofrimento intenso, sequelas temporárias",
+    tooltip: "Faixa baseada em jurisprudência do STJ para danos relevantes sem morte ou invalidez total, mas com sofrimento intenso ou sequelas temporárias."
+  },
+  "gravissimo": { 
+    min: 30, 
+    max: 50, 
+    descricao: "Sequelas permanentes, invalidez, morte",
+    tooltip: "Faixa baseada em jurisprudência do STJ para casos de sequelas permanentes, invalidez ou morte, podendo excepcionalmente ultrapassar 50× com justificativa."
+  }
 };
 
 const tiposIndenizacao = {
@@ -71,6 +92,28 @@ export default function IndenizacaoCalculator({ isDark }) {
     // SEPARAÇÃO OBRIGATÓRIA - cada espécie calculada individualmente
     const totalMinimo = danoMoralMinimo + lucrosCessantes + danosMateriais;
     const totalMaximo = danoMoralMaximo + lucrosCessantes + danosMateriais;
+    const totalSugerido = danoMoralSugerido + lucrosCessantes + danosMateriais;
+
+    // LOG INTERNO PARA AUDITORIA
+    const logAuditoria = {
+      timestamp: new Date().toISOString(),
+      area: "Responsabilidade Civil",
+      tipo_dano: tiposIndenizacao[tipoIndenizacao],
+      gravidade: gravidade,
+      multiplicador_min: params.min,
+      multiplicador_max: params.max,
+      renda_base: renda,
+      dano_moral_min: danoMoralMinimo,
+      dano_moral_max: danoMoralMaximo,
+      dano_moral_sugerido: danoMoralSugerido,
+      lucros_cessantes: lucrosCessantes,
+      danos_materiais: danosMateriais,
+      pensao_mensal: pensaoMensal,
+      total_min: totalMinimo,
+      total_max: totalMaximo,
+      total_sugerido: totalSugerido
+    };
+    console.log("📊 LOG AUDITORIA - Cálculo Indenização:", logAuditoria);
 
     setResultado({
       tipo: tiposIndenizacao[tipoIndenizacao],
@@ -86,7 +129,9 @@ export default function IndenizacaoCalculator({ isDark }) {
       pensaoMensal,
       pensaoJustificativa,
       totalMinimo,
-      totalMaximo
+      totalMaximo,
+      totalSugerido,
+      logAuditoria
     });
   };
 
@@ -127,7 +172,21 @@ export default function IndenizacaoCalculator({ isDark }) {
         </div>
 
         <div className="space-y-2">
-          <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Gravidade do Dano</Label>
+          <div className="flex items-center gap-2">
+            <Label className={isDark ? "text-neutral-300" : "text-gray-700"}>Gravidade do Dano</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className={`w-4 h-4 cursor-help ${isDark ? "text-neutral-500" : "text-gray-400"}`} />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    {multiplicadoresPorGravidade[gravidade]?.tooltip || "Selecione a gravidade para ver orientações jurisprudenciais"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Select value={gravidade} onValueChange={setGravidade}>
             <SelectTrigger className={isDark ? "bg-neutral-900 border-neutral-700" : ""}>
               <SelectValue />
@@ -139,6 +198,9 @@ export default function IndenizacaoCalculator({ isDark }) {
               <SelectItem value="gravissimo">Gravíssimo: 30-50x renda mensal</SelectItem>
             </SelectContent>
           </Select>
+          <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>
+            {multiplicadoresPorGravidade[gravidade]?.descricao}
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -214,16 +276,22 @@ export default function IndenizacaoCalculator({ isDark }) {
             <p className={`text-xs mb-3 ${isDark ? "text-neutral-500" : "text-gray-500"}`}>
               Base: R$ {resultado.rendaBase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (renda mensal) × {resultado.multiplicadorMin} a {resultado.multiplicadorMax}
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Valor Mínimo</p>
-                <p className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                <p className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                   R$ {resultado.danoMoralMinimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className={`border-l-2 pl-3 ${isDark ? "border-blue-500/30" : "border-blue-300"}`}>
+                <p className={`text-xs ${isDark ? "text-blue-400" : "text-blue-600"}`}>Valor Sugerido (média)</p>
+                <p className={`text-base font-bold ${isDark ? "text-blue-400" : "text-blue-600"}`}>
+                  R$ {resultado.danoMoralSugerido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
               <div>
                 <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Valor Máximo</p>
-                <p className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                <p className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                   R$ {resultado.danoMoralMaximo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
@@ -277,17 +345,25 @@ export default function IndenizacaoCalculator({ isDark }) {
             <p className={`text-xs mb-3 ${isDark ? "text-neutral-500" : "text-gray-500"}`}>
               ✓ Total = Dano Moral + Danos Materiais + Lucros Cessantes (pensão não soma ao total)
             </p>
-            <div className="flex justify-between mb-2">
-              <span className={`font-medium ${isDark ? "text-neutral-300" : "text-gray-700"}`}>Total Estimado Mínimo</span>
-              <span className="font-semibold text-rose-600">
-                R$ {resultado.totalMinimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className={`font-medium ${isDark ? "text-neutral-300" : "text-gray-700"}`}>Total Estimado Máximo</span>
-              <span className="font-bold text-green-600 text-lg">
-                R$ {resultado.totalMaximo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Total Mínimo</p>
+                <p className="font-semibold text-rose-600">
+                  R$ {resultado.totalMinimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className={`border-l-2 pl-3 ${isDark ? "border-green-500/30" : "border-green-300"}`}>
+                <p className={`text-xs ${isDark ? "text-green-400" : "text-green-600"}`}>Total Sugerido</p>
+                <p className={`font-bold text-lg ${isDark ? "text-green-400" : "text-green-600"}`}>
+                  R$ {resultado.totalSugerido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div>
+                <p className={`text-xs ${isDark ? "text-neutral-500" : "text-gray-500"}`}>Total Máximo</p>
+                <p className="font-bold text-green-600 text-lg">
+                  R$ {resultado.totalMaximo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
             </div>
           </div>
 
