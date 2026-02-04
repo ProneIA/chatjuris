@@ -7,7 +7,6 @@ import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
-import BackNavigation from "@/components/common/BackNavigation";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -89,8 +88,6 @@ export default function Clients({ theme = 'light' }) {
 
   return (
     <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <BackNavigation theme={theme} />
-      
       <div className="flex-1 flex overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
