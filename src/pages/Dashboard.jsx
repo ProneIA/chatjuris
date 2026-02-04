@@ -124,7 +124,7 @@ export default function Dashboard({ theme = 'light' }) {
     { title: "Novo Processo", icon: Plus, url: createPageUrl("Cases"), color: "emerald" },
     { title: "Assistente IA", icon: Sparkles, url: createPageUrl("AIAssistant"), color: "purple", badge: "IA" },
     { title: "Calculadora", icon: Calculator, url: createPageUrl("LegalCalculator"), color: "blue" },
-    { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearchAI"), color: "amber" },
+    { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearch"), color: "amber" },
   ];
 
   const statCards = [
