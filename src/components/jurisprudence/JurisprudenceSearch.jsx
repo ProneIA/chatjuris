@@ -35,25 +35,22 @@ export default function JurisprudenceSearch({ cases, onSave }) {
         const yearFilter = year !== "all" ? ` do ano ${year}` : "";
         const contextInfo = context ? `\n\nCONTEXTO DO CASO: ${context}` : "";
 
-        const selectedCourtData = courtOptions.find(c => c.value === court);
-        const officialUrl = selectedCourtData?.url || "";
-        const urlInstruction = officialUrl ? `\n\nFONTE OFICIAL PRIORITÁRIA: ${officialUrl}` : "";
-
         prompt = `Você é um especialista em pesquisa jurisprudencial brasileira. 
 
 TAREFA: Pesquisar jurisprudências${courtFilter}${yearFilter} sobre o seguinte tema:
 "${searchTerm}"
-${contextInfo}${urlInstruction}
+${contextInfo}
 
 INSTRUÇÕES:
-1. Busque EXCLUSIVAMENTE em fontes oficiais dos tribunais:
+1. Busque nos principais sites OFICIAIS de jurisprudência brasileiros:
    - STF: https://portal.stf.jus.br/jurisprudencia/
    - STJ: https://www.stj.jus.br
    - TST: https://jurisprudencia.tst.jus.br/
    - TSE: https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia
-   - STM: https://jurisprudencia.stm.jus.br/
-   - TRFs, TRTs, TJs: usar os portais oficiais de cada tribunal
-   - CJF (Jurisprudência Unificada): https://jurisprudencia.cjf.jus.br/
+   - TRFs: sites oficiais dos Tribunais Regionais Federais
+   - TRTs: sites oficiais dos Tribunais Regionais do Trabalho
+   - TJs: sites oficiais dos Tribunais de Justiça Estaduais
+   - JusBrasil: https://www.jusbrasil.com.br/jurisprudencia/ (agregador)
 
 2. Para cada jurisprudência encontrada, forneça:
    - Título/Ementa resumida
@@ -62,7 +59,7 @@ INSTRUÇÕES:
    - Data da decisão (se disponível)
    - Resumo da tese jurídica
    - Relevância para o tema pesquisado
-   - Link da fonte OFICIAL
+   - Link/fonte
 
 3. Ordene por relevância (mais relevantes primeiro)
 
@@ -74,10 +71,10 @@ FORMATO DA RESPOSTA:
 Use Markdown formatado, com:
 - **Negrito** para títulos e tribunais
 - Numeração para cada jurisprudência
-- Links clicáveis para as fontes oficiais
+- Links clicáveis quando disponíveis
 - Seções bem organizadas
 
-IMPORTANTE: Cite APENAS decisões reais encontradas em fontes oficiais. Não invente números de processos.`;
+Seja específico, cite decisões reais encontradas na internet, e forneça análise jurídica detalhada.`;
       } else if (searchType === "law") {
         const contextInfo = context ? `\n\nCONTEXTO: ${context}` : "";
 
@@ -184,74 +181,78 @@ FORMATO: Use Markdown formatado com citações e referências completas.`;
   const courtOptions = [
     { value: "all", label: "Todos os Tribunais", url: null },
     
-    // TRIBUNAIS SUPERIORES
+    // Tribunais Superiores
     { value: "STF", label: "STF - Supremo Tribunal Federal", url: "https://portal.stf.jus.br/jurisprudencia/" },
     { value: "STJ", label: "STJ - Superior Tribunal de Justiça", url: "https://www.stj.jus.br" },
     { value: "TST", label: "TST - Tribunal Superior do Trabalho", url: "https://jurisprudencia.tst.jus.br/" },
     { value: "TSE", label: "TSE - Tribunal Superior Eleitoral", url: "https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia" },
     { value: "STM", label: "STM - Superior Tribunal Militar", url: "https://jurisprudencia.stm.jus.br/" },
     
-    // TRIBUNAIS REGIONAIS FEDERAIS
-    { value: "TRF1", label: "TRF 1ª Região", url: "https://www2.cjf.jus.br/jurisprudencia/trf1/" },
-    { value: "TRF2", label: "TRF 2ª Região", url: "https://www10.trf2.jus.br/consultas/?site=v2_jurisprudencia" },
-    { value: "TRF3", label: "TRF 3ª Região", url: "https://web.trf3.jus.br/jurisprudencia/" },
-    { value: "TRF4", label: "TRF 4ª Região", url: "https://jurisprudencia.trf4.jus.br/pesquisa/pesquisa.php?tipo=1" },
-    { value: "TRF5", label: "TRF 5ª Região", url: "https://julia-pesquisa.trf5.jus.br/julia-pesquisa/#consulta" },
+    // Conselhos
+    { value: "CJF", label: "CJF - Conselho da Justiça Federal", url: "https://jurisprudencia.cjf.jus.br/" },
+    { value: "CNJ", label: "CNJ - Conselho Nacional de Justiça", url: "https://www.cnj.jus.br/sobre-o-cnj/jurisprudencia/" },
     
-    // TRIBUNAIS REGIONAIS DO TRABALHO
-    { value: "TRT1", label: "TRT 1ª Região - RJ", url: "https://www.trt1.jus.br" },
-    { value: "TRT2", label: "TRT 2ª Região - SP (capital)", url: "https://www.trt2.jus.br" },
-    { value: "TRT3", label: "TRT 3ª Região - MG", url: "https://www.trt3.jus.br" },
-    { value: "TRT4", label: "TRT 4ª Região - RS", url: "https://www.trt4.jus.br" },
-    { value: "TRT5", label: "TRT 5ª Região - BA", url: "https://www.trt5.jus.br" },
-    { value: "TRT6", label: "TRT 6ª Região - PE", url: "https://www.trt6.jus.br" },
-    { value: "TRT7", label: "TRT 7ª Região - CE", url: "https://www.trt7.jus.br" },
-    { value: "TRT8", label: "TRT 8ª Região - PA/AP", url: "https://www.trt8.jus.br" },
-    { value: "TRT9", label: "TRT 9ª Região - PR", url: "https://www.trt9.jus.br" },
-    { value: "TRT10", label: "TRT 10ª Região - DF/TO", url: "https://www.trt10.jus.br" },
-    { value: "TRT11", label: "TRT 11ª Região - AM/RR", url: "https://www.trt11.jus.br" },
-    { value: "TRT12", label: "TRT 12ª Região - SC", url: "https://www.trt12.jus.br" },
-    { value: "TRT13", label: "TRT 13ª Região - PB", url: "https://www.trt13.jus.br" },
-    { value: "TRT14", label: "TRT 14ª Região - RO/AC", url: "https://www.trt14.jus.br" },
-    { value: "TRT15", label: "TRT 15ª Região - SP (interior)", url: "https://www.trt15.jus.br" },
-    { value: "TRT16", label: "TRT 16ª Região - MA", url: "https://www.trt16.jus.br" },
-    { value: "TRT17", label: "TRT 17ª Região - ES", url: "https://www.trt17.jus.br" },
-    { value: "TRT18", label: "TRT 18ª Região - GO", url: "https://www.trt18.jus.br" },
-    { value: "TRT19", label: "TRT 19ª Região - AL", url: "https://www.trt19.jus.br" },
-    { value: "TRT20", label: "TRT 20ª Região - SE", url: "https://www.trt20.jus.br" },
-    { value: "TRT21", label: "TRT 21ª Região - RN", url: "https://www.trt21.jus.br" },
-    { value: "TRT22", label: "TRT 22ª Região - PI", url: "https://www.trt22.jus.br" },
-    { value: "TRT23", label: "TRT 23ª Região - MT", url: "https://www.trt23.jus.br" },
-    { value: "TRT24", label: "TRT 24ª Região - MS", url: "https://www.trt24.jus.br" },
+    // Tribunais Regionais Federais
+    { value: "TRF1", label: "TRF1 - Tribunal Regional Federal 1ª Região", url: "https://www2.cjf.jus.br/jurisprudencia/trf1/" },
+    { value: "TRF2", label: "TRF2 - Tribunal Regional Federal 2ª Região", url: "https://www10.trf2.jus.br/consultas/?site=v2_jurisprudencia" },
+    { value: "TRF3", label: "TRF3 - Tribunal Regional Federal 3ª Região", url: "https://web.trf3.jus.br/jurisprudencia/" },
+    { value: "TRF4", label: "TRF4 - Tribunal Regional Federal 4ª Região", url: "https://jurisprudencia.trf4.jus.br/pesquisa/pesquisa.php?tipo=1" },
+    { value: "TRF5", label: "TRF5 - Tribunal Regional Federal 5ª Região", url: "https://julia-pesquisa.trf5.jus.br/julia-pesquisa/#consulta" },
     
-    // TRIBUNAIS DE JUSTIÇA ESTADUAIS
-    { value: "TJAC", label: "TJAC - Acre", url: "https://www.tjac.jus.br" },
-    { value: "TJAL", label: "TJAL - Alagoas", url: "https://www.tjal.jus.br" },
-    { value: "TJAP", label: "TJAP - Amapá", url: "https://www.tjap.jus.br" },
-    { value: "TJAM", label: "TJAM - Amazonas", url: "https://www.tjam.jus.br" },
-    { value: "TJBA", label: "TJBA - Bahia", url: "https://www.tjba.jus.br" },
-    { value: "TJCE", label: "TJCE - Ceará", url: "https://www.tjce.jus.br" },
-    { value: "TJDFT", label: "TJDFT - Distrito Federal", url: "https://www.tjdft.jus.br" },
-    { value: "TJES", label: "TJES - Espírito Santo", url: "https://www.tjes.jus.br" },
-    { value: "TJGO", label: "TJGO - Goiás", url: "https://www.tjgo.jus.br" },
-    { value: "TJMA", label: "TJMA - Maranhão", url: "https://www.tjma.jus.br" },
-    { value: "TJMT", label: "TJMT - Mato Grosso", url: "https://www.tjmt.jus.br" },
-    { value: "TJMS", label: "TJMS - Mato Grosso do Sul", url: "https://www.tjms.jus.br" },
-    { value: "TJMG", label: "TJMG - Minas Gerais", url: "https://www.tjmg.jus.br" },
-    { value: "TJPA", label: "TJPA - Pará", url: "https://www.tjpa.jus.br" },
-    { value: "TJPB", label: "TJPB - Paraíba", url: "https://www.tjpb.jus.br" },
-    { value: "TJPR", label: "TJPR - Paraná", url: "https://www.tjpr.jus.br" },
-    { value: "TJPE", label: "TJPE - Pernambuco", url: "https://www.tjpe.jus.br" },
-    { value: "TJPI", label: "TJPI - Piauí", url: "https://www.tjpi.jus.br" },
-    { value: "TJRJ", label: "TJRJ - Rio de Janeiro", url: "https://www.tjrj.jus.br" },
-    { value: "TJRN", label: "TJRN - Rio Grande do Norte", url: "https://www.tjrn.jus.br" },
-    { value: "TJRS", label: "TJRS - Rio Grande do Sul", url: "https://www.tjrs.jus.br" },
-    { value: "TJRO", label: "TJRO - Rondônia", url: "https://www.tjro.jus.br" },
-    { value: "TJRR", label: "TJRR - Roraima", url: "https://www.tjrr.jus.br" },
-    { value: "TJSC", label: "TJSC - Santa Catarina", url: "https://www.tjsc.jus.br" },
-    { value: "TJSP", label: "TJSP - São Paulo", url: "https://www.tjsp.jus.br" },
-    { value: "TJSE", label: "TJSE - Sergipe", url: "https://www.tjse.jus.br" },
-    { value: "TJTO", label: "TJTO - Tocantins", url: "https://www.tjto.jus.br" },
+    // Tribunais Regionais do Trabalho
+    { value: "TRT1", label: "TRT1 - Tribunal Regional do Trabalho 1ª Região (RJ)", url: "https://www.trt1.jus.br" },
+    { value: "TRT2", label: "TRT2 - Tribunal Regional do Trabalho 2ª Região (SP Capital)", url: "https://www.trt2.jus.br" },
+    { value: "TRT3", label: "TRT3 - Tribunal Regional do Trabalho 3ª Região (MG)", url: "https://www.trt3.jus.br" },
+    { value: "TRT4", label: "TRT4 - Tribunal Regional do Trabalho 4ª Região (RS)", url: "https://www.trt4.jus.br" },
+    { value: "TRT5", label: "TRT5 - Tribunal Regional do Trabalho 5ª Região (BA)", url: "https://www.trt5.jus.br" },
+    { value: "TRT6", label: "TRT6 - Tribunal Regional do Trabalho 6ª Região (PE)", url: "https://www.trt6.jus.br" },
+    { value: "TRT7", label: "TRT7 - Tribunal Regional do Trabalho 7ª Região (CE)", url: "https://www.trt7.jus.br" },
+    { value: "TRT8", label: "TRT8 - Tribunal Regional do Trabalho 8ª Região (PA/AP)", url: "https://www.trt8.jus.br" },
+    { value: "TRT9", label: "TRT9 - Tribunal Regional do Trabalho 9ª Região (PR)", url: "https://www.trt9.jus.br" },
+    { value: "TRT10", label: "TRT10 - Tribunal Regional do Trabalho 10ª Região (DF/TO)", url: "https://www.trt10.jus.br" },
+    { value: "TRT11", label: "TRT11 - Tribunal Regional do Trabalho 11ª Região (AM/RR)", url: "https://www.trt11.jus.br" },
+    { value: "TRT12", label: "TRT12 - Tribunal Regional do Trabalho 12ª Região (SC)", url: "https://www.trt12.jus.br" },
+    { value: "TRT13", label: "TRT13 - Tribunal Regional do Trabalho 13ª Região (PB)", url: "https://www.trt13.jus.br" },
+    { value: "TRT14", label: "TRT14 - Tribunal Regional do Trabalho 14ª Região (RO/AC)", url: "https://www.trt14.jus.br" },
+    { value: "TRT15", label: "TRT15 - Tribunal Regional do Trabalho 15ª Região (SP Interior)", url: "https://www.trt15.jus.br" },
+    { value: "TRT16", label: "TRT16 - Tribunal Regional do Trabalho 16ª Região (MA)", url: "https://www.trt16.jus.br" },
+    { value: "TRT17", label: "TRT17 - Tribunal Regional do Trabalho 17ª Região (ES)", url: "https://www.trt17.jus.br" },
+    { value: "TRT18", label: "TRT18 - Tribunal Regional do Trabalho 18ª Região (GO)", url: "https://www.trt18.jus.br" },
+    { value: "TRT19", label: "TRT19 - Tribunal Regional do Trabalho 19ª Região (AL)", url: "https://www.trt19.jus.br" },
+    { value: "TRT20", label: "TRT20 - Tribunal Regional do Trabalho 20ª Região (SE)", url: "https://www.trt20.jus.br" },
+    { value: "TRT21", label: "TRT21 - Tribunal Regional do Trabalho 21ª Região (RN)", url: "https://www.trt21.jus.br" },
+    { value: "TRT22", label: "TRT22 - Tribunal Regional do Trabalho 22ª Região (PI)", url: "https://www.trt22.jus.br" },
+    { value: "TRT23", label: "TRT23 - Tribunal Regional do Trabalho 23ª Região (MT)", url: "https://www.trt23.jus.br" },
+    { value: "TRT24", label: "TRT24 - Tribunal Regional do Trabalho 24ª Região (MS)", url: "https://www.trt24.jus.br" },
+    
+    // Tribunais de Justiça Estaduais
+    { value: "TJAC", label: "TJAC - Tribunal de Justiça do Acre", url: "https://www.tjac.jus.br" },
+    { value: "TJAL", label: "TJAL - Tribunal de Justiça de Alagoas", url: "https://www.tjal.jus.br" },
+    { value: "TJAP", label: "TJAP - Tribunal de Justiça do Amapá", url: "https://www.tjap.jus.br" },
+    { value: "TJAM", label: "TJAM - Tribunal de Justiça do Amazonas", url: "https://www.tjam.jus.br" },
+    { value: "TJBA", label: "TJBA - Tribunal de Justiça da Bahia", url: "https://www.tjba.jus.br" },
+    { value: "TJCE", label: "TJCE - Tribunal de Justiça do Ceará", url: "https://www.tjce.jus.br" },
+    { value: "TJDFT", label: "TJDFT - Tribunal de Justiça do Distrito Federal", url: "https://www.tjdft.jus.br" },
+    { value: "TJES", label: "TJES - Tribunal de Justiça do Espírito Santo", url: "https://www.tjes.jus.br" },
+    { value: "TJGO", label: "TJGO - Tribunal de Justiça de Goiás", url: "https://www.tjgo.jus.br" },
+    { value: "TJMA", label: "TJMA - Tribunal de Justiça do Maranhão", url: "https://www.tjma.jus.br" },
+    { value: "TJMT", label: "TJMT - Tribunal de Justiça de Mato Grosso", url: "https://www.tjmt.jus.br" },
+    { value: "TJMS", label: "TJMS - Tribunal de Justiça de Mato Grosso do Sul", url: "https://www.tjms.jus.br" },
+    { value: "TJMG", label: "TJMG - Tribunal de Justiça de Minas Gerais", url: "https://www.tjmg.jus.br" },
+    { value: "TJPA", label: "TJPA - Tribunal de Justiça do Pará", url: "https://www.tjpa.jus.br" },
+    { value: "TJPB", label: "TJPB - Tribunal de Justiça da Paraíba", url: "https://www.tjpb.jus.br" },
+    { value: "TJPR", label: "TJPR - Tribunal de Justiça do Paraná", url: "https://www.tjpr.jus.br" },
+    { value: "TJPE", label: "TJPE - Tribunal de Justiça de Pernambuco", url: "https://www.tjpe.jus.br" },
+    { value: "TJPI", label: "TJPI - Tribunal de Justiça do Piauí", url: "https://www.tjpi.jus.br" },
+    { value: "TJRJ", label: "TJRJ - Tribunal de Justiça do Rio de Janeiro", url: "https://www.tjrj.jus.br" },
+    { value: "TJRN", label: "TJRN - Tribunal de Justiça do Rio Grande do Norte", url: "https://www.tjrn.jus.br" },
+    { value: "TJRS", label: "TJRS - Tribunal de Justiça do Rio Grande do Sul", url: "https://www.tjrs.jus.br" },
+    { value: "TJRO", label: "TJRO - Tribunal de Justiça de Rondônia", url: "https://www.tjro.jus.br" },
+    { value: "TJRR", label: "TJRR - Tribunal de Justiça de Roraima", url: "https://www.tjrr.jus.br" },
+    { value: "TJSC", label: "TJSC - Tribunal de Justiça de Santa Catarina", url: "https://www.tjsc.jus.br" },
+    { value: "TJSP", label: "TJSP - Tribunal de Justiça de São Paulo", url: "https://www.tjsp.jus.br" },
+    { value: "TJSE", label: "TJSE - Tribunal de Justiça de Sergipe", url: "https://www.tjse.jus.br" },
+    { value: "TJTO", label: "TJTO - Tribunal de Justiça de Tocantins", url: "https://www.tjto.jus.br" },
   ];
 
   return (
@@ -305,7 +306,7 @@ FORMATO: Use Markdown formatado com citações e referências completas.`;
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white max-h-[400px]">
+                  <SelectContent className="bg-white">
                     {courtOptions.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -313,17 +314,6 @@ FORMATO: Use Markdown formatado com citações e referências completas.`;
                     ))}
                   </SelectContent>
                 </Select>
-                {court !== "all" && courtOptions.find(c => c.value === court)?.url && (
-                  <a 
-                    href={courtOptions.find(c => c.value === court)?.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                    Ver portal oficial
-                  </a>
-                )}
               </div>
 
               <div className="space-y-2">
@@ -402,33 +392,49 @@ FORMATO: Use Markdown formatado com citações e referências completas.`;
           </Button>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-gray-900 font-medium mb-2">
-              💡 Dicas para melhores resultados:
-            </p>
-            <ul className="text-xs text-gray-800 space-y-1">
-              {searchType === "jurisprudence" && (
-                <>
-                  <li>• Use termos jurídicos específicos e precisos</li>
-                  <li>• A IA busca decisões reais via fontes OFICIAIS dos tribunais</li>
-                  <li>• {courtOptions.length - 1} tribunais disponíveis (STF, STJ, TST, TRFs, TRTs, TJs)</li>
-                  <li>• Resultados incluem número do processo e link oficial</li>
-                </>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <p className="text-sm text-gray-900 font-medium mb-2">
+                  💡 Dicas para melhores resultados:
+                </p>
+                <ul className="text-xs text-gray-800 space-y-1">
+                  {searchType === "jurisprudence" && (
+                    <>
+                      <li>• Use termos jurídicos específicos e precisos</li>
+                      <li>• A IA busca decisões reais dos tribunais via internet</li>
+                      <li>• Fontes: STF, STJ, TRFs, TRTs, TJs e outros tribunais</li>
+                    </>
+                  )}
+                  {searchType === "law" && (
+                    <>
+                      <li>• Especifique o assunto ou situação jurídica</li>
+                      <li>• A IA busca em Planalto.gov.br e bases legislativas</li>
+                      <li>• Retorna artigos e dispositivos legais aplicáveis</li>
+                    </>
+                  )}
+                  {searchType === "doctrine" && (
+                    <>
+                      <li>• Cite autores ou correntes doutrinárias se souber</li>
+                      <li>• A IA busca em fontes acadêmicas confiáveis</li>
+                      <li>• Retorna posicionamentos de doutrinadores renomados</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+              {court !== "all" && courtOptions.find(c => c.value === court)?.url && (
+                <a
+                  href={courtOptions.find(c => c.value === court).url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 px-3 py-2 bg-white border border-blue-300 rounded-lg text-xs text-blue-700 hover:bg-blue-50 transition-colors flex items-center gap-1"
+                >
+                  Acessar {court}
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
               )}
-              {searchType === "law" && (
-                <>
-                  <li>• Especifique o assunto ou situação jurídica</li>
-                  <li>• A IA busca em Planalto.gov.br e bases legislativas</li>
-                  <li>• Retorna artigos e dispositivos legais aplicáveis</li>
-                </>
-              )}
-              {searchType === "doctrine" && (
-                <>
-                  <li>• Cite autores ou correntes doutrinárias se souber</li>
-                  <li>• A IA busca em fontes acadêmicas confiáveis</li>
-                  <li>• Retorna posicionamentos de doutrinadores renomados</li>
-                </>
-              )}
-            </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
