@@ -89,26 +89,26 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
     <div className="h-full flex flex-col bg-stone-50">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto px-4 py-4">
           {showWelcome ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-center py-16 sm:py-24 px-4"
+              className="text-center py-6 sm:py-8 px-4"
             >
               {/* Classic Icon */}
-              <div className="inline-block mb-6">
-                <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center">
-                  <Scale className="w-8 h-8 text-white" />
+              <div className="inline-block mb-4">
+                <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center">
+                  <Scale className="w-7 h-7 text-white" />
                 </div>
               </div>
 
               {/* Welcome Message */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-light text-stone-900 mb-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-light text-stone-900 mb-2">
                 Assistente Jurídico
               </h1>
-              <p className="text-stone-500 text-base sm:text-lg max-w-md mx-auto mb-8">
+              <p className="text-stone-500 text-sm sm:text-base max-w-md mx-auto mb-4">
                 Tire suas dúvidas, pesquise jurisprudências e obtenha orientações jurídicas precisas.
               </p>
             </motion.div>
