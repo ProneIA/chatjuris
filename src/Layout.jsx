@@ -334,7 +334,8 @@ export default function Layout({ children, currentPageName }) {
     "Pricing",
     "ClientAccess",
     "AccessDenied",
-    "Checkout"
+    "Checkout",
+    "AIAssistant"
   ];
   
   const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
