@@ -186,7 +186,33 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
   };
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden relative ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div className={`h-screen flex flex-col overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      {/* Top Bar - Fixo */}
+      <div className={`border-b px-6 py-3 flex items-center gap-3 flex-shrink-0 ${isDark ? 'border-neutral-800 bg-black' : 'border-gray-200 bg-white'}`}>
+        <div className="flex-1 flex items-center gap-3 min-w-0">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isDark ? 'bg-white' : 'bg-black'}`}>
+            <Sparkles className={`w-4 h-4 ${isDark ? 'text-black' : 'text-white'}`} />
+          </div>
+          <h2 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-black'}`}>
+            {selectedConversation ? selectedConversation.title : 'Assistente Jurídico'}
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {conversations.length > 0 && (
+            <Button
+              onClick={() => setShowHistoryDialog(true)}
+              size="sm"
+              variant="outline"
+              className={`h-9 px-3 ${isDark ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+            >
+              <History className="w-4 h-4 mr-2" />
+              <span>Histórico</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Chat Area - Centralizado e menor */}
       <div className="flex-1 flex items-center justify-center overflow-hidden px-4 py-4">
         <div className="w-full max-w-4xl h-full flex flex-col">
@@ -212,20 +238,6 @@ Seja preciso, profissional e cite fontes quando relevante. Responda sempre em po
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Botão de Histórico - Fixo no canto inferior direito */}
-      {conversations.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            onClick={() => setShowHistoryDialog(true)}
-            size="lg"
-            className={`shadow-lg ${isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-black text-white hover:bg-gray-800'}`}
-          >
-            <History className="w-5 h-5 mr-2" />
-            Histórico
-          </Button>
-        </div>
-      )}
 
       {/* Dialog de Histórico */}
       <ConversationHistoryDialog
