@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "@/components/common/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -265,8 +266,10 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     },
   });
 
+  const debouncedSearch = useDebounce(search, 300);
+  
   const filteredDocs = documents.filter(doc => {
-    const searchLower = search.toLowerCase();
+    const searchLower = debouncedSearch.toLowerCase();
     const matchesSearch = doc.title?.toLowerCase().includes(searchLower) ||
       doc.content?.toLowerCase().includes(searchLower) ||
       doc.ocr_content?.toLowerCase().includes(searchLower) ||

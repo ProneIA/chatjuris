@@ -6,6 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FolderOpen, Loader2 } from "lucide-react";
+import { useDebounce } from "@/components/common/useDebounce";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -147,10 +148,12 @@ export default function Cases({ theme = 'light' }) {
     });
   };
 
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  
   const filteredCases = cases.filter(c =>
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.case_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.client_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    c.case_number?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    c.client_name?.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
   if (!user) {

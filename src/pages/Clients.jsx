@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
+import { useDebounce } from "@/components/common/useDebounce";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
@@ -62,10 +63,12 @@ export default function Clients({ theme = 'light' }) {
     },
   });
 
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  
   const filteredClients = clients.filter(client =>
-    client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.cpf_cnpj?.includes(searchTerm)
+    client.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    client.email?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+    client.cpf_cnpj?.includes(debouncedSearch)
   );
 
   const handleSubmit = (data) => {

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDebounce } from "@/components/common/useDebounce";
 import {
   Search,
   BookOpen,
@@ -344,8 +345,10 @@ INSTRUÇÕES:
     });
   };
 
+  const debouncedSearchFilter = useDebounce(searchFilter, 300);
+  
   const filteredResearches = savedResearches.filter(r => {
-    const matchesSearch = r.title?.toLowerCase().includes(searchFilter.toLowerCase());
+    const matchesSearch = r.title?.toLowerCase().includes(debouncedSearchFilter.toLowerCase());
     const matchesFavorite = !filterFavorites || r.is_favorite;
     return matchesSearch && matchesFavorite;
   });
