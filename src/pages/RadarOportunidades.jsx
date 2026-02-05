@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, TrendingUp, MapPin, Bell, Sparkles, AlertCircle } from 'lucide-react';
+import { Activity, TrendingUp, MapPin, Bell, Sparkles, AlertCircle, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import RadarDashboard from '@/components/radar/RadarDashboard';
 import TendenciasChart from '@/components/radar/TendenciasChart';
 import MapaRegional from '@/components/radar/MapaRegional';
