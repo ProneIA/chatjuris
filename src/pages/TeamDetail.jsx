@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Users, Plus, Trash2, Loader2, FileText, MessageSquare, Upload, Download } from "lucide-react";
+import { Users, Plus, Trash2, Loader2, FileText, MessageSquare, Upload, Download, CheckSquare, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
 
@@ -29,9 +29,21 @@ export default function TeamDetail({ theme = 'light' }) {
   const [isDocDialogOpen, setIsDocDialogOpen] = useState(false);
   const [docTitle, setDocTitle] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [docAssignedTo, setDocAssignedTo] = useState("");
 
   // Estados para mensagens
   const [newMessage, setNewMessage] = useState("");
+  const [messageMember, setMessageMember] = useState("");
+
+  // Estados para tarefas
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    assigned_to_member: "",
+    due_date: "",
+    priority: "medium"
+  });
 
   useEffect(() => {
     base44.auth.me()
@@ -80,10 +92,17 @@ export default function TeamDetail({ theme = 'light' }) {
     enabled: !!user
   });
 
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ['team-tasks'],
+    queryFn: () => base44.entities.TeamTask.list('-created_date'),
+    enabled: !!user
+  });
+
   // FILTROS LOCAIS
   const members = allMembers.filter(m => m.team_id === teamId);
   const docs = allDocs.filter(d => d.team_id === teamId);
   const messages = allMessages.filter(m => m.team_id === teamId);
+  const tasks = allTasks.filter(t => t.team_id === teamId);
 
   // MUTATIONS
   const createMemberMutation = useMutation({
@@ -117,7 +136,8 @@ export default function TeamDetail({ theme = 'light' }) {
         team_id: teamId,
         title: docTitle,
         file_url,
-        uploaded_by: user.email
+        uploaded_by: user.email,
+        assigned_to_member: docAssignedTo
       });
     },
     onSuccess: () => {
@@ -126,6 +146,7 @@ export default function TeamDetail({ theme = 'light' }) {
       setIsDocDialogOpen(false);
       setDocTitle("");
       setSelectedFile(null);
+      setDocAssignedTo("");
     }
   });
 
@@ -142,12 +163,65 @@ export default function TeamDetail({ theme = 'light' }) {
       return await base44.entities.TeamMessage.create({
         team_id: teamId,
         message: newMessage,
-        sent_by: user.email
+        sent_by: user.email,
+        sent_by_member: messageMember
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-messages'] });
       setNewMessage("");
+      setMessageMember("");
+    }
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: async () => {
+      // Criar tarefa da equipe
+      const teamTask = await base44.entities.TeamTask.create({
+        team_id: teamId,
+        ...taskForm
+      });
+
+      // Criar tarefa no sistema principal
+      await base44.entities.Task.create({
+        title: taskForm.title,
+        description: taskForm.description,
+        due_date: taskForm.due_date,
+        priority: taskForm.priority,
+        status: "pending",
+        team_id: teamId,
+        assigned_to_name: taskForm.assigned_to_member
+      });
+
+      return teamTask;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-tasks'] });
+      toast.success("Tarefa criada!");
+      setIsTaskDialogOpen(false);
+      setTaskForm({
+        title: "",
+        description: "",
+        assigned_to_member: "",
+        due_date: "",
+        priority: "medium"
+      });
+    }
+  });
+
+  const updateTaskStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => base44.entities.TeamTask.update(id, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-tasks'] });
+      toast.success("Status atualizado!");
+    }
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (id) => base44.entities.TeamTask.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-tasks'] });
+      toast.success("Tarefa removida!");
     }
   });
 
@@ -185,6 +259,10 @@ export default function TeamDetail({ theme = 'light' }) {
               <Users className="w-4 h-4 mr-2" />
               Pessoas ({members.length})
             </TabsTrigger>
+            <TabsTrigger value="tasks">
+              <CheckSquare className="w-4 h-4 mr-2" />
+              Tarefas ({tasks.length})
+            </TabsTrigger>
             <TabsTrigger value="docs">
               <FileText className="w-4 h-4 mr-2" />
               Documentos ({docs.length})
@@ -194,6 +272,84 @@ export default function TeamDetail({ theme = 'light' }) {
               Mensagens ({messages.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* ABA TAREFAS */}
+          <TabsContent value="tasks">
+            <Button onClick={() => setIsTaskDialogOpen(true)} className="mb-4">
+              <Plus className="w-4 h-4 mr-2" /> Nova Tarefa
+            </Button>
+
+            <div className="space-y-3">
+              {tasks.map(task => (
+                <Card key={task.id} className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={task.status === 'completed'}
+                            onChange={(e) => 
+                              updateTaskStatusMutation.mutate({
+                                id: task.id,
+                                status: e.target.checked ? 'completed' : 'pending'
+                              })
+                            }
+                            className="w-4 h-4"
+                          />
+                          <h3 className={`font-semibold ${task.status === 'completed' ? 'line-through text-neutral-500' : isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {task.title}
+                          </h3>
+                        </div>
+                        {task.description && (
+                          <p className={`text-sm mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                            {task.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className={`px-2 py-1 rounded ${
+                            task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
+                          </span>
+                          {task.assigned_to_member && (
+                            <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
+                              👤 {task.assigned_to_member}
+                            </span>
+                          )}
+                          <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
+                            📅 {new Date(task.due_date).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm("Remover tarefa?")) {
+                            deleteTaskMutation.mutate(task.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {tasks.length === 0 && (
+              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+                <CardContent className="py-12 text-center">
+                  <CheckSquare className={`w-12 h-12 mx-auto mb-2 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
+                  <p className={isDark ? 'text-neutral-400' : 'text-gray-500'}>Nenhuma tarefa criada</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* ABA PESSOAS */}
           <TabsContent value="members">
@@ -269,7 +425,8 @@ export default function TeamDetail({ theme = 'light' }) {
                         </Button>
                       </div>
                       <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                        Por {doc.uploaded_by} • {moment(doc.created_date).fromNow()}
+                        {doc.assigned_to_member && `👤 ${doc.assigned_to_member} • `}
+                        {moment(doc.created_date).fromNow()}
                       </p>
                       <Button asChild variant="outline" size="sm" className="w-full">
                         <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
@@ -310,6 +467,9 @@ export default function TeamDetail({ theme = 'light' }) {
                           {moment(msg.created_date).fromNow()}
                         </span>
                       </div>
+                      <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
+                        {msg.sent_by_member || msg.sent_by}
+                      </p>
                       <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
                         {msg.message}
                       </p>
@@ -323,20 +483,34 @@ export default function TeamDetail({ theme = 'light' }) {
                   )}
                 </div>
 
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    placeholder="Digite sua mensagem..."
-                    rows={2}
-                    className="flex-1"
-                  />
-                  <Button 
-                    onClick={() => sendMessageMutation.mutate()}
-                    disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                <div className="space-y-2">
+                  <select
+                    value={messageMember}
+                    onChange={e => setMessageMember(e.target.value)}
+                    className={`w-full p-2 border rounded ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-300'}`}
                   >
-                    Enviar
-                  </Button>
+                    <option value="">Selecione quem está enviando</option>
+                    {members.map(m => (
+                      <option key={m.id} value={`${m.name} (${m.role})`}>
+                        {m.name} - {m.role}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex gap-2">
+                    <Textarea
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      placeholder="Digite sua mensagem..."
+                      rows={2}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={() => sendMessageMutation.mutate()}
+                      disabled={!newMessage.trim() || !messageMember || sendMessageMutation.isPending}
+                    >
+                      Enviar
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -377,6 +551,67 @@ export default function TeamDetail({ theme = 'light' }) {
           </DialogContent>
         </Dialog>
 
+        {/* Dialog Nova Tarefa */}
+        <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
+          <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <DialogHeader>
+              <DialogTitle className={isDark ? 'text-white' : 'text-gray-900'}>
+                Nova Tarefa
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Input
+                placeholder="Título da tarefa"
+                value={taskForm.title}
+                onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+              />
+              <Textarea
+                placeholder="Descrição"
+                value={taskForm.description}
+                onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                rows={3}
+              />
+              <select
+                value={taskForm.assigned_to_member}
+                onChange={e => setTaskForm({ ...taskForm, assigned_to_member: e.target.value })}
+                className={`w-full p-2 border rounded ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-300'}`}
+              >
+                <option value="">Atribuir a um membro</option>
+                {members.map(m => (
+                  <option key={m.id} value={m.name}>
+                    {m.name} - {m.role}
+                  </option>
+                ))}
+              </select>
+              <Input
+                type="date"
+                value={taskForm.due_date}
+                onChange={e => setTaskForm({ ...taskForm, due_date: e.target.value })}
+              />
+              <select
+                value={taskForm.priority}
+                onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}
+                className={`w-full p-2 border rounded ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-300'}`}
+              >
+                <option value="low">Prioridade Baixa</option>
+                <option value="medium">Prioridade Média</option>
+                <option value="high">Prioridade Alta</option>
+              </select>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsTaskDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => createTaskMutation.mutate()}
+                disabled={!taskForm.title || !taskForm.due_date || createTaskMutation.isPending}
+              >
+                {createTaskMutation.isPending ? "Criando..." : "Criar Tarefa"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Dialog Enviar Documento */}
         <Dialog open={isDocDialogOpen} onOpenChange={setIsDocDialogOpen}>
           <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
@@ -391,6 +626,18 @@ export default function TeamDetail({ theme = 'light' }) {
                 value={docTitle}
                 onChange={e => setDocTitle(e.target.value)}
               />
+              <select
+                value={docAssignedTo}
+                onChange={e => setDocAssignedTo(e.target.value)}
+                className={`w-full p-2 border rounded ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-gray-300'}`}
+              >
+                <option value="">Atribuir a um membro (opcional)</option>
+                {members.map(m => (
+                  <option key={m.id} value={m.name}>
+                    {m.name} - {m.role}
+                  </option>
+                ))}
+              </select>
               <Input
                 type="file"
                 onChange={e => setSelectedFile(e.target.files[0])}

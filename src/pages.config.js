@@ -93,10 +93,10 @@ import RadarOportunidades from './pages/RadarOportunidades';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Tasks from './pages/Tasks';
+import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
-import Teams from './pages/Teams';
 import TeamDetail from './pages/TeamDetail';
 import __Layout from './Layout.jsx';
 
@@ -148,10 +148,10 @@ export const PAGES = {
     "Reports": Reports,
     "Settings": Settings,
     "Tasks": Tasks,
+    "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
-    "Teams": Teams,
     "TeamDetail": TeamDetail,
 }
 
