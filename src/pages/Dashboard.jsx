@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -56,7 +57,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['clients', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 10);
+      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 100);
     },
     enabled: !!user?.email
   });
@@ -65,7 +66,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 10);
+      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email
   });
@@ -74,7 +75,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['tasks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 10);
+      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 20);
     },
     enabled: !!user?.email
   });
@@ -83,7 +84,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 10);
+      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email
   });
@@ -175,6 +176,16 @@ export default function Dashboard({ theme = 'light' }) {
     yellow: { bg: "bg-yellow-500/10", text: "text-yellow-600", border: "border-yellow-500/20" },
     gray: { bg: isDark ? "bg-neutral-800" : "bg-gray-100", text: isDark ? "text-neutral-400" : "text-gray-500", border: isDark ? "border-neutral-700" : "border-gray-200" }
   };
+
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f]' : 'bg-slate-50'}`}>
+        <div className="max-w-7xl mx-auto p-6 md:p-8">
+          <DashboardSkeleton isDark={isDark} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f]' : 'bg-slate-50'}`}>
