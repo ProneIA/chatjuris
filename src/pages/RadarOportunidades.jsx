@@ -169,7 +169,7 @@ Gere uma estratégia técnica e objetiva.`,
                 <Activity className="w-4 h-4 mr-2" />
                 {atualizandoDados ? 'Atualizando...' : 'Atualizar Dados'}
               </Button>
-              <Link to={createPageUrl("AIAssistant")}>
+              <Link to={createPageUrl("AIAssistant") + "?mode=marketing_juridico"}>
                 <Button variant="outline">
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Chat com IA

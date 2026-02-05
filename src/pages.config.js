@@ -90,6 +90,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import Pricing from './pages/Pricing';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import QuemSomos from './pages/QuemSomos';
+import RadarOportunidades from './pages/RadarOportunidades';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Tasks from './pages/Tasks';
@@ -98,7 +99,6 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
-import RadarOportunidades from './pages/RadarOportunidades';
 import __Layout from './Layout.jsx';
 
 
@@ -146,6 +146,7 @@ export const PAGES = {
     "Pricing": Pricing,
     "PrivacyPolicy": PrivacyPolicy,
     "QuemSomos": QuemSomos,
+    "RadarOportunidades": RadarOportunidades,
     "Reports": Reports,
     "Settings": Settings,
     "Tasks": Tasks,
@@ -154,7 +155,6 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
-    "RadarOportunidades": RadarOportunidades,
 }
 
 export const pagesConfig = {
