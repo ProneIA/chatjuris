@@ -16,7 +16,7 @@ export default function RadarOportunidades({ theme }) {
   const [user, setUser] = useState(null);
   const [selectedArea, setSelectedArea] = useState('all');
   const [generatingStrategy, setGeneratingStrategy] = useState(false);
-  const [updatingRadar, setUpdatingRadar] = useState(false);
+  const [atualizandoDados, setAtualizandoDados] = useState(false);
 
   const isDark = theme === 'dark';
 
@@ -44,17 +44,22 @@ export default function RadarOportunidades({ theme }) {
     enabled: !!user
   });
 
-  const atualizarRadar = async () => {
-    setUpdatingRadar(true);
+  const atualizarDados = async () => {
+    setAtualizandoDados(true);
     try {
-      const response = await base44.functions.invoke('atualizarRadarProcessos');
-      toast.success(response.data.mensagem || 'Radar atualizado com sucesso!');
-      queryClient.invalidateQueries(['insights-juridicos']);
-      queryClient.invalidateQueries(['casos-publicos']);
+      const response = await base44.functions.invoke('atualizarRadarDados', {});
+      
+      if (response.data.success) {
+        toast.success(`${response.data.casosInseridos} casos e ${response.data.insightsGerados} insights atualizados!`);
+        queryClient.invalidateQueries(['insights-juridicos']);
+        queryClient.invalidateQueries(['casos-publicos']);
+      } else {
+        toast.error('Erro ao atualizar dados');
+      }
     } catch (error) {
-      toast.error('Erro ao atualizar radar');
+      toast.error('Erro ao atualizar: ' + error.message);
     } finally {
-      setUpdatingRadar(false);
+      setAtualizandoDados(false);
     }
   };
 
@@ -158,9 +163,9 @@ Gere uma estratégia técnica e objetiva.`,
               </div>
             </div>
             <div className="flex gap-2">
-              <Button onClick={atualizarRadar} disabled={updatingRadar} variant="outline">
+              <Button onClick={atualizarDados} disabled={atualizandoDados} variant="outline">
                 <Activity className="w-4 h-4 mr-2" />
-                {updatingRadar ? 'Atualizando...' : 'Atualizar Dados'}
+                {atualizandoDados ? 'Atualizando...' : 'Atualizar Dados'}
               </Button>
               <Button onClick={generateStrategyWithAI} disabled={generatingStrategy} className="bg-blue-600 hover:bg-blue-700">
                 <Sparkles className="w-4 h-4 mr-2" />
