@@ -667,13 +667,13 @@ INSTRUÇÕES:
                   </div>
                 </div>
 
-                {/* TJs Principais */}
+                {/* TJs - Todos os Estados */}
                 <div className="mb-4">
                   <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    TJs PRINCIPAIS
+                    TJs - TRIBUNAIS ESTADUAIS
                   </p>
                   <div className="space-y-1">
-                    {tribunaisCompleto.filter(t => ['TJSP', 'TJRJ', 'TJMG', 'TJRS', 'TJPR', 'TJSC', 'TJBA', 'TJCE'].includes(t.value)).map(tribunal => (
+                    {tribunaisCompleto.filter(t => t.value.startsWith('TJ') && !t.value.startsWith('TJM')).map(tribunal => (
                       <a
                         key={tribunal.value}
                         href={tribunal.url}
