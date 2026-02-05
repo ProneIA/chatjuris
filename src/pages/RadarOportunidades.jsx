@@ -16,6 +16,7 @@ export default function RadarOportunidades({ theme }) {
   const [user, setUser] = useState(null);
   const [selectedArea, setSelectedArea] = useState('all');
   const [generatingStrategy, setGeneratingStrategy] = useState(false);
+  const [updatingRadar, setUpdatingRadar] = useState(false);
 
   const isDark = theme === 'dark';
 
@@ -42,6 +43,20 @@ export default function RadarOportunidades({ theme }) {
     },
     enabled: !!user
   });
+
+  const atualizarRadar = async () => {
+    setUpdatingRadar(true);
+    try {
+      const response = await base44.functions.invoke('atualizarRadarProcessos');
+      toast.success(response.data.mensagem || 'Radar atualizado com sucesso!');
+      queryClient.invalidateQueries(['insights-juridicos']);
+      queryClient.invalidateQueries(['casos-publicos']);
+    } catch (error) {
+      toast.error('Erro ao atualizar radar');
+    } finally {
+      setUpdatingRadar(false);
+    }
+  };
 
   const generateStrategyWithAI = async () => {
     setGeneratingStrategy(true);
@@ -142,10 +157,16 @@ Gere uma estratégia técnica e objetiva.`,
                 </p>
               </div>
             </div>
-            <Button onClick={generateStrategyWithAI} disabled={generatingStrategy} className="bg-blue-600 hover:bg-blue-700">
-              <Sparkles className="w-4 h-4 mr-2" />
-              {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia com IA'}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={atualizarRadar} disabled={updatingRadar} variant="outline">
+                <Activity className="w-4 h-4 mr-2" />
+                {updatingRadar ? 'Atualizando...' : 'Atualizar Dados'}
+              </Button>
+              <Button onClick={generateStrategyWithAI} disabled={generatingStrategy} className="bg-blue-600 hover:bg-blue-700">
+                <Sparkles className="w-4 h-4 mr-2" />
+                {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia com IA'}
+              </Button>
+            </div>
           </div>
 
           {/* Aviso LGPD/OAB */}
