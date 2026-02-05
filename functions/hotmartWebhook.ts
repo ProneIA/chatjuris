@@ -49,34 +49,55 @@ Deno.serve(async (req) => {
       user_id: user.id 
     });
 
-    // Detectar plano baseado no produto/preço
+    // Detectar plano baseado no produto/URL de checkout
+    const checkoutLink = data.product?.checkout_link || '';
     const price = (purchase?.price?.value || 0) / 100;
-    const isAnnual = price > 100 || (data.product?.name || '').toLowerCase().includes('anual');
-    const plan = isAnnual ? 'annual' : 'monthly';
     
-    // Calcular data de expiração
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    if (isAnnual) {
-      endDate.setFullYear(endDate.getFullYear() + 1);
+    // Identificar plano vitalício pelo link
+    const isLifetime = checkoutLink === 'https://pay.hotmart.com/L104287363X';
+    
+    // Detectar plano anual ou mensal (apenas se não for vitalício)
+    const isAnnual = !isLifetime && (price > 100 || (data.product?.name || '').toLowerCase().includes('anual'));
+    
+    let planType;
+    if (isLifetime) {
+      planType = 'lifetime';
+    } else if (isAnnual) {
+      planType = 'annual';
     } else {
-      endDate.setMonth(endDate.getMonth() + 1);
+      planType = 'monthly';
+    }
+    
+    // Calcular data de expiração (null para vitalício)
+    const startDate = new Date();
+    let endDate = null;
+    
+    if (!isLifetime) {
+      endDate = new Date(startDate);
+      if (isAnnual) {
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      } else {
+        endDate.setMonth(endDate.getMonth() + 1);
+      }
     }
 
     const hotmartData = {
       transaction_id: purchase?.transaction || subscription?.subscriber_code,
       product_id: data.product?.id,
       product_name: data.product?.name,
+      product_url: checkoutLink,
       hotmart_subscription_id: subscription?.subscriber_code,
       purchase_date: purchase?.approved_date || new Date().toISOString(),
     };
     
     console.log('📅 DEBUG - Plan detection:', { 
       price, 
-      plan, 
+      planType,
+      isLifetime,
       isAnnual, 
+      checkoutLink,
       startDate: startDate.toISOString().split('T')[0], 
-      endDate: endDate.toISOString().split('T')[0] 
+      endDate: endDate ? endDate.toISOString().split('T')[0] : 'VITALÍCIO (sem expiração)' 
     });
 
     // Processar eventos
@@ -84,12 +105,14 @@ Deno.serve(async (req) => {
       case 'PURCHASE_COMPLETE':
       case 'PURCHASE_APPROVED':
       case 'PURCHASE_BILLET_PRINTED':
+      case 'SUBSCRIPTION_PURCHASED':
         console.log('💳 DEBUG - Payment received, activating PRO for:', userEmail);
-        console.log('📋 DEBUG - Plan:', plan, '| Price:', price, '| Valid until:', endDate.toISOString().split('T')[0]);
+        console.log('📋 DEBUG - Plan Type:', planType, '| Price:', price, '| Valid until:', endDate ? endDate.toISOString().split('T')[0] : 'VITALÍCIO');
         
-        // Ativar assinatura PRO com limite ilimitado e data de expiração
+        // Ativar assinatura PRO com limite ilimitado
         const subscriptionData = {
           plan: 'pro',
+          plan_type: planType,
           status: 'active',
           payment_status: 'paid',
           payment_method: purchase?.payment?.type || 'hotmart',
@@ -99,8 +122,9 @@ Deno.serve(async (req) => {
           daily_actions_used: 0,
           last_reset_date: startDate.toISOString().split('T')[0],
           start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          next_billing_date: endDate.toISOString().split('T')[0],
+          end_date: endDate ? endDate.toISOString().split('T')[0] : null,
+          next_billing_date: endDate ? endDate.toISOString().split('T')[0] : null,
+          activated_at: new Date().toISOString(),
           ...hotmartData
         };
         
@@ -114,7 +138,7 @@ Deno.serve(async (req) => {
             ...subscriptionData
           });
         }
-        console.log('✅ DEBUG - PRO subscription activated with unlimited access until:', endDate.toISOString().split('T')[0]);
+        console.log('✅ DEBUG - PRO subscription activated:', planType === 'lifetime' ? 'VITALÍCIO (acesso permanente)' : `até ${endDate.toISOString().split('T')[0]}`);
         break;
 
       case 'PURCHASE_CANCELED':
@@ -152,8 +176,14 @@ Deno.serve(async (req) => {
 
       case 'SUBSCRIPTION_PAYMENT_APPROVED':
         console.log('🔄 DEBUG - Subscription renewal payment approved for:', userEmail);
-        // Renovar assinatura
+        // Renovar assinatura (apenas se não for vitalício)
         if (existingSubs.length > 0) {
+          // Verificar se é vitalício
+          if (existingSubs[0].plan_type === 'lifetime') {
+            console.log('⚠️ DEBUG - Plano vitalício não precisa de renovação');
+            break;
+          }
+          
           const newEndDate = new Date();
           if (isAnnual) {
             newEndDate.setFullYear(newEndDate.getFullYear() + 1);

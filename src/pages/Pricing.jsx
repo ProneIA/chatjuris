@@ -48,7 +48,7 @@ const plans = [
     billingType: "yearly",
     annualTotal: 1198.80,
     description: "Melhor valor - pague anualmente e economize",
-    popular: true,
+    popular: false,
     discount: 17,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
@@ -69,6 +69,39 @@ const plans = [
       daily_actions_used: 0
     },
     savingsText: "Economize R$ 240/ano - 2 meses grátis!"
+  },
+  {
+    id: "pro_lifetime",
+    name: "Acesso Vitalício",
+    icon: Star,
+    price: 497.00,
+    period: "pagamento único",
+    billingType: "lifetime",
+    description: "Pague uma vez, use para sempre",
+    popular: true,
+    isLifetime: true,
+    features: [
+      { text: "✨ ACESSO PERMANENTE - sem mensalidade", included: true, highlight: true },
+      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
+      { text: "Clientes ILIMITADOS", included: true, highlight: true },
+      { text: "Processos ILIMITADOS", included: true, highlight: true },
+      { text: "Documentos ILIMITADOS", included: true, highlight: true },
+      { text: "Todos os modos de IA", included: true },
+      { text: "Equipes e Workspace", included: true },
+      { text: "Jurisprudência completa", included: true },
+      { text: "Modelos de Peças ilimitados", included: true },
+      { text: "Calendário inteligente", included: true },
+      { text: "Análise de documentos LEXIA", included: true },
+      { text: "Gerador de imagens IA", included: true },
+      { text: "Suporte prioritário 24/7", included: true },
+      { text: "Todas atualizações futuras incluídas", included: true },
+    ],
+    limits: {
+      daily_actions_limit: 999999,
+      daily_actions_used: 0
+    },
+    savingsText: "💎 Economia de R$ 1.438/ano vs plano mensal",
+    lifetimeUrl: "https://pay.hotmart.com/L104287363X"
   }
 ];
 
@@ -121,7 +154,16 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Abrir modal de checkout
+    // Se for plano vitalício, redirecionar para Hotmart
+    if (planId === "pro_lifetime") {
+      const lifetimePlan = plans.find(p => p.id === "pro_lifetime");
+      if (lifetimePlan?.lifetimeUrl) {
+        window.open(lifetimePlan.lifetimeUrl, '_blank');
+      }
+      return;
+    }
+
+    // Abrir modal de checkout para planos recorrentes
     setCheckoutModal({ open: true, plan: planId });
   };
 
@@ -212,7 +254,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             const isCurrentPlan = currentPlan === plan.id || (currentPlan === 'pro' && plan.id.startsWith('pro_'));

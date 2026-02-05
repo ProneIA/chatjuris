@@ -304,14 +304,17 @@ export default function Layout({ children, currentPageName }) {
 
     // BLOQUEIO: Verificar se usuário tem acesso
     const hasActiveSubscription = subscription && subscription.status === 'active';
+    const isLifetimePlan = subscription && subscription.plan_type === 'lifetime';
     const isInValidTrial = user && user.trial_status === 'active' && subscription && subscription.status === 'trial';
-    const hasAccess = hasActiveSubscription || isInValidTrial;
+    const hasAccess = hasActiveSubscription || isLifetimePlan || isInValidTrial;
     
     console.log('🔐 DEBUG - Access Check:', {
       hasActiveSubscription,
+      isLifetimePlan,
       isInValidTrial,
       hasAccess,
       subscriptionStatus: subscription?.status,
+      subscriptionPlanType: subscription?.plan_type,
       userTrialStatus: user?.trial_status
     });
     
