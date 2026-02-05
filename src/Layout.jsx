@@ -55,6 +55,10 @@ const navigationItems = [
   { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
 ];
 
+const adminItems = [
+  { title: "Admin Panel", url: createPageUrl("AdminPanel"), icon: Shield },
+];
+
 export default function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
@@ -331,7 +335,9 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  const visibleNavItems = navigationItems;
+  const visibleNavItems = user?.role === 'admin' 
+    ? [...navigationItems, ...adminItems] 
+    : navigationItems;
 
   // Páginas que NÃO devem mostrar o botão Voltar
   const pagesWithoutBackButton = [
