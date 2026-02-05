@@ -32,7 +32,7 @@ export default function RadarOportunidades({ theme }) {
     queryKey: ['insights-juridicos', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const data = await base44.entities.InsightJuridico.filter({ created_by: user.email }, '-created_date', 20);
+      const data = await base44.entities.InsightJuridico.filter({ created_by: user.email }, '-created_date', 50);
       return data;
     },
     enabled: !!user
@@ -42,7 +42,7 @@ export default function RadarOportunidades({ theme }) {
     queryKey: ['casos-publicos', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const data = await base44.entities.CasoPublico.filter({ created_by: user.email }, '-data_distribuicao', 50);
+      const data = await base44.entities.CasoPublico.filter({ created_by: user.email }, '-data_distribuicao', 100);
       return data;
     },
     enabled: !!user

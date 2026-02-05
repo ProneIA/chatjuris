@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,29 +7,30 @@ import { Plus, Search, Star } from "lucide-react";
 import TemplateList from "../components/templates/TemplateList";
 import TemplateForm from "../components/templates/TemplateForm";
 import TemplateDetails from "../components/templates/TemplateDetails";
+import { useDebounce } from "@/components/common/useDebounce";
 
 export default function Templates({ theme = 'light' }) {
   const isDark = theme === 'dark';
+  const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [filterCategory, setFilterCategory] = useState("all");
   const queryClient = useQueryClient();
 
-  const [user, setUser] = useState(null);
-
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['templates', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Template.filter({ created_by: user.email }, '-created_date');
+      return base44.entities.Template.filter({ created_by: user.email }, '-created_date', 100);
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email
   });
 
   const createMutation = useMutation({
@@ -61,8 +62,8 @@ export default function Templates({ theme = 'light' }) {
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = 
-      template.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      template.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      template.description?.toLowerCase().includes(debouncedSearch.toLowerCase());
     
     const matchesCategory = filterCategory === "all" || template.category === filterCategory;
 

@@ -84,7 +84,8 @@ Baseado nos dados do radar, identifiquei oportunidades em Direito do Consumidor.
       if (!user?.email) return [];
       return base44.entities.Conversation.filter(
         { created_by: user.email },
-        '-last_message_at'
+        '-last_message_at',
+        50
       );
     },
     enabled: !!user?.email
