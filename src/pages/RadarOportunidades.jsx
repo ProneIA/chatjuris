@@ -169,6 +169,12 @@ Gere uma estratégia técnica e objetiva.`,
                 <Activity className="w-4 h-4 mr-2" />
                 {atualizandoDados ? 'Atualizando...' : 'Atualizar Dados'}
               </Button>
+              <Link to={createPageUrl("AIAssistant")}>
+                <Button variant="outline">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Chat com IA
+                </Button>
+              </Link>
               <Button onClick={generateStrategyWithAI} disabled={generatingStrategy} className="bg-blue-600 hover:bg-blue-700">
                 <Sparkles className="w-4 h-4 mr-2" />
                 {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia com IA'}
