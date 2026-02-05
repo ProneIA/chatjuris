@@ -17,9 +17,19 @@ export default function Templates({ theme = 'light' }) {
   const [filterCategory, setFilterCategory] = useState("all");
   const queryClient = useQueryClient();
 
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   const { data: templates = [], isLoading } = useQuery({
-    queryKey: ['templates'],
-    queryFn: () => base44.entities.Template.list('-created_date'),
+    queryKey: ['templates', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Template.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
   });
 
   const createMutation = useMutation({

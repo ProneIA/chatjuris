@@ -133,7 +133,7 @@ export default function ClientDetails({ client, onClose, onEdit, theme = 'light'
               <p>
                 Criado em: {format(new Date(client.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               </p>
-              {client.created_by && <p>Por: {client.created_by}</p>}
+              <p>ID: {client.id}</p>
             </div>
           </div>
         </div>
