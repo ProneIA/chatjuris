@@ -7,7 +7,6 @@ const ferramentasItems = [
   { title: "Gerador de Peças", description: "Crie documentos jurídicos com IA", url: createPageUrl("DocumentGenerator"), icon: FileText, badge: "IA" },
   { title: "Calculadora Jurídica", description: "Cálculos trabalhistas, juros e prazos", url: createPageUrl("LegalCalculator"), icon: Calculator },
   { title: "Monitor de Diários", description: "Acompanhe publicações oficiais", url: createPageUrl("DiaryMonitor"), icon: Newspaper, badge: "NOVO" },
-  { title: "Jurisprudência", description: "Pesquise decisões e precedentes", url: createPageUrl("Jurisprudence"), icon: BookOpen },
   { title: "Modelos de Peças", description: "Modelos de documentos prontos", url: createPageUrl("Templates"), icon: BookTemplate },
   { title: "Calendário", description: "Agenda inteligente de compromissos", url: createPageUrl("Calendar"), icon: CalendarDays },
 ];
