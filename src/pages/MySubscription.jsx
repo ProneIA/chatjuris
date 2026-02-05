@@ -1,62 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Crown, 
   Calendar, 
   CreditCard, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  AlertTriangle,
-  Loader2,
+  CheckCircle2, 
+  AlertCircle,
+  Clock,
+  Star,
+  Zap,
   ExternalLink,
-  RefreshCw,
-  Star
+  Sparkles
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-
-const statusConfig = {
-  active: { label: "Ativa", color: "bg-green-500", icon: CheckCircle },
-  pending: { label: "Pendente", color: "bg-yellow-500", icon: Clock },
-  cancelled: { label: "Cancelada", color: "bg-red-500", icon: XCircle },
-  expired: { label: "Expirada", color: "bg-gray-500", icon: AlertTriangle },
-  trial: { label: "Trial", color: "bg-blue-500", icon: Star },
-};
-
-const paymentStatusConfig = {
-  paid: { label: "Pago", color: "text-green-600 bg-green-50" },
-  pending: { label: "Pendente", color: "text-yellow-600 bg-yellow-50" },
-  failed: { label: "Falhou", color: "text-red-600 bg-red-50" },
-  cancelled: { label: "Cancelado", color: "text-gray-600 bg-gray-50" },
-};
+import { motion } from "framer-motion";
 
 export default function MySubscription({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me()
+      .then(setUser)
+      .catch(() => {});
   }, []);
 
-  const { data: subscription, isLoading, refetch } = useQuery({
-    queryKey: ['subscription', user?.id],
+  const { data: subscription, isLoading } = useQuery({
+    queryKey: ['my-subscription', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
@@ -65,347 +38,369 @@ export default function MySubscription({ theme = 'light' }) {
     enabled: !!user?.id
   });
 
-  const { data: paymentHistory, isLoading: loadingHistory } = useQuery({
-    queryKey: ['payment-history', subscription?.id],
-    queryFn: async () => {
-      if (!subscription?.cakto_customer_id) return [];
-      try {
-        const response = await base44.functions.invoke('caktoSubscription', {
-          action: 'history',
-          customerId: subscription.cakto_customer_id
-        });
-        return response.data?.payments || [];
-      } catch {
-        return [];
-      }
-    },
-    enabled: !!subscription?.cakto_customer_id
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: async () => {
-      if (subscription?.cakto_order_id) {
-        await base44.functions.invoke('caktoSubscription', {
-          action: 'cancel',
-          orderId: subscription.cakto_order_id
-        });
-      }
-      
-      return base44.entities.Subscription.update(subscription.id, {
-        status: 'cancelled',
-        plan: 'free',
-        daily_actions_limit: 5,
-        daily_actions_used: 0
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      setShowCancelDialog(false);
+  // Calcular dias restantes do trial
+  const trialDaysLeft = React.useMemo(() => {
+    if (user?.trial_status === 'active' && user?.trial_end_date) {
+      const today = new Date();
+      const endDate = new Date(user.trial_end_date);
+      const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+      return daysLeft > 0 ? daysLeft : 0;
     }
-  });
+    return 0;
+  }, [user]);
 
-  const isPro = (subscription?.plan?.startsWith('pro') || subscription?.plan === 'pro') && subscription?.status === 'active';
-  const isMonthly = subscription?.plan === 'pro_monthly';
-  const isYearly = subscription?.plan === 'pro_yearly';
-  const StatusIcon = statusConfig[subscription?.status]?.icon || Clock;
+  // Determinar configuração do plano
+  const planConfig = React.useMemo(() => {
+    if (!subscription) return null;
 
-  if (isLoading) {
+    const configs = {
+      trial: {
+        name: "Teste Gratuito",
+        badge: "Teste 7 dias",
+        color: "green",
+        icon: Sparkles,
+        description: "Período de avaliação gratuito",
+        bgClass: "bg-green-50 border-green-200",
+        textClass: "text-green-800",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600"
+      },
+      monthly: {
+        name: "Plano Mensal",
+        badge: "Plano Mensal",
+        color: "blue",
+        icon: Zap,
+        description: "Renovação mensal automática",
+        bgClass: "bg-blue-50 border-blue-200",
+        textClass: "text-blue-800",
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600",
+        isRecurrent: true
+      },
+      annual: {
+        name: "Plano Anual",
+        badge: "Plano Anual",
+        color: "purple",
+        icon: Crown,
+        description: "Renovação anual automática",
+        bgClass: "bg-purple-50 border-purple-200",
+        textClass: "text-purple-800",
+        iconBg: "bg-purple-100",
+        iconColor: "text-purple-600",
+        isRecurrent: true
+      },
+      lifetime: {
+        name: "Plano Vitalício",
+        badge: "Plano Vitalício",
+        color: "amber",
+        icon: Star,
+        description: "Acesso permanente — sem expiração",
+        bgClass: "bg-amber-50 border-amber-200",
+        textClass: "text-amber-800",
+        iconBg: "bg-amber-100",
+        iconColor: "text-amber-600",
+        isPermanent: true
+      }
+    };
+
+    const planType = subscription.status === 'trial' ? 'trial' : (subscription.plan_type || 'monthly');
+    return configs[planType] || configs.monthly;
+  }, [subscription]);
+
+  // Status da assinatura
+  const statusConfig = React.useMemo(() => {
+    if (!subscription) return null;
+
+    const today = new Date().toISOString().split('T')[0];
+    const isExpired = subscription.end_date && today > subscription.end_date;
+
+    if (isExpired) {
+      return {
+        label: "Expirado",
+        icon: AlertCircle,
+        color: "text-red-600",
+        bgColor: "bg-red-100"
+      };
+    }
+
+    if (subscription.status === 'trial') {
+      return {
+        label: `Em Teste (${trialDaysLeft} dias restantes)`,
+        icon: Clock,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100"
+      };
+    }
+
+    if (subscription.status === 'active') {
+      return {
+        label: "Ativo",
+        icon: CheckCircle2,
+        color: "text-green-600",
+        bgColor: "bg-green-100"
+      };
+    }
+
+    return {
+      label: subscription.status,
+      icon: AlertCircle,
+      color: "text-gray-600",
+      bgColor: "bg-gray-100"
+    };
+  }, [subscription, trialDaysLeft]);
+
+  if (isLoading || !user) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div className="max-w-4xl mx-auto">
+          <Skeleton className="h-10 w-64 mb-6" />
+          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <CardContent className="p-8">
+              <Skeleton className="h-32 w-full" />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className={`min-h-screen py-8 px-4 ${isDark ? 'bg-black' : 'bg-gray-50'}`}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Minha Assinatura
-            </h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-              Gerencie sua assinatura e pagamentos
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Atualizar
-          </Button>
+  if (!subscription) {
+    return (
+      <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div className="max-w-4xl mx-auto">
+          <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Minha Assinatura
+          </h1>
+          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <CardContent className="p-8 text-center">
+              <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
+              <p className={`text-lg mb-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                Você não possui uma assinatura ativa
+              </p>
+              <Button 
+                onClick={() => window.location.href = '/Pricing'}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+              >
+                Ver Planos Disponíveis
+              </Button>
+            </CardContent>
+          </Card>
         </div>
+      </div>
+    );
+  }
 
-        {/* Subscription Card */}
-        <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+  const Icon = planConfig.icon;
+  const StatusIcon = statusConfig.icon;
+  const isExpired = subscription.end_date && new Date().toISOString().split('T')[0] > subscription.end_date;
+
+  return (
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Minha Assinatura
+          </h1>
+
+          {/* Card Principal do Plano */}
+          <Card className={`mb-6 border-2 ${planConfig.bgClass} ${isDark ? 'bg-neutral-900' : 'bg-white'}`}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-16 h-16 rounded-xl ${planConfig.iconBg} flex items-center justify-center`}>
+                    <Icon className={`w-8 h-8 ${planConfig.iconColor}`} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {planConfig.name}
+                      </h2>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${planConfig.bgClass} ${planConfig.textClass}`}>
+                        {planConfig.badge}
+                      </span>
+                    </div>
+                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                      {planConfig.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Status */}
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                  isPro ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-gray-200'
-                }`}>
-                  <Crown className={`w-6 h-6 ${isPro ? 'text-white' : 'text-gray-500'}`} />
+                <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
+                  <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
                 </div>
                 <div>
-                  <CardTitle className={isDark ? 'text-white' : ''}>
-                    Plano {isPro ? (isYearly ? 'Profissional Anual' : 'Profissional Mensal') : 'Gratuito'}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={`${statusConfig[subscription?.status || 'active']?.color} text-white`}>
-                      <StatusIcon className="w-3 h-3 mr-1" />
-                      {statusConfig[subscription?.status || 'active']?.label}
-                    </Badge>
-                  </div>
+                  <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    Status
+                  </p>
+                  <p className={`font-semibold ${statusConfig.color}`}>
+                    {statusConfig.label}
+                  </p>
                 </div>
               </div>
-              
-              {isPro && (
-                <div className={`text-right ${isDark ? 'text-white' : ''}`}>
-                  {isMonthly && (
-                    <>
-                      <p className="text-2xl font-light">R$ 119,90</p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
-                    </>
-                  )}
-                  {isYearly && (
-                    <>
-                      <p className="text-2xl font-light">R$ 99,90</p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>/mês</p>
-                      <p className={`text-xs ${isDark ? 'text-neutral-600' : 'text-gray-400'} mt-1`}>
-                        R$ 1.198,80/ano
+
+              {/* Informações do Plano */}
+              <div className={`grid md:grid-cols-2 gap-6 pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                {/* Data de Início */}
+                <div className="flex items-start gap-3">
+                  <Calendar className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                  <div>
+                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
+                      Data de Início
+                    </p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {subscription.start_date ? new Date(subscription.start_date).toLocaleDateString('pt-BR') : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Data de Expiração (apenas se não for vitalício) */}
+                {!planConfig.isPermanent && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    <div>
+                      <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
+                        {subscription.status === 'trial' ? 'Teste termina em' : 'Próxima Renovação'}
                       </p>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            {/* Subscription Details */}
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
-                  <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Início
-                  </span>
-                </div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {subscription?.start_date 
-                    ? format(new Date(subscription.start_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : '-'
-                  }
-                </p>
-              </div>
-
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <RefreshCw className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
-                  <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Próxima Renovação
-                  </span>
-                </div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {subscription?.next_billing_date 
-                    ? format(new Date(subscription.next_billing_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : isPro ? 'Renovação automática' : '-'
-                  }
-                </p>
-              </div>
-
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard className={`w-4 h-4 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
-                  <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Pagamento
-                  </span>
-                </div>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {subscription?.payment_method === 'pix' ? 'PIX' : 
-                   subscription?.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                   subscription?.payment_method || 'Não definido'}
-                </p>
-              </div>
-            </div>
-
-            {/* Usage Info for Free Plan */}
-            {!isPro && (
-              <div className={`p-4 rounded-lg border ${isDark ? 'border-neutral-700 bg-neutral-800/50' : 'border-gray-200 bg-gray-50'}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className={isDark ? 'text-white' : 'text-gray-900'}>Uso Diário de IA</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {subscription?.daily_actions_used || 0} / {subscription?.daily_actions_limit || 5}
-                  </span>
-                </div>
-                <div className={`w-full h-2 rounded-full ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`}>
-                  <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
-                    style={{ width: `${((subscription?.daily_actions_used || 0) / (subscription?.daily_actions_limit || 5)) * 100}%` }}
-                  />
-                </div>
-                <p className={`text-sm mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                  Resets diariamente à meia-noite
-                </p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              {!isPro ? (
-                <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
-                    <Crown className="w-4 h-4 mr-2" />
-                    Fazer Upgrade para Pro
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  {subscription?.payment_external_url && (
-                    <a href={subscription.payment_external_url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Gerenciar no Cakto
-                      </Button>
-                    </a>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    className="text-red-500 border-red-200 hover:bg-red-50"
-                    onClick={() => setShowCancelDialog(true)}
-                  >
-                    Cancelar Assinatura
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment History */}
-        {isPro && (
-          <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
-            <CardHeader>
-              <CardTitle className={isDark ? 'text-white' : ''}>Histórico de Pagamentos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loadingHistory ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-                </div>
-              ) : paymentHistory && paymentHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {paymentHistory.map((payment, index) => (
-                    <div 
-                      key={index}
-                      className={`flex items-center justify-between p-4 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <CreditCard className={`w-5 h-5 ${isDark ? 'text-neutral-400' : 'text-gray-400'}`} />
-                        <div>
-                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            R$ {payment.amount?.toFixed(2).replace('.', ',')}
-                          </p>
-                          <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                            {payment.date ? format(new Date(payment.date), "dd/MM/yyyy", { locale: ptBR }) : '-'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge className={paymentStatusConfig[payment.status]?.color || 'bg-gray-100'}>
-                          {paymentStatusConfig[payment.status]?.label || payment.status}
-                        </Badge>
-                        {payment.invoice_url && (
-                          <a href={payment.invoice_url} target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="sm">
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </a>
-                        )}
-                      </div>
+                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {subscription.end_date ? new Date(subscription.end_date).toLocaleDateString('pt-BR') : 'N/A'}
+                      </p>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Provedor de Pagamento */}
+                <div className="flex items-start gap-3">
+                  <CreditCard className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                  <div>
+                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
+                      Provedor de Pagamento
+                    </p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {subscription.payment_method === 'hotmart' ? 'Hotmart' : subscription.payment_method || 'N/A'}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className={`text-center py-8 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                  <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhum pagamento registrado</p>
+
+                {/* Tipo de Cobrança */}
+                <div className="flex items-start gap-3">
+                  <Clock className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                  <div>
+                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
+                      Tipo de Cobrança
+                    </p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {planConfig.isPermanent ? 'Pagamento Único' : planConfig.isRecurrent ? 'Recorrente' : 'Teste Gratuito'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Aviso de Renovação Automática (apenas para planos recorrentes) */}
+              {planConfig.isRecurrent && !isExpired && (
+                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-blue-50 border-blue-200'}`}>
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        ⚠️ Plano recorrente
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                        Sua assinatura será renovada automaticamente conforme o período contratado.
+                        {subscription.next_billing_date && (
+                          <> Próxima cobrança em <strong>{new Date(subscription.next_billing_date).toLocaleDateString('pt-BR')}</strong>.</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Pro Benefits */}
-        {isPro && (
-          <Card className={`${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
-            <CardHeader>
-              <CardTitle className={isDark ? 'text-white' : ''}>Seus Benefícios Pro</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-3">
-                {[
-                  'Ações de IA ilimitadas',
-                  'Clientes ilimitados',
-                  'Processos ilimitados',
-                  'Documentos ilimitados',
-                  'Equipes e Workspace',
-                  'Jurisprudência completa',
-                  'Templates ilimitados',
-                  'Calendário inteligente',
-                  'Análise de documentos LEXIA',
-                  'Suporte prioritário'
-                ].map((benefit, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>{benefit}</span>
+              {/* Destaque para Plano Vitalício */}
+              {planConfig.isPermanent && (
+                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-amber-50 border-amber-200'}`}>
+                  <div className="flex items-start gap-3">
+                    <Star className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        ✨ Acesso Permanente
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                        Você possui acesso vitalício ao ChatJuris. Sem renovações, sem cobranças futuras. 
+                        Use para sempre! 🎉
+                      </p>
+                    </div>
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Aviso de Expiração */}
+              {isExpired && (
+                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-red-700' : 'bg-red-50 border-red-200'}`}>
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Assinatura Expirada
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                        Sua assinatura expirou. Renove agora para continuar usando todas as funcionalidades do ChatJuris.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Ações */}
+              <div className={`pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                {subscription.status === 'trial' && (
+                  <Button 
+                    onClick={() => window.location.href = '/Pricing'}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                  >
+                    Assinar um Plano
+                  </Button>
+                )}
+
+                {planConfig.isRecurrent && !isExpired && (
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open('https://app-vlc.hotmart.com/login', '_blank')}
+                  >
+                    Gerenciar Assinatura na Hotmart
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
+
+                {isExpired && (
+                  <Button 
+                    onClick={() => window.location.href = '/Pricing'}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                  >
+                    Renovar Assinatura
+                  </Button>
+                )}
+
+                {planConfig.isPermanent && (
+                  <div className={`text-center py-4 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                    <CheckCircle2 className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-neutral-600' : 'text-green-500'}`} />
+                    <p className="text-sm">
+                      Você está com acesso vitalício. Aproveite! 🎉
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
-        )}
+        </motion.div>
       </div>
-
-      {/* Cancel Dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-          <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>Cancelar Assinatura</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja cancelar sua assinatura Pro? Você perderá acesso a todos os recursos premium e voltará para o plano gratuito com limite de 5 ações de IA por dia.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCancelDialog(false)}
-              className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
-            >
-              Manter Assinatura
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={() => cancelMutation.mutate()}
-              disabled={cancelMutation.isPending}
-            >
-              {cancelMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Cancelando...
-                </>
-              ) : (
-                'Confirmar Cancelamento'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

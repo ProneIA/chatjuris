@@ -52,6 +52,7 @@ const navigationItems = [
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
+  { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
 ];
 
 export default function Layout({ children, currentPageName }) {
