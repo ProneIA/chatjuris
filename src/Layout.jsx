@@ -20,7 +20,8 @@ import {
   DollarSign,
   Bookmark,
   ArrowLeft,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Activity
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +42,7 @@ import {
 
 const navigationItems = [
   { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
+  { title: "Radar", url: createPageUrl("RadarOportunidades"), icon: Activity },
   { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
   { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
