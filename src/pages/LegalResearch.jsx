@@ -30,20 +30,114 @@ import { motion, AnimatePresence } from "framer-motion";
 // Dados completos de tribunais com URLs oficiais
 const tribunaisCompleto = [
   { value: "all", label: "Todos os Tribunais", url: null },
+  
+  // Tribunais Superiores
   { value: "STF", label: "STF - Supremo Tribunal Federal", url: "https://portal.stf.jus.br/jurisprudencia/" },
-  { value: "STJ", label: "STJ - Superior Tribunal de Justiça", url: "https://www.stj.jus.br" },
-  { value: "TST", label: "TST - Tribunal Superior do Trabalho", url: "https://jurisprudencia.tst.jus.br/" },
-  { value: "TSE", label: "TSE - Tribunal Superior Eleitoral", url: "https://www.tse.jus.br/jurisprudencia/decisoes/jurisprudencia" },
-  { value: "STM", label: "STM - Superior Tribunal Militar", url: "https://jurisprudencia.stm.jus.br/" },
-  { value: "TRF1", label: "TRF1 - Tribunal Regional Federal 1ª Região", url: "https://www2.cjf.jus.br/jurisprudencia/trf1/" },
-  { value: "TRF2", label: "TRF2 - Tribunal Regional Federal 2ª Região", url: "https://www10.trf2.jus.br/consultas/?site=v2_jurisprudencia" },
-  { value: "TRF3", label: "TRF3 - Tribunal Regional Federal 3ª Região", url: "https://web.trf3.jus.br/jurisprudencia/" },
-  { value: "TRF4", label: "TRF4 - Tribunal Regional Federal 4ª Região", url: "https://jurisprudencia.trf4.jus.br/pesquisa/pesquisa.php?tipo=1" },
-  { value: "TRF5", label: "TRF5 - Tribunal Regional Federal 5ª Região", url: "https://julia-pesquisa.trf5.jus.br/julia-pesquisa/#consulta" },
-  { value: "TJSP", label: "TJSP - Tribunal de Justiça de São Paulo", url: "https://www.tjsp.jus.br" },
-  { value: "TJRJ", label: "TJRJ - Tribunal de Justiça do Rio de Janeiro", url: "https://www.tjrj.jus.br" },
-  { value: "TJMG", label: "TJMG - Tribunal de Justiça de Minas Gerais", url: "https://www.tjmg.jus.br" },
-  { value: "TJRS", label: "TJRS - Tribunal de Justiça do Rio Grande do Sul", url: "https://www.tjrs.jus.br" },
+  { value: "STJ", label: "STJ - Superior Tribunal de Justiça", url: "https://www.stj.jus.br/sites/portalp/Paginas/Jurisprudencia/Pesquisa-de-Jurisprudencia.aspx" },
+  { value: "TST", label: "TST - Tribunal Superior do Trabalho", url: "https://www.tst.jus.br/jurisprudencia" },
+  { value: "TSE", label: "TSE - Tribunal Superior Eleitoral", url: "https://www.tse.jus.br/jurisprudencia" },
+  { value: "STM", label: "STM - Superior Tribunal Militar", url: "https://www.stm.jus.br/jurisprudencia" },
+  
+  // TRFs
+  { value: "TRF1", label: "TRF1 - Tribunal Regional Federal 1ª Região", url: "https://www.trf1.jus.br/trf1/jurisprudencia" },
+  { value: "TRF2", label: "TRF2 - Tribunal Regional Federal 2ª Região", url: "https://www.trf2.jus.br/jurisprudencia" },
+  { value: "TRF3", label: "TRF3 - Tribunal Regional Federal 3ª Região", url: "https://www.trf3.jus.br/jurisprudencia" },
+  { value: "TRF4", label: "TRF4 - Tribunal Regional Federal 4ª Região", url: "https://jurisprudencia.trf4.jus.br" },
+  { value: "TRF5", label: "TRF5 - Tribunal Regional Federal 5ª Região", url: "https://www.trf5.jus.br/jurisprudencia" },
+  { value: "TRF6", label: "TRF6 - Tribunal Regional Federal 6ª Região", url: "https://www.trf6.jus.br/jurisprudencia" },
+  
+  // TJs - Estados
+  { value: "TJAC", label: "TJAC - Tribunal de Justiça do Acre", url: "https://jurisprudencia.tjac.jus.br" },
+  { value: "TJAL", label: "TJAL - Tribunal de Justiça de Alagoas", url: "https://www.tjal.jus.br/jurisprudencia" },
+  { value: "TJAP", label: "TJAP - Tribunal de Justiça do Amapá", url: "https://www.tjap.jus.br/jurisprudencia" },
+  { value: "TJAM", label: "TJAM - Tribunal de Justiça do Amazonas", url: "https://www.tjam.jus.br/jurisprudencia" },
+  { value: "TJBA", label: "TJBA - Tribunal de Justiça da Bahia", url: "https://jurisprudencia.tjba.jus.br" },
+  { value: "TJCE", label: "TJCE - Tribunal de Justiça do Ceará", url: "https://jurisprudencia.tjce.jus.br" },
+  { value: "TJDFT", label: "TJDFT - Tribunal de Justiça do Distrito Federal", url: "https://jurisprudencia.tjdft.jus.br" },
+  { value: "TJES", label: "TJES - Tribunal de Justiça do Espírito Santo", url: "https://jurisprudencia.tjes.jus.br" },
+  { value: "TJGO", label: "TJGO - Tribunal de Justiça de Goiás", url: "https://jurisprudencia.tjgo.jus.br" },
+  { value: "TJMA", label: "TJMA - Tribunal de Justiça do Maranhão", url: "https://jurisprudencia.tjma.jus.br" },
+  { value: "TJMT", label: "TJMT - Tribunal de Justiça do Mato Grosso", url: "https://jurisprudencia.tjmt.jus.br" },
+  { value: "TJMS", label: "TJMS - Tribunal de Justiça do Mato Grosso do Sul", url: "https://jurisprudencia.tjms.jus.br" },
+  { value: "TJMG", label: "TJMG - Tribunal de Justiça de Minas Gerais", url: "https://jurisprudencia.tjmg.jus.br" },
+  { value: "TJPA", label: "TJPA - Tribunal de Justiça do Pará", url: "https://jurisprudencia.tjpa.jus.br" },
+  { value: "TJPB", label: "TJPB - Tribunal de Justiça da Paraíba", url: "https://jurisprudencia.tjpb.jus.br" },
+  { value: "TJPR", label: "TJPR - Tribunal de Justiça do Paraná", url: "https://jurisprudencia.tjpr.jus.br" },
+  { value: "TJPE", label: "TJPE - Tribunal de Justiça de Pernambuco", url: "https://jurisprudencia.tjpe.jus.br" },
+  { value: "TJPI", label: "TJPI - Tribunal de Justiça do Piauí", url: "https://jurisprudencia.tjpi.jus.br" },
+  { value: "TJRJ", label: "TJRJ - Tribunal de Justiça do Rio de Janeiro", url: "https://jurisprudencia.tjrj.jus.br" },
+  { value: "TJRN", label: "TJRN - Tribunal de Justiça do Rio Grande do Norte", url: "https://jurisprudencia.tjrn.jus.br" },
+  { value: "TJRS", label: "TJRS - Tribunal de Justiça do Rio Grande do Sul", url: "https://jurisprudencia.tjrs.jus.br" },
+  { value: "TJRO", label: "TJRO - Tribunal de Justiça de Rondônia", url: "https://jurisprudencia.tjro.jus.br" },
+  { value: "TJRR", label: "TJRR - Tribunal de Justiça de Roraima", url: "https://jurisprudencia.tjrr.jus.br" },
+  { value: "TJSC", label: "TJSC - Tribunal de Justiça de Santa Catarina", url: "https://jurisprudencia.tjsc.jus.br" },
+  { value: "TJSP", label: "TJSP - Tribunal de Justiça de São Paulo", url: "https://esaj.tjsp.jus.br/cjsg" },
+  { value: "TJSE", label: "TJSE - Tribunal de Justiça de Sergipe", url: "https://jurisprudencia.tjse.jus.br" },
+  { value: "TJTO", label: "TJTO - Tribunal de Justiça do Tocantins", url: "https://jurisprudencia.tjto.jus.br" },
+  
+  // TRTs
+  { value: "TRT1", label: "TRT1 - Tribunal Regional do Trabalho 1ª Região", url: "https://www.trt1.jus.br" },
+  { value: "TRT2", label: "TRT2 - Tribunal Regional do Trabalho 2ª Região", url: "https://www.trt2.jus.br" },
+  { value: "TRT3", label: "TRT3 - Tribunal Regional do Trabalho 3ª Região", url: "https://www.trt3.jus.br" },
+  { value: "TRT4", label: "TRT4 - Tribunal Regional do Trabalho 4ª Região", url: "https://www.trt4.jus.br" },
+  { value: "TRT5", label: "TRT5 - Tribunal Regional do Trabalho 5ª Região", url: "https://www.trt5.jus.br" },
+  { value: "TRT6", label: "TRT6 - Tribunal Regional do Trabalho 6ª Região", url: "https://www.trt6.jus.br" },
+  { value: "TRT7", label: "TRT7 - Tribunal Regional do Trabalho 7ª Região", url: "https://www.trt7.jus.br" },
+  { value: "TRT8", label: "TRT8 - Tribunal Regional do Trabalho 8ª Região", url: "https://www.trt8.jus.br" },
+  { value: "TRT9", label: "TRT9 - Tribunal Regional do Trabalho 9ª Região", url: "https://www.trt9.jus.br" },
+  { value: "TRT10", label: "TRT10 - Tribunal Regional do Trabalho 10ª Região", url: "https://www.trt10.jus.br" },
+  { value: "TRT11", label: "TRT11 - Tribunal Regional do Trabalho 11ª Região", url: "https://www.trt11.jus.br" },
+  { value: "TRT12", label: "TRT12 - Tribunal Regional do Trabalho 12ª Região", url: "https://www.trt12.jus.br" },
+  { value: "TRT13", label: "TRT13 - Tribunal Regional do Trabalho 13ª Região", url: "https://www.trt13.jus.br" },
+  { value: "TRT14", label: "TRT14 - Tribunal Regional do Trabalho 14ª Região", url: "https://www.trt14.jus.br" },
+  { value: "TRT15", label: "TRT15 - Tribunal Regional do Trabalho 15ª Região", url: "https://www.trt15.jus.br" },
+  { value: "TRT16", label: "TRT16 - Tribunal Regional do Trabalho 16ª Região", url: "https://www.trt16.jus.br" },
+  { value: "TRT17", label: "TRT17 - Tribunal Regional do Trabalho 17ª Região", url: "https://www.trt17.jus.br" },
+  { value: "TRT18", label: "TRT18 - Tribunal Regional do Trabalho 18ª Região", url: "https://www.trt18.jus.br" },
+  { value: "TRT19", label: "TRT19 - Tribunal Regional do Trabalho 19ª Região", url: "https://www.trt19.jus.br" },
+  { value: "TRT20", label: "TRT20 - Tribunal Regional do Trabalho 20ª Região", url: "https://www.trt20.jus.br" },
+  { value: "TRT21", label: "TRT21 - Tribunal Regional do Trabalho 21ª Região", url: "https://www.trt21.jus.br" },
+  { value: "TRT22", label: "TRT22 - Tribunal Regional do Trabalho 22ª Região", url: "https://www.trt22.jus.br" },
+  { value: "TRT23", label: "TRT23 - Tribunal Regional do Trabalho 23ª Região", url: "https://www.trt23.jus.br" },
+  { value: "TRT24", label: "TRT24 - Tribunal Regional do Trabalho 24ª Região", url: "https://www.trt24.jus.br" },
+  
+  // TREs
+  { value: "TREAC", label: "TRE-AC - Tribunal Regional Eleitoral do Acre", url: "https://www.tre-ac.jus.br/jurisprudencia" },
+  { value: "TREAL", label: "TRE-AL - Tribunal Regional Eleitoral de Alagoas", url: "https://www.tre-al.jus.br/jurisprudencia" },
+  { value: "TREAP", label: "TRE-AP - Tribunal Regional Eleitoral do Amapá", url: "https://www.tre-ap.jus.br/jurisprudencia" },
+  { value: "TREAM", label: "TRE-AM - Tribunal Regional Eleitoral do Amazonas", url: "https://www.tre-am.jus.br/jurisprudencia" },
+  { value: "TREBA", label: "TRE-BA - Tribunal Regional Eleitoral da Bahia", url: "https://www.tre-ba.jus.br/jurisprudencia" },
+  { value: "TRECE", label: "TRE-CE - Tribunal Regional Eleitoral do Ceará", url: "https://www.tre-ce.jus.br/jurisprudencia" },
+  { value: "TREDF", label: "TRE-DF - Tribunal Regional Eleitoral do Distrito Federal", url: "https://www.tre-df.jus.br/jurisprudencia" },
+  { value: "TREES", label: "TRE-ES - Tribunal Regional Eleitoral do Espírito Santo", url: "https://www.tre-es.jus.br/jurisprudencia" },
+  { value: "TREGO", label: "TRE-GO - Tribunal Regional Eleitoral de Goiás", url: "https://www.tre-go.jus.br/jurisprudencia" },
+  { value: "TREMA", label: "TRE-MA - Tribunal Regional Eleitoral do Maranhão", url: "https://www.tre-ma.jus.br/jurisprudencia" },
+  { value: "TREMT", label: "TRE-MT - Tribunal Regional Eleitoral do Mato Grosso", url: "https://www.tre-mt.jus.br/jurisprudencia" },
+  { value: "TREMS", label: "TRE-MS - Tribunal Regional Eleitoral do Mato Grosso do Sul", url: "https://www.tre-ms.jus.br/jurisprudencia" },
+  { value: "TREMG", label: "TRE-MG - Tribunal Regional Eleitoral de Minas Gerais", url: "https://www.tre-mg.jus.br/jurisprudencia" },
+  { value: "TREPA", label: "TRE-PA - Tribunal Regional Eleitoral do Pará", url: "https://www.tre-pa.jus.br/jurisprudencia" },
+  { value: "TREPB", label: "TRE-PB - Tribunal Regional Eleitoral da Paraíba", url: "https://www.tre-pb.jus.br/jurisprudencia" },
+  { value: "TREPR", label: "TRE-PR - Tribunal Regional Eleitoral do Paraná", url: "https://www.tre-pr.jus.br/jurisprudencia" },
+  { value: "TREPE", label: "TRE-PE - Tribunal Regional Eleitoral de Pernambuco", url: "https://www.tre-pe.jus.br/jurisprudencia" },
+  { value: "TREPI", label: "TRE-PI - Tribunal Regional Eleitoral do Piauí", url: "https://www.tre-pi.jus.br/jurisprudencia" },
+  { value: "TRERJ", label: "TRE-RJ - Tribunal Regional Eleitoral do Rio de Janeiro", url: "https://www.tre-rj.jus.br/jurisprudencia" },
+  { value: "TRERN", label: "TRE-RN - Tribunal Regional Eleitoral do Rio Grande do Norte", url: "https://www.tre-rn.jus.br/jurisprudencia" },
+  { value: "TRERS", label: "TRE-RS - Tribunal Regional Eleitoral do Rio Grande do Sul", url: "https://www.tre-rs.jus.br/jurisprudencia" },
+  { value: "TRERO", label: "TRE-RO - Tribunal Regional Eleitoral de Rondônia", url: "https://www.tre-ro.jus.br/jurisprudencia" },
+  { value: "TRERR", label: "TRE-RR - Tribunal Regional Eleitoral de Roraima", url: "https://www.tre-rr.jus.br/jurisprudencia" },
+  { value: "TRESC", label: "TRE-SC - Tribunal Regional Eleitoral de Santa Catarina", url: "https://www.tre-sc.jus.br/jurisprudencia" },
+  { value: "TRESP", label: "TRE-SP - Tribunal Regional Eleitoral de São Paulo", url: "https://www.tre-sp.jus.br/jurisprudencia" },
+  { value: "TRESE", label: "TRE-SE - Tribunal Regional Eleitoral de Sergipe", url: "https://www.tre-se.jus.br/jurisprudencia" },
+  { value: "TRETO", label: "TRE-TO - Tribunal Regional Eleitoral do Tocantins", url: "https://www.tre-to.jus.br/jurisprudencia" },
+  
+  // Justiça Militar Estadual
+  { value: "TJMSP", label: "TJMSP - Tribunal de Justiça Militar de São Paulo", url: "https://www.tjmsp.jus.br" },
+  { value: "TJMMG", label: "TJMMG - Tribunal de Justiça Militar de Minas Gerais", url: "https://www.tjmmg.jus.br" },
+  { value: "TJMRS", label: "TJMRS - Tribunal de Justiça Militar do Rio Grande do Sul", url: "https://www.tjmrs.jus.br" },
+  
+  // Consultas Unificadas
+  { value: "CJF", label: "CJF - Conselho da Justiça Federal (Unificado)", url: "https://jurisprudencia.cjf.jus.br" },
+  { value: "CNJ", label: "CNJ - Conselho Nacional de Justiça", url: "https://www.cnj.jus.br" },
 ];
 
 const researchTypes = [
@@ -367,9 +461,37 @@ INSTRUÇÕES:
                             onChange={(e) => setSelectedTribunal(e.target.value)}
                             className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
                           >
-                            {tribunaisCompleto.slice(0, 15).map(t => (
-                              <option key={t.value} value={t.value}>{t.label}</option>
-                            ))}
+                            <option value="all">Todos os Tribunais</option>
+                            <optgroup label="Tribunais Superiores">
+                              {tribunaisCompleto.filter(t => ['STF', 'STJ', 'TST', 'TSE', 'STM'].includes(t.value)).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Tribunais Regionais Federais">
+                              {tribunaisCompleto.filter(t => t.value.startsWith('TRF')).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Tribunais de Justiça (Estados)">
+                              {tribunaisCompleto.filter(t => t.value.startsWith('TJ') && !t.value.startsWith('TJM')).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Tribunais Regionais do Trabalho">
+                              {tribunaisCompleto.filter(t => t.value.startsWith('TRT')).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Tribunais Regionais Eleitorais">
+                              {tribunaisCompleto.filter(t => t.value.startsWith('TRE')).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="Justiça Militar / Consultas Unificadas">
+                              {tribunaisCompleto.filter(t => ['TJMSP', 'TJMMG', 'TJMRS', 'CJF', 'CNJ'].includes(t.value)).map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                              ))}
+                            </optgroup>
                           </select>
                           {selectedTribunal !== "all" && tribunaisCompleto.find(t => t.value === selectedTribunal)?.url && (
                             <a
@@ -486,29 +608,123 @@ INSTRUÇÕES:
               </div>
 
               {/* Quick Links */}
-              <div className={`p-6 rounded-xl border h-fit ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+              <div className={`p-6 rounded-xl border h-fit sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
                 <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   Acesso Rápido aos Tribunais
                 </h3>
-                <div className="space-y-2">
-                  {tribunaisCompleto.slice(1, 11).filter(t => t.url).map(tribunal => (
-                    <a
-                      key={tribunal.value}
-                      href={tribunal.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                        isDark 
-                          ? 'border-neutral-700 hover:bg-neutral-800' 
-                          : 'border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {tribunal.label.split(' - ')[0]}
-                      </span>
-                      <ExternalLink className={`w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                    </a>
-                  ))}
+                
+                {/* Tribunais Superiores */}
+                <div className="mb-4">
+                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    TRIBUNAIS SUPERIORES
+                  </p>
+                  <div className="space-y-1">
+                    {tribunaisCompleto.filter(t => ['STF', 'STJ', 'TST', 'TSE', 'STM'].includes(t.value)).map(tribunal => (
+                      <a
+                        key={tribunal.value}
+                        href={tribunal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                          isDark 
+                            ? 'hover:bg-neutral-800' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {tribunal.value}
+                        </span>
+                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* TRFs */}
+                <div className="mb-4">
+                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    TRFs
+                  </p>
+                  <div className="space-y-1">
+                    {tribunaisCompleto.filter(t => t.value.startsWith('TRF')).map(tribunal => (
+                      <a
+                        key={tribunal.value}
+                        href={tribunal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                          isDark 
+                            ? 'hover:bg-neutral-800' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {tribunal.value}
+                        </span>
+                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* TJs Principais */}
+                <div className="mb-4">
+                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    TJs PRINCIPAIS
+                  </p>
+                  <div className="space-y-1">
+                    {tribunaisCompleto.filter(t => ['TJSP', 'TJRJ', 'TJMG', 'TJRS', 'TJPR', 'TJSC', 'TJBA', 'TJCE'].includes(t.value)).map(tribunal => (
+                      <a
+                        key={tribunal.value}
+                        href={tribunal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                          isDark 
+                            ? 'hover:bg-neutral-800' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {tribunal.value}
+                        </span>
+                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Consultas Unificadas */}
+                <div>
+                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                    CONSULTAS UNIFICADAS
+                  </p>
+                  <div className="space-y-1">
+                    {tribunaisCompleto.filter(t => ['CJF', 'CNJ'].includes(t.value)).map(tribunal => (
+                      <a
+                        key={tribunal.value}
+                        href={tribunal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                          isDark 
+                            ? 'hover:bg-neutral-800' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {tribunal.value}
+                        </span>
+                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={`mt-4 pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                    {tribunaisCompleto.length - 1} tribunais disponíveis
+                  </p>
                 </div>
               </div>
             </div>
