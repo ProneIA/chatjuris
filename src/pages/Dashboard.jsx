@@ -56,7 +56,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['clients', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Client.filter({ created_by: user.email }, '-created_date');
+      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 10);
     },
     enabled: !!user?.email
   });
@@ -65,7 +65,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Case.list('-created_date');
+      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 10);
     },
     enabled: !!user?.email
   });
@@ -74,7 +74,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['tasks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Task.filter({ created_by: user.email }, 'due_date');
+      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 10);
     },
     enabled: !!user?.email
   });
@@ -83,7 +83,7 @@ export default function Dashboard({ theme = 'light' }) {
     queryKey: ['documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
+      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 10);
     },
     enabled: !!user?.email
   });

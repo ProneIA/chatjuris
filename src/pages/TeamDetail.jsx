@@ -60,7 +60,8 @@ export default function TeamDetail({ theme = 'light' }) {
   const { data: team, isLoading: teamLoading } = useQuery({
     queryKey: ['team', teamId],
     queryFn: async () => {
-      const teams = await base44.entities.Team.list();
+      if (!user?.email) return null;
+      const teams = await base44.entities.Team.filter({ owner_email: user.email });
       return teams.find(t => t.id === teamId);
     },
     enabled: !!teamId && !!user
@@ -75,26 +76,38 @@ export default function TeamDetail({ theme = 'light' }) {
   }, [team, user]);
 
   const { data: allMembers = [] } = useQuery({
-    queryKey: ['team-members'],
-    queryFn: () => base44.entities.TeamMember.list('-created_date'),
+    queryKey: ['team-members', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.TeamMember.filter({ created_by: user.email }, '-created_date');
+    },
     enabled: !!user
   });
 
   const { data: allDocs = [] } = useQuery({
-    queryKey: ['team-docs'],
-    queryFn: () => base44.entities.TeamDocument.list('-created_date'),
+    queryKey: ['team-docs', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.TeamDocument.filter({ created_by: user.email }, '-created_date');
+    },
     enabled: !!user
   });
 
   const { data: allMessages = [] } = useQuery({
-    queryKey: ['team-messages'],
-    queryFn: () => base44.entities.TeamMessage.list('-created_date'),
+    queryKey: ['team-messages', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.TeamMessage.filter({ created_by: user.email }, '-created_date');
+    },
     enabled: !!user
   });
 
   const { data: allTasks = [] } = useQuery({
-    queryKey: ['team-tasks'],
-    queryFn: () => base44.entities.TeamTask.list('-created_date'),
+    queryKey: ['team-tasks', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.TeamTask.filter({ created_by: user.email }, '-created_date');
+    },
     enabled: !!user
   });
 

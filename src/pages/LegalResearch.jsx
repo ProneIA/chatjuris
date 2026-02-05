@@ -166,15 +166,29 @@ export default function LegalResearch({ theme = 'light' }) {
   const [searchFilter, setSearchFilter] = useState("");
   const queryClient = useQueryClient();
 
+  const [user, setUser] = useState(null);
+
+  React.useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   // Queries
   const { data: savedResearches = [] } = useQuery({
-    queryKey: ['jurisprudences'],
-    queryFn: () => base44.entities.Jurisprudence.list('-created_date'),
+    queryKey: ['jurisprudences', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Jurisprudence.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
   });
 
   const { data: cases = [] } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list('title'),
+    queryKey: ['cases', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Case.filter({ created_by: user.email }, 'title');
+    },
+    enabled: !!user?.email,
   });
 
   // Mutations
