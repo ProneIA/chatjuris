@@ -22,16 +22,14 @@ export default function Teams({ theme = 'light' }) {
     base44.auth.me().then(setUser).catch(() => setUser(null));
   }, []);
 
-  const { data: allTeams = [], isLoading } = useQuery({
-    queryKey: ['all-teams'],
+  const { data: myTeams = [], isLoading } = useQuery({
+    queryKey: ['my-teams', user?.email],
     queryFn: async () => {
-      return await base44.entities.Team.list('-created_date');
+      if (!user?.email) return [];
+      return await base44.entities.Team.filter({ owner_email: user.email }, '-created_date', 100);
     },
-    enabled: !!user
+    enabled: !!user?.email
   });
-
-  // FILTRO LOCAL - segurança no frontend
-  const myTeams = allTeams.filter(t => t.owner_email === user?.email);
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -44,7 +42,7 @@ export default function Teams({ theme = 'light' }) {
       });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['all-teams'] });
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       toast.success("Equipe criada!");
       setIsCreateOpen(false);
       setNewTeamName("");
