@@ -453,6 +453,12 @@ export default function Layout({ children, currentPageName }) {
                     <span>Contato</span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("PrivacyPolicy")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    <Bookmark className="w-4 h-4" />
+                    <span>Política de Privacidade</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
                 <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-600">
                   <LogOut className="w-4 h-4" />
