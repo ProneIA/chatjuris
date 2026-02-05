@@ -60,7 +60,6 @@ import Checkout from './pages/Checkout';
 import ClientAccess from './pages/ClientAccess';
 import ClientPortal from './pages/ClientPortal';
 import Clients from './pages/Clients';
-import ColaboracaoHub from './pages/ColaboracaoHub';
 import Contact from './pages/Contact';
 import ContactPublic from './pages/ContactPublic';
 import Dashboard from './pages/Dashboard';
@@ -94,11 +93,11 @@ import RadarOportunidades from './pages/RadarOportunidades';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Tasks from './pages/Tasks';
-import TeamWorkspace from './pages/TeamWorkspace';
-import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
+import Teams from './pages/Teams';
+import TeamDetail from './pages/TeamDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -116,7 +115,6 @@ export const PAGES = {
     "ClientAccess": ClientAccess,
     "ClientPortal": ClientPortal,
     "Clients": Clients,
-    "ColaboracaoHub": ColaboracaoHub,
     "Contact": Contact,
     "ContactPublic": ContactPublic,
     "Dashboard": Dashboard,
@@ -150,11 +148,11 @@ export const PAGES = {
     "Reports": Reports,
     "Settings": Settings,
     "Tasks": Tasks,
-    "TeamWorkspace": TeamWorkspace,
-    "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
+    "Teams": Teams,
+    "TeamDetail": TeamDetail,
 }
 
 export const pagesConfig = {
