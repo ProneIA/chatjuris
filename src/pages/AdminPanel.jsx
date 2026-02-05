@@ -55,126 +55,94 @@ export default function AdminPanel({ theme = 'light' }) {
   const [editPlanType, setEditPlanType] = useState("monthly");
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => {
+    const verifyAdminAccess = async () => {
+      try {
+        const u = await base44.auth.me();
+        
+        // VERIFICAÇÃO ESTRITA: Apenas role === 'admin'
         if (!u || u.role !== 'admin') {
-          toast.error("Acesso negado - apenas administradores");
-          window.location.href = '/Dashboard';
+          // Registrar tentativa de acesso indevido
+          try {
+            await base44.entities.AuditLog.create({
+              user_email: u?.email || 'anonymous',
+              action: 'unauthorized_admin_access_attempt',
+              entity_type: 'SecurityAttempt',
+              details: JSON.stringify({
+                timestamp: new Date().toISOString(),
+                user_role: u?.role || 'none',
+                message: 'Tentativa de acesso ao painel admin bloqueada'
+              })
+            });
+          } catch (logError) {
+            console.error('Erro ao registrar tentativa:', logError);
+          }
+          
+          toast.error("🔒 Acesso restrito - Apenas administradores");
+          window.location.replace('/Dashboard');
           return;
         }
+        
         setUser(u);
         setIsLoading(false);
-      })
-      .catch(() => {
+      } catch (error) {
         toast.error("Erro ao verificar autenticação");
-        window.location.href = '/Dashboard';
-      });
+        window.location.replace('/Dashboard');
+      }
+    };
+    
+    verifyAdminAccess();
   }, []);
 
-  // Buscar todos os usuários
+  // Buscar todos os usuários via backend seguro
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      return await base44.asServiceRole.entities.User.list('-created_date');
+      const response = await base44.functions.invoke('adminSecureAction', { action: 'list_users' });
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao buscar usuários');
+      return response.data.data;
     },
     enabled: !!user && user.role === 'admin'
   });
 
-  // Buscar todas as assinaturas
+  // Buscar todas as assinaturas via backend seguro
   const { data: allSubscriptions = [], isLoading: subscriptionsLoading } = useQuery({
     queryKey: ['admin-subscriptions'],
     queryFn: async () => {
-      return await base44.asServiceRole.entities.Subscription.list('-created_date');
+      const response = await base44.functions.invoke('adminSecureAction', { action: 'list_subscriptions' });
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao buscar assinaturas');
+      return response.data.data;
     },
     enabled: !!user && user.role === 'admin'
   });
 
-  // Buscar logs de auditoria
+  // Buscar logs de auditoria via backend seguro
   const { data: auditLogs = [], isLoading: logsLoading } = useQuery({
     queryKey: ['admin-audit-logs'],
     queryFn: async () => {
-      return await base44.asServiceRole.entities.AuditLog.list('-created_date', 100);
+      const response = await base44.functions.invoke('adminSecureAction', { action: 'list_audit_logs' });
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao buscar logs');
+      return response.data.data;
     },
     enabled: !!user && user.role === 'admin'
   });
 
-  // Mutação para liberação manual
+  // Mutação para liberação manual via backend seguro
   const releaseManualMutation = useMutation({
     mutationFn: async (formData) => {
-      // Buscar ou criar usuário
-      let targetUser = allUsers.find(u => u.email === formData.email);
-      
-      if (!targetUser) {
-        targetUser = await base44.asServiceRole.entities.User.create({
+      const response = await base44.functions.invoke('adminSecureAction', {
+        action: 'release_manual',
+        data: {
           email: formData.email,
-          full_name: formData.email.split('@')[0],
-          role: 'user'
-        });
-      }
-
-      // Calcular datas de expiração
-      const startDate = new Date();
-      let endDate = null;
-
-      if (formData.plan_type === 'trial') {
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 7);
-      } else if (formData.plan_type === 'monthly') {
-        endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 1);
-      } else if (formData.plan_type === 'annual') {
-        endDate = new Date(startDate);
-        endDate.setFullYear(endDate.getFullYear() + 1);
-      }
-      // lifetime não tem endDate (null)
-
-      // Buscar assinatura existente
-      const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ 
-        user_id: targetUser.id 
+          planType: formData.plan_type,
+          notes: formData.notes
+        }
       });
-
-      const subscriptionData = {
-        plan: formData.plan_type === 'trial' ? 'free' : 'pro',
-        plan_type: formData.plan_type,
-        status: formData.plan_type === 'trial' ? 'trial' : 'active',
-        payment_status: 'paid',
-        payment_method: 'manual',
-        payment_provider: 'manual',
-        daily_actions_limit: 999999,
-        daily_actions_used: 0,
-        last_reset_date: startDate.toISOString().split('T')[0],
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-        next_billing_date: endDate ? endDate.toISOString().split('T')[0] : null,
-        activated_at: new Date().toISOString()
-      };
-
-      // Atualizar ou criar assinatura
-      if (existingSubs.length > 0) {
-        await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
-      } else {
-        await base44.asServiceRole.entities.Subscription.create({
-          user_id: targetUser.id,
-          ...subscriptionData
-        });
+      
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Erro ao liberar assinatura');
       }
-
-      // Criar log de auditoria
-      await base44.asServiceRole.entities.AuditLog.create({
-        user_email: user.email,
-        action: 'manual_subscription_release',
-        entity_type: 'Subscription',
-        entity_id: targetUser.id,
-        target_user_id: targetUser.id,
-        details: JSON.stringify({
-          target_email: formData.email,
-          plan_type: formData.plan_type,
-          notes: formData.notes,
-          end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício'
-        })
-      });
-
-      return { targetUser, subscriptionData };
+      
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
@@ -189,63 +157,23 @@ export default function AdminPanel({ theme = 'light' }) {
     }
   });
 
-  // Mutação para atualizar plano de usuário existente
+  // Mutação para atualizar plano de usuário existente via backend seguro
   const updateUserPlanMutation = useMutation({
     mutationFn: async ({ userId, userEmail, planType }) => {
-      const startDate = new Date();
-      let endDate = null;
-
-      if (planType === 'trial') {
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 7);
-      } else if (planType === 'monthly') {
-        endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 1);
-      } else if (planType === 'annual') {
-        endDate = new Date(startDate);
-        endDate.setFullYear(endDate.getFullYear() + 1);
-      }
-
-      const existingSubs = await base44.entities.Subscription.filter({ user_id: userId });
-
-      const subscriptionData = {
-        user_id: userId,
-        plan: planType === 'trial' ? 'free' : 'pro',
-        plan_type: planType,
-        status: planType === 'trial' ? 'trial' : 'active',
-        payment_status: 'paid',
-        payment_method: 'manual',
-        daily_actions_limit: 999999,
-        daily_actions_used: 0,
-        last_reset_date: startDate.toISOString().split('T')[0],
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-        next_billing_date: endDate ? endDate.toISOString().split('T')[0] : null,
-        activated_at: new Date().toISOString()
-      };
-
-      if (existingSubs.length > 0) {
-        await base44.entities.Subscription.update(existingSubs[0].id, subscriptionData);
-      } else {
-        await base44.entities.Subscription.create(subscriptionData);
-      }
-
-      // Criar log de auditoria
-      await base44.entities.AuditLog.create({
-        user_email: user.email,
-        action: 'manual_subscription_release',
-        entity_type: 'Subscription',
-        entity_id: userId,
-        target_user_id: userId,
-        details: JSON.stringify({
-          target_email: userEmail,
-          plan_type: planType,
-          notes: 'Alteração via painel admin',
-          end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício'
-        })
+      const response = await base44.functions.invoke('adminSecureAction', {
+        action: 'update_subscription',
+        data: {
+          userId,
+          userEmail,
+          planType
+        }
       });
-
-      return { subscriptionData };
+      
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Erro ao atualizar plano');
+      }
+      
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
@@ -325,8 +253,17 @@ export default function AdminPanel({ theme = 'light' }) {
     );
   }
 
+  // BLOQUEIO ABSOLUTO: Se não for admin, não renderiza nada
   if (!user || user.role !== 'admin') {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Shield className="w-16 h-16 mx-auto mb-4 text-red-500" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Acesso Restrito</h1>
+          <p className="text-gray-600">Esta área é exclusiva para administradores.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
