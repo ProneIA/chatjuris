@@ -50,10 +50,7 @@ export default function TeamWorkspace() {
     queryKey: ['teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allTeams = await base44.entities.Team.list();
-      return allTeams.filter(t => 
-        t.owner_email === user.email || t.members?.includes(user.email)
-      );
+      return await base44.entities.Team.filter({ user_email: user.email }, '-created_date');
     },
     enabled: !!user?.email
   });
@@ -64,7 +61,7 @@ export default function TeamWorkspace() {
     queryKey: ['teamFiles', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+      if (selectedTeam.user_email !== user.email) {
         return [];
       }
       return base44.entities.TeamFile.filter(
@@ -79,7 +76,7 @@ export default function TeamWorkspace() {
     queryKey: ['teamTasks', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+      if (selectedTeam.user_email !== user.email) {
         return [];
       }
       return base44.entities.Task.filter(
@@ -94,7 +91,7 @@ export default function TeamWorkspace() {
     queryKey: ['teamEvents', selectedTeam?.id, user?.email],
     queryFn: async () => {
       if (!selectedTeam?.id || !user?.email) return [];
-      if (!selectedTeam.members?.includes(user.email) && selectedTeam.owner_email !== user.email) {
+      if (selectedTeam.user_email !== user.email) {
         return [];
       }
       return base44.entities.CalendarEvent.filter(
@@ -122,19 +119,7 @@ export default function TeamWorkspace() {
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['teamFiles'] });
       
-      // Notificar membros da equipe
-      for (const memberEmail of selectedTeam.members.filter(m => m !== user.email)) {
-        await base44.entities.Notification.create({
-          type: "document_shared",
-          title: "Novo arquivo na equipe",
-          message: `${user.full_name} adicionou um arquivo: ${selectedFile?.name}`,
-          recipient_email: memberEmail,
-          entity_type: "team",
-          entity_id: selectedTeam.id,
-          actor_email: user.email,
-          actor_name: user.full_name
-        });
-      }
+      // Notificações removidas - equipe agora é de um único usuário
       
       toast.success("Arquivo enviado com sucesso!");
       setSelectedFile(null);
@@ -160,19 +145,7 @@ export default function TeamWorkspace() {
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['teamTasks'] });
       
-      // Notificar membro atribuído
-      if (newTask.assigned_to && newTask.assigned_to !== user.email) {
-        await base44.entities.Notification.create({
-          type: "task_assigned",
-          title: "Nova tarefa atribuída",
-          message: `${user.full_name} atribuiu uma tarefa para você: ${newTask.title}`,
-          recipient_email: newTask.assigned_to,
-          entity_type: "task",
-          entity_id: selectedTeam.id,
-          actor_email: user.email,
-          actor_name: user.full_name
-        });
-      }
+      // Notificações removidas - equipe agora é de um único usuário
       
       toast.success("Tarefa criada!");
       setShowTaskForm(false);
@@ -192,26 +165,11 @@ export default function TeamWorkspace() {
       return base44.entities.CalendarEvent.create({
         ...eventData,
         team_id: selectedTeam.id,
-        attendees: selectedTeam.members
+        attendees: [user.email]
       });
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['teamEvents'] });
-      
-      // Notificar membros da equipe
-      for (const memberEmail of selectedTeam.members.filter(m => m !== user.email)) {
-        await base44.entities.Notification.create({
-          type: "case_shared",
-          title: "Novo evento na agenda da equipe",
-          message: `${user.full_name} agendou: ${newEvent.title}`,
-          recipient_email: memberEmail,
-          entity_type: "event",
-          entity_id: selectedTeam.id,
-          actor_email: user.email,
-          actor_name: user.full_name
-        });
-      }
-      
       toast.success("Evento criado!");
       setShowEventForm(false);
       setNewEvent({
@@ -225,51 +183,7 @@ export default function TeamWorkspace() {
     }
   });
 
-  const addMemberMutation = useMutation({
-    mutationFn: async (email) => {
-      const currentMembers = selectedTeam.members || [];
-      if (currentMembers.includes(email)) {
-        throw new Error("Este usuário já é membro da equipe");
-      }
-      return base44.entities.Team.update(selectedTeam.id, {
-        members: [...currentMembers, email]
-      });
-    },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      
-      // Notificar novo membro
-      await base44.entities.Notification.create({
-        type: "case_shared",
-        title: "Adicionado a uma equipe",
-        message: `${user.full_name} adicionou você à equipe: ${selectedTeam.name}`,
-        recipient_email: newMemberEmail,
-        entity_type: "team",
-        entity_id: selectedTeam.id,
-        actor_email: user.email,
-        actor_name: user.full_name
-      });
-      
-      toast.success("Membro adicionado!");
-      setNewMemberEmail("");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    }
-  });
-
-  const removeMemberMutation = useMutation({
-    mutationFn: async (email) => {
-      const currentMembers = selectedTeam.members || [];
-      return base44.entities.Team.update(selectedTeam.id, {
-        members: currentMembers.filter(m => m !== email)
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast.success("Membro removido!");
-    }
-  });
+  // Removido addMemberMutation e removeMemberMutation - não são mais necessários
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -307,7 +221,7 @@ export default function TeamWorkspace() {
             <div className="flex items-center gap-2">
               <Badge variant="secondary">
                 <Users className="w-3 h-3 mr-1" />
-                {selectedTeam.members?.length} membros
+                {selectedTeam.members?.length || 0} entidades
               </Badge>
             </div>
           </div>
@@ -461,9 +375,9 @@ export default function TeamWorkspace() {
                         onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
                         className="w-full p-2 border border-slate-300 rounded-md"
                       >
-                        <option value="">Selecione um membro</option>
-                        {selectedTeam.members?.map(email => (
-                          <option key={email} value={email}>{email}</option>
+                        <option value="">Selecione uma entidade</option>
+                        {selectedTeam.members?.map((member, idx) => (
+                          <option key={idx} value={member.name}>{member.name} - {member.position}</option>
                         ))}
                       </select>
                     </div>
@@ -696,73 +610,44 @@ export default function TeamWorkspace() {
 
           {/* MEMBROS */}
           <TabsContent value="members">
-            {selectedTeam.owner_email === user?.email && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Adicionar Membro</CardTitle>
-                  <CardDescription>Convide pessoas para colaborar nesta equipe</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    if (newMemberEmail.trim()) {
-                      addMemberMutation.mutate(newMemberEmail.trim());
-                    }
-                  }} className="flex gap-2">
-                    <Input
-                      type="email"
-                      placeholder="email@exemplo.com"
-                      value={newMemberEmail}
-                      onChange={(e) => setNewMemberEmail(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      type="submit" 
-                      disabled={addMemberMutation.isPending || !newMemberEmail.trim()}
-                    >
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Adicionar
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {selectedTeam.members?.map((memberEmail) => (
-                <Card key={memberEmail}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold">
-                          {memberEmail[0].toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{memberEmail}</p>
-                        {memberEmail === selectedTeam.owner_email && (
-                          <Badge variant="secondary" className="text-xs mt-1">Proprietário</Badge>
-                        )}
-                      </div>
-                      {selectedTeam.owner_email === user?.email && memberEmail !== selectedTeam.owner_email && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (confirm(`Remover ${memberEmail} da equipe?`)) {
-                              removeMemberMutation.mutate(memberEmail);
-                            }
-                          }}
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Entidades da Equipe</CardTitle>
+                <CardDescription>Membros e colaboradores desta equipe</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {selectedTeam.members && selectedTeam.members.length > 0 ? (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedTeam.members.map((member, idx) => (
+                      <Card key={idx} className="border-2">
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold">
+                                {member.name[0].toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-slate-900 truncate">{member.name}</p>
+                              <Badge variant="secondary" className="text-xs mt-1">{member.position}</Badge>
+                              {member.activities && (
+                                <p className="text-xs text-slate-600 mt-2 line-clamp-2">{member.activities}</p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Users className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-600">Nenhuma entidade adicionada ainda</p>
+                    <p className="text-sm text-slate-500 mt-1">Gerencie membros na página de Equipes</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
