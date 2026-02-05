@@ -49,6 +49,11 @@ export default function AdminPanel({ theme = 'light' }) {
   const [userSearch, setUserSearch] = useState("");
   const [subscriptionFilter, setSubscriptionFilter] = useState("all");
 
+  // Estado para edição de usuário
+  const [editUserDialog, setEditUserDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editPlanType, setEditPlanType] = useState("monthly");
+
   useEffect(() => {
     base44.auth.me()
       .then(u => {
@@ -184,6 +189,76 @@ export default function AdminPanel({ theme = 'light' }) {
     }
   });
 
+  // Mutação para atualizar plano de usuário existente
+  const updateUserPlanMutation = useMutation({
+    mutationFn: async ({ userId, userEmail, planType }) => {
+      const startDate = new Date();
+      let endDate = null;
+
+      if (planType === 'trial') {
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 7);
+      } else if (planType === 'monthly') {
+        endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1);
+      } else if (planType === 'annual') {
+        endDate = new Date(startDate);
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      }
+
+      const existingSubs = await base44.entities.Subscription.filter({ user_id: userId });
+
+      const subscriptionData = {
+        user_id: userId,
+        plan: planType === 'trial' ? 'free' : 'pro',
+        plan_type: planType,
+        status: planType === 'trial' ? 'trial' : 'active',
+        payment_status: 'paid',
+        payment_method: 'manual',
+        daily_actions_limit: 999999,
+        daily_actions_used: 0,
+        last_reset_date: startDate.toISOString().split('T')[0],
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate ? endDate.toISOString().split('T')[0] : null,
+        next_billing_date: endDate ? endDate.toISOString().split('T')[0] : null,
+        activated_at: new Date().toISOString()
+      };
+
+      if (existingSubs.length > 0) {
+        await base44.entities.Subscription.update(existingSubs[0].id, subscriptionData);
+      } else {
+        await base44.entities.Subscription.create(subscriptionData);
+      }
+
+      // Criar log de auditoria
+      await base44.entities.AuditLog.create({
+        user_email: user.email,
+        action: 'manual_subscription_release',
+        entity_type: 'Subscription',
+        entity_id: userId,
+        target_user_id: userId,
+        details: JSON.stringify({
+          target_email: userEmail,
+          plan_type: planType,
+          notes: 'Alteração via painel admin',
+          end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício'
+        })
+      });
+
+      return { subscriptionData };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-audit-logs'] });
+      toast.success("Plano atualizado com sucesso!");
+      setEditUserDialog(false);
+      setSelectedUser(null);
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atualizar plano: ${error.message}`);
+    }
+  });
+
   // Métricas do Dashboard
   const metrics = React.useMemo(() => {
     const activeSubscriptions = allSubscriptions.filter(s => s.status === 'active' || s.status === 'trial');
@@ -225,6 +300,19 @@ export default function AdminPanel({ theme = 'light' }) {
       u.full_name?.toLowerCase().includes(search)
     );
   }, [allUsers, userSearch]);
+
+  // Função para obter assinatura do usuário
+  const getUserSubscription = (userId) => {
+    return allSubscriptions.find(s => s.user_id === userId);
+  };
+
+  // Abrir dialog de edição
+  const openEditUser = (userToEdit) => {
+    const sub = getUserSubscription(userToEdit.id);
+    setSelectedUser(userToEdit);
+    setEditPlanType(sub?.plan_type || 'monthly');
+    setEditUserDialog(true);
+  };
 
   if (isLoading) {
     return (
@@ -404,29 +492,57 @@ export default function AdminPanel({ theme = 'light' }) {
                       <tr>
                         <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Usuário</th>
                         <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Email</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Função</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Criado em</th>
+                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Plano Atual</th>
+                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Status</th>
+                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Ações</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredUsers.map((u) => (
-                        <tr key={u.id} className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
-                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{u.full_name || 'N/A'}</td>
-                          <td className={`p-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{u.email}</td>
-                          <td className="p-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              u.role === 'admin' 
-                                ? 'bg-red-100 text-red-700' 
-                                : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {u.role || 'user'}
-                            </span>
-                          </td>
-                          <td className={`p-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                            {moment(u.created_date).format('DD/MM/YYYY')}
-                          </td>
-                        </tr>
-                      ))}
+                      {filteredUsers.map((u) => {
+                        const sub = getUserSubscription(u.id);
+                        return (
+                          <tr key={u.id} className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
+                            <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{u.full_name || 'N/A'}</td>
+                            <td className={`p-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{u.email}</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                sub?.plan_type === 'lifetime' ? 'bg-amber-100 text-amber-700' :
+                                sub?.plan_type === 'annual' ? 'bg-purple-100 text-purple-700' :
+                                sub?.plan_type === 'monthly' ? 'bg-blue-100 text-blue-700' :
+                                sub?.status === 'trial' ? 'bg-cyan-100 text-cyan-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {sub?.plan_type === 'lifetime' ? '⭐ Vitalício' :
+                                 sub?.plan_type === 'annual' ? '👑 Anual' :
+                                 sub?.plan_type === 'monthly' ? '📅 Mensal' :
+                                 sub?.status === 'trial' ? '⏱️ Teste' : '❌ Sem plano'}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                sub?.status === 'active' ? 'bg-green-100 text-green-700' :
+                                sub?.status === 'trial' ? 'bg-blue-100 text-blue-700' :
+                                sub?.status === 'expired' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {sub?.status === 'active' ? 'Ativo' :
+                                 sub?.status === 'trial' ? 'Teste' :
+                                 sub?.status === 'expired' ? 'Expirado' : 'Inativo'}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openEditUser(u)}
+                                className="text-xs"
+                              >
+                                Alterar Plano
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -665,6 +781,69 @@ export default function AdminPanel({ theme = 'light' }) {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog de Edição de Plano */}
+        <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
+          <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <DialogHeader>
+              <DialogTitle className={isDark ? 'text-white' : 'text-gray-900'}>
+                Alterar Plano do Usuário
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedUser && (
+              <div className="space-y-4">
+                <div className={`p-3 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
+                  <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {selectedUser.full_name || 'Sem nome'}
+                  </p>
+                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                    {selectedUser.email}
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    Selecione o Plano
+                  </label>
+                  <select
+                    value={editPlanType}
+                    onChange={(e) => setEditPlanType(e.target.value)}
+                    className={`w-full p-3 border rounded-lg ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                  >
+                    <option value="trial">⏱️ Teste (7 dias)</option>
+                    <option value="monthly">📅 Mensal (30 dias)</option>
+                    <option value="annual">👑 Anual (365 dias)</option>
+                    <option value="lifetime">⭐ Vitalício (sem expiração)</option>
+                  </select>
+                </div>
+
+                <div className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    ⚠️ Esta ação substituirá o plano atual do usuário imediatamente.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditUserDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => updateUserPlanMutation.mutate({
+                  userId: selectedUser.id,
+                  userEmail: selectedUser.email,
+                  planType: editPlanType
+                })}
+                disabled={updateUserPlanMutation.isPending}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {updateUserPlanMutation.isPending ? 'Salvando...' : 'Salvar Plano'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
