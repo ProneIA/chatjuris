@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Smartphone, CheckCircle2, AlertCircle, ExternalLink, Bot, Clock, Users, Zap, Settings, Save, Plus, X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MessageSquare, Smartphone, CheckCircle2, AlertCircle, ExternalLink, Bot, Clock, Users, Zap, Settings, Save, Plus, X, Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -17,6 +18,8 @@ export default function WhatsAppBot({ theme }) {
   const [isLoading, setIsLoading] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
   const [newService, setNewService] = useState("");
+  const [showSetupDialog, setShowSetupDialog] = useState(false);
+  const [copiedField, setCopiedField] = useState(null);
   
   const [formData, setFormData] = useState({
     agent_name: "",
