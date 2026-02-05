@@ -29,18 +29,20 @@ export default function RadarOportunidades({ theme }) {
   }, []);
 
   const { data: insights, isLoading } = useQuery({
-    queryKey: ['insights-juridicos'],
+    queryKey: ['insights-juridicos', user?.email],
     queryFn: async () => {
-      const data = await base44.entities.InsightJuridico.list('-created_date', 20);
+      if (!user?.email) return [];
+      const data = await base44.entities.InsightJuridico.filter({ created_by: user.email }, '-created_date', 20);
       return data;
     },
     enabled: !!user
   });
 
   const { data: casosPublicos } = useQuery({
-    queryKey: ['casos-publicos'],
+    queryKey: ['casos-publicos', user?.email],
     queryFn: async () => {
-      const data = await base44.entities.CasoPublico.list('-data_distribuicao', 50);
+      if (!user?.email) return [];
+      const data = await base44.entities.CasoPublico.filter({ created_by: user.email }, '-data_distribuicao', 50);
       return data;
     },
     enabled: !!user
