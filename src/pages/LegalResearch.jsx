@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useDebounce } from "@/components/common/useDebounce";
 import {
   Search,
   BookOpen,
@@ -27,6 +26,7 @@ import {
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDebounce } from "@/components/common/useDebounce";
 
 // Dados completos de tribunais com URLs oficiais
 const tribunaisCompleto = [
@@ -165,9 +165,10 @@ export default function LegalResearch({ theme = 'light' }) {
   const [selectedSaved, setSelectedSaved] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
+  const debouncedFilter = useDebounce(searchFilter, 300);
   const queryClient = useQueryClient();
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -178,18 +179,18 @@ export default function LegalResearch({ theme = 'light' }) {
     queryKey: ['jurisprudences', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Jurisprudence.filter({ created_by: user.email }, '-created_date');
+      return base44.entities.Jurisprudence.filter({ created_by: user.email }, '-created_date', 100);
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email
   });
 
   const { data: cases = [] } = useQuery({
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.Case.filter({ created_by: user.email }, 'title');
+      return base44.entities.Case.filter({ created_by: user.email }, 'title', 100);
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email
   });
 
   // Mutations
@@ -333,6 +334,8 @@ INSTRUÇÕES:
       searchType === "jurisprudence" ? "Jurisprudência" :
       searchType === "law" ? "Legislação" : "Doutrina";
 
+    const selectedTribunalData = tribunaisCompleto.find(t => t.value === selectedTribunal);
+
     saveMutation.mutate({
       title: `${titlePrefix}: ${currentResult.query}`,
       court: currentResult.tribunal || "outros",
@@ -345,10 +348,8 @@ INSTRUÇÕES:
     });
   };
 
-  const debouncedSearchFilter = useDebounce(searchFilter, 300);
-  
   const filteredResearches = savedResearches.filter(r => {
-    const matchesSearch = r.title?.toLowerCase().includes(debouncedSearchFilter.toLowerCase());
+    const matchesSearch = r.title?.toLowerCase().includes(debouncedFilter.toLowerCase());
     const matchesFavorite = !filterFavorites || r.is_favorite;
     return matchesSearch && matchesFavorite;
   });

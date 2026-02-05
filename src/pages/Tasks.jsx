@@ -17,10 +17,12 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import BackNavigation from "../components/common/BackNavigation";
 import { createPageUrl } from "@/utils";
+import { useDebounce } from "@/components/common/useDebounce";
 
 export default function Tasks({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -46,19 +48,31 @@ export default function Tasks({ theme = 'light' }) {
   }, []);
 
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list('due_date'),
+    queryKey: ['tasks', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 200);
+    },
+    enabled: !!user?.email
   });
 
   const { data: cases = [] } = useQuery({
-    queryKey: ['task-cases'],
-    queryFn: () => base44.entities.Case.list('-created_date'),
+    queryKey: ['task-cases', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 100);
+    },
+    enabled: !!user?.email,
     initialData: []
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['task-clients'],
-    queryFn: () => base44.entities.Client.list('-created_date'),
+    queryKey: ['task-clients', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 100);
+    },
+    enabled: !!user?.email,
     initialData: []
   });
 
@@ -66,10 +80,7 @@ export default function Tasks({ theme = 'light' }) {
     queryKey: ['task-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allTeams = await base44.entities.Team.list();
-      return allTeams.filter(t => 
-        t.owner_email === user.email || t.members?.includes(user.email)
-      );
+      return base44.entities.Team.filter({ owner_email: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
     initialData: []
@@ -136,7 +147,7 @@ export default function Tasks({ theme = 'light' }) {
   });
 
   const filteredTasks = tasks.filter(task => {
-    const matchSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = task.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchPriority = filterPriority === 'all' || task.priority === filterPriority;
     const matchStatus = filterStatus === 'all' || task.status === filterStatus;
     const matchAssigned = filterAssigned === 'all' || task.assigned_to === filterAssigned;

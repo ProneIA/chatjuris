@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/components/common/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,6 +46,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useDebounce } from "@/components/common/useDebounce";
 
 const tagColors = {
   blue: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -63,6 +63,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [viewMode, setViewMode] = useState("list");
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
@@ -266,8 +267,6 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     },
   });
 
-  const debouncedSearch = useDebounce(search, 300);
-  
   const filteredDocs = documents.filter(doc => {
     const searchLower = debouncedSearch.toLowerCase();
     const matchesSearch = doc.title?.toLowerCase().includes(searchLower) ||

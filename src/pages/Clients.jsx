@@ -4,14 +4,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
-import { useDebounce } from "@/components/common/useDebounce";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
+import { useDebounce } from "@/components/common/useDebounce";
 
 export default function Clients({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [showForm, setShowForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
@@ -63,8 +64,6 @@ export default function Clients({ theme = 'light' }) {
     },
   });
 
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  
   const filteredClients = clients.filter(client =>
     client.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
     client.email?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
