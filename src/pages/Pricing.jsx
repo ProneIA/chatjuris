@@ -74,12 +74,13 @@ const plans = [
     id: "pro_lifetime",
     name: "Acesso Vitalício",
     icon: Star,
-    price: 497.00,
-    period: "pagamento único",
+    price: 1299.90,
+    period: "à vista",
     billingType: "lifetime",
     description: "Pague uma vez, use para sempre",
     popular: true,
     isLifetime: true,
+    installments: "ou 12x de R$ 108,33",
     features: [
       { text: "✨ ACESSO PERMANENTE - sem mensalidade", included: true, highlight: true },
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
@@ -100,7 +101,7 @@ const plans = [
       daily_actions_limit: 999999,
       daily_actions_used: 0
     },
-    savingsText: "💎 Economia de R$ 1.438/ano vs plano mensal",
+    savingsText: "💎 Melhor custo-benefício - nunca mais pague mensalidade",
     lifetimeUrl: "https://pay.hotmart.com/L104287363X"
   }
 ];
