@@ -41,32 +41,73 @@ export default function Teams({ theme = 'light' }) {
   const { data: myTeams = [], isLoading } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
-      return await base44.entities.Team.filter({ user_email: user.email }, '-created_date');
+      if (!user?.email) {
+        console.log("⏸️ [QUERY] Aguardando usuário...");
+        return [];
+      }
+      
+      console.log("🔍 [QUERY] Buscando equipes para:", user.email);
+      
+      const teams = await base44.entities.Team.filter({ user_email: user.email }, '-created_date');
+      
+      console.log("📋 [QUERY] Equipes encontradas:", teams.length);
+      console.log("📋 [QUERY] Dados:", teams);
+      
+      return teams;
     },
     enabled: !!user?.email
   });
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.email) throw new Error("Sem usuário.");
-      if (!newTeamName.trim()) throw new Error("Nome obrigatório.");
+      console.log("🚀 [CREATE] Iniciando criação...");
+      console.log("👤 [CREATE] Usuário:", user);
+      
+      if (!user?.email) {
+        console.error("❌ [CREATE] Erro: Sem usuário");
+        throw new Error("Sem usuário.");
+      }
+      if (!newTeamName.trim()) {
+        console.error("❌ [CREATE] Erro: Nome vazio");
+        throw new Error("Nome obrigatório.");
+      }
 
-      return await base44.entities.Team.create({
+      const payload = {
         name: newTeamName.trim(),
         user_email: user.email,
         members: [],
         is_active: true
-      });
+      };
+
+      console.log("📦 [CREATE] Payload:", payload);
+      
+      const result = await base44.entities.Team.create(payload);
+      
+      console.log("✅ [CREATE] Resultado:", result);
+      
+      if (!result || !result.id) {
+        console.error("❌ [CREATE] Erro: Sem ID retornado", result);
+        throw new Error("Falha ao criar equipe");
+      }
+      
+      return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+    onSuccess: async (data) => {
+      console.log("✅ [SUCCESS] Equipe criada:", data);
+      console.log("🔄 [SUCCESS] Invalidando cache...");
+      
+      await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      
+      console.log("✅ [SUCCESS] Cache invalidado");
+      
       toast.success("✅ Equipe criada!");
       setIsCreateOpen(false);
       setNewTeamName("");
     },
     onError: (e) => {
-      toast.error(e.message);
+      console.error("❌ [ERROR] Erro na criação:", e);
+      console.error("❌ [ERROR] Stack:", e.stack);
+      toast.error(e.message || "Erro ao criar equipe");
     }
   });
 
