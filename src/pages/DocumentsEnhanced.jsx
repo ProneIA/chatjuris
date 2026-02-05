@@ -78,13 +78,21 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   }, []);
 
   const { data: documents = [] } = useQuery({
-    queryKey: ['legal-documents'],
-    queryFn: () => base44.entities.LegalDocument.list('-created_date'),
+    queryKey: ['legal-documents', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
   });
 
   const { data: tags = [] } = useQuery({
-    queryKey: ['document-tags'],
-    queryFn: () => base44.entities.DocumentTag.list(),
+    queryKey: ['document-tags', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.DocumentTag.filter({ created_by: user.email });
+    },
+    enabled: !!user?.email,
   });
 
   const { data: versions = [] } = useQuery({
@@ -94,18 +102,30 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   });
 
   const { data: cases = [] } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list(),
+    queryKey: ['cases', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Case.filter({ created_by: user.email });
+    },
+    enabled: !!user?.email,
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
+    queryKey: ['clients', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Client.filter({ created_by: user.email });
+    },
+    enabled: !!user?.email,
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => base44.entities.Task.list(),
+    queryKey: ['tasks', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Task.filter({ created_by: user.email });
+    },
+    enabled: !!user?.email,
   });
 
   const handleSelectDoc = (doc) => {

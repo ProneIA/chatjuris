@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,24 +17,46 @@ export default function Calendar({ theme = 'light' }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const queryClient = useQueryClient();
 
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ['calendar-events'],
-    queryFn: () => base44.entities.CalendarEvent.list('-start_time'),
+    queryKey: ['calendar-events', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.CalendarEvent.filter({ created_by: user.email }, '-start_time');
+    },
+    enabled: !!user?.email,
   });
 
   const { data: connections = [] } = useQuery({
-    queryKey: ['calendar-connections'],
-    queryFn: () => base44.entities.CalendarConnection.list('-created_date'),
+    queryKey: ['calendar-connections', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.CalendarConnection.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
   });
 
   const { data: cases = [] } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list('-created_date'),
+    queryKey: ['cases', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Case.filter({ created_by: user.email }, '-created_date');
+    },
+    enabled: !!user?.email,
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryKey: ['clients', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Client.filter({ created_by: user.email }, 'name');
+    },
+    enabled: !!user?.email,
   });
 
   const createEventMutation = useMutation({

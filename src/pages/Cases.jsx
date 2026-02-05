@@ -46,7 +46,7 @@ export default function Cases({ theme = 'light' }) {
     queryKey: ['cases', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const result = await base44.entities.Case.list('-created_date');
+      const result = await base44.entities.Case.filter({ created_by: user.email }, '-created_date');
       return result;
     },
     enabled: !!user?.email,
@@ -57,7 +57,7 @@ export default function Cases({ theme = 'light' }) {
     queryKey: ['clients', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Client.list('name');
+      return await base44.entities.Client.filter({ created_by: user.email }, 'name');
     },
     enabled: !!user?.email
   });

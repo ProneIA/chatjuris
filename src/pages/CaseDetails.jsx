@@ -17,10 +17,23 @@ export default function CaseDetailsPage() {
     async function loadCase() {
       if (!caseId) return;
       try {
-        // Since we can't get by ID directly easily in all backends, filtering is safer
+        const user = await base44.auth.me();
+        if (!user) {
+          setIsLoading(false);
+          return;
+        }
+        
         const results = await base44.entities.Case.filter({ id: caseId });
         if (results && results.length > 0) {
-          setCaseData(results[0]);
+          const caseItem = results[0];
+          // Validar propriedade
+          if (caseItem.created_by !== user.email) {
+            console.error("Acesso negado: processo não pertence ao usuário");
+            setCaseData(null);
+            setIsLoading(false);
+            return;
+          }
+          setCaseData(caseItem);
         }
       } catch (error) {
         console.error("Error loading case:", error);
@@ -38,9 +51,10 @@ export default function CaseDetailsPage() {
   if (!caseData) {
     return (
       <div className="p-10 text-center">
-        <h2 className="text-xl font-bold mb-4">Processo não encontrado</h2>
+        <h2 className="text-xl font-bold mb-4">Processo não encontrado ou acesso negado</h2>
+        <p className="text-gray-600 mb-4">Você não tem permissão para visualizar este processo.</p>
         <Button onClick={() => navigate(createPageUrl("Cases"))}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para Processos
         </Button>
       </div>
     );
