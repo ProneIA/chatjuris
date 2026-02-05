@@ -475,123 +475,146 @@ export default function WhatsAppBot({ theme }) {
 
       {/* Dialog de Configuração */}
       <Dialog open={showSetupDialog} onOpenChange={setShowSetupDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Conectar Seu Número WhatsApp Business</DialogTitle>
+            <DialogTitle className="text-2xl">🚀 Conectar Seu Número WhatsApp Business</DialogTitle>
             <DialogDescription>
-              Siga os passos abaixo para conectar seu próprio número brasileiro ao assistente
+              Configure seu próprio número brasileiro com IA em 3 passos simples
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Passo 1 */}
-            <div>
-              <h3 className="font-semibold text-lg mb-2">1. Crie uma Conta WhatsApp Business API</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Acesse o Meta for Developers e crie uma aplicação WhatsApp Business:
-              </p>
-              <a 
-                href="https://developers.facebook.com/apps/create/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 hover:underline"
-              >
-                Meta for Developers <ExternalLink className="w-4 h-4" />
-              </a>
-              <ul className="text-sm text-gray-600 mt-2 space-y-1 list-disc list-inside">
-                <li>Crie uma "Business App"</li>
-                <li>Adicione o produto "WhatsApp"</li>
-                <li>Configure seu número de telefone brasileiro</li>
-              </ul>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+                <h3 className="font-semibold text-lg">Criar Aplicação no Meta for Developers</h3>
+              </div>
+              
+              <div className="ml-11 space-y-3">
+                <p className="text-sm text-gray-600">
+                  Acesse o portal da Meta e crie sua aplicação WhatsApp Business:
+                </p>
+                
+                <a 
+                  href="https://developers.facebook.com/apps/create/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Abrir Meta for Developers
+                </a>
+
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-medium">Dentro do portal:</p>
+                  <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                    <li>Clique em "Create App" (Criar aplicativo)</li>
+                    <li>Escolha tipo: <strong>"Business"</strong></li>
+                    <li>Preencha nome do app (ex: "Assistente Escritório")</li>
+                    <li>Na lista de produtos, adicione <strong>"WhatsApp"</strong></li>
+                    <li>Configure seu número de telefone brasileiro</li>
+                  </ol>
+                </div>
+              </div>
             </div>
 
             {/* Passo 2 */}
-            <div>
-              <h3 className="font-semibold text-lg mb-2">2. Configure o Webhook</h3>
-              <div className="space-y-3">
-                <div>
-                  <Label>URL do Webhook (copie e cole no Meta)</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input value={webhookUrl} readOnly className="font-mono text-xs" />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => copyToClipboard(webhookUrl, 'webhook')}
-                    >
-                      {copiedField === 'webhook' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">2</div>
+                <h3 className="font-semibold text-lg">Copiar Credenciais da API</h3>
+              </div>
+              
+              <div className="ml-11 space-y-3">
+                <p className="text-sm text-gray-600">
+                  No painel do Meta, vá em <strong>WhatsApp → API Setup</strong> e copie:
+                </p>
 
-                <div>
-                  <Label>Token de Verificação</Label>
-                  <Input
-                    value={formData.whatsapp_webhook_verify_token || ''}
-                    onChange={(e) => setFormData({...formData, whatsapp_webhook_verify_token: e.target.value})}
-                    placeholder="Crie um token único (ex: meu_token_secreto_123)"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Crie um token único e use o mesmo na configuração do Meta
-                  </p>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm font-medium text-yellow-900 mb-2">📋 Informações necessárias:</p>
+                  <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+                    <li><strong>Temporary Access Token</strong> → Gere um token permanente</li>
+                    <li><strong>Phone Number ID</strong> → Copie o ID do dropdown</li>
+                    <li><strong>WhatsApp Business Account ID</strong> → Copie se disponível</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
             {/* Passo 3 */}
-            <div>
-              <h3 className="font-semibold text-lg mb-2">3. Configure as Credenciais</h3>
-              <div className="space-y-3">
-                <div>
-                  <Label>Access Token (Permanent)</Label>
-                  <Input
-                    value={formData.whatsapp_access_token || ''}
-                    onChange={(e) => setFormData({...formData, whatsapp_access_token: e.target.value})}
-                    placeholder="Cole aqui o token permanente do Meta"
-                    type="password"
-                  />
-                </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">3</div>
+                <h3 className="font-semibold text-lg">Configurar Webhook</h3>
+              </div>
+              
+              <div className="ml-11 space-y-3">
+                <p className="text-sm text-gray-600 mb-2">
+                  No Meta, vá em <strong>WhatsApp → Configuration → Webhook</strong>:
+                </p>
 
-                <div>
-                  <Label>Phone Number ID</Label>
-                  <Input
-                    value={formData.whatsapp_phone_number_id || ''}
-                    onChange={(e) => setFormData({...formData, whatsapp_phone_number_id: e.target.value})}
-                    placeholder="Cole aqui o ID do seu número"
-                  />
-                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs text-gray-500">URL do Callback (cole no Meta)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input value={webhookUrl} readOnly className="font-mono text-xs bg-gray-50" />
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => copyToClipboard(webhookUrl, 'webhook')}
+                      >
+                        {copiedField === 'webhook' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
 
-                <div>
-                  <Label>Business Account ID (opcional)</Label>
-                  <Input
-                    value={formData.whatsapp_business_account_id || ''}
-                    onChange={(e) => setFormData({...formData, whatsapp_business_account_id: e.target.value})}
-                    placeholder="ID da conta business"
-                  />
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm font-medium mb-2">No painel da Meta:</p>
+                    <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+                      <li>Cole a URL do webhook acima</li>
+                      <li>Cole o mesmo "Token de Verificação" que você definiu</li>
+                      <li>Clique em "Verify and Save"</li>
+                      <li>Em "Webhook fields", marque: <strong>messages</strong></li>
+                    </ol>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Instruções finais */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">✨ Onde encontrar essas informações?</h4>
-              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li><strong>Access Token:</strong> API Setup → Permanent Token</li>
-                <li><strong>Phone Number ID:</strong> API Setup → From phone number dropdown</li>
-                <li><strong>Webhook URL:</strong> Copie acima e configure em Configuration → Webhook</li>
-              </ul>
-            </div>
+            {/* Status da conexão */}
+            {config?.whatsapp_phone_number_id && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-green-700 mb-1">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-semibold">WhatsApp Conectado com Sucesso!</span>
+                </div>
+                <p className="text-sm text-green-600">
+                  Seu número está ativo. Teste enviando uma mensagem para verificar.
+                </p>
+              </div>
+            )}
 
-            <Button 
-              onClick={() => {
-                handleSave();
-                setShowSetupDialog(false);
-              }}
-              className="w-full"
-              disabled={!formData.whatsapp_access_token || !formData.whatsapp_phone_number_id}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Salvar Configurações
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => setShowSetupDialog(false)}
+                className="flex-1"
+              >
+                Fechar
+              </Button>
+              <a 
+                href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button variant="outline" className="w-full">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Documentação Meta
+                </Button>
+              </a>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
