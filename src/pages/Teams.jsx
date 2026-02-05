@@ -38,7 +38,7 @@ export default function Teams({ theme = 'light' }) {
       });
   }, []);
 
-  const { data: myTeams = [], isLoading } = useQuery({
+  const { data: myTeams = [], isLoading, refetch } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) {
@@ -48,14 +48,21 @@ export default function Teams({ theme = 'light' }) {
       
       console.log("🔍 [QUERY] Buscando equipes para:", user.email);
       
-      const teams = await base44.entities.Team.filter({ user_email: user.email }, '-created_date');
+      const teams = await base44.entities.Team.list('-created_date');
       
-      console.log("📋 [QUERY] Equipes encontradas:", teams.length);
-      console.log("📋 [QUERY] Dados:", teams);
+      console.log("📋 [QUERY] Total de equipes:", teams.length);
+      console.log("📋 [QUERY] Todas equipes:", teams);
       
-      return teams;
+      const myTeams = teams.filter(t => t.user_email === user.email);
+      
+      console.log("📋 [QUERY] Minhas equipes filtradas:", myTeams.length);
+      console.log("📋 [QUERY] Meus dados:", myTeams);
+      
+      return myTeams;
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   const createMutation = useMutation({
@@ -98,9 +105,12 @@ export default function Teams({ theme = 'light' }) {
       
       await queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       
-      console.log("✅ [SUCCESS] Cache invalidado");
+      console.log("🔄 [SUCCESS] Forçando refetch...");
+      await refetch();
       
-      toast.success("✅ Equipe criada!");
+      console.log("✅ [SUCCESS] Atualização completa");
+      
+      toast.success("✅ Equipe criada com sucesso!");
       setIsCreateOpen(false);
       setNewTeamName("");
     },
