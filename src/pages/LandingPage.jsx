@@ -130,6 +130,12 @@ export default function LandingPage() {
               >
                 Funcionalidades
               </Link>
+              <Link 
+                to={createPageUrl("PrivacyPolicy")}
+                className="text-sm text-white/80 hover:text-white transition-colors"
+              >
+                Privacidade
+              </Link>
               <button 
                 onClick={handleLogin}
                 className="text-sm text-white/80 hover:text-white transition-colors"
@@ -323,26 +329,28 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 bg-white border-t border-gray-200">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 text-center sm:text-left">
-          <span className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
-            Juris
-          </span>
-          <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-2">
-            © 2024 Juris. Todos os direitos reservados.
-          </p>
-          <div className="flex items-center gap-4 order-2 sm:order-3">
-            <Link 
-              to={createPageUrl("PrivacyPolicy")}
-              className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
-            >
-              Política de Privacidade
-            </Link>
-            <Link 
-              to={createPageUrl("ContactPublic")}
-              className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
-            >
-              Contato
-            </Link>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 text-center sm:text-left">
+            <span className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
+              Juris
+            </span>
+            <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-2">
+              © 2024 Juris. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-4 sm:gap-6 order-2 sm:order-3">
+              <Link 
+                to={createPageUrl("PrivacyPolicy")}
+                className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+              >
+                Política de Privacidade
+              </Link>
+              <Link 
+                to={createPageUrl("ContactPublic")}
+                className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+              >
+                Contato
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
