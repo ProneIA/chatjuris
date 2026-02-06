@@ -54,6 +54,10 @@ Deno.serve(async (req) => {
         result = await releaseManualSubscription(base44, user, data);
         break;
 
+      case 'cleanup_duplicates':
+        result = await cleanupDuplicateSubscriptions(base44, user);
+        break;
+
       default:
         return Response.json({ error: 'Ação inválida' }, { status: 400 });
     }
@@ -99,8 +103,19 @@ async function updateUserSubscription(base44, adminUser, data) {
     endDate.setFullYear(endDate.getFullYear() + 1);
   }
 
+  // REGRA DE UNICIDADE: Expirar TODAS as assinaturas anteriores do usuário
   const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
+  
+  for (const sub of existingSubs) {
+    if (sub.status === 'active' || sub.status === 'trial') {
+      await base44.asServiceRole.entities.Subscription.update(sub.id, {
+        status: 'expired',
+        daily_actions_limit: 0
+      });
+    }
+  }
 
+  // Criar NOVA assinatura (nunca reutilizar a antiga)
   const subscriptionData = {
     user_id: userId,
     plan: planType === 'trial' ? 'free' : 'pro',
@@ -117,12 +132,7 @@ async function updateUserSubscription(base44, adminUser, data) {
     activated_at: new Date().toISOString()
   };
 
-  let result;
-  if (existingSubs.length > 0) {
-    result = await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
-  } else {
-    result = await base44.asServiceRole.entities.Subscription.create(subscriptionData);
-  }
+  const result = await base44.asServiceRole.entities.Subscription.create(subscriptionData);
 
   // Criar log de auditoria
   await base44.asServiceRole.entities.AuditLog.create({
@@ -135,7 +145,8 @@ async function updateUserSubscription(base44, adminUser, data) {
       target_email: userEmail,
       plan_type: planType,
       notes: 'Alteração via painel admin',
-      end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício'
+      end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício',
+      expired_previous_count: existingSubs.filter(s => s.status === 'active' || s.status === 'trial').length
     })
   });
 
@@ -172,8 +183,19 @@ async function releaseManualSubscription(base44, adminUser, data) {
     endDate.setFullYear(endDate.getFullYear() + 1);
   }
 
+  // REGRA DE UNICIDADE: Expirar TODAS as assinaturas anteriores do usuário
   const existingSubs = await base44.asServiceRole.entities.Subscription.filter({ user_id: targetUser.id });
+  
+  for (const sub of existingSubs) {
+    if (sub.status === 'active' || sub.status === 'trial') {
+      await base44.asServiceRole.entities.Subscription.update(sub.id, {
+        status: 'expired',
+        daily_actions_limit: 0
+      });
+    }
+  }
 
+  // Criar NOVA assinatura (nunca reutilizar a antiga)
   const subscriptionData = {
     user_id: targetUser.id,
     plan: planType === 'trial' ? 'free' : 'pro',
@@ -190,12 +212,7 @@ async function releaseManualSubscription(base44, adminUser, data) {
     activated_at: new Date().toISOString()
   };
 
-  let result;
-  if (existingSubs.length > 0) {
-    result = await base44.asServiceRole.entities.Subscription.update(existingSubs[0].id, subscriptionData);
-  } else {
-    result = await base44.asServiceRole.entities.Subscription.create(subscriptionData);
-  }
+  const result = await base44.asServiceRole.entities.Subscription.create(subscriptionData);
 
   // Criar log de auditoria
   await base44.asServiceRole.entities.AuditLog.create({
@@ -208,9 +225,68 @@ async function releaseManualSubscription(base44, adminUser, data) {
       target_email: email,
       plan_type: planType,
       notes: notes || 'Liberação manual via painel admin',
-      end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício'
+      end_date: endDate ? endDate.toISOString().split('T')[0] : 'vitalício',
+      expired_previous_count: existingSubs.filter(s => s.status === 'active' || s.status === 'trial').length
     })
   });
 
   return { targetUser, subscription: result };
+}
+
+// Função para limpar assinaturas duplicadas existentes
+async function cleanupDuplicateSubscriptions(base44, adminUser) {
+  const allSubscriptions = await base44.asServiceRole.entities.Subscription.list('-created_date');
+  
+  // Agrupar por user_id
+  const userSubscriptions = {};
+  for (const sub of allSubscriptions) {
+    if (!userSubscriptions[sub.user_id]) {
+      userSubscriptions[sub.user_id] = [];
+    }
+    userSubscriptions[sub.user_id].push(sub);
+  }
+
+  let expiredCount = 0;
+  let usersAffected = 0;
+
+  for (const userId in userSubscriptions) {
+    const subs = userSubscriptions[userId];
+    
+    // Filtrar apenas ativas/trial
+    const activeSubs = subs.filter(s => s.status === 'active' || s.status === 'trial');
+    
+    if (activeSubs.length > 1) {
+      usersAffected++;
+      
+      // Ordenar por created_date (mais recente primeiro)
+      activeSubs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      
+      // Manter apenas a mais recente, expirar o resto
+      for (let i = 1; i < activeSubs.length; i++) {
+        await base44.asServiceRole.entities.Subscription.update(activeSubs[i].id, {
+          status: 'expired',
+          daily_actions_limit: 0
+        });
+        expiredCount++;
+      }
+    }
+  }
+
+  // Log de auditoria
+  await base44.asServiceRole.entities.AuditLog.create({
+    user_email: adminUser.email,
+    action: 'cleanup_duplicate_subscriptions',
+    entity_type: 'Subscription',
+    details: JSON.stringify({
+      timestamp: new Date().toISOString(),
+      expired_count: expiredCount,
+      users_affected: usersAffected,
+      message: 'Limpeza de assinaturas duplicadas executada'
+    })
+  });
+
+  return {
+    expired_count: expiredCount,
+    users_affected: usersAffected
+  };
 }
