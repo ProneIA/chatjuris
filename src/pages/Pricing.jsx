@@ -168,7 +168,7 @@ export default function Pricing({ theme = 'light' }) {
     setCheckoutModal({ open: true, plan: planId });
   };
 
-  const currentPlan = subscription?.plan || 'pro';
+  // Removido: lógica antiga que causava bug (marcava todos como assinados)
 
   return (
     <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
@@ -258,7 +258,32 @@ export default function Pricing({ theme = 'light' }) {
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
-            const isCurrentPlan = currentPlan === plan.id || (currentPlan === 'pro' && plan.id.startsWith('pro_'));
+            
+            // LÓGICA CORRETA: Verificar plano ativo do usuário
+            const isCurrentPlan = (() => {
+              if (!subscription) return false;
+              
+              const today = new Date().toISOString().split('T')[0];
+              const isExpired = subscription.end_date && today > subscription.end_date;
+              const isActive = subscription.status === 'active' || subscription.status === 'trial';
+              
+              // Se expirado ou não ativo, nenhum plano é "atual"
+              if (isExpired || !isActive) return false;
+              
+              // Mapear plan_type da subscription para o plan.id
+              const planTypeToId = {
+                'monthly': 'pro_monthly',
+                'annual': 'pro_yearly',
+                'lifetime': 'pro_lifetime'
+              };
+              
+              // Se está em trial, nenhum plano pago é marcado como atual
+              if (subscription.status === 'trial') return false;
+              
+              // Verificar se este plano específico é o ativo
+              return planTypeToId[subscription.plan_type] === plan.id;
+            })();
+            
             const isPro = plan.id.startsWith('pro_');
 
             return (
