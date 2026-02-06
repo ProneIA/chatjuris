@@ -151,20 +151,8 @@ export default function Layout({ children, currentPageName }) {
                   
                 } else {
                   // Usuário já usou trial e não tem assinatura ativa
-                  // Criar assinatura pendente (sem acesso)
-                  const newSub = await base44.entities.Subscription.create({
-                    user_id: u.id,
-                    plan: 'free',
-                    plan_type: null,
-                    status: 'pending',
-                    daily_actions_limit: 0,
-                    daily_actions_used: 0,
-                    last_reset_date: today,
-                    price: 0,
-                    payment_method: null,
-                    start_date: today
-                  });
-                  setSubscription(newSub);
+                  // Redirecionar para página de pricing (sem criar assinatura pendente)
+                  setSubscription(null);
                 }
               }
 

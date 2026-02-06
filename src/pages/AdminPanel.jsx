@@ -187,23 +187,43 @@ export default function AdminPanel({ theme = 'light' }) {
     }
   });
 
-  // Métricas do Dashboard
+  // Métricas do Dashboard - APENAS assinaturas ativas (1 por usuário)
   const metrics = React.useMemo(() => {
-    const activeSubscriptions = allSubscriptions.filter(s => s.status === 'active' || s.status === 'trial');
+    // Agrupar assinaturas por usuário e pegar apenas a mais recente ativa
+    const activeByUser = {};
+    for (const sub of allSubscriptions) {
+      if (sub.status === 'active' || sub.status === 'trial') {
+        if (!activeByUser[sub.user_id] || new Date(sub.created_date) > new Date(activeByUser[sub.user_id].created_date)) {
+          activeByUser[sub.user_id] = sub;
+        }
+      }
+    }
+    
+    const uniqueActiveSubs = Object.values(activeByUser);
     const expiredSubscriptions = allSubscriptions.filter(s => s.status === 'expired' || s.status === 'cancelled');
     
+    // Contar duplicatas (mais de 1 ativa por usuário)
+    const userSubCounts = {};
+    for (const sub of allSubscriptions) {
+      if (sub.status === 'active' || sub.status === 'trial') {
+        userSubCounts[sub.user_id] = (userSubCounts[sub.user_id] || 0) + 1;
+      }
+    }
+    const duplicateCount = Object.values(userSubCounts).filter(count => count > 1).length;
+    
     const planDistribution = {
-      trial: allSubscriptions.filter(s => s.status === 'trial').length,
-      monthly: allSubscriptions.filter(s => s.plan_type === 'monthly' && s.status === 'active').length,
-      annual: allSubscriptions.filter(s => s.plan_type === 'annual' && s.status === 'active').length,
-      lifetime: allSubscriptions.filter(s => s.plan_type === 'lifetime').length
+      trial: uniqueActiveSubs.filter(s => s.status === 'trial' || s.plan_type === 'trial').length,
+      monthly: uniqueActiveSubs.filter(s => s.plan_type === 'monthly' && s.status === 'active').length,
+      annual: uniqueActiveSubs.filter(s => s.plan_type === 'annual' && s.status === 'active').length,
+      lifetime: uniqueActiveSubs.filter(s => s.plan_type === 'lifetime').length
     };
 
     return {
       totalUsers: allUsers.length,
-      activeUsers: activeSubscriptions.length,
+      activeUsers: uniqueActiveSubs.length,
       expiredUsers: expiredSubscriptions.length,
-      planDistribution
+      planDistribution,
+      duplicateCount
     };
   }, [allUsers, allSubscriptions]);
 
@@ -308,6 +328,47 @@ export default function AdminPanel({ theme = 'light' }) {
 
           {/* DASHBOARD */}
           <TabsContent value="dashboard" className="space-y-6">
+            {/* Alerta de duplicatas */}
+            {metrics.duplicateCount > 0 && (
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-6 h-6 text-red-600" />
+                      <div>
+                        <p className="font-semibold text-red-800">
+                          ⚠️ {metrics.duplicateCount} usuário(s) com múltiplas assinaturas ativas
+                        </p>
+                        <p className="text-sm text-red-600">
+                          Execute a limpeza para corrigir dados inconsistentes
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={async () => {
+                        if (confirm('Isso irá expirar assinaturas duplicadas, mantendo apenas a mais recente de cada usuário. Continuar?')) {
+                          try {
+                            const response = await base44.functions.invoke('adminSecureAction', { action: 'cleanup_duplicates' });
+                            if (response.data?.success) {
+                              toast.success(`Limpeza concluída: ${response.data.data.expired_count} assinaturas expiradas`);
+                              queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
+                            } else {
+                              throw new Error(response.data?.error);
+                            }
+                          } catch (e) {
+                            toast.error(`Erro: ${e.message}`);
+                          }
+                        }
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Limpar Duplicatas
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid md:grid-cols-4 gap-4">
               <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
                 <CardContent className="pt-6">
@@ -329,7 +390,7 @@ export default function AdminPanel({ theme = 'light' }) {
                       {metrics.activeUsers}
                     </span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Assinaturas Ativas</p>
+                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Assinaturas Ativas (únicas)</p>
                 </CardContent>
               </Card>
 
