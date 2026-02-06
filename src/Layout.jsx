@@ -115,21 +115,6 @@ export default function Layout({ children, currentPageName }) {
                   }
                 }
                 
-                // Calcular dias restantes do trial
-                if (currentSub.status === 'trial' && currentSub.end_date) {
-                  const endDate = new Date(currentSub.end_date);
-                  const todayDate = new Date();
-                  const daysLeft = Math.ceil((endDate - todayDate) / (1000 * 60 * 60 * 24));
-                  setTrialDaysLeft(daysLeft > 0 ? daysLeft : 0);
-                  
-                  // Mostrar modal de trial se nunca foi mostrado
-                  const trialWelcomeShown = localStorage.getItem(`trial_welcome_shown_${u.email}`);
-                  if (!trialWelcomeShown && daysLeft > 0) {
-                    setShowTrialWelcome(true);
-                    localStorage.setItem(`trial_welcome_shown_${u.email}`, 'true');
-                  }
-                }
-                
                 setSubscription(currentSub);
                 
               } else {
@@ -162,18 +147,18 @@ export default function Layout({ children, currentPageName }) {
                   });
 
                   setSubscription(newSub);
-                  setTrialDaysLeft(7);
-                  
-                  // Mostrar modal de boas-vindas para novos usuários em trial
-                  const trialWelcomeShown = localStorage.getItem(`trial_welcome_shown_${u.email}`);
-                  if (!trialWelcomeShown) {
-                    setShowTrialWelcome(true);
-                    localStorage.setItem(`trial_welcome_shown_${u.email}`, 'true');
-                  }
                   
                   // Atualizar usuário local
                   const updatedUser = await base44.auth.me();
                   setUser(updatedUser);
+                  
+                  // Mostrar modal de boas-vindas do trial
+                  const trialWelcomeKey = `trial_welcome_shown_${u.id}`;
+                  if (!localStorage.getItem(trialWelcomeKey)) {
+                    setTrialDaysLeft(7);
+                    setShowTrialWelcome(true);
+                    localStorage.setItem(trialWelcomeKey, 'true');
+                  }
                   
                 } else {
                   // Usuário já usou trial e não tem assinatura ativa

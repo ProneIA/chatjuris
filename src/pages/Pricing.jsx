@@ -151,7 +151,8 @@ export default function Pricing({ theme = 'light' }) {
     const isAuthenticated = await base44.auth.isAuthenticated();
     
     if (!isAuthenticated) {
-      base44.auth.redirectToLogin(createPageUrl("Pricing"));
+      // Redirecionar para login com contexto do plano selecionado
+      base44.auth.redirectToLogin(createPageUrl("Pricing") + `?selected_plan=${planId}`);
       return;
     }
 
@@ -167,6 +168,22 @@ export default function Pricing({ theme = 'light' }) {
     // Abrir modal de checkout para planos recorrentes
     setCheckoutModal({ open: true, plan: planId });
   };
+
+  // Verificar se veio com plano selecionado na URL (após login)
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedPlan = urlParams.get('selected_plan');
+    
+    if (selectedPlan && user) {
+      // Limpar parâmetro da URL
+      urlParams.delete('selected_plan');
+      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+      
+      // Abrir checkout automaticamente
+      handleSelectPlan(selectedPlan);
+    }
+  }, [user]);
 
   // Removido: lógica antiga que causava bug (marcava todos como assinados)
 
