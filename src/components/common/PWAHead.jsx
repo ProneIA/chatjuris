@@ -35,6 +35,9 @@ export default function PWAHead() {
     addMetaTag('msapplication-TileColor', '#000000');
     addMetaTag('msapplication-tap-highlight', 'no');
     addMetaTag('format-detection', 'telephone=no');
+    
+    // Google Search Console Verification
+    addMetaTag('google-site-verification', 'google5f9411eba7714c46');
 
     // Viewport for mobile
     let viewport = document.querySelector('meta[name="viewport"]');
