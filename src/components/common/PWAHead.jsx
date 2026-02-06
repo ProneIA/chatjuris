@@ -37,7 +37,7 @@ export default function PWAHead() {
     addMetaTag('format-detection', 'telephone=no');
     
     // Google Search Console Verification
-    addMetaTag('google-site-verification', 'google5f9411eba7714c46');
+    addMetaTag('google-site-verification', 'e3ZZsYNt9S84TDP_bU1zX8I4L_Nzag8-6CSHc1888lI');
 
     // Viewport for mobile
     let viewport = document.querySelector('meta[name="viewport"]');
