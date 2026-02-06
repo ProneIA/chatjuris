@@ -32,6 +32,7 @@ import InstallAppBanner from "@/components/common/InstallAppBanner";
 import InstallInstructionsDialog from "@/components/common/InstallInstructionsDialog";
 import PWAHead from "@/components/common/PWAHead";
 import ConsentModal from "@/components/lgpd/ConsentModal";
+import TrialWelcomeModal from "@/components/subscription/TrialWelcomeModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -80,6 +81,8 @@ export default function Layout({ children, currentPageName }) {
     const [showConsentModal, setShowConsentModal] = React.useState(false);
     const [hasCheckedConsent, setHasCheckedConsent] = React.useState(false);
     const [consentAccepted, setConsentAccepted] = React.useState(false);
+    const [showTrialWelcome, setShowTrialWelcome] = React.useState(false);
+    const [trialDaysLeft, setTrialDaysLeft] = React.useState(7);
 
     React.useEffect(() => {
       base44.auth.me()
@@ -109,6 +112,21 @@ export default function Layout({ children, currentPageName }) {
                       daily_actions_limit: 0
                     });
                     currentSub = { ...currentSub, status: 'expired', daily_actions_limit: 0 };
+                  }
+                }
+                
+                // Calcular dias restantes do trial
+                if (currentSub.status === 'trial' && currentSub.end_date) {
+                  const endDate = new Date(currentSub.end_date);
+                  const todayDate = new Date();
+                  const daysLeft = Math.ceil((endDate - todayDate) / (1000 * 60 * 60 * 24));
+                  setTrialDaysLeft(daysLeft > 0 ? daysLeft : 0);
+                  
+                  // Mostrar modal de trial se nunca foi mostrado
+                  const trialWelcomeShown = localStorage.getItem(`trial_welcome_shown_${u.email}`);
+                  if (!trialWelcomeShown && daysLeft > 0) {
+                    setShowTrialWelcome(true);
+                    localStorage.setItem(`trial_welcome_shown_${u.email}`, 'true');
                   }
                 }
                 
@@ -144,6 +162,14 @@ export default function Layout({ children, currentPageName }) {
                   });
 
                   setSubscription(newSub);
+                  setTrialDaysLeft(7);
+                  
+                  // Mostrar modal de boas-vindas para novos usuários em trial
+                  const trialWelcomeShown = localStorage.getItem(`trial_welcome_shown_${u.email}`);
+                  if (!trialWelcomeShown) {
+                    setShowTrialWelcome(true);
+                    localStorage.setItem(`trial_welcome_shown_${u.email}`, 'true');
+                  }
                   
                   // Atualizar usuário local
                   const updatedUser = await base44.auth.me();
@@ -588,6 +614,13 @@ export default function Layout({ children, currentPageName }) {
           }} 
         />
       )}
+
+      {/* Trial Welcome Modal */}
+      <TrialWelcomeModal
+        open={showTrialWelcome}
+        onClose={() => setShowTrialWelcome(false)}
+        daysLeft={trialDaysLeft}
+      />
     </div>
   );
 }
