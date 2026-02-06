@@ -17,6 +17,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
+import AvailablePlansSection from "@/components/subscription/AvailablePlansSection";
 
 export default function MySubscription({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -399,6 +400,15 @@ export default function MySubscription({ theme = 'light' }) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Seção de Planos Disponíveis - mostrar apenas se não for vitalício */}
+          {!planConfig.isPermanent && (
+            <AvailablePlansSection 
+              subscription={subscription}
+              theme={theme}
+              trialDaysLeft={trialDaysLeft}
+            />
+          )}
         </motion.div>
       </div>
     </div>
