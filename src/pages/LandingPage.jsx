@@ -330,12 +330,20 @@ export default function LandingPage() {
           <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-2">
             © 2024 Juris. Todos os direitos reservados.
           </p>
-          <Link 
-            to={createPageUrl("ContactPublic")}
-            className="text-gray-600 hover:text-gray-900 text-sm transition-colors order-2 sm:order-3"
-          >
-            Contato
-          </Link>
+          <div className="flex items-center gap-4 order-2 sm:order-3">
+            <Link 
+              to={createPageUrl("PrivacyPolicy")}
+              className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+            >
+              Política de Privacidade
+            </Link>
+            <Link 
+              to={createPageUrl("ContactPublic")}
+              className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+            >
+              Contato
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
