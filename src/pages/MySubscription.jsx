@@ -38,16 +38,16 @@ export default function MySubscription({ theme = 'light' }) {
     enabled: !!user?.id
   });
 
-  // Calcular dias restantes do trial
+  // Calcular dias restantes do trial baseado na assinatura
   const trialDaysLeft = React.useMemo(() => {
-    if (user?.trial_status === 'active' && user?.trial_end_date) {
+    if (subscription?.status === 'trial' && subscription?.end_date) {
       const today = new Date();
-      const endDate = new Date(user.trial_end_date);
+      const endDate = new Date(subscription.end_date);
       const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
       return daysLeft > 0 ? daysLeft : 0;
     }
     return 0;
-  }, [user]);
+  }, [subscription]);
 
   // Determinar configuração do plano
   const planConfig = React.useMemo(() => {
