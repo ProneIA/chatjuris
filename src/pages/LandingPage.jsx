@@ -21,12 +21,8 @@ export default function LandingPage() {
   };
 
   const handleStartTrial = () => {
+    // Redireciona para Dashboard - o trial é criado automaticamente no cadastro
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
-  };
-  
-  const handleSelectPlan = (planType) => {
-    // Redirecionar para login com contexto do plano selecionado
-    base44.auth.redirectToLogin(createPageUrl("Pricing") + `?selected_plan=${planType}`);
   };
 
   React.useEffect(() => {

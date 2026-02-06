@@ -151,8 +151,9 @@ export default function Pricing({ theme = 'light' }) {
     const isAuthenticated = await base44.auth.isAuthenticated();
     
     if (!isAuthenticated) {
-      // Redirecionar para login com contexto do plano selecionado
-      base44.auth.redirectToLogin(createPageUrl("Pricing") + `?selected_plan=${planId}`);
+      // Guardar plano selecionado no localStorage para usar após login
+      localStorage.setItem('selected_plan', planId);
+      base44.auth.redirectToLogin(createPageUrl("Pricing"));
       return;
     }
 
@@ -169,19 +170,20 @@ export default function Pricing({ theme = 'light' }) {
     setCheckoutModal({ open: true, plan: planId });
   };
 
-  // Verificar se veio com plano selecionado na URL (após login)
+  // Verificar se há um plano selecionado após login
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedPlan = urlParams.get('selected_plan');
-    
+    const selectedPlan = localStorage.getItem('selected_plan');
     if (selectedPlan && user) {
-      // Limpar parâmetro da URL
-      urlParams.delete('selected_plan');
-      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-      window.history.replaceState({}, '', newUrl);
-      
-      // Abrir checkout automaticamente
-      handleSelectPlan(selectedPlan);
+      localStorage.removeItem('selected_plan');
+      // Abrir checkout automaticamente com o plano selecionado
+      if (selectedPlan === "pro_lifetime") {
+        const lifetimePlan = plans.find(p => p.id === "pro_lifetime");
+        if (lifetimePlan?.lifetimeUrl) {
+          window.open(lifetimePlan.lifetimeUrl, '_blank');
+        }
+      } else {
+        setCheckoutModal({ open: true, plan: selectedPlan });
+      }
     }
   }, [user]);
 
