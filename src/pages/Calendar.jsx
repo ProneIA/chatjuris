@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Plus, Settings } from "lucide-react";
 import CalendarView from "../components/calendar/CalendarView";
 import EventForm from "../components/calendar/EventForm";
-import CalendarSettings from "../components/calendar/CalendarSettings";
+
 import AIScheduler from "../components/calendar/AIScheduler";
 
 export default function Calendar({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [showEventForm, setShowEventForm] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
   const [showAIScheduler, setShowAIScheduler] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -32,14 +32,7 @@ export default function Calendar({ theme = 'light' }) {
     enabled: !!user?.email,
   });
 
-  const { data: connections = [] } = useQuery({
-    queryKey: ['calendar-connections', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.CalendarConnection.filter({ created_by: user.email }, '-created_date');
-    },
-    enabled: !!user?.email,
-  });
+
 
   const { data: cases = [] } = useQuery({
     queryKey: ['cases', user?.email],
@@ -93,7 +86,7 @@ export default function Calendar({ theme = 'light' }) {
     }
   };
 
-  const hasActiveConnection = connections.some(c => c.is_active);
+
   const todayEvents = events.filter(e => {
     const eventDate = new Date(e.start_time);
     const today = new Date();
@@ -113,16 +106,8 @@ export default function Calendar({ theme = 'light' }) {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => setShowSettings(true)}
-              className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-            <Button
-              variant="outline"
               onClick={() => setShowAIScheduler(true)}
-              className="border-neutral-800 text-white hover:bg-neutral-800"
+              className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
             >
               <CalendarIcon className="w-4 h-4 mr-2" />
               IA Agendar
@@ -140,29 +125,7 @@ export default function Calendar({ theme = 'light' }) {
           </div>
         </div>
 
-        {!hasActiveConnection && (
-          <div className="border border-yellow-500/30 bg-yellow-500/10 rounded-lg p-4 mb-4">
-            <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-yellow-500" />
-              <div className="flex-1">
-                <p className="font-medium text-yellow-200">
-                  Conecte seu calendário
-                </p>
-                <p className="text-sm text-yellow-300/70 mt-0.5">
-                  Configure Google Calendar ou Outlook para sincronização automática
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSettings(true)}
-                className="border-yellow-500/30 text-yellow-200 hover:bg-yellow-500/20"
-              >
-                Configurar
-              </Button>
-            </div>
-          </div>
-        )}
+
 
         <div className="grid grid-cols-4 gap-4">
           <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
@@ -187,8 +150,14 @@ export default function Calendar({ theme = 'light' }) {
             </p>
           </div>
           <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Calendários</p>
-            <p className="text-2xl font-light text-white mt-1">{connections.length}</p>
+            <p className="text-sm text-neutral-500">Este Mês</p>
+            <p className="text-2xl font-light text-white mt-1">
+              {events.filter(e => {
+                const eventDate = new Date(e.start_time);
+                const now = new Date();
+                return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear();
+              }).length}
+            </p>
           </div>
         </div>
       </div>
@@ -224,19 +193,11 @@ export default function Calendar({ theme = 'light' }) {
         />
       )}
 
-      {showSettings && (
-        <CalendarSettings
-          connections={connections}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-
       {showAIScheduler && (
         <AIScheduler
           cases={cases}
           clients={clients}
           events={events}
-          connections={connections}
           onSchedule={(eventData) => createEventMutation.mutate(eventData)}
           onClose={() => setShowAIScheduler(false)}
         />
