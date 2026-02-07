@@ -11,19 +11,29 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function EventForm({ event, cases, clients, onSubmit, onDelete, onClose, isLoading }) {
   const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState(event || {
-    title: "",
-    description: "",
-    event_type: "meeting",
-    start_time: new Date().toISOString().slice(0, 16),
-    end_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
-    case_id: "",
-    client_id: "",
-    team_id: "",
-    location: "",
-    priority: "medium",
-    reminder_minutes: 30,
-    status: "scheduled"
+  const [formData, setFormData] = useState(() => {
+    if (event) {
+      return {
+        ...event,
+        start_time: event.start_time ? new Date(event.start_time).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+        end_time: event.end_time ? new Date(event.end_time).toISOString().slice(0, 16) : new Date(Date.now() + 3600000).toISOString().slice(0, 16)
+      };
+    }
+    return {
+      title: "",
+      description: "",
+      event_type: "meeting",
+      start_time: new Date().toISOString().slice(0, 16),
+      end_time: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
+      case_id: "",
+      client_id: "",
+      team_id: "",
+      location: "",
+      priority: "medium",
+      reminder_minutes: 30,
+      status: "scheduled",
+      calendar_provider: "local"
+    };
   });
 
   React.useEffect(() => {
@@ -51,6 +61,15 @@ export default function EventForm({ event, cases, clients, onSubmit, onDelete, o
     
     // Limpar campos vazios antes de enviar
     const cleanData = { ...formData };
+    
+    // Garantir que as datas estejam no formato ISO completo
+    if (cleanData.start_time && !cleanData.start_time.includes('Z')) {
+      cleanData.start_time = new Date(cleanData.start_time).toISOString();
+    }
+    if (cleanData.end_time && !cleanData.end_time.includes('Z')) {
+      cleanData.end_time = new Date(cleanData.end_time).toISOString();
+    }
+    
     if (!cleanData.case_id || cleanData.case_id === "") delete cleanData.case_id;
     if (!cleanData.client_id || cleanData.client_id === "") delete cleanData.client_id;
     if (!cleanData.team_id || cleanData.team_id === "") delete cleanData.team_id;
