@@ -2,38 +2,63 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus } from "lucide-react";
-import CalendarView from "../components/calendar/CalendarView";
-import EventForm from "../components/calendar/EventForm";
-
+import { Input } from "@/components/ui/input";
+import { 
+  Calendar as CalendarIcon, 
+  Plus, 
+  Search, 
+  Filter, 
+  Bell,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  TrendingUp
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import CalendarMonthView from "../components/calendar/CalendarMonthView";
+import CalendarWeekView from "../components/calendar/CalendarWeekView";
+import CalendarDayView from "../components/calendar/CalendarDayView";
+import EventFormDialog from "../components/calendar/EventFormDialog";
+import EventDetailsDialog from "../components/calendar/EventDetailsDialog";
+import CalendarFilters from "../components/calendar/CalendarFilters";
 import AIScheduler from "../components/calendar/AIScheduler";
+import { isPast, isSameDay, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Calendar({ theme = 'light' }) {
   const isDark = theme === 'dark';
+  const [viewMode, setViewMode] = useState('month'); // month, week, day
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showEventForm, setShowEventForm] = useState(false);
-
   const [showAIScheduler, setShowAIScheduler] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    types: [],
+    priorities: [],
+    statuses: [],
+  });
+  
   const queryClient = useQueryClient();
-
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Fetch events
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['calendar-events', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return base44.entities.CalendarEvent.filter({ created_by: user.email }, '-start_time');
+      return base44.entities.CalendarEvent.filter({ created_by: user.email }, 'start_time');
     },
     enabled: !!user?.email,
   });
 
-
-
+  // Fetch related data
   const { data: cases = [] } = useQuery({
     queryKey: ['cases', user?.email],
     queryFn: async () => {
@@ -52,6 +77,7 @@ export default function Calendar({ theme = 'light' }) {
     enabled: !!user?.email,
   });
 
+  // Mutations
   const createEventMutation = useMutation({
     mutationFn: (data) => base44.entities.CalendarEvent.create(data),
     onSuccess: () => {
@@ -65,7 +91,7 @@ export default function Calendar({ theme = 'light' }) {
     mutationFn: ({ id, data }) => base44.entities.CalendarEvent.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      setShowEventForm(false);
+      setShowEventDetails(false);
       setSelectedEvent(null);
     },
   });
@@ -74,122 +100,336 @@ export default function Calendar({ theme = 'light' }) {
     mutationFn: (id) => base44.entities.CalendarEvent.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      setShowEventDetails(false);
       setSelectedEvent(null);
     },
   });
 
-  const handleEventSubmit = (data) => {
-    if (selectedEvent) {
-      updateEventMutation.mutate({ id: selectedEvent.id, data });
-    } else {
-      createEventMutation.mutate(data);
+  // Auto-update overdue events
+  useEffect(() => {
+    if (!events.length) return;
+    
+    events.forEach(event => {
+      const isOverdue = isPast(new Date(event.end_time)) && event.status === 'scheduled';
+      if (isOverdue) {
+        updateEventMutation.mutate({ 
+          id: event.id, 
+          data: { ...event, status: 'overdue' } 
+        });
+      }
+    });
+  }, [events]);
+
+  // Filter and search events
+  const filteredEvents = events.filter(event => {
+    // Search filter
+    if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
+    // Type filter
+    if (filters.types.length > 0 && !filters.types.includes(event.event_type)) {
+      return false;
+    }
+    
+    // Priority filter
+    if (filters.priorities.length > 0 && !filters.priorities.includes(event.priority)) {
+      return false;
+    }
+    
+    // Status filter
+    if (filters.statuses.length > 0 && !filters.statuses.includes(event.status)) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  // Calculate statistics
+  const todayEvents = filteredEvents.filter(e => 
+    isSameDay(new Date(e.start_time), new Date())
+  );
+  
+  const pendingEvents = filteredEvents.filter(e => 
+    e.status === 'scheduled' || e.status === 'rescheduled'
+  );
+  
+  const completedToday = todayEvents.filter(e => e.status === 'completed').length;
+  const overdueEvents = filteredEvents.filter(e => e.status === 'overdue').length;
+  
+  const todayActions = todayEvents.reduce((acc, event) => {
+    const actions = event.actions || [];
+    return acc + actions.length;
+  }, 0);
+  
+  const completedActions = todayEvents.reduce((acc, event) => {
+    const actions = event.actions || [];
+    return acc + actions.filter(a => a.completed).length;
+  }, 0);
+
+  const handleEventClick = (event) => {
+    setSelectedEvent(event);
+    setShowEventDetails(true);
+  };
+
+  const handleEventUpdate = (id, data) => {
+    updateEventMutation.mutate({ id, data });
+  };
+
+  const handleEventDrop = (eventId, newStart, newEnd) => {
+    const event = events.find(e => e.id === eventId);
+    if (event) {
+      updateEventMutation.mutate({
+        id: eventId,
+        data: {
+          ...event,
+          start_time: newStart.toISOString(),
+          end_time: newEnd.toISOString()
+        }
+      });
     }
   };
 
-
-  const todayEvents = events.filter(e => {
-    const eventDate = new Date(e.start_time);
-    const today = new Date();
-    return eventDate.toDateString() === today.toDateString();
-  });
-
   return (
-    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Calendário Inteligente</h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-              Gerencie seus compromissos e prazos com IA
-            </p>
+    <div className={`h-screen flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      {/* Header */}
+      <div className={`border-b px-4 md:px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className={`text-xl md:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Calendário Inteligente
+              </h1>
+              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                {format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </p>
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-2">
+            {/* View Mode Toggle */}
+            <div className={`flex rounded-lg border ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              {['day', 'week', 'month'].map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    viewMode === mode
+                      ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
+                      : isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+                  } first:rounded-l-lg last:rounded-r-lg`}
+                >
+                  {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
+                </button>
+              ))}
+            </div>
+
             <Button
               variant="outline"
-              onClick={() => setShowAIScheduler(true)}
-              className={isDark ? 'border-neutral-800 text-white hover:bg-neutral-800' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={isDark ? 'border-neutral-800 text-white' : ''}
             >
-              <CalendarIcon className="w-4 h-4 mr-2" />
-              IA Agendar
+              <Filter className="w-4 h-4" />
             </Button>
+
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAIScheduler(true)}
+              className={isDark ? 'border-neutral-800 text-white' : ''}
+            >
+              <CalendarIcon className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">IA</span>
+            </Button>
+
+            <Button
+              size="sm"
               onClick={() => {
                 setSelectedEvent(null);
                 setShowEventForm(true);
               }}
-              className="bg-white text-black hover:bg-gray-100"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Evento
+              <Plus className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Novo</span>
             </Button>
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="mt-4">
+          <div className="relative">
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar eventos..."
+              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white' : ''}`}
+            />
+          </div>
+        </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-blue-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Hoje</p>
+                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {todayEvents.length}
+                </p>
+              </div>
+            </div>
+          </motion.div>
 
-        <div className="grid grid-cols-4 gap-4">
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Hoje</p>
-            <p className="text-2xl font-light text-white mt-1">{todayEvents.length}</p>
-          </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Esta Semana</p>
-            <p className="text-2xl font-light text-white mt-1">
-              {events.filter(e => {
-                const eventDate = new Date(e.start_time);
-                const weekFromNow = new Date();
-                weekFromNow.setDate(weekFromNow.getDate() + 7);
-                return eventDate <= weekFromNow && eventDate >= new Date();
-              }).length}
-            </p>
-          </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Prazos Urgentes</p>
-            <p className="text-2xl font-light text-white mt-1">
-              {events.filter(e => e.priority === 'urgent' && e.event_type === 'deadline').length}
-            </p>
-          </div>
-          <div className="border border-neutral-800 rounded-lg p-4 bg-neutral-900">
-            <p className="text-sm text-neutral-500">Este Mês</p>
-            <p className="text-2xl font-light text-white mt-1">
-              {events.filter(e => {
-                const eventDate = new Date(e.start_time);
-                const now = new Date();
-                return eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear();
-              }).length}
-            </p>
-          </div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Ações</p>
+                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {completedActions}/{todayActions}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-orange-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Pendentes</p>
+                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {pendingEvents.length}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Atrasados</p>
+                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {overdueEvents}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <CalendarView
-          events={events}
-          onEventClick={(event) => {
-            setSelectedEvent(event);
-            setShowEventForm(true);
-          }}
-          onDateSelect={setSelectedDate}
-          selectedDate={selectedDate}
-        />
+      {/* Filters Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <CalendarFilters
+            filters={filters}
+            onChange={setFilters}
+            onClose={() => setShowFilters(false)}
+            isDark={isDark}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Calendar Views */}
+      <div className="flex-1 overflow-auto p-4 md:p-6">
+        {viewMode === 'month' && (
+          <CalendarMonthView
+            events={filteredEvents}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onEventClick={handleEventClick}
+            onEventDrop={handleEventDrop}
+            isDark={isDark}
+          />
+        )}
+        
+        {viewMode === 'week' && (
+          <CalendarWeekView
+            events={filteredEvents}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onEventClick={handleEventClick}
+            onEventDrop={handleEventDrop}
+            isDark={isDark}
+          />
+        )}
+        
+        {viewMode === 'day' && (
+          <CalendarDayView
+            events={filteredEvents}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onEventClick={handleEventClick}
+            onEventDrop={handleEventDrop}
+            isDark={isDark}
+          />
+        )}
       </div>
 
+      {/* Dialogs */}
       {showEventForm && (
-        <EventForm
+        <EventFormDialog
           event={selectedEvent}
           cases={cases}
           clients={clients}
-          onSubmit={handleEventSubmit}
-          onDelete={selectedEvent ? () => {
-            if (confirm('Deseja excluir este evento?')) {
-              deleteEventMutation.mutate(selectedEvent.id);
+          onSubmit={(data) => {
+            if (selectedEvent) {
+              updateEventMutation.mutate({ id: selectedEvent.id, data });
+            } else {
+              createEventMutation.mutate(data);
             }
-          } : null}
+          }}
           onClose={() => {
             setShowEventForm(false);
             setSelectedEvent(null);
           }}
           isLoading={createEventMutation.isPending || updateEventMutation.isPending}
+          isDark={isDark}
+        />
+      )}
+
+      {showEventDetails && selectedEvent && (
+        <EventDetailsDialog
+          event={selectedEvent}
+          onUpdate={handleEventUpdate}
+          onDelete={(id) => {
+            if (confirm('Deseja excluir este evento?')) {
+              deleteEventMutation.mutate(id);
+            }
+          }}
+          onEdit={() => {
+            setShowEventDetails(false);
+            setShowEventForm(true);
+          }}
+          onClose={() => {
+            setShowEventDetails(false);
+            setSelectedEvent(null);
+          }}
+          isDark={isDark}
         />
       )}
 
