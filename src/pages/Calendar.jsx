@@ -60,7 +60,7 @@ export default function Calendar({ theme = 'light' }) {
   }, []);
 
   // Fetch events
-  const { data: events = [], isLoading, error: eventsError } = useQuery({
+  const { data: events = [], isLoading, error: eventsError, refetch } = useQuery({
     queryKey: ['calendar-events', user?.email],
     queryFn: async () => {
       if (!user?.email) {
@@ -73,9 +73,16 @@ export default function Calendar({ theme = 'light' }) {
       return fetchedEvents;
     },
     enabled: !!user?.email,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     staleTime: 0,
+    gcTime: 0,
   });
+
+  // Debug: Log events whenever they change
+  useEffect(() => {
+    console.log(`📊 Estado atual: ${events.length} eventos`, events);
+  }, [events]);
 
   // Fetch related data
   const { data: cases = [] } = useQuery({
@@ -104,36 +111,105 @@ export default function Calendar({ theme = 'light' }) {
       console.log("✅ Evento criado com sucesso:", result);
       return result;
     },
+    onMutate: async (newEvent) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['calendar-events'] });
+      
+      // Snapshot previous value
+      const previousEvents = queryClient.getQueryData(['calendar-events', user?.email]);
+      
+      // Optimistically update cache
+      queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
+        console.log("⚡ Atualizando cache otimisticamente");
+        return [...old, { ...newEvent, id: 'temp-' + Date.now() }];
+      });
+      
+      return { previousEvents };
+    },
     onSuccess: (newEvent) => {
-      console.log("🔄 Invalidando queries e atualizando cache");
+      console.log("🔄 Evento salvo, atualizando com dados reais:", newEvent);
+      
+      // Replace temp event with real one
+      queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
+        return old.map(e => 
+          e.id?.toString().startsWith('temp-') ? newEvent : e
+        );
+      });
+      
+      // Force refetch to ensure sync
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      
       setShowEventForm(false);
       setSelectedEvent(null);
       setSuccessMessage("Evento criado com sucesso!");
       setShowSuccessToast(true);
+      
+      console.log("✅ Calendário atualizado com sucesso");
     },
-    onError: (error) => {
+    onError: (error, newEvent, context) => {
       console.error("❌ Erro ao criar evento:", error);
+      
+      // Rollback on error
+      if (context?.previousEvents) {
+        queryClient.setQueryData(['calendar-events', user?.email], context.previousEvents);
+      }
+      
       alert("Erro ao criar evento: " + error.message);
     }
   });
 
   const updateEventMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.CalendarEvent.update(id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['calendar-events'] });
+      const previousEvents = queryClient.getQueryData(['calendar-events', user?.email]);
+      
+      queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
+        return old.map(e => e.id === id ? { ...e, ...data } : e);
+      });
+      
+      return { previousEvents };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
       setShowEventDetails(false);
       setSelectedEvent(null);
+      setSuccessMessage("Evento atualizado!");
+      setShowSuccessToast(true);
     },
+    onError: (error, variables, context) => {
+      if (context?.previousEvents) {
+        queryClient.setQueryData(['calendar-events', user?.email], context.previousEvents);
+      }
+      alert("Erro ao atualizar evento: " + error.message);
+    }
   });
 
   const deleteEventMutation = useMutation({
     mutationFn: (id) => base44.entities.CalendarEvent.delete(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['calendar-events'] });
+      const previousEvents = queryClient.getQueryData(['calendar-events', user?.email]);
+      
+      queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
+        return old.filter(e => e.id !== id);
+      });
+      
+      return { previousEvents };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
       setShowEventDetails(false);
       setSelectedEvent(null);
+      setSuccessMessage("Evento excluído!");
+      setShowSuccessToast(true);
     },
+    onError: (error, id, context) => {
+      if (context?.previousEvents) {
+        queryClient.setQueryData(['calendar-events', user?.email], context.previousEvents);
+      }
+      alert("Erro ao excluir evento: " + error.message);
+    }
   });
 
   // Auto-update overdue events
@@ -154,7 +230,7 @@ export default function Calendar({ theme = 'light' }) {
   // Filter and search events
   const filteredEvents = events.filter(event => {
     // Search filter
-    if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !event.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     
@@ -175,6 +251,16 @@ export default function Calendar({ theme = 'light' }) {
     
     return true;
   });
+
+  // Debug filtered events
+  useEffect(() => {
+    console.log(`🔍 Eventos filtrados: ${filteredEvents.length}/${events.length}`, {
+      searchQuery,
+      filters,
+      filteredCount: filteredEvents.length,
+      totalCount: events.length
+    });
+  }, [filteredEvents, events, searchQuery, filters]);
 
   // Calculate statistics
   const todayEvents = filteredEvents.filter(e => 
