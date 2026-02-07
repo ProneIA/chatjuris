@@ -68,13 +68,13 @@ export default function Calendar({ theme = 'light' }) {
         return [];
       }
       console.log("📥 Buscando eventos do usuário:", user.email);
-      const fetchedEvents = await base44.entities.CalendarEvent.filter({ created_by: user.email }, 'start_time');
+      const fetchedEvents = await base44.entities.CalendarEvent.list('start_time');
       console.log(`✅ ${fetchedEvents.length} eventos carregados:`, fetchedEvents);
       return fetchedEvents;
     },
     enabled: !!user?.email,
     refetchOnWindowFocus: true,
-    staleTime: 0, // Always refetch on mount
+    staleTime: 0,
   });
 
   // Fetch related data
