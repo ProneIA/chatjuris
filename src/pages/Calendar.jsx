@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Plus, Settings } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import CalendarView from "../components/calendar/CalendarView";
 import EventForm from "../components/calendar/EventForm";
 

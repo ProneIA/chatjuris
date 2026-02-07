@@ -10,15 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { format, addHours, addDays, setHours, setMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export default function AIScheduler({ cases, clients, events, connections, onSchedule, onClose }) {
+export default function AIScheduler({ cases, clients, events, onSchedule, onClose }) {
   const [selectedCase, setSelectedCase] = useState("");
   const [analysisType, setAnalysisType] = useState("full");
   const [customInstructions, setCustomInstructions] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [suggestions, setSuggestions] = useState(null);
-
-  const hasActiveConnection = connections.some(c => c.is_active);
-  const defaultConnection = connections.find(c => c.is_default) || connections.find(c => c.is_active);
 
   const handleAnalyze = async () => {
     if (!selectedCase && analysisType !== 'general') return;
@@ -146,7 +143,7 @@ IMPORTANTE:
       priority: suggestion.priority,
       status: "scheduled",
       case_id: selectedCase || undefined,
-      calendar_provider: defaultConnection?.provider || 'local'
+      calendar_provider: 'local'
     };
 
     onSchedule(eventData);
@@ -195,20 +192,6 @@ IMPORTANTE:
         </CardHeader>
         
         <CardContent className="p-6 space-y-6">
-          {!hasActiveConnection && (
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-                <div>
-                  <p className="font-medium text-yellow-900">Calendário não conectado</p>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Para sincronização automática, conecte seu Google Calendar ou Outlook nas configurações.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Analysis Configuration */}
           {!suggestions && (
             <div className="space-y-4">
