@@ -6,17 +6,13 @@ import {
   startOfWeek, 
   endOfWeek, 
   eachDayOfInterval,
-  eachHourOfInterval,
   isSameDay,
   addWeeks,
   subWeeks,
-  isToday,
-  isSameHour,
-  startOfDay
+  isToday
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-
 
 const eventTypeColors = {
   meeting: "bg-blue-500 border-blue-600",
@@ -30,7 +26,32 @@ const eventTypeColors = {
   other: "bg-gray-500 border-gray-600"
 };
 
+function WeekEventCard({ event, isDark, onClick }) {
+  const startHour = new Date(event.start_time).getHours();
+  const startMinutes = new Date(event.start_time).getMinutes();
+  const endHour = new Date(event.end_time).getHours();
+  const endMinutes = new Date(event.end_time).getMinutes();
+  const durationHours = (endHour + endMinutes/60) - (startHour + startMinutes/60);
+  const height = Math.max(durationHours * 60, 40);
 
+  return (
+    <button
+      onClick={onClick}
+      style={{ height: `${height}px` }}
+      className={cn(
+        "absolute left-0 right-0 mx-1 px-2 py-1 text-xs text-white rounded border-l-4 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden",
+        eventTypeColors[event.event_type],
+        event.status === 'completed' && "opacity-50",
+        event.status === 'overdue' && "ring-2 ring-red-500"
+      )}
+    >
+      <div className="font-semibold truncate">{event.title}</div>
+      <div className="text-[10px] opacity-90">
+        {format(new Date(event.start_time), 'HH:mm')} - {format(new Date(event.end_time), 'HH:mm')}
+      </div>
+    </button>
+  );
+}
 
 export default function CalendarWeekView({ 
   events, 
@@ -145,36 +166,18 @@ export default function CalendarWeekView({
                 </div>
                 {daysOfWeek.map(day => {
                   const dayEvents = getEventsForDayAndHour(day, hour);
-                  const startHour = dayEvents[0] ? new Date(dayEvents[0].start_time).getHours() : 0;
-                  const startMinutes = dayEvents[0] ? new Date(dayEvents[0].start_time).getMinutes() : 0;
-                  const endHour = dayEvents[0] ? new Date(dayEvents[0].end_time).getHours() : 0;
-                  const endMinutes = dayEvents[0] ? new Date(dayEvents[0].end_time).getMinutes() : 0;
-                  const durationHours = dayEvents[0] ? (endHour + endMinutes/60) - (startHour + startMinutes/60) : 0;
-                  const height = Math.max(durationHours * 60, 40);
-                  
                   return (
-                    <div 
-                      key={`${day.toISOString()}-${hour}`}
-                      className={`relative h-[60px] border-l border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}
-                    >
-                      {dayEvents.map(event => (
-                        <button
-                          key={event.id}
-                          onClick={() => onEventClick(event)}
-                          style={{ height: `${height}px` }}
-                          className={cn(
-                            "absolute left-0 right-0 mx-1 px-2 py-1 text-xs text-white rounded border-l-4 cursor-pointer overflow-hidden",
-                            eventTypeColors[event.event_type],
-                            event.status === 'completed' && "opacity-50",
-                            event.status === 'overdue' && "ring-2 ring-red-500"
-                          )}
-                        >
-                          <div className="font-semibold truncate">{event.title}</div>
-                          <div className="text-[10px] opacity-90">
-                            {format(new Date(event.start_time), 'HH:mm')} - {format(new Date(event.end_time), 'HH:mm')}
-                          </div>
-                        </button>
-                      ))}
+                    <div key={`${day.toISOString()}-${hour}`} className="relative h-[60px]">
+                      <div className={`h-full border-l border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                        {dayEvents.map(event => (
+                          <WeekEventCard 
+                            key={event.id} 
+                            event={event} 
+                            isDark={isDark}
+                            onClick={() => onEventClick(event)}
+                          />
+                        ))}
+                      </div>
                     </div>
                   );
                 })}

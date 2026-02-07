@@ -19,6 +19,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+
 const eventTypeColors = {
   meeting: "bg-blue-500",
   deadline: "bg-red-500",
@@ -30,6 +31,22 @@ const eventTypeColors = {
   task: "bg-amber-500",
   other: "bg-gray-500"
 };
+
+function EventBadge({ event, isDark, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "text-[10px] text-white px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80 transition-opacity w-full text-left",
+        eventTypeColors[event.event_type],
+        event.status === 'completed' && "opacity-50 line-through",
+        event.status === 'overdue' && "ring-2 ring-red-500"
+      )}
+    >
+      {format(new Date(event.start_time), 'HH:mm')} {event.title}
+    </button>
+  );
+}
 
 export default function CalendarMonthView({ 
   events, 
@@ -127,8 +144,8 @@ export default function CalendarMonthView({
             <div
               key={idx}
               className={cn(
-                "relative min-h-[100px] p-2 rounded-lg border-2 transition-all",
-                isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200',
+                "relative min-h-[100px]",
+                isDark ? 'bg-neutral-900' : 'bg-white',
                 !isCurrentMonth && "opacity-40"
               )}
             >
@@ -151,18 +168,12 @@ export default function CalendarMonthView({
 
               <div className="space-y-1 px-2 pb-2">
                 {dayEvents.slice(0, 3).map((event) => (
-                  <button
-                    key={event.id}
+                  <EventBadge 
+                    key={event.id} 
+                    event={event} 
+                    isDark={isDark}
                     onClick={() => onEventClick(event)}
-                    className={cn(
-                      "w-full text-left text-[10px] text-white px-1.5 py-0.5 rounded truncate cursor-pointer transition-opacity",
-                      eventTypeColors[event.event_type],
-                      event.status === 'completed' && "opacity-50 line-through",
-                      event.status === 'overdue' && "ring-2 ring-red-500"
-                    )}
-                  >
-                    {format(new Date(event.start_time), 'HH:mm')} {event.title}
-                  </button>
+                  />
                 ))}
                 {dayEvents.length > 3 && (
                   <div className={`text-[10px] ${isDark ? 'text-neutral-500' : 'text-gray-500'} flex items-center gap-1`}>
