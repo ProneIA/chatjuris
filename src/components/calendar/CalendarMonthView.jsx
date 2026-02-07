@@ -65,9 +65,16 @@ export default function CalendarMonthView({
   const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const getEventsForDay = (day) => {
-    return events.filter(event => 
-      isSameDay(new Date(event.start_time), day)
-    ).sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    const dayEvents = events.filter(event => {
+      try {
+        return isSameDay(new Date(event.start_time), day);
+      } catch (error) {
+        console.error("Erro ao processar data do evento:", event, error);
+        return false;
+      }
+    }).sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    
+    return dayEvents;
   };
 
 

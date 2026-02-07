@@ -22,6 +22,7 @@ import EventFormDialog from "../components/calendar/EventFormDialog";
 import EventDetailsDialog from "../components/calendar/EventDetailsDialog";
 import CalendarFilters from "../components/calendar/CalendarFilters";
 import AIScheduler from "../components/calendar/AIScheduler";
+import SuccessToast from "../components/calendar/SuccessToast";
 import { isPast, isSameDay, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -40,22 +41,40 @@ export default function Calendar({ theme = 'light' }) {
     priorities: [],
     statuses: [],
   });
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    console.log("🔑 Carregando autenticação do usuário...");
+    base44.auth.me()
+      .then(u => {
+        console.log("✅ Usuário autenticado:", u.email);
+        setUser(u);
+      })
+      .catch((err) => {
+        console.error("❌ Erro ao obter usuário:", err);
+      });
   }, []);
 
   // Fetch events
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, error: eventsError } = useQuery({
     queryKey: ['calendar-events', user?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.CalendarEvent.filter({ created_by: user.email }, 'start_time');
+      if (!user?.email) {
+        console.log("⚠️ Usuário não autenticado, retornando array vazio");
+        return [];
+      }
+      console.log("📥 Buscando eventos do usuário:", user.email);
+      const fetchedEvents = await base44.entities.CalendarEvent.filter({ created_by: user.email }, 'start_time');
+      console.log(`✅ ${fetchedEvents.length} eventos carregados:`, fetchedEvents);
+      return fetchedEvents;
     },
     enabled: !!user?.email,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always refetch on mount
   });
 
   // Fetch related data
@@ -79,12 +98,24 @@ export default function Calendar({ theme = 'light' }) {
 
   // Mutations
   const createEventMutation = useMutation({
-    mutationFn: (data) => base44.entities.CalendarEvent.create(data),
-    onSuccess: () => {
+    mutationFn: async (data) => {
+      console.log("📝 Criando evento:", data);
+      const result = await base44.entities.CalendarEvent.create(data);
+      console.log("✅ Evento criado com sucesso:", result);
+      return result;
+    },
+    onSuccess: (newEvent) => {
+      console.log("🔄 Invalidando queries e atualizando cache");
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
       setShowEventForm(false);
       setSelectedEvent(null);
+      setSuccessMessage("Evento criado com sucesso!");
+      setShowSuccessToast(true);
     },
+    onError: (error) => {
+      console.error("❌ Erro ao criar evento:", error);
+      alert("Erro ao criar evento: " + error.message);
+    }
   });
 
   const updateEventMutation = useMutation({
@@ -356,37 +387,54 @@ export default function Calendar({ theme = 'light' }) {
 
       {/* Calendar Views */}
       <div className="flex-1 overflow-auto p-4 md:p-6">
-        {viewMode === 'month' && (
-          <CalendarMonthView
-            events={filteredEvents}
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            onEventClick={handleEventClick}
-            onEventDrop={handleEventDrop}
-            isDark={isDark}
-          />
-        )}
-        
-        {viewMode === 'week' && (
-          <CalendarWeekView
-            events={filteredEvents}
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            onEventClick={handleEventClick}
-            onEventDrop={handleEventDrop}
-            isDark={isDark}
-          />
-        )}
-        
-        {viewMode === 'day' && (
-          <CalendarDayView
-            events={filteredEvents}
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            onEventClick={handleEventClick}
-            onEventDrop={handleEventDrop}
-            isDark={isDark}
-          />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Carregando eventos...</p>
+            </div>
+          </div>
+        ) : eventsError ? (
+          <div className="flex items-center justify-center h-full">
+            <div className={`p-6 rounded-lg border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+              <p className="text-red-600">Erro ao carregar eventos: {eventsError.message}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {viewMode === 'month' && (
+              <CalendarMonthView
+                events={filteredEvents}
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                onEventClick={handleEventClick}
+                onEventDrop={handleEventDrop}
+                isDark={isDark}
+              />
+            )}
+            
+            {viewMode === 'week' && (
+              <CalendarWeekView
+                events={filteredEvents}
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                onEventClick={handleEventClick}
+                onEventDrop={handleEventDrop}
+                isDark={isDark}
+              />
+            )}
+            
+            {viewMode === 'day' && (
+              <CalendarDayView
+                events={filteredEvents}
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                onEventClick={handleEventClick}
+                onEventDrop={handleEventDrop}
+                isDark={isDark}
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -442,6 +490,13 @@ export default function Calendar({ theme = 'light' }) {
           onClose={() => setShowAIScheduler(false)}
         />
       )}
+
+      {/* Success Toast */}
+      <SuccessToast
+        message={successMessage}
+        show={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+      />
     </div>
   );
 }

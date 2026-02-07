@@ -29,21 +29,68 @@ export default function EventFormDialog({ event, cases, clients, onSubmit, onClo
 
   useEffect(() => {
     if (event) {
+      console.log("✏️ Editando evento:", event);
       setFormData({
         ...event,
         start_time: format(new Date(event.start_time), "yyyy-MM-dd'T'HH:mm"),
         end_time: format(new Date(event.end_time), "yyyy-MM-dd'T'HH:mm"),
         actions: event.actions || [],
       });
+    } else {
+      console.log("➕ Novo evento - inicializando formulário vazio");
+      // Set default times: start now, end in 1 hour
+      const now = new Date();
+      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+      
+      setFormData({
+        title: "",
+        description: "",
+        event_type: "meeting",
+        start_time: format(now, "yyyy-MM-dd'T'HH:mm"),
+        end_time: format(oneHourLater, "yyyy-MM-dd'T'HH:mm"),
+        location: "",
+        priority: "medium",
+        reminder_minutes: 30,
+        is_all_day: false,
+        actions: [],
+        case_id: "",
+        client_id: "",
+      });
     }
   }, [event]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validação
+    if (!formData.title.trim()) {
+      alert("Por favor, preencha o título do evento");
+      return;
+    }
+    
+    if (!formData.start_time || !formData.end_time) {
+      alert("Por favor, preencha as datas de início e fim");
+      return;
+    }
+    
+    const start = new Date(formData.start_time);
+    const end = new Date(formData.end_time);
+    
+    if (end <= start) {
+      alert("A data de término deve ser posterior à data de início");
+      return;
+    }
+    
+    console.log("📤 Enviando formulário:", {
+      ...formData,
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+    });
+    
     onSubmit({
       ...formData,
-      start_time: new Date(formData.start_time).toISOString(),
-      end_time: new Date(formData.end_time).toISOString(),
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
     });
   };
 
