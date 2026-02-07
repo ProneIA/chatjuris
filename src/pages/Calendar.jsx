@@ -67,16 +67,27 @@ export default function Calendar({ theme = 'light' }) {
         console.log("⚠️ Usuário não autenticado, retornando array vazio");
         return [];
       }
-      console.log("📥 Buscando eventos do usuário:", user.email);
-      const fetchedEvents = await base44.entities.CalendarEvent.list('start_time');
-      console.log(`✅ ${fetchedEvents.length} eventos carregados:`, fetchedEvents);
-      return fetchedEvents;
+      try {
+        console.log("📥 Buscando eventos do usuário:", user.email);
+        // Usar filter direto com created_by para evitar problemas com RLS
+        const fetchedEvents = await base44.entities.CalendarEvent.filter(
+          { created_by: user.email },
+          'start_time',
+          5000
+        );
+        console.log(`✅ ${fetchedEvents.length} eventos carregados:`, fetchedEvents);
+        return fetchedEvents || [];
+      } catch (error) {
+        console.error("❌ Erro ao buscar eventos:", error);
+        throw error;
+      }
     },
     enabled: !!user?.email,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     staleTime: 0,
     gcTime: 0,
+    retry: 2,
   });
 
   // Debug: Log events whenever they change
@@ -118,33 +129,52 @@ export default function Calendar({ theme = 'light' }) {
       // Snapshot previous value
       const previousEvents = queryClient.getQueryData(['calendar-events', user?.email]);
       
-      // Optimistically update cache
+      // Optimistically update cache with temp ID
+      const tempEvent = { 
+        ...newEvent, 
+        id: 'temp-' + Date.now(),
+        created_by: user?.email,
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString(),
+      };
+      
       queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
-        console.log("⚡ Atualizando cache otimisticamente");
-        return [...old, { ...newEvent, id: 'temp-' + Date.now() }];
+        console.log("⚡ Adicionando evento otimisticamente ao cache", tempEvent);
+        const updated = [...old, tempEvent].sort(
+          (a, b) => new Date(a.start_time) - new Date(b.start_time)
+        );
+        console.log(`📊 Cache agora tem ${updated.length} eventos`);
+        return updated;
       });
       
       return { previousEvents };
     },
     onSuccess: (newEvent) => {
-      console.log("🔄 Evento salvo, atualizando com dados reais:", newEvent);
+      console.log("🔄 Evento salvo no backend, substituindo temporário:", newEvent);
       
-      // Replace temp event with real one
+      // Replace temp event with real one from backend
       queryClient.setQueryData(['calendar-events', user?.email], (old = []) => {
-        return old.map(e => 
-          e.id?.toString().startsWith('temp-') ? newEvent : e
+        // Remove temp events and add real one
+        const filtered = (old || []).filter(e => !e.id?.toString().startsWith('temp-'));
+        const updated = [...filtered, newEvent].sort(
+          (a, b) => new Date(a.start_time) - new Date(b.start_time)
         );
+        console.log(`✅ Cache atualizado: ${old?.length} → ${updated.length} eventos`);
+        return updated;
       });
       
-      // Force refetch to ensure sync
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      // Force refetch to ensure 100% sync with backend
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+        console.log("🔄 Refetch forçado executado");
+      }, 100);
       
       setShowEventForm(false);
       setSelectedEvent(null);
-      setSuccessMessage("Evento criado com sucesso!");
+      setSuccessMessage("✅ Evento criado com sucesso!");
       setShowSuccessToast(true);
       
-      console.log("✅ Calendário atualizado com sucesso");
+      console.log("✅ Processo completo de criação finalizado");
     },
     onError: (error, newEvent, context) => {
       console.error("❌ Erro ao criar evento:", error);
