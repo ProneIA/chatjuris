@@ -69,17 +69,17 @@ export default function Calendar({ theme = 'light' }) {
       }
       try {
         console.log("📥 Buscando eventos do usuário:", user.email);
-        // Usar filter direto com created_by para evitar problemas com RLS
-        const fetchedEvents = await base44.entities.CalendarEvent.filter(
-          { created_by: user.email },
-          'start_time',
-          5000
-        );
+        // Usar list() simples - RLS cuida da filtragem por usuário
+        const fetchedEvents = await base44.entities.CalendarEvent.list();
         console.log(`✅ ${fetchedEvents.length} eventos carregados:`, fetchedEvents);
-        return fetchedEvents || [];
+        // Ordenar no cliente
+        return (fetchedEvents || []).sort(
+          (a, b) => new Date(a.start_time) - new Date(b.start_time)
+        );
       } catch (error) {
         console.error("❌ Erro ao buscar eventos:", error);
-        throw error;
+        // Retornar array vazio em caso de erro para não quebrar a UI
+        return [];
       }
     },
     enabled: !!user?.email,
@@ -87,7 +87,7 @@ export default function Calendar({ theme = 'light' }) {
     refetchOnMount: true,
     staleTime: 0,
     gcTime: 0,
-    retry: 2,
+    retry: 1,
   });
 
   // Debug: Log events whenever they change
