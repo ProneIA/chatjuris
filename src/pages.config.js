@@ -79,7 +79,6 @@ import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
 import HotmartSetup from './pages/HotmartSetup';
-import LandingPage from './pages/LandingPage';
 import LegalCalculator from './pages/LegalCalculator';
 import LegalResearch from './pages/LegalResearch';
 import Library from './pages/Library';
@@ -99,6 +98,7 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
+import LandingPage from './pages/LandingPage';
 import __Layout from './Layout.jsx';
 
 
@@ -135,7 +135,6 @@ export const PAGES = {
     "GestaoHub": GestaoHub,
     "Home": Home,
     "HotmartSetup": HotmartSetup,
-    "LandingPage": LandingPage,
     "LegalCalculator": LegalCalculator,
     "LegalResearch": LegalResearch,
     "Library": Library,
@@ -155,6 +154,7 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
+    "LandingPage": LandingPage,
 }
 
 export const pagesConfig = {
