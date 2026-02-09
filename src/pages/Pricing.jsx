@@ -357,18 +357,27 @@ export default function Pricing({ theme = 'light' }) {
 
                   {/* Price */}
                   <div className="mb-6 sm:mb-8">
-                   <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                   <div className="flex flex-col gap-2">
                      {plan.originalPrice && (
-                       <span className={`text-sm sm:text-lg line-through ${plan.popular ? "text-gray-500" : "text-gray-400"}`}>
-                         R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
-                       </span>
+                       <div className="flex items-center gap-2">
+                         <span className={`text-lg sm:text-2xl line-through ${plan.popular ? "text-red-400" : "text-gray-400"} font-medium`}>
+                           De R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
+                         </span>
+                         {plan.isLifetime && (
+                           <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 animate-pulse">
+                             -50%
+                           </span>
+                         )}
+                       </div>
                      )}
-                     <span className={`text-3xl sm:text-5xl font-semibold ${plan.popular ? "text-white" : "text-gray-900"}`}>
-                       R$ {plan.price.toFixed(2).replace('.', ',')}
-                     </span>
-                     <span className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
-                       {plan.period}
-                     </span>
+                     <div className="flex items-baseline gap-2 flex-wrap">
+                       <span className={`text-4xl sm:text-6xl font-bold ${plan.popular ? "text-white" : "text-gray-900"}`}>
+                         R$ {plan.price.toFixed(2).replace('.', ',')}
+                       </span>
+                       <span className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
+                         {plan.period}
+                       </span>
+                     </div>
                    </div>
                    {plan.savingsText && (
                      <p className={`text-xs sm:text-sm mt-2 font-semibold ${plan.popular ? "text-green-400" : "text-green-600"}`}>
