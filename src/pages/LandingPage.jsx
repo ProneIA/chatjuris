@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
-import AffiliateTracker from "@/components/subscription/AffiliateTracker";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { 
@@ -14,18 +13,24 @@ import {
   ArrowRight,
   ChevronDown
 } from "lucide-react";
+import LandingPageSkeleton from "@/components/landing/LandingPageSkeleton";
+
+// Lazy load do tracker de afiliados (não crítico)
+const AffiliateTracker = lazy(() => import("@/components/subscription/AffiliateTracker"));
 
 export default function LandingPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+
   const handleLogin = () => {
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
   const handleStartTrial = () => {
-    // Redireciona para Dashboard - o trial é criado automaticamente no cadastro
     base44.auth.redirectToLogin(createPageUrl("Dashboard"));
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
@@ -33,6 +38,15 @@ export default function LandingPage() {
       }
     };
     checkAuth();
+
+    // Preload da imagem hero
+    const img = new Image();
+    img.src = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png';
+    img.onload = () => {
+      setHeroImageLoaded(true);
+      // Pequeno delay para animação suave
+      setTimeout(() => setIsLoaded(true), 100);
+    };
   }, []);
 
   const goToPricing = () => {
@@ -76,43 +90,94 @@ export default function LandingPage() {
     }
   ];
 
+  // Mostrar skeleton enquanto carrega
+  if (!isLoaded) {
+    return <LandingPageSkeleton />;
+  }
+
   return (
     <div className="min-h-screen w-full bg-white">
-      <AffiliateTracker />
+      <Suspense fallback={null}>
+        <AffiliateTracker />
+      </Suspense>
+
       <style>{`
-        html {
-          scroll-behavior: smooth;
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        ::-webkit-scrollbar {
-          width: 8px;
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
-        ::-webkit-scrollbar-track {
-          background: #f5f5f5;
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.4s ease-out forwards;
         }
-        ::-webkit-scrollbar-thumb {
-          background: #d4d4d4;
-          border-radius: 4px;
+
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
         }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #a3a3a3;
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        .stagger-6 { animation-delay: 0.6s; }
+
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+
+        /* Prevenir layout shift */
+        .hero-section {
+          min-height: 100vh;
+          width: 100%;
+        }
+
+        .hero-image-container {
+          position: absolute;
+          inset: 0;
+          background-color: #1a1a1a;
+        }
+
+        .hero-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
         }
       `}</style>
 
       {/* Hero Section */}
-      <section 
-        className="min-h-screen w-full relative overflow-hidden"
-        style={{
-          backgroundImage: `url('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
+      <section className="hero-section relative overflow-hidden">
+        <div className="hero-image-container">
+          {heroImageLoaded && (
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png"
+              alt="Juris - Plataforma Jurídica"
+              className="hero-image animate-fade-in"
+              loading="eager"
+              width="1920"
+              height="1080"
+            />
+          )}
+        </div>
         <div className="absolute inset-0 bg-black/60" />
 
         <div className="relative z-10 min-h-screen flex flex-col">
           {/* Navegação */}
-          <nav className="w-full px-4 sm:px-6 md:px-12 py-4 sm:py-6 flex items-center justify-between">
+          <nav className="w-full px-4 sm:px-6 md:px-12 py-4 sm:py-6 flex items-center justify-between opacity-0 animate-fade-in">
             <span className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
               Juris
             </span>
@@ -120,31 +185,31 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-6 lg:gap-8">
               <Link 
                 to={createPageUrl("QuemSomos")}
-                className="text-sm text-white/80 hover:text-white transition-colors"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
                 Quem somos
               </Link>
               <Link 
                 to={createPageUrl("Funcionalidades")}
-                className="text-sm text-white/80 hover:text-white transition-colors"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
                 Funcionalidades
               </Link>
               <Link 
                 to={createPageUrl("PrivacyPolicy")}
-                className="text-sm text-white/80 hover:text-white transition-colors"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
                 Privacidade
               </Link>
               <button 
                 onClick={handleLogin}
-                className="text-sm text-white/80 hover:text-white transition-colors"
+                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
               >
                 Entrar
               </button>
               <button 
                 onClick={handleStartTrial}
-                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
+                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
               >
                 Teste grátis 7 dias
               </button>
@@ -154,13 +219,13 @@ export default function LandingPage() {
             <div className="flex md:hidden items-center gap-2">
               <button 
                 onClick={handleLogin}
-                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors duration-200"
               >
                 Entrar
               </button>
               <button 
                 onClick={handleStartTrial}
-                className="px-4 py-2 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
+                className="px-4 py-2 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
               >
                 Teste 7 dias
               </button>
@@ -170,25 +235,25 @@ export default function LandingPage() {
           {/* Título centralizado */}
           <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
             <div className="text-center max-w-4xl mx-auto">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight opacity-0 animate-fade-in-up stagger-1">
                 Direito Tradicional.
               </h1>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-tight mt-1 sm:mt-2">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-tight mt-1 sm:mt-2 opacity-0 animate-fade-in-up stagger-2">
                 Soluções Modernas.
               </h1>
               
-              <div className="w-16 sm:w-20 h-0.5 bg-white mx-auto mt-6 sm:mt-8" />
+              <div className="w-16 sm:w-20 h-0.5 bg-white mx-auto mt-6 sm:mt-8 opacity-0 animate-fade-in stagger-3" />
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 sm:mt-10">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 sm:mt-10 opacity-0 animate-fade-in-up stagger-4">
                 <button 
                   onClick={handleStartTrial}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
                 >
                   Teste Grátis 7 Dias
                 </button>
                 <button 
                   onClick={goToPricing}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border-2 border-white text-white rounded-none hover:bg-white hover:text-gray-900 transition-all"
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border-2 border-white text-white rounded-none hover:bg-white hover:text-gray-900 transition-all duration-200"
                 >
                   Ver Planos
                 </button>
@@ -197,8 +262,8 @@ export default function LandingPage() {
           </div>
 
           {/* Indicador de scroll */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <button onClick={scrollToSection} className="text-white/70 hover:text-white transition-colors">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-0 animate-fade-in stagger-5">
+            <button onClick={scrollToSection} className="text-white/70 hover:text-white transition-colors duration-200">
               <ChevronDown className="w-8 h-8" />
             </button>
           </div>
@@ -227,9 +292,9 @@ export default function LandingPage() {
               return (
                 <div 
                   key={index}
-                  className="p-6 sm:p-8 border border-gray-200 hover:border-gray-400 transition-all group active:scale-[0.98]"
+                  className="p-6 sm:p-8 border border-gray-200 hover:border-gray-400 transition-all duration-200 group active:scale-[0.98]"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gray-900 transition-colors">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gray-900 transition-colors duration-200">
                     <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2 sm:mb-3">
@@ -255,14 +320,14 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <button 
                 onClick={handleStartTrial}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Teste Grátis 7 Dias
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button 
                 onClick={goToPricing}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 rounded-none hover:border-gray-900 transition-all"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 rounded-none hover:border-gray-900 transition-all duration-200"
               >
                 Ver Planos
               </button>
@@ -271,7 +336,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Seção de Benefícios */}
+      {/* Seção de Benefícios - Lazy loaded */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -313,7 +378,7 @@ export default function LandingPage() {
                 
                 <button 
                   onClick={goToPricing}
-                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
+                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all duration-200"
                 >
                   Ver planos
                 </button>
@@ -340,13 +405,13 @@ export default function LandingPage() {
             <div className="flex items-center gap-4 sm:gap-6 order-2 sm:order-3">
               <Link 
                 to={createPageUrl("PrivacyPolicy")}
-                className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+                className="text-gray-600 hover:text-gray-900 text-sm transition-colors duration-200"
               >
                 Política de Privacidade
               </Link>
               <Link 
                 to={createPageUrl("ContactPublic")}
-                className="text-gray-600 hover:text-gray-900 text-sm transition-colors"
+                className="text-gray-600 hover:text-gray-900 text-sm transition-colors duration-200"
               >
                 Contato
               </Link>
