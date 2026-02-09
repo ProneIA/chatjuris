@@ -111,7 +111,6 @@ const plans = [
 const testimonials = [
   { name: "Dr. Ricardo M.", role: "Advogado Criminalista", text: "Economizo 3 horas por dia com o Juris. A IA é impressionante." },
   { name: "Dra. Carla S.", role: "Advogada Trabalhista", text: "A melhor ferramenta que já usei. Indico para todos os colegas." },
-  { name: "Dr. Fernando L.", role: "Advogado Empresarial", text: "O ROI foi imediato. Paga-se sozinho no primeiro mês." },
 ];
 
 export default function Pricing({ theme = 'light' }) {
@@ -254,14 +253,14 @@ export default function Pricing({ theme = 'light' }) {
           <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
           
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-            Junte-se a <span className="font-semibold text-gray-900">+500 advogados</span> que já economizam 
+            Junte-se a <span className="font-semibold text-gray-900">+80 advogados</span> que já economizam 
             <span className="font-semibold text-gray-900"> 2 dias de trabalho por semana</span> com o Juris
           </p>
 
           {/* Social Proof Stats */}
           <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mb-8 sm:mb-12">
             <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">500+</div>
+              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">80+</div>
               <div className="text-xs sm:text-sm text-gray-500">Advogados Ativos</div>
             </div>
             <div className="text-center">
