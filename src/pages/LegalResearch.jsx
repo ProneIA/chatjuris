@@ -165,6 +165,7 @@ export default function LegalResearch({ theme = 'light' }) {
   const [selectedSaved, setSelectedSaved] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
   const debouncedFilter = useDebounce(searchFilter, 300);
   const queryClient = useQueryClient();
 
@@ -234,11 +235,16 @@ export default function LegalResearch({ theme = 'light' }) {
       let prompt = "";
 
       if (searchType === "jurisprudence") {
+        const yearFilterText = yearFilter !== "all" 
+          ? `\nPERÍODO: Buscar APENAS decisões de ${yearFilter.includes('-') ? yearFilter.replace('-', ' a ') : yearFilter}`
+          : '';
+
         prompt = `Você é um especialista em pesquisa jurisprudencial brasileira.
 
 TAREFA: Pesquisar jurisprudências sobre: "${searchQuery}"
 ${selectedArea ? `\nÁREA DO DIREITO: ${selectedArea}` : ''}
 ${selectedTribunal !== "all" ? `\nTRIBUNAL ESPECÍFICO: ${selectedTribunalData?.label}` : ''}
+${yearFilterText}
 ${context ? `\n\nCONTEXTO ADICIONAL: ${context}` : ''}
 ${tribunalInfo}
 
@@ -249,19 +255,25 @@ INSTRUÇÕES:
    - TST: https://jurisprudencia.tst.jus.br/
    - TRFs, TJs: sites oficiais de cada tribunal
 
-2. Para cada jurisprudência encontrada, forneça:
-   - Tribunal
-   - Número do processo/acórdão
-   - Data da decisão
-   - Ementa resumida
-   - Relevância para a busca
-   - Link oficial
+2. FORMATO OBRIGATÓRIO - Para cada jurisprudência, use este padrão:
+
+---
+**Tribunal:** [Nome do Tribunal]
+**Número do processo/acórdão:** [Número]
+**Data da decisão:** [DD/MM/AAAA]
+**Ementa resumida:** [Resumo claro e objetivo]
+**Relevância para a busca:** [Explicação da relevância]
+**Link oficial:** [URL]
+---
 
 3. Encontre 5-8 jurisprudências relevantes
-4. Forneça análise jurídica consolidada
-5. Use Markdown formatado
+4. Separe CADA jurisprudência com o separador "---"
+5. Ao final, adicione uma análise consolidada
 
-IMPORTANTE: Cite APENAS decisões reais com números de processos verificáveis.`;
+IMPORTANTE: 
+- Cite APENAS decisões reais com números de processos verificáveis
+- ${yearFilter !== "all" ? `RESPEITE O FILTRO DE ANO - busque apenas decisões de ${yearFilter.includes('-') ? yearFilter.replace('-', ' a ') : yearFilter}` : ''}
+- Use o formato de caixas separadas para facilitar a leitura`;
 
       } else if (searchType === "law") {
         prompt = `Você é um especialista em legislação brasileira.
@@ -452,7 +464,7 @@ INSTRUÇÕES:
                     </div>
 
                     {/* Filters */}
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4">
                       <div>
                         <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
                           Área do Direito
@@ -466,6 +478,33 @@ INSTRUÇÕES:
                           {areas.map(area => (
                             <option key={area} value={area}>{area}</option>
                           ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          Período
+                        </label>
+                        <select
+                          value={yearFilter}
+                          onChange={(e) => setYearFilter(e.target.value)}
+                          className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="all">Todos os anos</option>
+                          <option value="2026">2026</option>
+                          <option value="2025">2025</option>
+                          <option value="2024">2024</option>
+                          <option value="2023">2023</option>
+                          <option value="2022">2022</option>
+                          <option value="2021">2021</option>
+                          <option value="2020">2020</option>
+                          <option value="2019">2019</option>
+                          <option value="2018">2018</option>
+                          <option value="2017">2017</option>
+                          <option value="2016">2016</option>
+                          <option value="2015">2015</option>
+                          <option value="2010-2015">2010-2015</option>
+                          <option value="2000-2010">2000-2010</option>
                         </select>
                       </div>
 
@@ -606,19 +645,41 @@ INSTRUÇÕES:
                         </div>
                       </div>
 
-                      <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                        <ReactMarkdown
-                          components={{
-                            a: ({ href, children }) => (
-                              <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
-                                {children}
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            ),
-                          }}
-                        >
-                          {currentResult.content}
-                        </ReactMarkdown>
+                      <div className="space-y-4">
+                        {currentResult.content.split('---').filter(Boolean).map((section, idx) => {
+                          const trimmed = section.trim();
+                          if (!trimmed) return null;
+                          
+                          return (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className={`p-6 rounded-xl border ${
+                                isDark 
+                                  ? 'bg-neutral-800 border-neutral-700' 
+                                  : 'bg-gray-50 border-gray-200'
+                              }`}
+                            >
+                              <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
+                                <ReactMarkdown
+                                  components={{
+                                    a: ({ href, children }) => (
+                                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+                                        {children}
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    ),
+                                    hr: () => null,
+                                  }}
+                                >
+                                  {trimmed}
+                                </ReactMarkdown>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
