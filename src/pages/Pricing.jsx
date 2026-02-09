@@ -322,8 +322,8 @@ export default function Pricing({ theme = 'light' }) {
                 {/* Discount Badge */}
                 {plan.discount && (
                   <div className="absolute top-0 right-0">
-                    <div className="bg-gray-700 text-white text-xs font-medium px-4 py-2">
-                      -{plan.discount}% OFF
+                    <div className={`${plan.popular ? 'bg-red-600' : 'bg-gray-700'} text-white text-xs font-bold px-4 py-2 animate-pulse`}>
+                      🔥 {plan.discount}% OFF
                     </div>
                   </div>
                 )}
