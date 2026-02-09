@@ -264,7 +264,7 @@ export default function Pricing({ theme = 'light' }) {
               <div className="text-xs sm:text-sm text-gray-500">Advogados Ativos</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">10.000+</div>
+              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">1.200+</div>
               <div className="text-xs sm:text-sm text-gray-500">Documentos Gerados</div>
             </div>
             <div className="text-center">
@@ -469,16 +469,16 @@ export default function Pricing({ theme = 'light' }) {
             O que dizem nossos usuários
           </h2>
           <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-10" />
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
             {testimonials.map((t, i) => (
-              <div key={i} className="border border-gray-200 p-4 sm:p-6 rounded-none">
-                <div className="flex gap-1 mb-3 sm:mb-4">
+              <div key={i} className="border border-gray-200 p-4 sm:p-6 rounded-none w-full sm:w-auto sm:max-w-md">
+                <div className="flex gap-1 mb-3 sm:mb-4 justify-center">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-gray-900 text-gray-900" />
                   ))}
                 </div>
-                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 italic">"{t.text}"</p>
-                <div>
+                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 italic text-center">"{t.text}"</p>
+                <div className="text-center">
                   <p className="font-medium text-gray-900 text-sm sm:text-base">{t.name}</p>
                   <p className="text-xs sm:text-sm text-gray-500">{t.role}</p>
                 </div>
