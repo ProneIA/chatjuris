@@ -75,11 +75,13 @@ const plans = [
     name: "Acesso Vitalício",
     icon: Star,
     price: 1299.90,
+    originalPrice: 2599.90,
     period: "à vista",
     billingType: "lifetime",
     description: "Pague uma vez, use para sempre",
     popular: true,
     isLifetime: true,
+    discount: 50,
     installments: "ou 12x de R$ 108,33",
     features: [
       { text: "✨ ACESSO PERMANENTE - sem mensalidade", included: true, highlight: true },
