@@ -83,6 +83,8 @@ export default function Layout({ children, currentPageName }) {
     const [consentAccepted, setConsentAccepted] = React.useState(false);
     const [showTrialWelcome, setShowTrialWelcome] = React.useState(false);
     const [trialDaysLeft, setTrialDaysLeft] = React.useState(7);
+    const [hasAccess, setHasAccess] = React.useState(true);
+    const [accessChecked, setAccessChecked] = React.useState(false);
 
     React.useEffect(() => {
       base44.auth.me()
@@ -176,6 +178,32 @@ export default function Layout({ children, currentPageName }) {
       };
     }, []);
 
+    React.useEffect(() => {
+      if (!user || !subscription) {
+        setAccessChecked(true);
+        return;
+      }
+
+      base44.functions.invoke('canAccessSystem', {})
+        .then(({ data }) => {
+          setHasAccess(data.canAccess);
+          setAccessChecked(true);
+          
+          if (!data.canAccess && data.redirectToPricing) {
+            const currentPath = window.location.pathname;
+            const publicPagesCheck = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic"];
+            
+            if (!publicPagesCheck.includes(currentPath)) {
+              window.location.href = '/Pricing';
+            }
+          }
+        })
+        .catch(() => {
+          setHasAccess(false);
+          setAccessChecked(true);
+        });
+    }, [user, subscription]);
+
     const handleInstallApp = async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -218,38 +246,6 @@ export default function Layout({ children, currentPageName }) {
     if (!user) {
       return <>{children}</>;
     }
-
-    // ========================================
-    // VERIFICAÇÃO DE ACESSO VIA BACKEND
-    // ========================================
-    const [hasAccess, setHasAccess] = React.useState(true);
-    const [accessChecked, setAccessChecked] = React.useState(false);
-
-    React.useEffect(() => {
-      if (!user || !subscription) {
-        setAccessChecked(true);
-        return;
-      }
-
-      base44.functions.invoke('canAccessSystem', {})
-        .then(({ data }) => {
-          setHasAccess(data.canAccess);
-          setAccessChecked(true);
-          
-          if (!data.canAccess && data.redirectToPricing) {
-            const currentPath = window.location.pathname;
-            const publicPages = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic"];
-            
-            if (!publicPages.includes(currentPath)) {
-              window.location.href = '/Pricing';
-            }
-          }
-        })
-        .catch(() => {
-          setHasAccess(false);
-          setAccessChecked(true);
-        });
-    }, [user, subscription]);
 
     if (!accessChecked && user && subscription) {
       return <>{children}</>;
