@@ -276,20 +276,19 @@ export default function Layout({ children, currentPageName }) {
       
       const today = new Date().toISOString().split('T')[0];
       
-      // Plano vitalício: sempre tem acesso (sem expiração)
-      if (subscription.plan_type === 'lifetime' && subscription.status === 'active') {
+      // Plano vitalício: sempre tem acesso
+      if (subscription.plan_type === 'lifetime') {
         return true;
       }
       
-      // Assinatura ativa (mensal/anual): verificar se não expirou
+      // Status ativo: sempre tem acesso (mesmo se tiver end_date no futuro)
       if (subscription.status === 'active') {
-        if (!subscription.end_date) return true; // Sem data de expiração
-        return today <= subscription.end_date;
+        return true;
       }
       
       // Em período de teste: verificar se não expirou
       if (subscription.status === 'trial') {
-        if (!subscription.end_date) return false;
+        if (!subscription.end_date) return true;
         return today <= subscription.end_date;
       }
       
