@@ -94,7 +94,12 @@ export default function Layout({ children, currentPageName }) {
               
               // Buscar assinatura existente do usuário
               let subs = await base44.entities.Subscription.filter({ user_id: u.id });
-              let currentSub = subs[0] || null;
+              
+              // Priorizar assinatura ativa: lifetime > active > trial
+              let currentSub = subs.find(s => s.plan_type === 'lifetime' && s.status === 'active') ||
+                               subs.find(s => s.status === 'active' && (!s.end_date || today <= s.end_date)) ||
+                               subs.find(s => s.status === 'trial' && s.end_date && today <= s.end_date) ||
+                               subs[0] || null;
 
               // ========================================
               // LÓGICA DE ASSINATURA DETERMINÍSTICA
