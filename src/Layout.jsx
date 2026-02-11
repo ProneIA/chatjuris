@@ -90,84 +90,35 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
-              const today = new Date().toISOString().split('T')[0];
-              
-              // Buscar assinatura existente do usuário
-              let subs = await base44.entities.Subscription.filter({ user_id: u.id });
-              
-              // Priorizar assinatura ativa: lifetime > active > trial
-              let currentSub = subs.find(s => s.plan_type === 'lifetime' && s.status === 'active') ||
-                               subs.find(s => s.status === 'active' && (!s.end_date || today <= s.end_date)) ||
-                               subs.find(s => s.status === 'trial' && s.end_date && today <= s.end_date) ||
-                               subs[0] || null;
+              // Usar nova função de validação de acesso
+              const accessResponse = await base44.functions.invoke('canAccessSystem', {});
 
-              // ========================================
-              // LÓGICA DE ASSINATURA DETERMINÍSTICA
-              // ========================================
+              const { canAccess, subscription: activeSub, reason, redirectToPricing } = accessResponse.data;
 
-              if (currentSub) {
-                // CASO 1: Usuário já tem assinatura
-                
-                // Verificar se assinatura expirou (exceto vitalício)
-                if (currentSub.plan_type !== 'lifetime' && currentSub.end_date && today > currentSub.end_date) {
-                  // Assinatura expirou - atualizar status
-                  if (currentSub.status !== 'expired') {
-                    await base44.entities.Subscription.update(currentSub.id, {
-                      status: 'expired',
-                      daily_actions_limit: 0
-                    });
-                    currentSub = { ...currentSub, status: 'expired', daily_actions_limit: 0 };
-                  }
-                }
-                
-                setSubscription(currentSub);
-                
-              } else {
-                // CASO 2: Usuário novo sem assinatura
-                // Criar automaticamente teste de 7 dias (se nunca usou)
-                
-                if (!u.has_used_trial) {
-                  // Criar assinatura de teste automática
-                  const trialStartDate = new Date();
-                  const trialEndDate = new Date();
-                  trialEndDate.setDate(trialEndDate.getDate() + 7);
+              if (activeSub) {
+                setSubscription(activeSub);
+              }
 
-                  const newSub = await base44.entities.Subscription.create({
-                    user_id: u.id,
-                    plan: 'pro',
-                    plan_type: 'trial',
-                    status: 'trial',
-                    daily_actions_limit: 999999,
-                    daily_actions_used: 0,
-                    last_reset_date: today,
-                    price: 0,
-                    payment_method: 'trial',
-                    start_date: trialStartDate.toISOString().split('T')[0],
-                    end_date: trialEndDate.toISOString().split('T')[0]
-                  });
+              // Se não tiver assinatura ativa, criar trial automático (primeira vez)
+              if (!canAccess && reason === 'no_active_subscription') {
+                // Verificar se usuário nunca teve subscription
+                const allSubs = await base44.entities.Subscription.filter({ user_id: u.id });
 
-                  // Marcar que usuário já usou o trial
-                  await base44.auth.updateMe({
-                    has_used_trial: true
-                  });
+                if (allSubs.length === 0) {
+                  // Criar trial automático
+                  const trialResponse = await base44.functions.invoke('createTrialSubscription', {});
 
-                  setSubscription(newSub);
-                  
-                  // Atualizar usuário local
-                  const updatedUser = await base44.auth.me();
-                  setUser(updatedUser);
-                  
-                  // Mostrar modal de boas-vindas do trial
-                  const trialWelcomeKey = `trial_welcome_shown_${u.id}`;
-                  if (!localStorage.getItem(trialWelcomeKey)) {
+                  if (trialResponse.data.success) {
+                    setSubscription(trialResponse.data.subscription);
                     setTrialDaysLeft(7);
-                    setShowTrialWelcome(true);
-                    localStorage.setItem(trialWelcomeKey, 'true');
+
+                    const trialWelcomeKey = `trial_welcome_shown_${u.id}`;
+                    if (!localStorage.getItem(trialWelcomeKey)) {
+                      setShowTrialWelcome(true);
+                      localStorage.setItem(trialWelcomeKey, 'true');
+                    }
                   }
-                  
                 } else {
-                  // Usuário já usou trial e não tem assinatura ativa
-                  // Redirecionar para página de pricing (sem criar assinatura pendente)
                   setSubscription(null);
                 }
               }
@@ -269,39 +220,40 @@ export default function Layout({ children, currentPageName }) {
     }
 
     // ========================================
-    // VERIFICAÇÃO DE ACESSO DESABILITADA TEMPORARIAMENTE
+    // VERIFICAÇÃO DE ACESSO VIA BACKEND
     // ========================================
-    // const hasAccess = (() => {
-    //   if (!subscription) return false;
-    //   
-    //   const today = new Date().toISOString().split('T')[0];
-    //   
-    //   // Plano vitalício: sempre tem acesso
-    //   if (subscription.plan_type === 'lifetime') {
-    //     return true;
-    //   }
-    //   
-    //   // Status ativo: sempre tem acesso (mesmo se tiver end_date no futuro)
-    //   if (subscription.status === 'active') {
-    //     return true;
-    //   }
-    //   
-    //   // Em período de teste: verificar se não expirou
-    //   if (subscription.status === 'trial') {
-    //     if (!subscription.end_date) return true;
-    //     return today <= subscription.end_date;
-    //   }
-    //   
-    //   // Qualquer outro status (expired, pending, cancelled): sem acesso
-    //   return false;
-    // })();
-    // 
-    // if (!hasAccess) {
-    //   if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
-    //     window.location.href = '/Pricing';
-    //     return null;
-    //   }
-    // }
+    const [hasAccess, setHasAccess] = React.useState(true);
+    const [accessChecked, setAccessChecked] = React.useState(false);
+
+    React.useEffect(() => {
+      if (!user || !subscription) {
+        setAccessChecked(true);
+        return;
+      }
+
+      base44.functions.invoke('canAccessSystem', {})
+        .then(({ data }) => {
+          setHasAccess(data.canAccess);
+          setAccessChecked(true);
+          
+          if (!data.canAccess && data.redirectToPricing) {
+            const currentPath = window.location.pathname;
+            const publicPages = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic"];
+            
+            if (!publicPages.includes(currentPath)) {
+              window.location.href = '/Pricing';
+            }
+          }
+        })
+        .catch(() => {
+          setHasAccess(false);
+          setAccessChecked(true);
+        });
+    }, [user, subscription]);
+
+    if (!accessChecked && user && subscription) {
+      return <>{children}</>;
+    }
 
 
 
