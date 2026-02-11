@@ -92,36 +92,20 @@ export default function Layout({ children, currentPageName }) {
           setUser(u);
           if (u?.id) {
             try {
-              // Usar nova função de validação de acesso
-              const accessResponse = await base44.functions.invoke('canAccessSystem', {});
+              // Se usuário não tem trial_start_date nem subscription_start_date, criar trial
+              if (!u.trial_start_date && !u.subscription_start_date) {
+                const trialResponse = await base44.functions.invoke('createTrialSubscription', {});
 
-              const { canAccess, subscription: activeSub, reason, redirectToPricing } = accessResponse.data;
+                if (trialResponse.data.success) {
+                  const updatedUser = trialResponse.data.user;
+                  setUser(updatedUser);
+                  setTrialDaysLeft(7);
 
-              if (activeSub) {
-                setSubscription(activeSub);
-              }
-
-              // Se não tiver assinatura ativa, criar trial automático (primeira vez)
-              if (!canAccess && reason === 'no_active_subscription') {
-                // Verificar se usuário nunca teve subscription
-                const allSubs = await base44.entities.Subscription.filter({ user_id: u.id });
-
-                if (allSubs.length === 0) {
-                  // Criar trial automático
-                  const trialResponse = await base44.functions.invoke('createTrialSubscription', {});
-
-                  if (trialResponse.data.success) {
-                    setSubscription(trialResponse.data.subscription);
-                    setTrialDaysLeft(7);
-
-                    const trialWelcomeKey = `trial_welcome_shown_${u.id}`;
-                    if (!localStorage.getItem(trialWelcomeKey)) {
-                      setShowTrialWelcome(true);
-                      localStorage.setItem(trialWelcomeKey, 'true');
-                    }
+                  const trialWelcomeKey = `trial_welcome_shown_${u.id}`;
+                  if (!localStorage.getItem(trialWelcomeKey)) {
+                    setShowTrialWelcome(true);
+                    localStorage.setItem(trialWelcomeKey, 'true');
                   }
-                } else {
-                  setSubscription(null);
                 }
               }
 
@@ -179,7 +163,7 @@ export default function Layout({ children, currentPageName }) {
     }, []);
 
     React.useEffect(() => {
-      if (!user || !subscription) {
+      if (!user) {
         setAccessChecked(true);
         return;
       }
@@ -202,7 +186,7 @@ export default function Layout({ children, currentPageName }) {
           setHasAccess(false);
           setAccessChecked(true);
         });
-    }, [user, subscription]);
+    }, [user]);
 
     const handleInstallApp = async () => {
       if (deferredPrompt) {
@@ -247,7 +231,7 @@ export default function Layout({ children, currentPageName }) {
       return <>{children}</>;
     }
 
-    if (!accessChecked && user && subscription) {
+    if (!accessChecked && user) {
       return <>{children}</>;
     }
 

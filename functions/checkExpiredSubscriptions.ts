@@ -1,67 +1,80 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    
-    // Verificar se é admin (função deve ser chamada apenas por admin ou cron)
-    const user = await base44.auth.me().catch(() => null);
-    if (user && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
+    try {
+        const base44 = createClientFromRequest(req);
+        const user = await base44.auth.me();
 
-    const now = new Date();
-    let expiredCount = 0;
-
-    // Buscar todas as subscriptions ativas ou em trial
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
-      status: { $in: ['trial', 'active'] }
-    });
-
-    console.log(`Checking ${subscriptions.length} subscriptions...`);
-
-    for (const subscription of subscriptions) {
-      let shouldExpire = false;
-
-      // Verificar trial expirado
-      if (subscription.status === 'trial' && subscription.trial_end_date) {
-        const trialEndDate = new Date(subscription.trial_end_date);
-        if (now > trialEndDate) {
-          shouldExpire = true;
-          console.log(`Trial expired for user ${subscription.user_id}`);
+        // ADMIN ONLY
+        if (user?.role !== 'admin') {
+            return Response.json({ error: 'Acesso negado - apenas admin' }, { status: 403 });
         }
-      }
 
-      // Verificar assinatura ativa expirada
-      if (subscription.status === 'active' && subscription.end_date) {
-        const endDate = new Date(subscription.end_date);
-        if (now > endDate) {
-          shouldExpire = true;
-          console.log(`Subscription expired for user ${subscription.user_id}`);
-        }
-      }
+        const now = new Date().toISOString();
+        let expiredCount = 0;
 
-      // Atualizar para expired
-      if (shouldExpire) {
-        await base44.asServiceRole.entities.Subscription.update(subscription.id, {
-          status: 'expired'
+        // 1) Verificar assinaturas ATIVAS que expiraram
+        const activeUsers = await base44.asServiceRole.entities.User.filter({
+            subscription_status: 'active'
         });
-        expiredCount++;
-      }
+
+        for (const u of activeUsers) {
+            if (u.subscription_end_date && now > u.subscription_end_date && !u.is_lifetime) {
+                await base44.asServiceRole.entities.User.update(u.id, {
+                    subscription_status: 'expired'
+                });
+                
+                await base44.asServiceRole.entities.AuditLog.create({
+                    user_email: u.email,
+                    action: 'subscription_expired',
+                    entity_type: 'User',
+                    entity_id: u.id,
+                    details: JSON.stringify({
+                        previous_status: 'active',
+                        subscription_end_date: u.subscription_end_date
+                    })
+                });
+                
+                expiredCount++;
+            }
+        }
+
+        // 2) Verificar TRIALS que expiraram
+        const trialUsers = await base44.asServiceRole.entities.User.filter({
+            subscription_status: 'trial'
+        });
+
+        for (const u of trialUsers) {
+            if (u.trial_end_date && now > u.trial_end_date) {
+                await base44.asServiceRole.entities.User.update(u.id, {
+                    subscription_status: 'expired'
+                });
+                
+                await base44.asServiceRole.entities.AuditLog.create({
+                    user_email: u.email,
+                    action: 'trial_expired',
+                    entity_type: 'User',
+                    entity_id: u.id,
+                    details: JSON.stringify({
+                        previous_status: 'trial',
+                        trial_end_date: u.trial_end_date
+                    })
+                });
+                
+                expiredCount++;
+            }
+        }
+
+        return Response.json({
+            success: true,
+            expired_count: expiredCount,
+            checked_at: now
+        });
+    } catch (error) {
+        console.error('Erro ao verificar assinaturas:', error);
+        return Response.json({ 
+            success: false, 
+            error: error.message 
+        }, { status: 500 });
     }
-
-    return Response.json({ 
-      success: true,
-      checked: subscriptions.length,
-      expired: expiredCount,
-      timestamp: now.toISOString()
-    });
-
-  } catch (error) {
-    console.error('Error in checkExpiredSubscriptions:', error);
-    return Response.json({ 
-      success: false,
-      error: error.message 
-    }, { status: 500 });
-  }
 });

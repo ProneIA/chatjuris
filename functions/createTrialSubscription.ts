@@ -1,54 +1,61 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    try {
+        const base44 = createClientFromRequest(req);
+        const user = await base44.auth.me();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user) {
+            return Response.json({ 
+                success: false, 
+                error: 'Usuário não autenticado' 
+            }, { status: 401 });
+        }
+
+        // Verificar se usuário já teve trial ou assinatura
+        if (user.trial_start_date || user.subscription_start_date) {
+            return Response.json({ 
+                success: false, 
+                error: 'Usuário já teve trial ou assinatura anteriormente'
+            }, { status: 400 });
+        }
+
+        // Criar trial de 7 dias
+        const now = new Date();
+        const trialEnd = new Date(now);
+        trialEnd.setDate(trialEnd.getDate() + 7);
+
+        const updatedUser = await base44.asServiceRole.entities.User.update(user.id, {
+            subscription_status: 'trial',
+            subscription_type: 'trial',
+            trial_start_date: now.toISOString(),
+            trial_end_date: trialEnd.toISOString(),
+            is_lifetime: false
+        });
+
+        // Log de auditoria
+        await base44.asServiceRole.entities.AuditLog.create({
+            user_email: user.email,
+            action: 'trial_created',
+            entity_type: 'User',
+            entity_id: user.id,
+            details: JSON.stringify({
+                trial_start: now.toISOString(),
+                trial_end: trialEnd.toISOString()
+            })
+        });
+
+        return Response.json({
+            success: true,
+            user: updatedUser,
+            trial_days: 7,
+            trial_end_date: trialEnd.toISOString()
+        });
+    } catch (error) {
+        console.error('Erro ao criar trial:', error);
+        return Response.json({ 
+            success: false, 
+            error: error.message 
+        }, { status: 500 });
     }
-
-    // Verificar se já tem subscription
-    const existingSubscriptions = await base44.asServiceRole.entities.Subscription.filter({
-      user_id: user.id
-    });
-
-    if (existingSubscriptions.length > 0) {
-      return Response.json({ 
-        error: 'User already has a subscription',
-        subscription: existingSubscriptions[0]
-      }, { status: 400 });
-    }
-
-    // Criar trial de 7 dias
-    const now = new Date();
-    const trialEndDate = new Date(now);
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
-
-    const newSubscription = await base44.asServiceRole.entities.Subscription.create({
-      user_id: user.id,
-      plan_type: 'trial',
-      status: 'trial',
-      start_date: now.toISOString(),
-      end_date: null,
-      trial_end_date: trialEndDate.toISOString(),
-      is_lifetime: false,
-      price: 0,
-      payment_method: 'trial'
-    });
-
-    return Response.json({ 
-      success: true,
-      subscription: newSubscription,
-      message: '7-day trial activated'
-    });
-
-  } catch (error) {
-    console.error('Error in createTrialSubscription:', error);
-    return Response.json({ 
-      success: false,
-      error: error.message 
-    }, { status: 500 });
-  }
 });

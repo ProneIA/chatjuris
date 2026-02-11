@@ -1,24 +1,29 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Função para ser chamada por webhooks de pagamento
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        const adminUser = await base44.auth.me();
-
-        // ADMIN ONLY
-        if (adminUser?.role !== 'admin') {
-            return Response.json({ error: 'Acesso negado - apenas admin' }, { status: 403 });
-        }
-
         const body = await req.json();
-        const { user_id, plan_type } = body;
+        
+        const { user_email, plan_type, payment_id, payment_method } = body;
 
-        if (!user_id || !plan_type) {
+        if (!user_email || !plan_type) {
             return Response.json({ 
-                error: 'user_id e plan_type são obrigatórios' 
+                error: 'user_email e plan_type são obrigatórios' 
             }, { status: 400 });
         }
 
+        // Buscar usuário por email usando service role
+        const users = await base44.asServiceRole.entities.User.filter({ email: user_email });
+        
+        if (users.length === 0) {
+            return Response.json({ 
+                error: 'Usuário não encontrado' 
+            }, { status: 404 });
+        }
+
+        const user = users[0];
         const now = new Date();
         let updateData = {};
 
@@ -61,22 +66,22 @@ Deno.serve(async (req) => {
 
             default:
                 return Response.json({ 
-                    error: 'plan_type inválido. Use: monthly, yearly ou lifetime' 
+                    error: 'plan_type inválido' 
                 }, { status: 400 });
         }
 
-        const updatedUser = await base44.asServiceRole.entities.User.update(user_id, updateData);
+        const updatedUser = await base44.asServiceRole.entities.User.update(user.id, updateData);
 
         // Log de auditoria
         await base44.asServiceRole.entities.AuditLog.create({
-            user_email: adminUser.email,
-            action: 'admin_activate_plan',
+            user_email: user.email,
+            action: 'subscription_activated',
             entity_type: 'User',
-            entity_id: user_id,
-            target_user_id: user_id,
+            entity_id: user.id,
             details: JSON.stringify({
                 plan_type,
-                activated_by: adminUser.email,
+                payment_id,
+                payment_method,
                 ...updateData
             })
         });
@@ -87,7 +92,7 @@ Deno.serve(async (req) => {
             plan_type
         });
     } catch (error) {
-        console.error('Erro ao ativar plano:', error);
+        console.error('Erro ao ativar assinatura:', error);
         return Response.json({ 
             success: false, 
             error: error.message 
