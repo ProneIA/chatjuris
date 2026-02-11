@@ -269,39 +269,39 @@ export default function Layout({ children, currentPageName }) {
     }
 
     // ========================================
-    // VERIFICAÇÃO DE ACESSO BASEADA EM ASSINATURA
+    // VERIFICAÇÃO DE ACESSO DESABILITADA TEMPORARIAMENTE
     // ========================================
-    const hasAccess = (() => {
-      if (!subscription) return false;
-      
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Plano vitalício: sempre tem acesso
-      if (subscription.plan_type === 'lifetime') {
-        return true;
-      }
-      
-      // Status ativo: sempre tem acesso (mesmo se tiver end_date no futuro)
-      if (subscription.status === 'active') {
-        return true;
-      }
-      
-      // Em período de teste: verificar se não expirou
-      if (subscription.status === 'trial') {
-        if (!subscription.end_date) return true;
-        return today <= subscription.end_date;
-      }
-      
-      // Qualquer outro status (expired, pending, cancelled): sem acesso
-      return false;
-    })();
-    
-    if (!hasAccess) {
-      if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
-        window.location.href = '/Pricing';
-        return null;
-      }
-    }
+    // const hasAccess = (() => {
+    //   if (!subscription) return false;
+    //   
+    //   const today = new Date().toISOString().split('T')[0];
+    //   
+    //   // Plano vitalício: sempre tem acesso
+    //   if (subscription.plan_type === 'lifetime') {
+    //     return true;
+    //   }
+    //   
+    //   // Status ativo: sempre tem acesso (mesmo se tiver end_date no futuro)
+    //   if (subscription.status === 'active') {
+    //     return true;
+    //   }
+    //   
+    //   // Em período de teste: verificar se não expirou
+    //   if (subscription.status === 'trial') {
+    //     if (!subscription.end_date) return true;
+    //     return today <= subscription.end_date;
+    //   }
+    //   
+    //   // Qualquer outro status (expired, pending, cancelled): sem acesso
+    //   return false;
+    // })();
+    // 
+    // if (!hasAccess) {
+    //   if (typeof window !== 'undefined' && window.location.pathname !== '/Pricing') {
+    //     window.location.href = '/Pricing';
+    //     return null;
+    //   }
+    // }
 
 
 
