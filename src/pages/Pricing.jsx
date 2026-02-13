@@ -143,7 +143,9 @@ export default function Pricing({ theme = 'light' }) {
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
       return subs[0] || null;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000
   });
 
 

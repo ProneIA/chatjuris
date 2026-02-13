@@ -26,13 +26,13 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import KeyboardShortcuts from "@/components/common/KeyboardShortcuts";
-import NotificationPanel from "@/components/collaboration/NotificationPanel";
-import InstallAppBanner from "@/components/common/InstallAppBanner";
-import InstallInstructionsDialog from "@/components/common/InstallInstructionsDialog";
-import PWAHead from "@/components/common/PWAHead";
-import ConsentModal from "@/components/lgpd/ConsentModal";
-import TrialWelcomeModal from "@/components/subscription/TrialWelcomeModal";
+const KeyboardShortcuts = React.lazy(() => import("@/components/common/KeyboardShortcuts"));
+const NotificationPanel = React.lazy(() => import("@/components/collaboration/NotificationPanel"));
+const InstallAppBanner = React.lazy(() => import("@/components/common/InstallAppBanner"));
+const InstallInstructionsDialog = React.lazy(() => import("@/components/common/InstallInstructionsDialog"));
+const PWAHead = React.lazy(() => import("@/components/common/PWAHead"));
+const ConsentModal = React.lazy(() => import("@/components/lgpd/ConsentModal"));
+const TrialWelcomeModal = React.lazy(() => import("@/components/subscription/TrialWelcomeModal"));
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -62,7 +62,7 @@ const adminItems = [
   { title: "Banco de Dados", url: createPageUrl("AdminDatabase"), icon: Shield },
 ];
 
-export default function Layout({ children, currentPageName }) {
+const Layout = React.memo(function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
     const [subscription, setSubscription] = React.useState(null);
@@ -259,9 +259,10 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <PWAHead />
-      <KeyboardShortcuts />
-      <InstallAppBanner 
+      <React.Suspense fallback={null}>
+        <PWAHead />
+        <KeyboardShortcuts />
+        <InstallAppBanner 
         theme={theme} 
         deferredPrompt={deferredPrompt}
         isIOS={isIOS}
@@ -327,7 +328,11 @@ export default function Layout({ children, currentPageName }) {
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
 
-            {user && <NotificationPanel user={user} />}
+            {user && (
+              <React.Suspense fallback={<div className="w-9 h-9" />}>
+                <NotificationPanel user={user} />
+              </React.Suspense>
+            )}
 
             {/* User Menu */}
             <DropdownMenu>
@@ -524,25 +529,32 @@ export default function Layout({ children, currentPageName }) {
 
       {/* Consent Modal */}
       {hasCheckedConsent && !consentAccepted && (
-        <ConsentModal 
-          open={showConsentModal} 
-          onAccept={() => {
-            setShowConsentModal(false);
-            setConsentAccepted(true);
-            // Salvar no localStorage
-            if (user?.email) {
-              localStorage.setItem(`consent_accepted_${user.email}`, 'true');
-            }
-          }} 
-        />
+        <React.Suspense fallback={null}>
+          <ConsentModal 
+            open={showConsentModal} 
+            onAccept={() => {
+              setShowConsentModal(false);
+              setConsentAccepted(true);
+              // Salvar no localStorage
+              if (user?.email) {
+                localStorage.setItem(`consent_accepted_${user.email}`, 'true');
+              }
+            }} 
+          />
+        </React.Suspense>
       )}
 
       {/* Trial Welcome Modal */}
-      <TrialWelcomeModal
-        open={showTrialWelcome}
-        onClose={() => setShowTrialWelcome(false)}
-        daysLeft={trialDaysLeft}
-      />
+      <React.Suspense fallback={null}>
+        <TrialWelcomeModal
+          open={showTrialWelcome}
+          onClose={() => setShowTrialWelcome(false)}
+          daysLeft={trialDaysLeft}
+        />
+      </React.Suspense>
+      </React.Suspense>
     </div>
   );
-}
+});
+
+export default Layout;

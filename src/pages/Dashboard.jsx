@@ -29,7 +29,7 @@ import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns"
 import { ptBR } from "date-fns/locale";
 import { motion } from "framer-motion";
 
-export default function Dashboard({ theme = 'light' }) {
+const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
   const isDark = theme === 'dark';
   
   const [user, setUser] = React.useState(null);
@@ -59,7 +59,9 @@ export default function Dashboard({ theme = 'light' }) {
       if (!user?.email) return [];
       return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 100);
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000
   });
 
   const { data: cases = [], isLoading: loadingCases } = useQuery({
@@ -68,7 +70,9 @@ export default function Dashboard({ theme = 'light' }) {
       if (!user?.email) return [];
       return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 50);
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000
   });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
@@ -77,7 +81,9 @@ export default function Dashboard({ theme = 'light' }) {
       if (!user?.email) return [];
       return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 20);
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 5 * 60 * 1000
   });
 
   const { data: documents = [], isLoading: loadingDocuments } = useQuery({
@@ -86,7 +92,9 @@ export default function Dashboard({ theme = 'light' }) {
       if (!user?.email) return [];
       return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 50);
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000
   });
 
   const activeCases = cases.filter(c => c.status === 'in_progress').length;
@@ -454,4 +462,6 @@ export default function Dashboard({ theme = 'light' }) {
       </div>
     </div>
   );
-}
+});
+
+export default Dashboard;
