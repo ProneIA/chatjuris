@@ -12,18 +12,17 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        // Verificar se usuário já teve trial ou assinatura
-        if (user.trial_start_date || user.subscription_start_date) {
+        // VALIDAÇÃO ROBUSTA: Bloquear se usuário JÁ teve trial (mesmo expirado)
+        if (user.trial_start_date || user.subscription_start_date || user.subscription_status === 'expired') {
             return Response.json({ 
                 success: false, 
                 error: 'Usuário já teve trial ou assinatura anteriormente'
             }, { status: 400 });
         }
 
-        // Criar trial de 7 dias
+        // Criar trial de 7 dias (UTC para evitar problemas de timezone)
         const now = new Date();
-        const trialEnd = new Date(now);
-        trialEnd.setDate(trialEnd.getDate() + 7);
+        const trialEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
         const updatedUser = await base44.asServiceRole.entities.User.update(user.id, {
             subscription_status: 'trial',

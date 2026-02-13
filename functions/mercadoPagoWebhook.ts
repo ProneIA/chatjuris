@@ -133,6 +133,21 @@ Deno.serve(async (req) => {
       } catch (emailError) {
         console.error('Erro ao enviar email:', emailError);
       }
+      
+      // SINCRONIZAÇÃO: Atualizar User.entity também
+      const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+      if (users.length > 0) {
+        const userUpdateData = {
+          subscription_status: 'active',
+          subscription_type: isYearly ? 'yearly' : 'monthly',
+          subscription_start_date: startDate.toISOString(),
+          subscription_end_date: isYearly ? endDate.toISOString() : nextBillingDate.toISOString(),
+          is_lifetime: false
+        };
+        
+        await base44.asServiceRole.entities.User.update(users[0].id, userUpdateData);
+        console.log('✅ User.entity sincronizado');
+      }
     } else if (paymentData.status === 'pending') {
       // Atualizar status para pendente
       const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ 

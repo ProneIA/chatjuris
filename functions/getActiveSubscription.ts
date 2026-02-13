@@ -15,7 +15,21 @@ Deno.serve(async (req) => {
       status: { $in: ['trial', 'active', 'lifetime'] }
     }, '-created_date', 1);
 
-    const activeSubscription = subscriptions.length > 0 ? subscriptions[0] : null;
+    let activeSubscription = subscriptions.length > 0 ? subscriptions[0] : null;
+    
+    // VALIDAÇÃO: Verificar se end_date expirou (exceto lifetime)
+    if (activeSubscription && activeSubscription.plan_type !== 'lifetime' && activeSubscription.end_date) {
+      const now = new Date().toISOString().split('T')[0];
+      const isExpired = now > activeSubscription.end_date;
+      
+      if (isExpired) {
+        // Atualizar status para expired
+        await base44.asServiceRole.entities.Subscription.update(activeSubscription.id, {
+          status: 'expired'
+        });
+        activeSubscription = null;
+      }
+    }
 
     return Response.json({ 
       subscription: activeSubscription,

@@ -139,6 +139,18 @@ Deno.serve(async (req) => {
           });
         }
         console.log('✅ DEBUG - PRO subscription activated:', planType === 'lifetime' ? 'VITALÍCIO (acesso permanente)' : `até ${endDate.toISOString().split('T')[0]}`);
+        
+        // SINCRONIZAÇÃO: Atualizar User.entity também
+        const userUpdateData = {
+            subscription_status: planType === 'lifetime' ? 'lifetime' : 'active',
+            subscription_type: planType,
+            subscription_start_date: startDate.toISOString(),
+            subscription_end_date: endDate ? endDate.toISOString() : null,
+            is_lifetime: planType === 'lifetime'
+        };
+        
+        await base44.asServiceRole.entities.User.update(user.id, userUpdateData);
+        console.log('✅ DEBUG - User.entity sincronizado');
         break;
 
       case 'PURCHASE_CANCELED':

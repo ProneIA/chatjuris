@@ -29,9 +29,38 @@ Deno.serve(async (req) => {
 
 async function validateUserAccess(base44, user) {
     const now = new Date().toISOString();
+    
+    // SINCRONIZAÇÃO: Verificar Subscription.entity antes de validar User
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
+        user_id: user.id
+    }, '-created_date', 1);
+    
+    const activeSub = subscriptions[0];
+    
+    // Se existe subscription ativa/lifetime, sincronizar User.entity
+    if (activeSub && (activeSub.status === 'active' || activeSub.status === 'lifetime')) {
+        const nowDate = now.split('T')[0];
+        const isExpired = activeSub.end_date && nowDate > activeSub.end_date;
+        
+        if (!isExpired) {
+            // Sincronizar User com Subscription
+            const syncData = {
+                subscription_status: activeSub.plan_type === 'lifetime' ? 'lifetime' : 'active',
+                subscription_type: activeSub.plan_type,
+                subscription_start_date: activeSub.start_date,
+                subscription_end_date: activeSub.end_date,
+                is_lifetime: activeSub.plan_type === 'lifetime'
+            };
+            
+            if (user.subscription_status !== syncData.subscription_status) {
+                await base44.asServiceRole.entities.User.update(user.id, syncData);
+                user = { ...user, ...syncData }; // Atualizar objeto em memória
+            }
+        }
+    }
 
-    // 1) PLANO VITALÍCIO - acesso ilimitado
-    if (user.is_lifetime === true) {
+    // 1) PLANO VITALÍCIO - acesso ilimitado (validação dupla para segurança)
+    if (user.is_lifetime === true || user.subscription_type === 'lifetime' || user.subscription_status === 'lifetime') {
         return {
             canAccess: true,
             subscription_status: 'lifetime',

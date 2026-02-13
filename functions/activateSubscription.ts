@@ -71,6 +71,32 @@ Deno.serve(async (req) => {
         }
 
         const updatedUser = await base44.asServiceRole.entities.User.update(user.id, updateData);
+        
+        // SINCRONIZAÇÃO: Atualizar/criar Subscription.entity também
+        const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ 
+            user_id: user.id 
+        });
+        
+        const subscriptionData = {
+            user_id: user.id,
+            plan: 'pro',
+            plan_type: plan_type,
+            status: plan_type === 'lifetime' ? 'lifetime' : 'active',
+            payment_status: 'paid',
+            payment_method: payment_method || 'direct',
+            payment_external_id: payment_id,
+            start_date: now.toISOString().split('T')[0],
+            end_date: updateData.subscription_end_date ? updateData.subscription_end_date.split('T')[0] : null,
+            daily_actions_limit: 999999,
+            daily_actions_used: 0,
+            last_reset_date: now.toISOString().split('T')[0]
+        };
+        
+        if (subscriptions.length > 0) {
+            await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subscriptionData);
+        } else {
+            await base44.asServiceRole.entities.Subscription.create(subscriptionData);
+        }
 
         // Log de auditoria
         await base44.asServiceRole.entities.AuditLog.create({
