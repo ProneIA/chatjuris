@@ -59,6 +59,7 @@ const navigationItems = [
 
 const adminItems = [
   { title: "Admin Panel", url: createPageUrl("AdminPanel"), icon: Shield },
+  { title: "Banco de Dados", url: createPageUrl("AdminDatabase"), icon: Shield },
 ];
 
 export default function Layout({ children, currentPageName }) {
