@@ -49,46 +49,68 @@ Deno.serve(async (req) => {
       user_id: user.id 
     });
 
-    // Detectar plano baseado no produto/URL de checkout
+    // IDENTIFICAÇÃO DE PLANO PELO PRODUCT_ID OU CHECKOUT_LINK
+    const productId = data.product?.id;
     const checkoutLink = data.product?.checkout_link || '';
     const price = (purchase?.price?.value || 0) / 100;
     
-    // Identificar plano vitalício pelo link
-    const isLifetime = checkoutLink === 'https://pay.hotmart.com/L104287363X';
+    // Buscar plano configurado pelo hotmart_product_id ou checkout_url
+    let detectedPlan = null;
+    const allPlans = await base44.asServiceRole.entities.HotmartPlan.filter({});
     
-    // Detectar plano anual ou mensal (apenas se não for vitalício)
-    const isAnnual = !isLifetime && (price > 100 || (data.product?.name || '').toLowerCase().includes('anual'));
-    
-    let planType;
-    if (isLifetime) {
-      planType = 'lifetime';
-    } else if (isAnnual) {
-      planType = 'annual';
-    } else {
-      planType = 'monthly';
+    for (const p of allPlans) {
+      if (p.hotmart_product_id === productId || p.hotmart_checkout_url === checkoutLink) {
+        detectedPlan = p;
+        break;
+      }
     }
     
-    // Calcular data de expiração (null para vitalício)
+    // Fallback: detecção por preço/nome (legado)
+    let planType, durationDays;
+    if (detectedPlan) {
+      planType = detectedPlan.name.toLowerCase();
+      durationDays = detectedPlan.duration_days;
+    } else {
+      // Lógica antiga de fallback
+      const isLifetime = checkoutLink === 'https://pay.hotmart.com/L104287363X' || price >= 1500;
+      const isAnnual = !isLifetime && (price > 100 || (data.product?.name || '').toLowerCase().includes('anual'));
+      
+      if (isLifetime) {
+        planType = 'vitalicio';
+        durationDays = null;
+      } else if (isAnnual) {
+        planType = 'anual';
+        durationDays = 365;
+      } else {
+        planType = 'mensal';
+        durationDays = 30;
+      }
+    }
+    
+    // Calcular data de expiração
     const startDate = new Date();
     let endDate = null;
     
-    if (!isLifetime) {
-      endDate = new Date(startDate);
-      if (isAnnual) {
-        endDate.setFullYear(endDate.getFullYear() + 1);
-      } else {
-        endDate.setMonth(endDate.getMonth() + 1);
-      }
+    if (durationDays !== null && durationDays !== undefined) {
+      endDate = new Date(startDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
     }
 
+    const transactionId = purchase?.transaction || subscription?.subscriber_code || `hotmart_${Date.now()}`;
+    
     const hotmartData = {
-      transaction_id: purchase?.transaction || subscription?.subscriber_code,
+      transaction_id: transactionId,
       product_id: data.product?.id,
       product_name: data.product?.name,
       product_url: checkoutLink,
       hotmart_subscription_id: subscription?.subscriber_code,
       purchase_date: purchase?.approved_date || new Date().toISOString(),
     };
+    
+    // Converter plan_type para formato padrão (monthly, yearly, lifetime)
+    const normalizedPlanType = planType === 'mensal' ? 'monthly' 
+      : planType === 'anual' ? 'yearly' 
+      : planType === 'vitalicio' ? 'lifetime' 
+      : planType;
     
     console.log('📅 DEBUG - Plan detection:', { 
       price, 
@@ -109,21 +131,24 @@ Deno.serve(async (req) => {
         console.log('💳 DEBUG - Payment received, activating PRO for:', userEmail);
         console.log('📋 DEBUG - Plan Type:', planType, '| Price:', price, '| Valid until:', endDate ? endDate.toISOString().split('T')[0] : 'VITALÍCIO');
         
+        // Determinar auto_renew baseado no tipo de plano
+        const autoRenew = normalizedPlanType === 'monthly'; // Apenas mensal renova automaticamente
+        
         // Ativar assinatura PRO com limite ilimitado
         const subscriptionData = {
           plan: 'pro',
-          plan_type: planType,
-          status: 'active',
+          plan_type: normalizedPlanType,
+          status: normalizedPlanType === 'lifetime' ? 'lifetime' : 'active',
           payment_status: 'paid',
           payment_method: purchase?.payment?.type || 'hotmart',
-          payment_external_id: hotmartData.transaction_id,
+          payment_external_id: transactionId,
           price: price,
           daily_actions_limit: 999999,
           daily_actions_used: 0,
           last_reset_date: startDate.toISOString().split('T')[0],
           start_date: startDate.toISOString().split('T')[0],
           end_date: endDate ? endDate.toISOString().split('T')[0] : null,
-          next_billing_date: endDate ? endDate.toISOString().split('T')[0] : null,
+          next_billing_date: (autoRenew && endDate) ? endDate.toISOString().split('T')[0] : null,
           activated_at: new Date().toISOString(),
           ...hotmartData
         };
@@ -138,19 +163,69 @@ Deno.serve(async (req) => {
             ...subscriptionData
           });
         }
-        console.log('✅ DEBUG - PRO subscription activated:', planType === 'lifetime' ? 'VITALÍCIO (acesso permanente)' : `até ${endDate.toISOString().split('T')[0]}`);
+        console.log('✅ DEBUG - PRO subscription activated:', normalizedPlanType === 'lifetime' ? 'VITALÍCIO (acesso permanente)' : `até ${endDate.toISOString().split('T')[0]}`);
         
         // SINCRONIZAÇÃO: Atualizar User.entity também
         const userUpdateData = {
-            subscription_status: planType === 'lifetime' ? 'lifetime' : 'active',
-            subscription_type: planType,
+            subscription_status: normalizedPlanType === 'lifetime' ? 'lifetime' : 'active',
+            subscription_type: normalizedPlanType,
             subscription_start_date: startDate.toISOString(),
             subscription_end_date: endDate ? endDate.toISOString() : null,
-            is_lifetime: planType === 'lifetime'
+            is_lifetime: normalizedPlanType === 'lifetime'
         };
         
         await base44.asServiceRole.entities.User.update(user.id, userUpdateData);
         console.log('✅ DEBUG - User.entity sincronizado');
+        
+        // REGISTRAR TRANSAÇÃO
+        await base44.asServiceRole.entities.HotmartTransaction.create({
+          user_id: user.id,
+          subscription_id: existingSubs[0]?.id || null,
+          hotmart_transaction_id: transactionId,
+          plan_name: planType.toUpperCase(),
+          amount: price,
+          status: 'approved',
+          payment_method: purchase?.payment?.type || 'hotmart',
+          event_type: event,
+          hotmart_payload: JSON.stringify(payload),
+          processed_at: new Date().toISOString()
+        });
+        
+        // Enviar email de boas-vindas
+        try {
+          const planDisplayName = normalizedPlanType === 'lifetime' ? 'Vitalício' 
+            : normalizedPlanType === 'yearly' ? 'Anual' 
+            : 'Mensal';
+          
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: userEmail,
+            subject: `🎉 Assinatura ${planDisplayName} Ativada - Juris Pro`,
+            body: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #7c3aed;">Bem-vindo ao Juris Pro! 🚀</h2>
+                <p>Olá <strong>${buyer?.name || 'Usuário'}</strong>,</p>
+                <p>Sua assinatura <strong>${planDisplayName}</strong> foi ativada com sucesso!</p>
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p><strong>Plano:</strong> ${planDisplayName}</p>
+                  <p><strong>Valor:</strong> R$ ${price.toFixed(2)}</p>
+                  <p><strong>Status:</strong> ✅ Ativo</p>
+                  ${normalizedPlanType !== 'lifetime' ? `<p><strong>Válido até:</strong> ${endDate.toLocaleDateString('pt-BR')}</p>` : '<p><strong>Acesso:</strong> Vitalício (sem expiração)</p>'}
+                </div>
+                <p>Aproveite todos os recursos ilimitados da plataforma!</p>
+                <a href="${Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com'}/Dashboard" 
+                   style="display: inline-block; background: #7c3aed; color: white; padding: 12px 24px; 
+                          text-decoration: none; border-radius: 6px; margin-top: 20px;">
+                  Acessar Plataforma
+                </a>
+                <p style="margin-top: 30px; color: #666; font-size: 12px;">
+                  Se tiver dúvidas, entre em contato conosco.
+                </p>
+              </div>
+            `
+          });
+        } catch (emailError) {
+          console.error('Erro ao enviar email:', emailError);
+        }
         break;
 
       case 'PURCHASE_CANCELED':
