@@ -213,7 +213,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const isDark = theme === 'dark';
 
     const handleLogout = () => {
-      base44.auth.logout();
+      base44.auth.logout("/LandingPage");
     };
 
     // Public pages - no layout (always, even if logged in)
