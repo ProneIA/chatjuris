@@ -33,6 +33,7 @@ const InstallInstructionsDialog = React.lazy(() => import("@/components/common/I
 const PWAHead = React.lazy(() => import("@/components/common/PWAHead"));
 const ConsentModal = React.lazy(() => import("@/components/lgpd/ConsentModal"));
 const TrialWelcomeModal = React.lazy(() => import("@/components/subscription/TrialWelcomeModal"));
+import BottomNav from "@/components/mobile/BottomNav";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
