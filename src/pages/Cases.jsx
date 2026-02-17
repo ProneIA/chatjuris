@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import CaseCard from "@/components/cases/CaseCard";
 import { useDebounce } from "@/components/common/useDebounce";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Cases({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -219,16 +220,18 @@ export default function Cases({ theme = 'light' }) {
             </Button>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCases.map((caseItem) => (
-              <CaseCard
-                key={caseItem.id}
-                caseItem={caseItem}
-                onClick={() => navigate(createPageUrl("CaseDetails") + "?id=" + caseItem.id)}
-                theme={theme}
-              />
-            ))}
-          </div>
+          <PullToRefresh onRefresh={refetch} isDark={isDark}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCases.map((caseItem) => (
+                <CaseCard
+                  key={caseItem.id}
+                  caseItem={caseItem}
+                  onClick={() => navigate(createPageUrl("CaseDetails") + "?id=" + caseItem.id)}
+                  theme={theme}
+                />
+              ))}
+            </div>
+          </PullToRefresh>
         )}
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
