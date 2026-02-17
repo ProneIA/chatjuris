@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import BackNavigation from "../components/common/BackNavigation";
 import { createPageUrl } from "@/utils";
 import { useDebounce } from "@/components/common/useDebounce";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Tasks({ theme = 'light' }) {
   const isDark = theme === 'dark';
@@ -47,7 +48,7 @@ export default function Tasks({ theme = 'light' }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasks = [], isLoading, refetch: refetchTasks } = useQuery({
     queryKey: ['tasks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
@@ -482,6 +483,7 @@ export default function Tasks({ theme = 'light' }) {
 
       {/* Visualizações */}
       {viewMode === 'list' ? (
+        <PullToRefresh onRefresh={refetchTasks} isDark={isDark}>
         <div className="space-y-4">
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Tarefas ({filteredTasks.length})
@@ -606,6 +608,7 @@ export default function Tasks({ theme = 'light' }) {
             </div>
           )}
         </div>
+        </PullToRefresh>
       ) : (
         <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
           <CardHeader>
