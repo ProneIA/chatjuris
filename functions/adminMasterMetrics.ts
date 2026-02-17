@@ -49,7 +49,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Acesso negado. Apenas super administradores.' }, { status: 403 });
     }
 
-    const { section = 'overview' } = await req.json().catch(() => ({}));
+    let body = {};
+    try { body = await req.json(); } catch (_) {}
+    const section = body.section || 'overview';
 
     // Registrar log de acesso
     await base44.asServiceRole.entities.AdminMasterLog.create({
