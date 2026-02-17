@@ -60,6 +60,7 @@ const navigationItems = [
 
 const adminItems = [
   { title: "Admin Panel", url: createPageUrl("AdminPanel"), icon: Shield },
+  { title: "Admin Master", url: createPageUrl("AdminMaster"), icon: Shield },
   { title: "Banco de Dados", url: createPageUrl("AdminDatabase"), icon: Shield },
 ];
 
