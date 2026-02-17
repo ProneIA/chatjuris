@@ -7,6 +7,7 @@ import { Calendar, DollarSign, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 const areaColors = {
   civil: "bg-blue-100 text-blue-800",
@@ -35,7 +36,7 @@ const priorityColors = {
   urgent: "bg-red-100 text-red-700"
 };
 
-export default function CaseList({ cases, isLoading, onSelectCase, selectedCase, folders = [], onMoveToFolder }) {
+export default function CaseList({ cases, isLoading, onSelectCase, selectedCase, folders = [], onMoveToFolder, onRefresh, isDark }) {
   if (isLoading) {
     return (
       <div className="grid gap-4">
@@ -58,7 +59,7 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
     );
   }
 
-  return (
+  const content = (
     <div className="grid gap-4">
       {cases.map((caseItem) => {
         const isSelected = selectedCase?.id === caseItem.id;
@@ -135,4 +136,13 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
       })}
     </div>
   );
+
+  if (onRefresh) {
+    return (
+      <PullToRefresh onRefresh={onRefresh} isDark={isDark}>
+        {content}
+      </PullToRefresh>
+    );
+  }
+  return content;
 }
