@@ -51,6 +51,7 @@ import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
 import AccessDenied from './pages/AccessDenied';
 import AdminDatabase from './pages/AdminDatabase';
+import AdminMaster from './pages/AdminMaster';
 import AdminPanel from './pages/AdminPanel';
 import AdminSubscriptions from './pages/AdminSubscriptions';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
@@ -101,7 +102,7 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
-import AdminMaster from './pages/AdminMaster';
+import SystemAudit from './pages/SystemAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -110,6 +111,7 @@ export const PAGES = {
     "AboutUs": AboutUs,
     "AccessDenied": AccessDenied,
     "AdminDatabase": AdminDatabase,
+    "AdminMaster": AdminMaster,
     "AdminPanel": AdminPanel,
     "AdminSubscriptions": AdminSubscriptions,
     "AffiliatesDashboard": AffiliatesDashboard,
@@ -160,7 +162,7 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
-    "AdminMaster": AdminMaster,
+    "SystemAudit": SystemAudit,
 }
 
 export const pagesConfig = {
