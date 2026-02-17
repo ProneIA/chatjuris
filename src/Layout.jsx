@@ -33,8 +33,8 @@ const InstallInstructionsDialog = React.lazy(() => import("@/components/common/I
 const PWAHead = React.lazy(() => import("@/components/common/PWAHead"));
 const ConsentModal = React.lazy(() => import("@/components/lgpd/ConsentModal"));
 const TrialWelcomeModal = React.lazy(() => import("@/components/subscription/TrialWelcomeModal"));
-import BottomNav from "@/components/mobile/BottomNav";
 import { Button } from "@/components/ui/button";
+import BottomNavigation from "@/components/mobile/BottomNavigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -490,11 +490,14 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
       </AnimatePresence>
 
       {/* Bottom Navigation - Mobile only */}
-      <BottomNav onMenuOpen={() => setIsMobileMenuOpen(true)} />
+      {user && !publicPages.includes(currentPageName) && (
+        <div className="lg:hidden">
+          <BottomNavigation isDark={isDark} user={user} onLogout={handleLogout} />
+        </div>
+      )}
 
       {/* Main Content */}
-      {/* pb-16 = espaço para BottomNav no mobile */}
-      <main className="min-h-screen pt-14 lg:pl-64 pb-16 lg:pb-0">
+      <main className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
         {showBackButton && (
           <div className={`border-b ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
             <div className="px-6 py-3 flex items-center justify-between">
