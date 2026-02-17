@@ -532,9 +532,18 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             </div>
           </div>
         )}
-        <div className={`min-h-[calc(100vh-3.5rem)] ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-          {React.cloneElement(children, { theme })}
-        </div>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={currentPageName}
+            initial={{ x: 18, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -18, opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeInOut" }}
+            className={`min-h-[calc(100vh-3.5rem)] ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+          >
+            {React.cloneElement(children, { theme })}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Consent Modal */}
