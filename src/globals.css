@@ -72,6 +72,11 @@
     min-height: 44px;
     min-width: 44px;
   }
+  /* Prevent text selection on interactive elements */
+  button, a, [role="button"], nav, nav *, svg, [data-icon] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
