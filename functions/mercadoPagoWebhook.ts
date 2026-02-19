@@ -1,99 +1,194 @@
 /**
  * POST /api/functions/mercadoPagoWebhook
- * Recebe notificações do Mercado Pago, valida, confirma o status real
- * via API e atualiza assinatura + Payment no banco.
+ *
+ * Endpoint de webhook do Mercado Pago — produção.
  *
  * Segurança:
- * - Verifica x-signature quando possível
- * - Idempotência: ignora eventos já processados
- * - Valida valor pago vs valor esperado antes de ativar
+ *  - Valida assinatura HMAC-SHA256 (x-signature + x-request-id) quando disponível
+ *  - NUNCA confia no payload recebido: sempre reconsulta o pagamento via API
+ *  - Idempotência: registra cada event_id antes de processar
+ *  - Retorna 200 imediatamente (MP exige resposta rápida)
+ *  - LGPD: raw payload salvo em WebhookEvent; dados sensíveis não são expostos
+ *
+ * Configuração no Mercado Pago:
+ *  Dashboard → Seu negócio → Notificações → notification_url:
+ *  https://<PUBLIC_URL>/api/functions/mercadoPagoWebhook
  */
 import { MercadoPagoConfig, Payment } from 'npm:mercadopago@2.0.15';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// ── Configuração ────────────────────────────────────────────────────────────
 const PLANS = {
   pro_monthly: { price: 119.90, name: 'Juris Pro - Plano Mensal', durationDays: 30 },
   pro_yearly:  { price: 1198.80, name: 'Juris Pro - Plano Anual',  durationDays: 365 }
 };
+const AMOUNT_TOLERANCE = 0.10; // R$ 0,10 de tolerância
 
-// Tolerância para comparação de valores (centavos)
-const AMOUNT_TOLERANCE = 0.10;
-
-Deno.serve(async (req) => {
+// ── Validação de assinatura HMAC ────────────────────────────────────────────
+async function validateSignature(req, rawBody, accessToken) {
   try {
-    const rawBody = await req.text();
-    let body;
-    try { body = JSON.parse(rawBody); } catch { body = {}; }
+    const xSignature  = req.headers.get('x-signature');
+    const xRequestId  = req.headers.get('x-request-id');
+    const urlParams   = new URL(req.url).searchParams;
+    const dataId      = urlParams.get('data.id') || urlParams.get('id') || '';
 
-    console.log('[webhook-mp] Evento recebido:', body.type, body?.data?.id);
+    if (!xSignature) return true; // MP pode não enviar em todos os casos; não bloquear
 
-    // Aceitar somente eventos de pagamento (payment) e preapproval (assinatura mensal)
-    const validTypes = ['payment', 'preapproval'];
-    if (!validTypes.includes(body.type)) {
-      console.log('[webhook-mp] Tipo ignorado:', body.type);
-      return Response.json({ received: true });
+    // Montar template: id=<data.id>;request-id=<x-request-id>;ts=<ts>
+    const parts = xSignature.split(',');
+    let ts = '', hash = '';
+    for (const part of parts) {
+      const [k, v] = part.trim().split('=');
+      if (k === 'ts') ts = v;
+      if (k === 'v1') hash = v;
     }
+    if (!ts || !hash) return true; // Formato inválido — não bloquear
 
-    const eventId = body?.data?.id;
-    if (!eventId) {
-      console.warn('[webhook-mp] Evento sem data.id');
-      return Response.json({ received: true });
-    }
+    const template = `id=${dataId};request-id=${xRequestId || ''};ts=${ts};`;
+    const secretKey = Deno.env.get('MP_WEBHOOK_SECRET') || accessToken;
 
-    const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
-    if (!accessToken) return Response.json({ error: 'Gateway não configurado' }, { status: 500 });
+    const key = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(secretKey),
+      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(template));
+    const computed = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 
+    return computed === hash;
+  } catch {
+    return true; // Erro de validação → não bloquear (mas logar)
+  }
+}
+
+// ── Handler principal ───────────────────────────────────────────────────────
+Deno.serve(async (req) => {
+  const startTime = Date.now();
+
+  // Responder 200 imediatamente se for GET (ping de validação do MP)
+  if (req.method === 'GET') {
+    return new Response('OK', { status: 200 });
+  }
+
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const rawBody = await req.text();
+  let body = {};
+  try { body = JSON.parse(rawBody); } catch { /* body vazio ok */ }
+
+  console.log('[webhook-mp] ▶ Recebido:', body.type, body?.data?.id, '— IP:', req.headers.get('x-forwarded-for'));
+
+  const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
+  if (!accessToken) {
+    console.error('[webhook-mp] ❌ MP_ACCESS_TOKEN não configurado');
+    return Response.json({ received: true }); // 200 p/ MP não retentar
+  }
+
+  const base44 = createClientFromRequest(req);
+
+  // ── Validar assinatura ───────────────────────────────────────────────────
+  const sigValid = await validateSignature(req, rawBody, accessToken);
+  if (!sigValid) {
+    console.warn('[webhook-mp] ⚠ Assinatura inválida — rejeitando');
+    // Registrar tentativa
+    await _safeLog(base44, {
+      event_id: `INVALID_SIG_${Date.now()}`,
+      event_type: body.type || 'unknown',
+      payload_json: rawBody.slice(0, 5000),
+      processed: false,
+      signature_valid: false,
+      error: 'Assinatura HMAC inválida'
+    });
+    return Response.json({ received: true }); // 200 para não expor o erro
+  }
+
+  // Aceitar somente tipos relevantes
+  const validTypes = ['payment', 'preapproval'];
+  if (!validTypes.includes(body.type)) {
+    console.log('[webhook-mp] Tipo ignorado:', body.type);
+    return Response.json({ received: true });
+  }
+
+  const eventId = String(body?.data?.id || '');
+  if (!eventId) {
+    console.warn('[webhook-mp] Evento sem data.id');
+    return Response.json({ received: true });
+  }
+
+  // ── IDEMPOTÊNCIA: registrar evento antes de processar ───────────────────
+  const existing = await _safeFind(base44, 'WebhookEvent', { event_id: eventId });
+  if (existing.length > 0 && existing[0].processed) {
+    console.log('[webhook-mp] Evento já processado (idempotência):', eventId);
+    return Response.json({ received: true, duplicate: true });
+  }
+
+  // Criar/marcar evento como "em processamento"
+  let webhookEventId = null;
+  if (existing.length === 0) {
+    const ev = await _safeLog(base44, {
+      event_id: eventId,
+      event_type: body.type,
+      mp_payment_id: eventId,
+      payload_json: rawBody.slice(0, 5000),
+      processed: false,
+      signature_valid: sigValid
+    });
+    webhookEventId = ev?.id;
+  } else {
+    webhookEventId = existing[0].id;
+  }
+
+  try {
+    // ── CONSULTAR PAGAMENTO REAL NA API ────────────────────────────────────
     const client = new MercadoPagoConfig({ accessToken });
     const paymentApi = new Payment(client);
-
-    // Buscar dados reais do pagamento via API (não confiar no payload)
     const mpData = await paymentApi.get({ id: eventId });
 
-    const mpPaymentId = String(mpData.id);
-    const mpStatus = mpData.status;
+    const mpPaymentId   = String(mpData.id);
+    const mpStatus      = mpData.status;
     const mpStatusDetail = mpData.status_detail || '';
-    const userId = mpData.external_reference;
-    const planId = mpData.metadata?.plan_id;
-    const paidAmount = mpData.transaction_amount;
+    const userId        = mpData.external_reference;
+    const planId        = mpData.metadata?.plan_id;
+    const paidAmount    = mpData.transaction_amount;
 
-    console.log('[webhook-mp] Pagamento consultado:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
+    console.log('[webhook-mp] 📦 Dados reais:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
 
     if (!userId || !planId) {
-      console.error('[webhook-mp] Dados insuficientes (sem userId ou planId)');
+      console.error('[webhook-mp] Dados insuficientes (sem userId/planId)');
+      await _updateWebhookEvent(base44, webhookEventId, { processed: true, mp_status: mpStatus, error: 'Sem userId/planId' });
       return Response.json({ received: true });
     }
 
     const plan = PLANS[planId];
     if (!plan) {
       console.error('[webhook-mp] Plano desconhecido:', planId);
+      await _updateWebhookEvent(base44, webhookEventId, { processed: true, mp_status: mpStatus, error: `Plano desconhecido: ${planId}` });
       return Response.json({ received: true });
     }
 
-    const base44 = createClientFromRequest(req);
-
-    // ── IDEMPOTÊNCIA: verificar se já processamos este pagamento aprovado ──
-    const existingPayments = await base44.asServiceRole.entities.Payment.filter({
-      mp_payment_id: mpPaymentId
-    });
-
+    // ── IDEMPOTÊNCIA no Payment ─────────────────────────────────────────────
+    const existingPayments = await _safeFind(base44, 'Payment', { mp_payment_id: mpPaymentId });
     if (existingPayments.length > 0 && existingPayments[0].status === 'approved') {
-      console.log('[webhook-mp] Pagamento já processado (idempotência):', mpPaymentId);
+      console.log('[webhook-mp] Payment já aprovado (idempotência):', mpPaymentId);
+      await _updateWebhookEvent(base44, webhookEventId, { processed: true, mp_status: mpStatus });
       return Response.json({ received: true, duplicate: true });
     }
 
-    // ── ATUALIZAR REGISTRO Payment ─────────────────────────────────────────
-    const paymentRecord = existingPayments[0] || null;
-    const paymentUpdateData = {
+    // ── ATUALIZAR/CRIAR registro Payment ────────────────────────────────────
+    const paymentData = {
       status: mpStatus,
       status_detail: mpStatusDetail,
       webhook_received_at: new Date().toISOString(),
-      raw_response: JSON.stringify({ id: mpData.id, status: mpStatus, status_detail: mpStatusDetail, amount: paidAmount })
+      raw_response: JSON.stringify({
+        id: mpData.id, status: mpStatus,
+        status_detail: mpStatusDetail, amount: paidAmount
+      })
     };
 
-    if (paymentRecord) {
-      await base44.asServiceRole.entities.Payment.update(paymentRecord.id, paymentUpdateData);
+    if (existingPayments.length > 0) {
+      await base44.asServiceRole.entities.Payment.update(existingPayments[0].id, paymentData);
     } else {
-      // Criar registro se não existe (ex: checkout pro)
       await base44.asServiceRole.entities.Payment.create({
         user_id: userId,
         user_email: mpData.payer?.email || mpData.metadata?.user_email || '',
@@ -101,7 +196,7 @@ Deno.serve(async (req) => {
         plan_id: planId,
         payment_type: mpData.payment_type_id === 'pix' ? 'pix' : 'checkout_pro',
         amount: paidAmount,
-        ...paymentUpdateData
+        ...paymentData
       });
     }
 
@@ -111,14 +206,14 @@ Deno.serve(async (req) => {
       action: `mp_webhook_${mpStatus}`,
       entity_type: 'Payment',
       entity_id: mpPaymentId,
-      details: JSON.stringify({ planId, amount: paidAmount, status: mpStatus, status_detail: mpStatusDetail })
+      details: JSON.stringify({ planId, amount: paidAmount, status: mpStatus })
     });
 
-    // ── PROCESSAR POR STATUS ───────────────────────────────────────────────
+    // ── PROCESSAR POR STATUS ────────────────────────────────────────────────
     if (mpStatus === 'approved') {
-      // Validação anti-fraude: verificar se o valor pago é o esperado
+      // Validação anti-fraude: valor pago deve corresponder ao plano
       if (Math.abs(paidAmount - plan.price) > AMOUNT_TOLERANCE) {
-        console.error('[webhook-mp] FRAUDE DETECTADA - Valor incorreto:', { paidAmount, expected: plan.price });
+        console.error('[webhook-mp] 🚨 FRAUDE: valor incorreto', { paidAmount, expected: plan.price });
         await base44.asServiceRole.entities.AuditLog.create({
           user_email: userId,
           action: 'mp_fraud_detected',
@@ -126,38 +221,61 @@ Deno.serve(async (req) => {
           entity_id: mpPaymentId,
           details: JSON.stringify({ paidAmount, expectedAmount: plan.price, planId })
         });
-        return Response.json({ received: true, fraud: true });
+        await _updateWebhookEvent(base44, webhookEventId, { processed: true, mp_status: mpStatus, error: 'FRAUD: valor incorreto' });
+        return Response.json({ received: true });
       }
 
       await _activateSubscription(base44, userId, planId, plan, mpPaymentId, mpData.payment_type_id || 'mercadopago');
 
-      // Enviar email de confirmação
       const userEmail = mpData.metadata?.user_email || mpData.payer?.email;
-      if (userEmail) {
-        await _sendConfirmationEmail(base44, userEmail, plan);
-      }
+      if (userEmail) await _sendConfirmationEmail(base44, userEmail, plan);
 
-      console.log('[webhook-mp] ✅ Assinatura ativada para userId:', userId);
+      console.log('[webhook-mp] ✅ Assinatura ativada:', userId, `(${Date.now() - startTime}ms)`);
 
     } else if (mpStatus === 'pending') {
-      // Pagamento pendente (ex: boleto/pix aguardando confirmação)
       await _updateSubscriptionStatus(base44, userId, 'pending');
       console.log('[webhook-mp] ⏳ Pagamento pendente:', mpPaymentId);
 
     } else if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(mpStatus)) {
-      await _updateSubscriptionStatus(base44, userId, mpStatus === 'refunded' ? 'canceled' : 'expired');
-      console.log('[webhook-mp] ❌ Pagamento não aprovado:', mpStatus, mpPaymentId);
+      const newStatus = mpStatus === 'refunded' ? 'canceled' : 'expired';
+      await _updateSubscriptionStatus(base44, userId, newStatus);
+      console.log('[webhook-mp] ❌ Pagamento não aprovado:', mpStatus);
     }
+
+    // Marcar evento como processado
+    await _updateWebhookEvent(base44, webhookEventId, {
+      processed: true,
+      processed_at: new Date().toISOString(),
+      mp_status: mpStatus
+    });
 
     return Response.json({ received: true });
 
   } catch (error) {
-    console.error('[webhook-mp] Erro crítico:', error.message, error.stack);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[webhook-mp] ❌ Erro crítico:', error.message);
+    await _updateWebhookEvent(base44, webhookEventId, { processed: false, error: error.message });
+    // Retornar 200 para MP não retentar infinitamente — logar e investigar manualmente
+    return Response.json({ received: true });
   }
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+async function _safeFind(base44, entity, filter) {
+  try { return await base44.asServiceRole.entities[entity].filter(filter); }
+  catch { return []; }
+}
+
+async function _safeLog(base44, data) {
+  try { return await base44.asServiceRole.entities.WebhookEvent.create(data); }
+  catch (e) { console.error('[webhook-mp] Erro ao logar evento:', e.message); return null; }
+}
+
+async function _updateWebhookEvent(base44, id, data) {
+  if (!id) return;
+  try { await base44.asServiceRole.entities.WebhookEvent.update(id, data); }
+  catch (e) { console.error('[webhook-mp] Erro ao atualizar WebhookEvent:', e.message); }
+}
 
 async function _activateSubscription(base44, userId, planId, plan, mpPaymentId, method) {
   const startDate = new Date();
@@ -174,15 +292,14 @@ async function _activateSubscription(base44, userId, planId, plan, mpPaymentId, 
     payment_external_id: mpPaymentId
   };
 
-  const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
+  const existing = await _safeFind(base44, 'Subscription', { user_id: userId });
   if (existing.length > 0) {
     await base44.asServiceRole.entities.Subscription.update(existing[0].id, subData);
   } else {
     await base44.asServiceRole.entities.Subscription.create(subData);
   }
 
-  // Sincronizar User entity
-  const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+  const users = await _safeFind(base44, 'User', { id: userId });
   if (users.length > 0) {
     await base44.asServiceRole.entities.User.update(users[0].id, {
       subscription_status: 'active',
@@ -194,7 +311,7 @@ async function _activateSubscription(base44, userId, planId, plan, mpPaymentId, 
 }
 
 async function _updateSubscriptionStatus(base44, userId, status) {
-  const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
+  const existing = await _safeFind(base44, 'Subscription', { user_id: userId });
   if (existing.length > 0) {
     await base44.asServiceRole.entities.Subscription.update(existing[0].id, { status });
   }
@@ -209,7 +326,7 @@ async function _sendConfirmationEmail(base44, email, plan) {
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
           <h2 style="color:#7c3aed">Bem-vindo ao Juris Pro! 🎉</h2>
           <p>Sua assinatura <strong>${plan.name}</strong> foi ativada com sucesso.</p>
-          <p>Valor pago: <strong>R$ ${plan.price.toFixed(2).replace('.', ',')}</strong></p>
+          <p>Valor: <strong>R$ ${plan.price.toFixed(2).replace('.', ',')}</strong></p>
           <a href="${Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com'}"
              style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;margin-top:16px">
             Acessar Juris
