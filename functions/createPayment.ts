@@ -21,7 +21,10 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Não autenticado' }, { status: 401 });
 
     const body = await req.json();
-    const { planId, paymentType, cardToken, installments = 1, payerDoc, payerName, deviceId } = body;
+    const {
+      planId, paymentType, cardToken, installments = 1, payerDoc,
+      payerFirstName, payerLastName, deviceId
+    } = body;
 
     // Validações básicas
     if (!planId || !paymentType) {
@@ -52,11 +55,6 @@ Deno.serve(async (req) => {
     // Idempotency key: evita cobranças duplicadas em retries
     const idempotencyKey = `${user.id}-${planId}-${paymentType}-${Date.now()}`;
 
-    // Extrair e sanitizar nome/sobrenome
-    const sanitize = (s) => String(s || "").trim().replace(/[<>]/g, "");
-    const firstName = sanitize(payerName?.firstName || user.full_name?.split(" ")[0] || "");
-    const lastName  = sanitize(payerName?.lastName  || user.full_name?.split(" ").slice(1).join(" ") || "");
-
     const basePayload = {
       transaction_amount: plan.price,
       description: plan.name,
@@ -67,15 +65,8 @@ Deno.serve(async (req) => {
         plan_id: planId,
         idempotency_key: idempotencyKey
       },
-      payer: {
-        email: user.email,
-        ...(firstName && { first_name: firstName }),
-        ...(lastName  && { last_name: lastName })
-      }
+      payer: { email: user.email }
     };
-
-    // Device ID para antifraude (gerado pelo SDK V2 no frontend)
-    if (deviceId) basePayload.additional_info = { ...(basePayload.additional_info || {}), device_id: deviceId };
 
     if (notificationUrl) basePayload.notification_url = notificationUrl;
 
@@ -136,10 +127,7 @@ Deno.serve(async (req) => {
       };
 
       if (payerDoc?.type && payerDoc?.number) {
-        cardPayload.payer = {
-          ...cardPayload.payer,
-          identification: { type: payerDoc.type, number: payerDoc.number }
-        };
+        cardPayload.payer.identification = { type: payerDoc.type, number: payerDoc.number };
       }
 
       console.log('[createPayment] Criando pagamento cartão para', user.email, planId);
