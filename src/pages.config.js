@@ -103,6 +103,7 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
+import LGPDAudit from './pages/LGPDAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -163,6 +164,7 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
+    "LGPDAudit": LGPDAudit,
 }
 
 export const pagesConfig = {
