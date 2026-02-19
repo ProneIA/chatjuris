@@ -10,12 +10,20 @@ export default function PWAHead() {
       mpScript.src = 'https://sdk.mercadopago.com/js/v2';
       mpScript.async = true;
       mpScript.onload = () => {
-        // Inicializar MP para gerar Device ID automaticamente
-        const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY || window.__MP_PUBLIC_KEY__;
-        if (publicKey && window.MercadoPago) {
-          window._mpInstance = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
-          console.log('[MP] SDK V2 inicializado - Device ID ativo');
-        }
+        // Buscar public key do backend para inicializar Device ID antifraude
+        fetch('/api/functions/getMercadoPagoKeys', { credentials: 'include' })
+          .then(r => r.json())
+          .then(data => {
+            const publicKey = data?.publicKey;
+            if (publicKey && window.MercadoPago) {
+              window._mpInstance = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
+              window.__MP_PUBLIC_KEY__ = publicKey;
+              console.log('[MP] SDK V2 inicializado - Device ID ativo');
+            }
+          })
+          .catch(() => {
+            // Silencioso - o CardForm fará sua própria inicialização
+          });
       };
       document.head.appendChild(mpScript);
     }
