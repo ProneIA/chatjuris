@@ -77,8 +77,8 @@ Deno.serve(async (req) => {
         zip_code: '01311100',
         street_name: 'Avenida Paulista',
         street_number: '1000',
-        city_name: 'São Paulo',
-        state_name: 'SP'
+        city: 'São Paulo',
+        state: 'SP'
       }
     };
 
@@ -97,8 +97,6 @@ Deno.serve(async (req) => {
       // ✅ Additional Info - OBRIGATÓRIO para qualidade
       additional_info: {
         ip_address: req.headers.get('x-forwarded-for') || '127.0.0.1',
-        user_agent: req.headers.get('user-agent') || 'Test-Agent/1.0',
-        device_id: deviceId, // ✅ Antifraude
         
         // ✅ Items (detalhes do produto)
         items: [
@@ -117,8 +115,7 @@ Deno.serve(async (req) => {
         payer: {
           first_name: payer.first_name,
           last_name: payer.last_name,
-          registration_date: new Date().toISOString(),
-          device_id: deviceId
+          registration_date: new Date().toISOString()
         },
 
         // ✅ Shipments (mesmo que digital, MP gosta)
@@ -127,8 +124,8 @@ Deno.serve(async (req) => {
             zip_code: payer.address.zip_code,
             street_name: payer.address.street_name,
             street_number: payer.address.street_number,
-            city_name: payer.address.city_name,
-            state_name: payer.address.state_name
+            city: payer.address.city,
+            state: payer.address.state
           }
         }
       },
