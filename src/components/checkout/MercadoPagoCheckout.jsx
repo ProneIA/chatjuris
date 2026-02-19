@@ -102,19 +102,25 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     setError(null);
     setCardResult(null);
 
-    // Tokenizar com SDK MP (se disponível no window) ou enviar direto
-    try {
-      // Carregar SDK MP se necessário
-      if (!window.MercadoPago) {
-        await loadMpSdk();
-      }
+    // Validar nome e sobrenome
+    const firstName = cardForm.firstName.trim();
+    const lastName = cardForm.lastName.trim();
+    if (!firstName || !lastName) {
+      setError("Informe nome e sobrenome do titular.");
+      setLoading(false);
+      return;
+    }
 
-      const mp = new window.MercadoPago(await getMpPublicKey());
+    try {
+      // Usar instância MP já inicializada pelo hook (tem Device ID ativo)
+      const mpInstance = mp || window._mpInstance;
+      if (!mpInstance) throw new Error("SDK Mercado Pago não inicializado");
+
       const [expMonth, expYear] = cardForm.expiry.split("/");
 
-      const tokenResult = await mp.createCardToken({
+      const tokenResult = await mpInstance.createCardToken({
         cardNumber: cardForm.cardNumber.replace(/\s/g, ""),
-        cardholderName: cardForm.holderName,
+        cardholderName: `${firstName} ${lastName}`,
         cardExpirationMonth: expMonth?.trim(),
         cardExpirationYear: `20${expYear?.trim()}`,
         securityCode: cardForm.cvv,
@@ -129,7 +135,11 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
         paymentType: "credit_card",
         cardToken: tokenResult.id,
         installments: Number(cardForm.installments),
-        payerDoc: { type: "CPF", number: cardForm.cpf.replace(/\D/g, "") }
+        // Antifraude: nome, sobrenome e Device ID
+        payerFirstName: firstName,
+        payerLastName: lastName,
+        payerDoc: { type: "CPF", number: cardForm.cpf.replace(/\D/g, "") },
+        deviceId: deviceId || window.__MP_DEVICE_ID__ || null
       });
 
       const data = res.data;
