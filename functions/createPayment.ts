@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     const basePayload = {
       transaction_amount: plan.price,
-      description: plan.name,
+      description: `${plan.name} - Juris IA`,
       external_reference: user.id,
       metadata: {
         user_id: user.id,
@@ -72,11 +72,31 @@ Deno.serve(async (req) => {
       },
       payer: {
         email: user.email,
-        first_name: firstName,  // Obrigatório para antifraude
-        last_name: lastName     // Obrigatório para antifraude
+        first_name: firstName,
+        last_name: lastName
       },
-      // Device ID antifraude (gerado pelo SDK MP V2 no frontend)
-      ...(deviceId && { additional_info: { device_id: deviceId } })
+      // Items obrigatórios para antifraude e conformidade MP
+      items: [
+        {
+          id: planId,
+          title: plan.name,
+          description: `Assinatura ${plan.name} - Plataforma Juris IA para advogados`,
+          category_id: 'digital_goods',
+          quantity: 1,
+          unit_price: plan.price,
+          currency_id: 'BRL'
+        }
+      ],
+      // Additional info antifraude
+      additional_info: {
+        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
+        payer: {
+          first_name: firstName,
+          last_name: lastName,
+          registration_date: new Date().toISOString()
+        },
+        ...(deviceId && { device_id: deviceId })
+      }
     };
 
     if (notificationUrl) basePayload.notification_url = notificationUrl;
