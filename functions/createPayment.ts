@@ -75,21 +75,20 @@ Deno.serve(async (req) => {
         first_name: firstName,
         last_name: lastName
       },
-      // Items obrigatórios para antifraude e conformidade MP
-      items: [
-        {
-          id: planId,
-          title: plan.name,
-          description: `Assinatura ${plan.name} - Plataforma Juris IA para advogados`,
-          category_id: 'digital_goods',
-          quantity: 1,
-          unit_price: plan.price,
-          currency_id: 'BRL'
-        }
-      ],
-      // Additional info antifraude
+      // additional_info: items + payer + ip (antifraude obrigatório)
       additional_info: {
         ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
+        items: [
+          {
+            id: planId,
+            title: plan.name,
+            description: `Assinatura ${plan.name} - Plataforma Juris IA`,
+            category_id: 'digital_goods',
+            quantity: 1,
+            unit_price: plan.price,
+            currency_id: 'BRL'
+          }
+        ],
         payer: {
           first_name: firstName,
           last_name: lastName,
