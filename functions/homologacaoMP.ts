@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
       mp_payment_id: String(mpData.id),
       plan_id: 'pro_monthly',
       payment_type: 'pix',
-      amount: 2.00,
+      amount: amount,
       status: mpData.status === 'approved' ? 'approved' : 'pending',
       status_detail: mpData.status_detail,
       pix_qr_code_text: mpData.point_of_interaction?.transaction_data?.qr_code || null,
