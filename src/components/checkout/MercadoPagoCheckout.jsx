@@ -154,21 +154,6 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     }
   };
 
-  const loadMpSdk = () => new Promise((resolve, reject) => {
-    if (document.getElementById("mp-sdk")) return resolve();
-    const s = document.createElement("script");
-    s.id = "mp-sdk";
-    s.src = "https://sdk.mercadopago.com/js/v2";
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-
-  const getMpPublicKey = async () => {
-    const res = await base44.functions.invoke("getMercadoPagoKeys");
-    return res.data?.publicKey || "";
-  };
-
   const formatCard = (v) => v.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim().slice(0, 19);
   const formatExpiry = (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").slice(0, 5);
   const formatCpf = (v) => v.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
