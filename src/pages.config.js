@@ -104,6 +104,7 @@ import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
 import LGPDAudit from './pages/LGPDAudit';
+import LGPDCompliance from './pages/LGPDCompliance';
 import __Layout from './Layout.jsx';
 
 
@@ -165,6 +166,7 @@ export const PAGES = {
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
     "LGPDAudit": LGPDAudit,
+    "LGPDCompliance": LGPDCompliance,
 }
 
 export const pagesConfig = {
