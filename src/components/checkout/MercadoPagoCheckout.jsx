@@ -47,7 +47,9 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     try {
       const res = await base44.functions.invoke("createPayment", {
         planId,
-        paymentType: "pix"
+        paymentType: "pix",
+        // Antifraude: Device ID gerado pelo SDK MP V2
+        deviceId: deviceId || window.__MP_DEVICE_ID__ || null
       });
       const data = res.data;
       if (data.pix) {
