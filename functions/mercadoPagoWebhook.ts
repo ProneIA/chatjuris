@@ -219,10 +219,10 @@ Deno.serve(async (req) => {
 
     if (existingPayments.length > 0) {
       await base44.asServiceRole.entities.Payment.update(existingPayments[0].id, paymentData);
-    } else {
+    } else if (!isPreapproval && userId) {
       await base44.asServiceRole.entities.Payment.create({
         user_id: userId,
-        user_email: mpData.payer?.email || mpData.metadata?.user_email || '',
+        user_email: userEmail || mpData.payer?.email || '',
         mp_payment_id: mpPaymentId,
         plan_id: planId,
         payment_type: mpData.payment_type_id === 'pix' ? 'pix' : 'checkout_pro',
