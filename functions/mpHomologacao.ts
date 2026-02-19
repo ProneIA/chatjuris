@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
           number: cpfTeste
         }
       },
-      notification_url: `${publicUrl}/api/functions/mercadoPagoWebhook`,
+      notification_url: 'https://chatjuris.com/api/functions/mercadoPagoWebhook',
       // Metadados que contam para qualidade da integração
       metadata: {
         integrator: 'juris-plataforma',
