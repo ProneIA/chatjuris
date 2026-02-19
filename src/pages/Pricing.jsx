@@ -123,15 +123,8 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Redirecionar para links de assinatura Mercado Pago
-    const mpLinks = {
-      pro_monthly: "https://mpago.la/2PgvKS6",
-      pro_yearly: "https://mpago.li/2dKTAjE"
-    };
-
-    if (mpLinks[planId]) {
-      window.open(mpLinks[planId], '_blank');
-    }
+    // Abrir modal de checkout
+    window.location.href = createPageUrl('Checkout') + '?plan=' + planId;
   };
 
   // Verificar se há um plano selecionado após login
