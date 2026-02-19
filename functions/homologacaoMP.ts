@@ -30,6 +30,10 @@ Deno.serve(async (req) => {
     // Garantir URL válida: https://dominio.com (sem barra final)
     const publicUrl = rawPublicUrl.replace(/\/$/, '').trim();
 
+    // ── Extrair valor do body ou usar padrão ──────────────────────────────────
+    const body = await req.json().catch(() => ({}));
+    const amount = body.amount || 2.00;
+
     // ── Gerar chaves únicas para esta requisição ──────────────────────────────
     const idempotencyKey = crypto.randomUUID();
     const requestId      = crypto.randomUUID();
@@ -44,8 +48,8 @@ Deno.serve(async (req) => {
 
     // ── Payload completo conforme boas práticas MP ────────────────────────────
     const payload = {
-      transaction_amount: 2.00,
-      description: "Teste de Homologação API",
+      transaction_amount: amount,
+      description: `Teste de Homologação API - R$ ${amount.toFixed(2)}`,
       payment_method_id: "pix",
       ...(webhookUrl ? { notification_url: webhookUrl } : {}),
       external_reference: externalRef,
@@ -65,11 +69,11 @@ Deno.serve(async (req) => {
         ip_address: req.headers.get('x-forwarded-for') || '127.0.0.1',
         items: [{
           id: "HOMOLOG_TEST",
-          title: "Teste de Homologação API",
+          title: `Teste de Homologação API - R$ ${amount.toFixed(2)}`,
           description: "Teste de qualidade de integração Mercado Pago",
           category_id: "digital_goods",
           quantity: 1,
-          unit_price: 2.00
+          unit_price: amount
         }],
         payer: {
           first_name: user.full_name?.split(' ')[0] || "Admin",
