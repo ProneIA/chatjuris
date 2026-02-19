@@ -37,16 +37,6 @@ const availablePlans = [
     planType: "annual",
     popular: true
   },
-  {
-    id: "lifetime",
-    name: "Vitalício",
-    price: 1299.90,
-    period: "à vista",
-    icon: Star,
-    color: "amber",
-    description: "Pague uma vez, use para sempre",
-    planType: "lifetime"
-  }
 ];
 
 const colorMap = {
@@ -117,7 +107,7 @@ export default function AvailablePlansSection({
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 gap-4">
           {availablePlans.map((plan) => {
             const Icon = plan.icon;
             const colors = colorMap[plan.color];
