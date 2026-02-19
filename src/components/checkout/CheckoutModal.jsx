@@ -37,7 +37,7 @@ export default function CheckoutModal({ open, onClose, plan, userEmail }) {
       period: "/ano",
       monthly: "R$ 99,90/mês",
       discount: "17% de economia",
-      checkout: "https://pay.hotmart.com/T104226080W",
+      checkout: "",
       features: [
         "Tudo do plano mensal",
         "2 meses grátis no plano anual",
