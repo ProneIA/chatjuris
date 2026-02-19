@@ -110,11 +110,13 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
   }
 
-  const eventId = String(body?.data?.id || '');
+  const eventId = String(body?.data?.id || body?.action || '');
   if (!eventId) {
-    console.warn('[webhook-mp] Evento sem data.id');
+    console.warn('[webhook-mp] Evento sem data.id ou action');
     return Response.json({ received: true });
   }
+
+  const isPreapproval = body.type === 'preapproval';
 
   // ── IDEMPOTÊNCIA: registrar evento antes de processar ───────────────────
   const existing = await _safeFind(base44, 'WebhookEvent', { event_id: eventId });
