@@ -2,6 +2,24 @@ import React, { useEffect } from "react";
 
 export default function PWAHead() {
   useEffect(() => {
+    // ── MercadoPago SDK V2 (Device ID antifraude) ──────────────────────────
+    // PUBLIC KEY apenas no frontend - Access Token NUNCA exposto aqui
+    if (!document.getElementById('mp-sdk-v2')) {
+      const mpScript = document.createElement('script');
+      mpScript.id = 'mp-sdk-v2';
+      mpScript.src = 'https://sdk.mercadopago.com/js/v2';
+      mpScript.async = true;
+      mpScript.onload = () => {
+        // Inicializar MP para gerar Device ID automaticamente
+        const publicKey = import.meta.env.VITE_MP_PUBLIC_KEY || window.__MP_PUBLIC_KEY__;
+        if (publicKey && window.MercadoPago) {
+          window._mpInstance = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
+          console.log('[MP] SDK V2 inicializado - Device ID ativo');
+        }
+      };
+      document.head.appendChild(mpScript);
+    }
+
     // Inject manifest dynamically
     const manifestData = {
       name: "JURIS - Gestão Jurídica",
