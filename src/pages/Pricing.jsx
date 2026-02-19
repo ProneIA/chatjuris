@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users, Sparkles, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
@@ -77,10 +76,7 @@ const testimonials = [
 ];
 
 export default function Pricing({ theme = 'light' }) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
-
   const [trialDaysLeft, setTrialDaysLeft] = React.useState(0);
 
   React.useEffect(() => {
