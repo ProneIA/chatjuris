@@ -206,7 +206,6 @@ async function _activateSubscription(base44, user, planId, plan, mpPaymentId, me
   }
 
   // Atualizar user entity
-  await base44.asServiceRole.integrations.Core.InvokeLLM; // noop, just ensuring import ok
   const users = await base44.asServiceRole.entities.User.filter({ id: user.id });
   if (users.length > 0) {
     await base44.asServiceRole.entities.User.update(users[0].id, {
