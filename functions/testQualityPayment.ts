@@ -106,28 +106,9 @@ Deno.serve(async (req) => {
             description: 'Pagamento de teste para validar qualidade da integração',
             category_id: 'digital_goods',
             quantity: 1,
-            unit_price: 2.00,
-            picture_url: `${publicUrl}/logo.png`
+            unit_price: 2.00
           }
-        ],
-
-        // ✅ Payer Info (duplicado deliberadamente para rastreamento)
-        payer: {
-          first_name: payer.first_name,
-          last_name: payer.last_name,
-          registration_date: new Date().toISOString()
-        },
-
-        // ✅ Shipments (mesmo que digital, MP gosta)
-        shipments: {
-          receiver_address: {
-            zip_code: payer.address.zip_code,
-            street_name: payer.address.street_name,
-            street_number: payer.address.street_number,
-            city: payer.address.city,
-            state: payer.address.state
-          }
-        }
+        ]
       },
 
       // ✅ Webhook configurado
