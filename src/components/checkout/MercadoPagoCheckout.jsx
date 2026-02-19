@@ -1,8 +1,12 @@
 /**
- * Componente de checkout com suporte a Pix e Cartão de Crédito via Mercado Pago.
- * Uso: <MercadoPagoCheckout planId="pro_monthly" onSuccess={() => ...} />
+ * MercadoPagoCheckout
+ * - Carrega SDK MercadoPago.js V2 (gera Device ID automático para antifraude)
+ * - Suporte a Pix e Cartão de Crédito
+ * - Envia first_name, last_name e device_id ao backend
+ * - PUBLIC KEY fica apenas no frontend (via getMercadoPagoKeys)
+ * - ACCESS TOKEN fica apenas no backend (createPayment)
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,10 +19,38 @@ const PLANS = {
   pro_yearly:  { name: "Plano Anual",  price: "R$ 1.198,80/ano" }
 };
 
+// Carrega o SDK MercadoPago.js V2 e resolve com a instância mp
+function loadMpSdk(publicKey) {
+  return new Promise((resolve, reject) => {
+    const init = () => {
+      // O SDK V2 injeta window.MercadoPago e gera o device ID automaticamente
+      const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
+      resolve(mp);
+    };
+
+    if (window.MercadoPago) return init();
+
+    if (document.getElementById("mp-sdk-v2")) {
+      // Script já está carregando, aguardar
+      document.getElementById("mp-sdk-v2").addEventListener("load", init);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "mp-sdk-v2";
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.onload = init;
+    script.onerror = () => reject(new Error("Falha ao carregar SDK MercadoPago"));
+    document.head.appendChild(script);
+  });
+}
+
 export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
   const [tab, setTab] = useState("pix");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mpInstance, setMpInstance] = useState(null);
+  const [deviceId, setDeviceId] = useState("");
 
   // Pix state
   const [pixData, setPixData] = useState(null);
@@ -27,11 +59,49 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
 
   // Card state
   const [cardForm, setCardForm] = useState({
-    cardNumber: "", expiry: "", cvv: "", holderName: "", cpf: "", installments: 1
+    cardNumber: "", expiry: "", cvv: "",
+    holderName: "", firstName: "", lastName: "",
+    cpf: "", installments: 1
   });
   const [cardResult, setCardResult] = useState(null);
 
   const plan = PLANS[planId];
+
+  // ── Inicializar SDK e capturar Device ID ──────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await base44.functions.invoke("getMercadoPagoKeys");
+        const publicKey = res.data?.publicKey;
+        if (!publicKey || cancelled) return;
+
+        const mp = await loadMpSdk(publicKey);
+        if (cancelled) return;
+        setMpInstance(mp);
+
+        // O SDK V2 adiciona automaticamente um cookie/header com device_id.
+        // Capturamos via getDeviceId() se disponível, senão lemos o cookie mp_device_session_id.
+        if (typeof mp.getDeviceId === "function") {
+          const did = mp.getDeviceId();
+          setDeviceId(did || "");
+        } else {
+          // fallback: ler cookie gerado pelo SDK
+          const match = document.cookie.match(/mp_device_session_id=([^;]+)/);
+          if (match) setDeviceId(match[1]);
+        }
+      } catch (e) {
+        console.warn("[MP] Falha ao inicializar SDK:", e.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Helpers de formatação ─────────────────────────────────────────────────
+  const formatCard   = (v) => v.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim().slice(0, 19);
+  const formatExpiry = (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").slice(0, 5);
+  const formatCpf    = (v) => v.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
+  const sanitize     = (s) => String(s || "").trim().replace(/[<>]/g, "");
 
   // ── PIX ──────────────────────────────────────────────────────────────────
   const handleGeneratePix = async () => {
@@ -41,14 +111,15 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     try {
       const res = await base44.functions.invoke("createPayment", {
         planId,
-        paymentType: "pix"
+        paymentType: "pix",
+        deviceId: deviceId || undefined
       });
       const data = res.data;
       if (data.pix) {
         setPixData({ ...data.pix, paymentId: data.paymentId });
         startPixPolling(data.paymentId);
       } else {
-        setError("Não foi possível gerar o Pix. Tente novamente.");
+        setError(data.error || "Não foi possível gerar o Pix. Tente novamente.");
       }
     } catch (e) {
       setError(e.message || "Erro ao gerar Pix.");
@@ -65,11 +136,10 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     setTimeout(() => setPixCopied(false), 3000);
   };
 
-  // Polling: verificar se pagamento Pix foi confirmado
   const startPixPolling = (paymentId) => {
     setPixPolling(true);
     let attempts = 0;
-    const MAX = 60; // ~10 minutos (10s interval)
+    const MAX = 60;
     const interval = setInterval(async () => {
       attempts++;
       try {
@@ -94,34 +164,44 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
     setError(null);
     setCardResult(null);
 
-    // Tokenizar com SDK MP (se disponível no window) ou enviar direto
-    try {
-      // Carregar SDK MP se necessário
-      if (!window.MercadoPago) {
-        await loadMpSdk();
-      }
+    // Validar nome e sobrenome
+    const firstName = sanitize(cardForm.firstName);
+    const lastName  = sanitize(cardForm.lastName);
 
-      const mp = new window.MercadoPago(await getMpPublicKey());
+    if (!firstName || !lastName) {
+      setError("Informe o nome e o sobrenome do titular do cartão.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const mp = mpInstance || await (async () => {
+        const res = await base44.functions.invoke("getMercadoPagoKeys");
+        return loadMpSdk(res.data?.publicKey);
+      })();
+
       const [expMonth, expYear] = cardForm.expiry.split("/");
 
       const tokenResult = await mp.createCardToken({
-        cardNumber: cardForm.cardNumber.replace(/\s/g, ""),
-        cardholderName: cardForm.holderName,
-        cardExpirationMonth: expMonth?.trim(),
-        cardExpirationYear: `20${expYear?.trim()}`,
-        securityCode: cardForm.cvv,
-        identificationType: "CPF",
+        cardNumber:           cardForm.cardNumber.replace(/\s/g, ""),
+        cardholderName:       `${firstName} ${lastName}`,
+        cardExpirationMonth:  expMonth?.trim(),
+        cardExpirationYear:   `20${expYear?.trim()}`,
+        securityCode:         cardForm.cvv,
+        identificationType:   "CPF",
         identificationNumber: cardForm.cpf.replace(/\D/g, "")
       });
 
-      if (!tokenResult.id) throw new Error("Falha ao tokenizar cartão");
+      if (!tokenResult?.id) throw new Error("Falha ao tokenizar cartão");
 
       const res = await base44.functions.invoke("createPayment", {
         planId,
-        paymentType: "credit_card",
-        cardToken: tokenResult.id,
+        paymentType:  "credit_card",
+        cardToken:    tokenResult.id,
         installments: Number(cardForm.installments),
-        payerDoc: { type: "CPF", number: cardForm.cpf.replace(/\D/g, "") }
+        payerDoc:     { type: "CPF", number: cardForm.cpf.replace(/\D/g, "") },
+        payerName:    { firstName, lastName },
+        deviceId:     deviceId || undefined
       });
 
       const data = res.data;
@@ -135,25 +215,6 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
       setLoading(false);
     }
   };
-
-  const loadMpSdk = () => new Promise((resolve, reject) => {
-    if (document.getElementById("mp-sdk")) return resolve();
-    const s = document.createElement("script");
-    s.id = "mp-sdk";
-    s.src = "https://sdk.mercadopago.com/js/v2";
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-
-  const getMpPublicKey = async () => {
-    const res = await base44.functions.invoke("getMercadoPagoKeys");
-    return res.data?.publicKey || "";
-  };
-
-  const formatCard = (v) => v.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim().slice(0, 19);
-  const formatExpiry = (v) => v.replace(/\D/g, "").replace(/(\d{2})(\d)/, "$1/$2").slice(0, 5);
-  const formatCpf = (v) => v.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").slice(0, 14);
 
   return (
     <div className="space-y-4">
@@ -189,7 +250,9 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
             <div className="text-center space-y-3">
               <p className="text-sm text-gray-600">Gere um QR Code Pix e pague em segundos. Expira em 30 minutos.</p>
               <Button onClick={handleGeneratePix} disabled={loading} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</> : <><QrCode className="w-4 h-4 mr-2" /> Gerar QR Code Pix</>}
+                {loading
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Gerando...</>
+                  : <><QrCode className="w-4 h-4 mr-2" /> Gerar QR Code Pix</>}
               </Button>
             </div>
           ) : (
@@ -201,7 +264,6 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
                   className="w-48 h-48 mx-auto border rounded-lg"
                 />
               )}
-
               {pixData.qrText && (
                 <div className="space-y-2">
                   <p className="text-xs text-gray-500">Ou use o código copia e cola:</p>
@@ -209,22 +271,21 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
                     {pixData.qrText}
                   </div>
                   <Button variant="outline" size="sm" onClick={copyPix} className="w-full gap-2">
-                    {pixCopied ? <><CheckCircle className="w-4 h-4 text-green-600" /> Copiado!</> : <><Copy className="w-4 h-4" /> Copiar código Pix</>}
+                    {pixCopied
+                      ? <><CheckCircle className="w-4 h-4 text-green-600" /> Copiado!</>
+                      : <><Copy className="w-4 h-4" /> Copiar código Pix</>}
                   </Button>
                 </div>
               )}
-
               {pixPolling && (
                 <div className="flex items-center justify-center gap-2 text-sm text-purple-600 bg-purple-50 rounded-lg p-3">
                   <RefreshCw className="w-4 h-4 animate-spin" />
                   Aguardando confirmação do pagamento...
                 </div>
               )}
-
               <p className="text-xs text-gray-400">
                 Expira às {new Date(pixData.expiresAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </p>
-
               <Button variant="ghost" size="sm" onClick={() => setPixData(null)} className="text-gray-400 text-xs">
                 Gerar novo código
               </Button>
@@ -242,10 +303,18 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
             </div>
           ) : (
             <form onSubmit={handleCardPayment} className="space-y-3">
-              <div>
-                <Label htmlFor="holderName">Nome no cartão</Label>
-                <Input id="holderName" placeholder="Como está no cartão" value={cardForm.holderName}
-                  onChange={e => setCardForm(p => ({ ...p, holderName: e.target.value }))} required />
+              {/* Nome e Sobrenome separados */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="firstName">Nome *</Label>
+                  <Input id="firstName" placeholder="Nome" value={cardForm.firstName}
+                    onChange={e => setCardForm(p => ({ ...p, firstName: e.target.value }))} required />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Sobrenome *</Label>
+                  <Input id="lastName" placeholder="Sobrenome" value={cardForm.lastName}
+                    onChange={e => setCardForm(p => ({ ...p, lastName: e.target.value }))} required />
+                </div>
               </div>
               <div>
                 <Label htmlFor="cardNumber">Número do cartão</Label>
@@ -289,7 +358,9 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
               )}
 
               <Button type="submit" disabled={loading} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12">
-                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando...</> : <><CreditCard className="w-4 h-4 mr-2" /> Pagar com Cartão</>}
+                {loading
+                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando...</>
+                  : <><CreditCard className="w-4 h-4 mr-2" /> Pagar com Cartão</>}
               </Button>
             </form>
           )}

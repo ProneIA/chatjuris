@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Não autenticado' }, { status: 401 });
 
     const body = await req.json();
-    const { planId, paymentType, cardToken, installments = 1, payerDoc } = body;
+    const { planId, paymentType, cardToken, installments = 1, payerDoc, payerName, deviceId } = body;
 
     // Validações básicas
     if (!planId || !paymentType) {
