@@ -110,17 +110,13 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
   }
 
-  // ── TRATAMENTO ESPECIAL PARA PREAPPROVAL (assinaturas) ────────────────────
-  if (body.type === 'preapproval') {
-    console.log('[webhook-mp] 📋 Preapproval detectado:', body?.action);
-    return await _handlePreapproval(base44, body, accessToken, eventId);
-  }
-
-  const eventId = String(body?.data?.id || '');
+  const eventId = String(body?.data?.id || body?.action || '');
   if (!eventId) {
-    console.warn('[webhook-mp] Evento sem data.id');
+    console.warn('[webhook-mp] Evento sem data.id ou action');
     return Response.json({ received: true });
   }
+
+  const isPreapproval = body.type === 'preapproval';
 
   // ── IDEMPOTÊNCIA: registrar evento antes de processar ───────────────────
   const existing = await _safeFind(base44, 'WebhookEvent', { event_id: eventId });
@@ -146,19 +142,48 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── CONSULTAR PAGAMENTO REAL NA API ────────────────────────────────────
-    const client = new MercadoPagoConfig({ accessToken });
-    const paymentApi = new Payment(client);
-    const mpData = await paymentApi.get({ id: eventId });
+    // ── CONSULTAR PREAPPROVAL OU PAGAMENTO NA API ────────────────────────────
+    let mpData, mpPaymentId, mpStatus, mpStatusDetail, userId, planId, paidAmount, userEmail;
 
-    const mpPaymentId   = String(mpData.id);
-    const mpStatus      = mpData.status;
-    const mpStatusDetail = mpData.status_detail || '';
-    const userId        = mpData.external_reference;
-    const planId        = mpData.metadata?.plan_id;
-    const paidAmount    = mpData.transaction_amount;
+    if (isPreapproval) {
+      // Buscar preapproval na API
+      const preapprovalUrl = `https://api.mercadopago.com/v1/preapproval/${eventId}`;
+      const preapprovalRes = await fetch(preapprovalUrl, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      if (!preapprovalRes.ok) throw new Error(`Preapproval API error: ${preapprovalRes.status}`);
+      
+      mpData = await preapprovalRes.json();
+      mpPaymentId = String(mpData.id);
+      mpStatus = mpData.status; // authorized, active, cancelled, suspended
+      mpStatusDetail = mpData.status || '';
+      userEmail = mpData.payer?.email || mpData.payer_email;
+      planId = mpData.metadata?.plan_id || 'preapproval_plan';
+      paidAmount = mpData.auto_recurring?.transaction_amount || 0;
+      
+      // Localizar usuário pelo email
+      if (userEmail) {
+        const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
+        userId = users.length > 0 ? users[0].id : null;
+      }
+      
+      console.log('[webhook-mp] 📦 Preapproval real:', { mpPaymentId, mpStatus, userEmail, userId, planId });
+    } else {
+      // Buscar pagamento normal na API
+      const client = new MercadoPagoConfig({ accessToken });
+      const paymentApi = new Payment(client);
+      mpData = await paymentApi.get({ id: eventId });
 
-    console.log('[webhook-mp] 📦 Dados reais:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
+      mpPaymentId = String(mpData.id);
+      mpStatus = mpData.status;
+      mpStatusDetail = mpData.status_detail || '';
+      userId = mpData.external_reference;
+      planId = mpData.metadata?.plan_id;
+      paidAmount = mpData.transaction_amount;
+      userEmail = mpData.payer?.email || mpData.metadata?.user_email;
+      
+      console.log('[webhook-mp] 📦 Pagamento real:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
+    }
 
     if (!userId || !planId) {
       console.error('[webhook-mp] Dados insuficientes (sem userId/planId)');
