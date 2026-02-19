@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CheckCircle, Copy, Loader2, QrCode, CreditCard, AlertCircle, RefreshCw } from "lucide-react";
 import { useMercadoPago } from "@/components/checkout/useMercadoPago";
+import MercadoPagoCardForm from "@/components/checkout/MercadoPagoCardForm";
 
 const PLANS = {
   pro_monthly: { name: "Plano Mensal", price: "R$ 119,90/mês" },
