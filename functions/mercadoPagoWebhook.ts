@@ -110,13 +110,17 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
   }
 
-  const eventId = String(body?.data?.id || body?.action || '');
-  if (!eventId) {
-    console.warn('[webhook-mp] Evento sem data.id ou action');
-    return Response.json({ received: true });
+  // ── TRATAMENTO ESPECIAL PARA PREAPPROVAL (assinaturas) ────────────────────
+  if (body.type === 'preapproval') {
+    console.log('[webhook-mp] 📋 Preapproval detectado:', body?.action);
+    return await _handlePreapproval(base44, body, accessToken, eventId);
   }
 
-  const isPreapproval = body.type === 'preapproval';
+  const eventId = String(body?.data?.id || '');
+  if (!eventId) {
+    console.warn('[webhook-mp] Evento sem data.id');
+    return Response.json({ received: true });
+  }
 
   // ── IDEMPOTÊNCIA: registrar evento antes de processar ───────────────────
   const existing = await _safeFind(base44, 'WebhookEvent', { event_id: eventId });
@@ -142,48 +146,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── CONSULTAR PREAPPROVAL OU PAGAMENTO NA API ────────────────────────────
-    let mpData, mpPaymentId, mpStatus, mpStatusDetail, userId, planId, paidAmount, userEmail;
+    // ── CONSULTAR PAGAMENTO REAL NA API ────────────────────────────────────
+    const client = new MercadoPagoConfig({ accessToken });
+    const paymentApi = new Payment(client);
+    const mpData = await paymentApi.get({ id: eventId });
 
-    if (isPreapproval) {
-      // Buscar preapproval na API
-      const preapprovalUrl = `https://api.mercadopago.com/v1/preapproval/${eventId}`;
-      const preapprovalRes = await fetch(preapprovalUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
-      if (!preapprovalRes.ok) throw new Error(`Preapproval API error: ${preapprovalRes.status}`);
-      
-      mpData = await preapprovalRes.json();
-      mpPaymentId = String(mpData.id);
-      mpStatus = mpData.status; // authorized, active, cancelled, suspended
-      mpStatusDetail = mpData.status || '';
-      userEmail = mpData.payer?.email || mpData.payer_email;
-      planId = mpData.metadata?.plan_id || 'preapproval_plan';
-      paidAmount = mpData.auto_recurring?.transaction_amount || 0;
-      
-      // Localizar usuário pelo email
-      if (userEmail) {
-        const users = await base44.asServiceRole.entities.User.filter({ email: userEmail });
-        userId = users.length > 0 ? users[0].id : null;
-      }
-      
-      console.log('[webhook-mp] 📦 Preapproval real:', { mpPaymentId, mpStatus, userEmail, userId, planId });
-    } else {
-      // Buscar pagamento normal na API
-      const client = new MercadoPagoConfig({ accessToken });
-      const paymentApi = new Payment(client);
-      mpData = await paymentApi.get({ id: eventId });
+    const mpPaymentId   = String(mpData.id);
+    const mpStatus      = mpData.status;
+    const mpStatusDetail = mpData.status_detail || '';
+    const userId        = mpData.external_reference;
+    const planId        = mpData.metadata?.plan_id;
+    const paidAmount    = mpData.transaction_amount;
 
-      mpPaymentId = String(mpData.id);
-      mpStatus = mpData.status;
-      mpStatusDetail = mpData.status_detail || '';
-      userId = mpData.external_reference;
-      planId = mpData.metadata?.plan_id;
-      paidAmount = mpData.transaction_amount;
-      userEmail = mpData.payer?.email || mpData.metadata?.user_email;
-      
-      console.log('[webhook-mp] 📦 Pagamento real:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
-    }
+    console.log('[webhook-mp] 📦 Dados reais:', { mpPaymentId, mpStatus, userId, planId, paidAmount });
 
     if (!userId || !planId) {
       console.error('[webhook-mp] Dados insuficientes (sem userId/planId)');
@@ -291,6 +266,101 @@ Deno.serve(async (req) => {
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+async function _handlePreapproval(base44, body, accessToken, eventId) {
+  try {
+    const preapprovalId = String(body?.data?.id || '');
+    if (!preapprovalId) {
+      console.warn('[webhook-mp] Preapproval sem data.id');
+      return Response.json({ received: true });
+    }
+
+    // Consultar detalhes da assinatura na API
+    const mpResponse = await fetch(`https://api.mercadopago.com/v1/preapproval/${preapprovalId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!mpResponse.ok) {
+      console.error('[webhook-mp] Erro ao consultar preapproval:', preapprovalId);
+      return Response.json({ received: true });
+    }
+
+    const preapprovalData = await mpResponse.json();
+    const payerEmail = preapprovalData.payer_email;
+    const status = preapprovalData.status;
+
+    console.log('[webhook-mp] 📋 Preapproval:', { preapprovalId, payerEmail, status });
+
+    if (!payerEmail) {
+      console.error('[webhook-mp] Preapproval sem payer_email');
+      return Response.json({ received: true });
+    }
+
+    // Localizar usuário pelo email
+    const users = await _safeFind(base44, 'User', { email: payerEmail });
+    if (users.length === 0) {
+      console.warn('[webhook-mp] Usuário não encontrado para:', payerEmail);
+      return Response.json({ received: true });
+    }
+
+    const userId = users[0].id;
+
+    // Se status é 'authorized' ou 'active', liberar acesso
+    if (['authorized', 'active'].includes(status)) {
+      // Determinar tipo de plano a partir do ID (simplificado)
+      const planType = preapprovalData.auto_recurring?.frequency_type === 'months' && 
+                       preapprovalData.auto_recurring?.frequency === 12 
+                       ? 'yearly' 
+                       : 'monthly';
+
+      // Buscar valor do plano
+      const amount = preapprovalData.auto_recurring?.transaction_amount || 119.90;
+      
+      const planMap = {
+        'monthly': { price: 119.90, durationDays: 30 },
+        'yearly': { price: 1198.80, durationDays: 365 }
+      };
+
+      const plan = planMap[planType] || planMap.monthly;
+
+      // Ativar assinatura
+      await _activateSubscription(base44, userId, `pro_${planType}`, plan, preapprovalId, 'mercadopago_preapproval');
+
+      console.log('[webhook-mp] ✅ Assinatura preapproval ativada:', userId, status);
+
+      // Enviar email de confirmação
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: payerEmail,
+          subject: '✅ Sua Assinatura Mercado Pago foi Ativada - Juris',
+          body: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+              <h2 style="color:#7c3aed">Bem-vindo ao Juris Pro! 🎉</h2>
+              <p>Sua assinatura foi ativada com sucesso via Mercado Pago.</p>
+              <p>Status: <strong>${status}</strong></p>
+              <a href="${Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com'}"
+                 style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;margin-top:16px">
+                Acessar Juris
+              </a>
+            </div>
+          `
+        });
+      } catch (e) {
+        console.error('[webhook-mp] Erro ao enviar email preapproval:', e.message);
+      }
+    }
+
+    return Response.json({ received: true });
+
+  } catch (error) {
+    console.error('[webhook-mp] Erro ao processar preapproval:', error.message);
+    return Response.json({ received: true });
+  }
+}
 
 async function _safeFind(base44, entity, filter) {
   try { return await base44.asServiceRole.entities[entity].filter(filter); }
