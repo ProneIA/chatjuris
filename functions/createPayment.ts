@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     }
 
     const plan = PLANS[planId];
-    const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
+    const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) return Response.json({ error: 'Gateway não configurado' }, { status: 500 });
 
     const client = new MercadoPagoConfig({ accessToken });
