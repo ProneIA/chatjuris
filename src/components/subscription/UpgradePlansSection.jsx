@@ -153,10 +153,7 @@ export default function UpgradePlansSection({
           const Icon = plan.icon;
           const colors = colorClasses[plan.color];
           const isCurrentPlan = isActive && currentPlanType === plan.planType;
-          const isLifetimeUser = currentPlanType === 'lifetime';
-          
-          // Bloquear se já tem vitalício ou se é o plano atual
-          const isDisabled = isLifetimeUser || isCurrentPlan;
+          const isDisabled = isCurrentPlan;
 
           return (
             <motion.div
@@ -233,8 +230,6 @@ export default function UpgradePlansSection({
                 className={`w-full ${
                   isCurrentPlan
                     ? 'bg-green-100 text-green-700 cursor-not-allowed'
-                    : isLifetimeUser
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : plan.popular
                     ? 'bg-purple-600 hover:bg-purple-700 text-white'
                     : 'bg-gray-900 hover:bg-gray-800 text-white'
@@ -245,8 +240,6 @@ export default function UpgradePlansSection({
                     <Check className="w-4 h-4 mr-1" />
                     Plano Atual
                   </>
-                ) : isLifetimeUser ? (
-                  'Você já tem acesso vitalício'
                 ) : isInTrial ? (
                   'Assinar Agora'
                 ) : (
@@ -258,12 +251,7 @@ export default function UpgradePlansSection({
         })}
       </div>
 
-      {/* Nota sobre vitalício */}
-      {currentPlanType === 'lifetime' && (
-        <p className={`text-sm text-center ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-          ✨ Você possui acesso vitalício. Aproveite todas as funcionalidades sem preocupações!
-        </p>
-      )}
+
     </div>
   );
 }
