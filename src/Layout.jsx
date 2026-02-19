@@ -67,6 +67,7 @@ const navigationItems = [
   { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
   { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
   { title: "Auditoria LGPD", url: createPageUrl("LGPDAudit"), icon: Shield },
+  { title: "Conformidade LGPD", url: createPageUrl("LGPDCompliance"), icon: Shield },
 ];
 
 const adminItems = [
