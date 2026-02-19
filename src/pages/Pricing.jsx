@@ -126,13 +126,12 @@ export default function Pricing({ theme = 'light' }) {
 
     // Redirecionar para links de assinatura Mercado Pago (preapproval)
     const mpLinks = {
-      pro_monthly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=36824280f92847a4a060dbe2b3745836&payer_email=",
-      pro_yearly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=38b87d14e172478fb9c94f3dc6984b61&payer_email="
+      pro_monthly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=36824280f92847a4a060dbe2b3745836",
+      pro_yearly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=38b87d14e172478fb9c94f3dc6984b61"
     };
 
     if (mpLinks[planId]) {
-      const url = mpLinks[planId] + encodeURIComponent(user.email);
-      window.open(url, '_blank');
+      window.open(mpLinks[planId], '_blank');
     }
   };
 
