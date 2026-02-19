@@ -117,7 +117,6 @@ Deno.serve(async (req) => {
       // ✅ ADDITIONAL INFO - Dados completos para antifraude
       additional_info: {
         ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
-        user_agent: req.headers.get('user-agent') || '',
         items: [
           {
             id: planId,
@@ -134,19 +133,7 @@ Deno.serve(async (req) => {
           registration_date: new Date().toISOString(),
           // ✅ Device ID obrigatório aqui
           ...(deviceId && { device_id: deviceId })
-        },
-        // ✅ Shipments SÓ se houver endereço completo
-        ...(payerAddress && {
-          shipments: {
-            receiver_address: {
-              zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
-              street_name: payerAddress.streetName,
-              street_number: payerAddress.streetNumber,
-              city: payerAddress.cityName,
-              state: payerAddress.stateName
-            }
-          }
-        })
+        }
       }
     };
 
