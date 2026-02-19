@@ -55,6 +55,11 @@ Deno.serve(async (req) => {
     // Idempotency key: evita cobranças duplicadas em retries
     const idempotencyKey = `${user.id}-${planId}-${paymentType}-${Date.now()}`;
 
+    // Sanitizar nome/sobrenome
+    const sanitize = (s) => (s || "").replace(/[<>"']/g, "").trim().slice(0, 100);
+    const firstName = sanitize(payerFirstName) || user.full_name?.split(" ")[0] || "Usuario";
+    const lastName  = sanitize(payerLastName)  || user.full_name?.split(" ").slice(1).join(" ") || "Juris";
+
     const basePayload = {
       transaction_amount: plan.price,
       description: plan.name,
@@ -65,7 +70,13 @@ Deno.serve(async (req) => {
         plan_id: planId,
         idempotency_key: idempotencyKey
       },
-      payer: { email: user.email }
+      payer: {
+        email: user.email,
+        first_name: firstName,  // Obrigatório para antifraude
+        last_name: lastName     // Obrigatório para antifraude
+      },
+      // Device ID antifraude (gerado pelo SDK MP V2 no frontend)
+      ...(deviceId && { additional_info: { device_id: deviceId } })
     };
 
     if (notificationUrl) basePayload.notification_url = notificationUrl;
