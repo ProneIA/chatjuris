@@ -141,15 +141,7 @@ export default function Pricing({ theme = 'light' }) {
     const selectedPlan = localStorage.getItem('selected_plan');
     if (selectedPlan && user) {
       localStorage.removeItem('selected_plan');
-      // Abrir checkout automaticamente com o plano selecionado
-      if (selectedPlan === "pro_lifetime") {
-        const lifetimePlan = plans.find(p => p.id === "pro_lifetime");
-        if (lifetimePlan?.lifetimeUrl) {
-          window.open(lifetimePlan.lifetimeUrl, '_blank');
-        }
-      } else {
-        setCheckoutModal({ open: true, plan: selectedPlan });
-      }
+      handleSelectPlan(selectedPlan);
     }
   }, [user]);
 
