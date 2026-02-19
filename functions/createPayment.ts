@@ -50,7 +50,9 @@ Deno.serve(async (req) => {
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) return Response.json({ error: 'Gateway não configurado' }, { status: 500 });
 
-    // ✅ HEADERS DE SEGURANÇA - TLS 1.2+, User-Agent, etc.
+    // ✅ HEADERS DE SEGURANÇA - TLS 1.2+, Idempotency, etc.
+    const idempotencyKey = crypto.randomUUID();
+    
     const client = new MercadoPagoConfig({
       accessToken,
       timeout: 30000,
@@ -58,6 +60,8 @@ Deno.serve(async (req) => {
       headers: {
         'User-Agent': 'Juris-API/1.0 (Deno)',
         'X-TLS-Version': '1.2+',
+        'X-Idempotency-Key': idempotencyKey,
+        'X-Request-Id': crypto.randomUUID(),
         'Accept-Encoding': 'gzip, deflate'
       }
     });
@@ -68,8 +72,8 @@ Deno.serve(async (req) => {
       ? `${publicUrl}/api/functions/mercadoPagoWebhook`
       : undefined;
 
-    // Idempotency key: evita cobranças duplicadas em retries
-    const idempotencyKey = `${user.id}-${planId}-${paymentType}-${Date.now()}`;
+    // Database idempotency key tracking
+    const dbIdempotencyKey = `${user.id}-${planId}-${paymentType}-${Date.now()}`;
 
     // Sanitizar nome/sobrenome
     const sanitize = (s) => (s || "").replace(/[<>"']/g, "").trim().slice(0, 100);
@@ -102,7 +106,7 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
-        idempotency_key: idempotencyKey,
+        idempotency_key: dbIdempotencyKey,
         // ✅ Device ID no metadata (rastreabilidade)
         device_id: deviceId || null
       },
@@ -174,7 +178,7 @@ Deno.serve(async (req) => {
         pix_qr_code: qrCode,
         pix_qr_code_text: qrText,
         pix_expiration: expiresAt,
-        idempotency_key: idempotencyKey,
+        idempotency_key: dbIdempotencyKey,
         raw_response: JSON.stringify({ id: mpResult.id, status: mpResult.status })
       });
 
@@ -216,7 +220,7 @@ Deno.serve(async (req) => {
         amount: plan.price,
         status: mpResult.status || 'pending',
         status_detail: mpResult.status_detail || '',
-        idempotency_key: idempotencyKey,
+        idempotency_key: dbIdempotencyKey,
         raw_response: JSON.stringify({ id: mpResult.id, status: mpResult.status, status_detail: mpResult.status_detail })
       });
 
