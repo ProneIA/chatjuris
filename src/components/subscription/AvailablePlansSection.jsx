@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Zap, 
   Crown, 
-  Star, 
   Check, 
   ArrowRight,
   Clock,

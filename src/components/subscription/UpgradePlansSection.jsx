@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Zap, Crown, Star, Clock, AlertTriangle } from "lucide-react";
+import { Check, Zap, Crown, Clock, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
 const plans = [
