@@ -26,7 +26,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'MP_ACCESS_TOKEN não configurado' }, { status: 500 });
     }
 
-    const publicUrl = Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com';
+    const rawPublicUrl = Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com';
+    // Garantir URL válida: https://dominio.com (sem barra final)
+    const publicUrl = rawPublicUrl.replace(/\/$/, '').trim();
 
     // ── Gerar chaves únicas para esta requisição ──────────────────────────────
     const idempotencyKey = crypto.randomUUID();
