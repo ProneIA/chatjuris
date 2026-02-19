@@ -25,6 +25,12 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const buyerEmail = body.email || user.email;
 
+    // Sanitizar nome/sobrenome
+    const sanitize = (s) => (s || '').replace(/[<>"']/g, '').trim().slice(0, 100);
+    const fullName = user.full_name || '';
+    const firstName = sanitize(body.firstName || fullName.split(' ')[0] || 'Usuario');
+    const lastName  = sanitize(body.lastName  || fullName.split(' ').slice(1).join(' ') || 'Teste');
+
     const preference = await preferenceApi.create({
       body: {
         items: [
@@ -36,7 +42,9 @@ Deno.serve(async (req) => {
           }
         ],
         payer: {
-          email: buyerEmail
+          email: buyerEmail,
+          name: firstName,      // nome para Checkout Pro
+          surname: lastName     // sobrenome para Checkout Pro
         },
         back_urls: {
           success: `${Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com'}/PaymentSuccess`,
