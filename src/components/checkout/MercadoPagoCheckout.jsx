@@ -236,74 +236,13 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
           )}
         </TabsContent>
 
-        {/* ── CARTÃO ── */}
+        {/* ── CARTÃO — PCI DSS via CardForm seguro ── */}
         <TabsContent value="card" className="pt-4">
-          {cardResult?.status === "approved" ? (
-            <div className="text-center space-y-3 py-4">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
-              <p className="font-semibold text-gray-900">Pagamento aprovado!</p>
-              <p className="text-sm text-gray-500">Sua assinatura foi ativada com sucesso.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleCardPayment} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="firstName">Nome *</Label>
-                  <Input id="firstName" placeholder="Ex: João" value={cardForm.firstName}
-                    onChange={e => setCardForm(p => ({ ...p, firstName: e.target.value }))} required />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Sobrenome *</Label>
-                  <Input id="lastName" placeholder="Ex: Silva" value={cardForm.lastName}
-                    onChange={e => setCardForm(p => ({ ...p, lastName: e.target.value }))} required />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="cardNumber">Número do cartão</Label>
-                <Input id="cardNumber" placeholder="0000 0000 0000 0000" value={cardForm.cardNumber}
-                  onChange={e => setCardForm(p => ({ ...p, cardNumber: formatCard(e.target.value) }))} required />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="expiry">Validade</Label>
-                  <Input id="expiry" placeholder="MM/AA" value={cardForm.expiry}
-                    onChange={e => setCardForm(p => ({ ...p, expiry: formatExpiry(e.target.value) }))} required />
-                </div>
-                <div>
-                  <Label htmlFor="cvv">CVV</Label>
-                  <Input id="cvv" placeholder="123" maxLength={4} value={cardForm.cvv}
-                    onChange={e => setCardForm(p => ({ ...p, cvv: e.target.value.replace(/\D/g, "") }))} required />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="cpf">CPF do titular</Label>
-                <Input id="cpf" placeholder="000.000.000-00" value={cardForm.cpf}
-                  onChange={e => setCardForm(p => ({ ...p, cpf: formatCpf(e.target.value) }))} required />
-              </div>
-              <div>
-                <Label htmlFor="installments">Parcelas</Label>
-                <select id="installments" className="w-full border rounded-md px-3 py-2 text-sm"
-                  value={cardForm.installments} onChange={e => setCardForm(p => ({ ...p, installments: e.target.value }))}>
-                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
-                    <option key={n} value={n}>{n}x {n === 1 ? "sem juros" : ""}</option>
-                  ))}
-                </select>
-              </div>
-
-              {cardResult && cardResult.status !== "approved" && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  Pagamento {cardResult.status === "rejected" ? "recusado" : "pendente"}.{" "}
-                  {cardResult.statusDetail === "cc_rejected_insufficient_amount" && "Saldo insuficiente."}
-                  {cardResult.statusDetail === "cc_rejected_bad_filled_card_number" && "Número do cartão inválido."}
-                </div>
-              )}
-
-              <Button type="submit" disabled={loading} className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12">
-                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processando...</> : <><CreditCard className="w-4 h-4 mr-2" /> Pagar com Cartão</>}
-              </Button>
-            </form>
-          )}
+          <MercadoPagoCardForm
+            planId={planId}
+            onSuccess={onSuccess}
+            onError={onError}
+          />
         </TabsContent>
       </Tabs>
 
