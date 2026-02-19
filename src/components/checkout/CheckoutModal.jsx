@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Shield, Lock, CreditCard, Sparkles, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import MercadoPagoCheckout from "@/components/checkout/MercadoPagoCheckout";
+import { createPageUrl } from "@/utils";
 
 export default function CheckoutModal({ open, onClose, plan, userEmail }) {
   const [step, setStep] = useState(1);
