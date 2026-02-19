@@ -233,11 +233,11 @@ Deno.serve(async (req) => {
 
     // Log de auditoria
     await base44.asServiceRole.entities.AuditLog.create({
-      user_email: mpData.metadata?.user_email || userId,
+      user_email: userEmail || userId,
       action: `mp_webhook_${mpStatus}`,
-      entity_type: 'Payment',
+      entity_type: isPreapproval ? 'Preapproval' : 'Payment',
       entity_id: mpPaymentId,
-      details: JSON.stringify({ planId, amount: paidAmount, status: mpStatus })
+      details: JSON.stringify({ planId, amount: paidAmount, status: mpStatus, isPreapproval })
     });
 
     // ── PROCESSAR POR STATUS ────────────────────────────────────────────────
