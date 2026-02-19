@@ -13,7 +13,7 @@ const plans = [
     period: "/mês",
     description: "Renovação mensal automática",
     color: "blue",
-    checkoutUrl: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=36824280f92847a4a060dbe2b3745836"
+    checkoutUrl: "https://mpago.la/2PgvKS6"
   },
   {
     id: "annual",
@@ -27,7 +27,7 @@ const plans = [
     description: "Economize R$ 240/ano",
     color: "purple",
     popular: true,
-    checkoutUrl: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=38b87d14e172478fb9c94f3dc6984b61"
+    checkoutUrl: "https://mpago.li/2dKTAjE"
   },
 ];
 
