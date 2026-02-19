@@ -96,13 +96,13 @@ import QuemSomos from './pages/QuemSomos';
 import RadarOportunidades from './pages/RadarOportunidades';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import SystemAudit from './pages/SystemAudit';
 import Tasks from './pages/Tasks';
 import TeamDetail from './pages/TeamDetail';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
-import SystemAudit from './pages/SystemAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -156,13 +156,13 @@ export const PAGES = {
     "RadarOportunidades": RadarOportunidades,
     "Reports": Reports,
     "Settings": Settings,
+    "SystemAudit": SystemAudit,
     "Tasks": Tasks,
     "TeamDetail": TeamDetail,
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
-    "SystemAudit": SystemAudit,
 }
 
 export const pagesConfig = {

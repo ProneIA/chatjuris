@@ -36,6 +36,16 @@ const TrialWelcomeModal = React.lazy(() => import("@/components/subscription/Tri
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/mobile/BottomNavigation";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -82,6 +92,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
       return 'light';
     });
 
+    const [showDeleteAccountDialog, setShowDeleteAccountDialog] = React.useState(false);
     const [showConsentModal, setShowConsentModal] = React.useState(false);
     const [hasCheckedConsent, setHasCheckedConsent] = React.useState(false);
     const [consentAccepted, setConsentAccepted] = React.useState(false);
@@ -216,6 +227,15 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const isDark = theme === 'dark';
 
     const handleLogout = () => {
+      base44.auth.logout("/LandingPage");
+    };
+
+    const handleDeleteAccount = async () => {
+      try {
+        await base44.functions.invoke('deleteUserAccount', {});
+      } catch (e) {
+        // ignore errors, still logout
+      }
       base44.auth.logout("/LandingPage");
     };
 
