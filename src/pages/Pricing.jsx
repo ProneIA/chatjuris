@@ -124,17 +124,16 @@ export default function Pricing({ theme = 'light' }) {
       return;
     }
 
-    // Se for plano vitalício, redirecionar para Hotmart
-    if (planId === "pro_lifetime") {
-      const lifetimePlan = plans.find(p => p.id === "pro_lifetime");
-      if (lifetimePlan?.lifetimeUrl) {
-        window.open(lifetimePlan.lifetimeUrl, '_blank');
-      }
-      return;
-    }
+    // Redirecionar para links de assinatura Mercado Pago (preapproval)
+    const mpLinks = {
+      pro_monthly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=36824280f92847a4a060dbe2b3745836&payer_email=",
+      pro_yearly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=38b87d14e172478fb9c94f3dc6984b61&payer_email="
+    };
 
-    // Abrir modal de checkout para planos recorrentes
-    setCheckoutModal({ open: true, plan: planId });
+    if (mpLinks[planId]) {
+      const url = mpLinks[planId] + encodeURIComponent(user.email);
+      window.open(url, '_blank');
+    }
   };
 
   // Verificar se há um plano selecionado após login
