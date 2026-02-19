@@ -136,7 +136,10 @@ Deno.serve(async (req) => {
       };
 
       if (payerDoc?.type && payerDoc?.number) {
-        cardPayload.payer.identification = { type: payerDoc.type, number: payerDoc.number };
+        cardPayload.payer = {
+          ...cardPayload.payer,
+          identification: { type: payerDoc.type, number: payerDoc.number }
+        };
       }
 
       console.log('[createPayment] Criando pagamento cartão para', user.email, planId);
