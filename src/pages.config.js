@@ -81,7 +81,6 @@ import FinancialDashboard from './pages/FinancialDashboard';
 import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
-import HotmartSetup from './pages/HotmartSetup';
 import LGPDAudit from './pages/LGPDAudit';
 import LGPDCompliance from './pages/LGPDCompliance';
 import LandingPage from './pages/LandingPage';
@@ -143,7 +142,6 @@ export const PAGES = {
     "Funcionalidades": Funcionalidades,
     "GestaoHub": GestaoHub,
     "Home": Home,
-    "HotmartSetup": HotmartSetup,
     "LGPDAudit": LGPDAudit,
     "LGPDCompliance": LGPDCompliance,
     "LandingPage": LandingPage,
