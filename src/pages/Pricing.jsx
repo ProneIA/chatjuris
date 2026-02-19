@@ -70,43 +70,6 @@ const plans = [
     },
     savingsText: "Economize R$ 240/ano - 2 meses grátis!"
   },
-  {
-    id: "pro_lifetime",
-    name: "Acesso Vitalício",
-    icon: Star,
-    price: 1599.90,
-    originalPrice: 2599.90,
-    period: "pagamento único",
-    billingType: "lifetime",
-    description: "Pague uma vez, use para sempre",
-    popular: true,
-    isLifetime: true,
-    discount: 38,
-    installments: "ou 12x de R$ 133,33 sem juros",
-    hotmartCheckoutUrl: "https://pay.hotmart.com/L104287363X",
-    features: [
-      { text: "✨ ACESSO PERMANENTE - sem mensalidade", included: true, highlight: true },
-      { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
-      { text: "Clientes ILIMITADOS", included: true, highlight: true },
-      { text: "Processos ILIMITADOS", included: true, highlight: true },
-      { text: "Documentos ILIMITADOS", included: true, highlight: true },
-      { text: "Todos os modos de IA", included: true },
-      { text: "Equipes e Workspace", included: true },
-      { text: "Jurisprudência completa", included: true },
-      { text: "Modelos de Peças ilimitados", included: true },
-      { text: "Calendário inteligente", included: true },
-      { text: "Análise de documentos LEXIA", included: true },
-      { text: "Gerador de imagens IA", included: true },
-      { text: "Suporte prioritário 24/7", included: true },
-      { text: "Todas atualizações futuras incluídas", included: true },
-    ],
-    limits: {
-      daily_actions_limit: 999999,
-      daily_actions_used: 0
-    },
-    savingsText: "💎 Melhor custo-benefício - nunca mais pague mensalidade",
-    lifetimeUrl: "https://pay.hotmart.com/L104287363X"
-  }
 ];
 
 const testimonials = [
@@ -278,7 +241,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
 
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto mb-12 sm:mb-20">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12 sm:mb-20">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             
