@@ -50,7 +50,7 @@ export default function LandingPage() {
   }, []);
 
   const goToPricing = () => {
-    window.open("https://go.hotmart.com/H104526343E", "_blank");
+    window.location.href = createPageUrl("Pricing");
   };
 
   const scrollToSection = () => {
