@@ -29,17 +29,6 @@ const plans = [
     popular: true,
     checkoutUrl: "https://pay.hotmart.com/T104226080W"
   },
-  {
-    id: "lifetime",
-    planType: "lifetime",
-    name: "Vitalício",
-    icon: Star,
-    price: 1299.90,
-    period: "único",
-    description: "Pague uma vez, use para sempre",
-    color: "amber",
-    checkoutUrl: "https://pay.hotmart.com/L104287363X"
-  }
 ];
 
 export default function UpgradePlansSection({ 
@@ -159,7 +148,7 @@ export default function UpgradePlansSection({
       </div>
 
       {/* Grid de Planos */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 gap-4">
         {plans.map((plan) => {
           const Icon = plan.icon;
           const colors = colorClasses[plan.color];
