@@ -82,6 +82,8 @@ import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
 import HotmartSetup from './pages/HotmartSetup';
+import LGPDAudit from './pages/LGPDAudit';
+import LGPDCompliance from './pages/LGPDCompliance';
 import LandingPage from './pages/LandingPage';
 import LegalCalculator from './pages/LegalCalculator';
 import LegalResearch from './pages/LegalResearch';
@@ -103,8 +105,6 @@ import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
 import WhatsAppBot from './pages/WhatsAppBot';
-import LGPDAudit from './pages/LGPDAudit';
-import LGPDCompliance from './pages/LGPDCompliance';
 import __Layout from './Layout.jsx';
 
 
@@ -144,6 +144,8 @@ export const PAGES = {
     "GestaoHub": GestaoHub,
     "Home": Home,
     "HotmartSetup": HotmartSetup,
+    "LGPDAudit": LGPDAudit,
+    "LGPDCompliance": LGPDCompliance,
     "LandingPage": LandingPage,
     "LegalCalculator": LegalCalculator,
     "LegalResearch": LegalResearch,
@@ -165,8 +167,6 @@ export const PAGES = {
     "Templates": Templates,
     "TermsOfService": TermsOfService,
     "WhatsAppBot": WhatsAppBot,
-    "LGPDAudit": LGPDAudit,
-    "LGPDCompliance": LGPDCompliance,
 }
 
 export const pagesConfig = {
