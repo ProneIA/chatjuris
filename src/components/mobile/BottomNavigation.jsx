@@ -43,9 +43,31 @@ const moreItems = [
   { title: "Preferências", url: createPageUrl("Settings"), icon: Settings },
 ];
 
+// Save / restore scroll per-page using sessionStorage
+function useScrollPreservation(pathname) {
+  const scrollRef = React.useRef({});
+
+  React.useEffect(() => {
+    const key = `scroll_${pathname}`;
+    const saved = sessionStorage.getItem(key);
+    if (saved) {
+      window.scrollTo(0, parseInt(saved, 10));
+    }
+
+    const saveScroll = () => {
+      sessionStorage.setItem(key, String(window.scrollY));
+    };
+
+    window.addEventListener("scroll", saveScroll, { passive: true });
+    return () => window.removeEventListener("scroll", saveScroll);
+  }, [pathname]);
+}
+
 export default function BottomNavigation({ isDark, user, onLogout }) {
   const location = useLocation();
   const [showMore, setShowMore] = React.useState(false);
+
+  useScrollPreservation(location.pathname);
 
   const adminMoreItems = user?.role === 'admin' 
     ? [...moreItems, { title: "Admin", url: createPageUrl("AdminPanel"), icon: Shield }]
