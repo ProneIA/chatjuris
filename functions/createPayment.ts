@@ -85,8 +85,7 @@ Deno.serve(async (req) => {
             description: `Assinatura ${plan.name} - Plataforma Juris IA`,
             category_id: 'digital_goods',
             quantity: 1,
-            unit_price: plan.price,
-            currency_id: 'BRL'
+            unit_price: plan.price
           }
         ],
         payer: {
