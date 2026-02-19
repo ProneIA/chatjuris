@@ -114,9 +114,8 @@ Deno.serve(async (req) => {
         device_id: deviceId || null
       },
       payer: payerPayload,
-      // ✅ ADDITIONAL INFO - Dados completos para antifraude
+      // ✅ ADDITIONAL INFO - Dados mínimos (Mercado Pago é rigoroso com field names)
       additional_info: {
-        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
         items: [
           {
             id: planId,
@@ -126,14 +125,7 @@ Deno.serve(async (req) => {
             quantity: 1,
             unit_price: plan.price
           }
-        ],
-        payer: {
-          first_name: firstName,
-          last_name: lastName,
-          registration_date: new Date().toISOString(),
-          // ✅ Device ID obrigatório aqui
-          ...(deviceId && { device_id: deviceId })
-        }
+        ]
       }
     };
 
