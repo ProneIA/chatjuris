@@ -22,7 +22,9 @@ Deno.serve(async (req) => {
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) return Response.json({ error: 'MP_ACCESS_TOKEN não configurado' }, { status: 500 });
 
-    const publicUrl = Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com';
+    // PUBLIC_URL deve ser o domínio sem barra final, ex: https://chatjuris.com
+    const rawUrl = Deno.env.get('PUBLIC_URL') || 'https://chatjuris.com';
+    const publicUrl = rawUrl.replace(/\/$/, ''); // remove barra final se houver
 
     // Idempotency key único por requisição
     const idempotencyKey = crypto.randomUUID();
