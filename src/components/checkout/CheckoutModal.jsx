@@ -280,14 +280,24 @@ export default function CheckoutModal({ open, onClose, plan, userEmail }) {
                 >
                   Voltar
                 </Button>
-                <Button
-                  onClick={handleContinue}
-                  disabled={!isStep2Valid}
-                  className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base"
-                >
-                  Ir para pagamento
-                  <Lock className="w-4 h-4 ml-2" />
-                </Button>
+                {isYearly ? (
+                  <a
+                    href="https://pay.hotmart.com/H104526343E?checkoutMode=2"
+                    className="hotmart-fb hotmart__button-checkout flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base rounded-md flex items-center justify-center gap-2"
+                  >
+                    Ir para pagamento
+                    <Lock className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <Button
+                    onClick={handleContinue}
+                    disabled={!isStep2Valid}
+                    className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base"
+                  >
+                    Ir para pagamento
+                    <Lock className="w-4 h-4 ml-2" />
+                  </Button>
+                )}
               </div>
 
               <p className="text-xs text-center text-gray-500 mt-4">
