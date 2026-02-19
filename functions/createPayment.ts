@@ -80,24 +80,25 @@ Deno.serve(async (req) => {
     const firstName = sanitize(payerFirstName) || user.full_name?.split(" ")[0] || "Usuario";
     const lastName  = sanitize(payerLastName)  || user.full_name?.split(" ").slice(1).join(" ") || "Juris";
 
-    // ✅ DADOS COMPLETOS DO PAGADOR (Obrigatório para qualidade MP - 73 pontos)
+    // ✅ DADOS COMPLETOS DO PAGADOR (apenas com dados reais do usuário)
     const payerPayload = {
       email: payerEmail || user.email,
-      first_name: firstName || 'João',
-      last_name: lastName || 'Silva',
+      first_name: firstName,
+      last_name: lastName,
       identification: {
         type: payerDoc?.type || 'CPF',
-        number: payerDoc?.number || '12345678909'
+        number: payerDoc?.number || ''
       },
-      // ✅ ENDEREÇO COMPLETO (Critério essencial para 73 pontos)
-      address: {
-        zip_code: '01234000',
-        street_name: 'Av. das Nações',
-        street_number: 1000,
-        neighborhood: 'Centro',
-        city: 'São Paulo',
-        federal_unit: 'SP'
-      }
+      // ✅ ENDEREÇO APENAS SE FORNECIDO (não hardcoded)
+      ...(payerAddress && {
+        address: {
+          zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
+          street_name: payerAddress.streetName,
+          street_number: payerAddress.streetNumber,
+          city: payerAddress.cityName,
+          federal_unit: payerAddress.stateName
+        }
+      })
     };
 
     const basePayload = {
@@ -134,16 +135,18 @@ Deno.serve(async (req) => {
           // ✅ Device ID obrigatório aqui
           ...(deviceId && { device_id: deviceId })
         },
-        // ✅ Shipments (mesmo que digital, Mercado Pago gosta)
-        shipments: {
-          receiver_address: payerAddress && {
-            zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
-            street_name: payerAddress.streetName,
-            street_number: payerAddress.streetNumber,
-            city_name: payerAddress.cityName,
-            state_name: payerAddress.stateName
+        // ✅ Shipments SÓ se houver endereço completo
+        ...(payerAddress && {
+          shipments: {
+            receiver_address: {
+              zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
+              street_name: payerAddress.streetName,
+              street_number: payerAddress.streetNumber,
+              city: payerAddress.cityName,
+              state: payerAddress.stateName
+            }
           }
-        }
+        })
       }
     };
 
