@@ -373,10 +373,9 @@ export default function MySubscription({ theme = 'light' }) {
                   <Button 
                     variant="outline"
                     className="w-full"
-                    onClick={() => window.open('https://app-vlc.hotmart.com/login', '_blank')}
+                    onClick={() => window.location.href = '/Pricing'}
                   >
-                    Gerenciar Assinatura na Hotmart
-                    <ExternalLink className="w-4 h-4 ml-2" />
+                    Fazer Upgrade de Plano
                   </Button>
                 )}
 
