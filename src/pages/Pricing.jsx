@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
-import CheckoutModal from "@/components/checkout/CheckoutModal";
 
 const plans = [
   {
@@ -81,7 +80,7 @@ export default function Pricing({ theme = 'light' }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = React.useState(null);
-  const [checkoutModal, setCheckoutModal] = useState({ open: false, plan: null });
+
   const [trialDaysLeft, setTrialDaysLeft] = React.useState(0);
 
   React.useEffect(() => {
@@ -501,13 +500,7 @@ export default function Pricing({ theme = 'light' }) {
         </motion.div>
       </div>
 
-      {/* Checkout Modal */}
-      <CheckoutModal
-        open={checkoutModal.open}
-        onClose={() => setCheckoutModal({ open: false, plan: null })}
-        plan={checkoutModal.plan}
-        userEmail={user?.email}
-      />
+
     </div>
   );
 }

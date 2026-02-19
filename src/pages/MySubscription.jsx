@@ -373,7 +373,7 @@ export default function MySubscription({ theme = 'light' }) {
                   <Button 
                     variant="outline"
                     className="w-full"
-                    onClick={() => window.location.href = '/Pricing'}
+                    onClick={() => window.location.href = createPageUrl('Pricing')}
                   >
                     Fazer Upgrade de Plano
                   </Button>
