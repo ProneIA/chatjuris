@@ -14,14 +14,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing MP_ACCESS_TOKEN' }, { status: 500 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const planId = body.planId || 'pro_monthly';
+
+    const PLANS = {
+      pro_monthly: { price: 119.90, name: 'Juris Pro - Plano Mensal' },
+      pro_yearly: { price: 1198.80, name: 'Juris Pro - Plano Anual' }
+    };
+
+    const plan = PLANS[planId] || PLANS.pro_monthly;
+
     // Criar preferência de pagamento (Checkout Pro)
     const preference = {
       items: [
         {
-          title: 'Teste de Qualidade - R$ 2,00',
-          description: 'Pagamento para teste de integração Mercado Pago',
+          title: plan.name,
+          description: `Assinatura ${plan.name} - Plataforma Juris IA`,
           quantity: 1,
-          unit_price: 2.00,
+          unit_price: plan.price,
           currency_id: 'BRL'
         }
       ],
