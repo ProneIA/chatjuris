@@ -401,6 +401,13 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteAccountDialog(true)}
+                  className="flex items-center gap-2 cursor-pointer text-red-500"
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Excluir Conta</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-600">
                   <LogOut className="w-4 h-4" />
                   <span>Sair</span>
