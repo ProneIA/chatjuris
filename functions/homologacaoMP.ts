@@ -70,6 +70,9 @@ Deno.serve(async (req) => {
       }
     };
 
+    console.log('[homologacaoMP] PUBLIC_URL raw:', rawPublicUrl);
+    console.log('[homologacaoMP] PUBLIC_URL processada:', publicUrl);
+    console.log('[homologacaoMP] notification_url:', `${publicUrl}/api/functions/mercadoPagoWebhook`);
     console.log('[homologacaoMP] Criando pagamento...', {
       external_reference: externalRef,
       idempotency_key: idempotencyKey,
