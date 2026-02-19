@@ -72,8 +72,8 @@ Deno.serve(async (req) => {
           unit_price: 2.00
         }],
         payer: {
-          first_name: "João",
-          last_name: "Silva Teste"
+          first_name: user.full_name?.split(' ')[0] || "Admin",
+          last_name: user.full_name?.split(' ').slice(1).join(' ') || "Juris"
         }
       }
     };
