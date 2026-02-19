@@ -1,145 +1,131 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { CheckCircle, Sparkles, ArrowRight, Mail } from "lucide-react";
+import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
-import { base44 } from "@/api/base44Client";
 
 export default function CheckoutSuccess({ theme = 'light' }) {
-  const navigate = useNavigate();
-  const [user, setUser] = React.useState(null);
   const isDark = theme === 'dark';
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [status, setStatus] = useState('validating'); // validating, success, error
+  const [message, setMessage] = useState('');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Efeito de confete na confirmação
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+    const validatePayment = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
 
-    const randomInRange = (min, max) => Math.random() * (max - min) + min;
+        const preferenceId = searchParams.get('preference_id');
+        const paymentId = searchParams.get('payment_id');
 
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
+        if (!paymentId) {
+          setStatus('error');
+          setMessage('Pagamento não encontrado. Você será redirecionado...');
+          setTimeout(() => navigate(createPageUrl('Pricing')), 3000);
+          return;
+        }
 
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
+        // ✅ Validar status do pagamento
+        const response = await base44.functions.invoke('validatePaymentStatus', {
+          preferenceId,
+          paymentId
+        });
+
+        if (response.data.approved) {
+          setStatus('success');
+          setMessage('Seu pagamento foi confirmado com sucesso!');
+          setTimeout(() => navigate(createPageUrl('Dashboard')), 2000);
+        } else {
+          setStatus('error');
+          setMessage(`Pagamento ${response.data.status}. Tente novamente.`);
+          setTimeout(() => navigate(createPageUrl('Pricing')), 3000);
+        }
+
+      } catch (error) {
+        console.error('Erro ao validar:', error);
+        setStatus('error');
+        setMessage('Erro ao validar pagamento. Você será redirecionado...');
+        setTimeout(() => navigate(createPageUrl('Pricing')), 3000);
       }
+    };
 
-      const particleCount = 50 * (timeLeft / duration);
-
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
-      });
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
-      });
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => {});
-  }, []);
-
-  const handleGoToDashboard = () => {
-    navigate(createPageUrl("Dashboard"));
-  };
+    validatePayment();
+  }, [searchParams, navigate]);
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-gradient-to-br from-purple-50 via-white to-indigo-50'}`}>
-      <div className="max-w-2xl mx-auto px-4 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", duration: 0.6 }}
-        >
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-            <CheckCircle className="w-14 h-14 text-white" />
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            🎉 Pagamento Confirmado!
-          </h1>
-          
-          <p className={`text-xl mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Bem-vindo ao <span className="font-bold text-purple-600">Juris Pro</span>
-          </p>
-          
-          <p className={`text-base mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Sua assinatura foi ativada com sucesso!
-          </p>
-
-          <div className={`p-6 rounded-2xl ${isDark ? 'bg-neutral-900 border border-neutral-800' : 'bg-white border border-gray-200'} shadow-xl mb-8`}>
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Acesso Liberado
-              </h2>
-            </div>
-            
-            <div className="space-y-3 text-left">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Assistente Jurídico IA com uso <strong>ilimitado</strong>
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Todos os recursos premium desbloqueados
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Suporte prioritário 24/7
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'} mb-8`}>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Mail className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-              <p className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>
-                Confirmação enviada por email
-              </p>
-            </div>
-            <p className={`text-xs ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
-              Enviamos todos os detalhes da sua assinatura para <strong>{user?.email}</strong>
+    <div className={`min-h-screen flex items-center justify-center p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`max-w-md w-full p-8 rounded-xl border text-center ${
+          isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'
+        }`}
+      >
+        {status === 'validating' && (
+          <>
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" />
+            <h1 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Validando Pagamento
+            </h1>
+            <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
+              Aguarde um momento enquanto validamos seu pagamento...
             </p>
-          </div>
+          </>
+        )}
 
-          <Button
-            onClick={handleGoToDashboard}
-            size="lg"
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white h-14 px-8 text-base font-semibold"
-          >
-            Começar Agora
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
+        {status === 'success' && (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+            >
+              <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            </motion.div>
+            <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Parabéns!
+            </h1>
+            <p className={`mb-4 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+              {message}
+            </p>
+            {user && (
+              <p className={`text-sm mb-6 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                Olá, {user.full_name}! Você será redirecionado ao painel...
+              </p>
+            )}
+            <Button
+              onClick={() => navigate(createPageUrl('Dashboard'))}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600"
+            >
+              Ir para o Painel
+            </Button>
+          </>
+        )}
 
-          <p className={`text-xs mt-6 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-            Dúvidas? Entre em contato com nosso suporte
-          </p>
-        </motion.div>
-      </div>
+        {status === 'error' && (
+          <>
+            <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+            <h1 className={`text-xl font-semibold mb-2 text-red-600`}>
+              Erro na Validação
+            </h1>
+            <p className={`mb-6 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+              {message}
+            </p>
+            <Button
+              onClick={() => navigate(createPageUrl('Pricing'))}
+              variant="outline"
+              className="w-full"
+            >
+              Voltar aos Planos
+            </Button>
+          </>
+        )}
+      </motion.div>
     </div>
   );
 }
