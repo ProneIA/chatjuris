@@ -274,36 +274,40 @@ export default function CheckoutModal({ open, onClose, plan, userEmail }) {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <Button
-                  onClick={() => setStep(1)}
-                  variant="outline"
-                  className="flex-1 h-12 font-semibold"
-                >
-                  Voltar
-                </Button>
-                {isYearly ? (
+              {/* Plano Anual → Hotmart */}
+              {isYearly && (
+                <div className="flex gap-3 mt-6">
+                  <Button onClick={() => setStep(1)} variant="outline" className="flex-1 h-12 font-semibold">
+                    Voltar
+                  </Button>
                   <a
-                    href="https://pay.hotmart.com/H104526343E?checkoutMode=2"
-                    className="hotmart-fb hotmart__button-checkout flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base rounded-md flex items-center justify-center gap-2"
+                    href="https://go.hotmart.com/H104526343E"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base rounded-md flex items-center justify-center gap-2"
                   >
                     Ir para pagamento
                     <Lock className="w-4 h-4" />
                   </a>
-                ) : (
-                  <Button
-                    onClick={handleContinue}
-                    disabled={!isStep2Valid}
-                    className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold text-base"
-                  >
-                    Ir para pagamento
-                    <Lock className="w-4 h-4 ml-2" />
+                </div>
+              )}
+
+              {/* Plano Mensal → Mercado Pago (Pix + Cartão) */}
+              {!isYearly && (
+                <div className="mt-6">
+                  <Button onClick={() => setStep(1)} variant="ghost" size="sm" className="mb-4 text-gray-500">
+                    ← Voltar
                   </Button>
-                )}
-              </div>
+                  <MercadoPagoCheckout
+                    planId={plan}
+                    onSuccess={() => { onClose(); window.location.href = createPageUrl("PaymentSuccess"); }}
+                    onError={(e) => console.error(e)}
+                  />
+                </div>
+              )}
 
               <p className="text-xs text-center text-gray-500 mt-4">
-                Você será redirecionado para o ambiente seguro de pagamento
+                Ambiente seguro e criptografado
               </p>
             </motion.div>
           )}
