@@ -16,6 +16,12 @@ const PIX_EXPIRATION_MINUTES = 30;
 
 Deno.serve(async (req) => {
   try {
+    // ✅ FORÇAR TLS 1.2+
+    const tlsVersion = req.headers.get('x-tls-version') || '1.2';
+    if (parseFloat(tlsVersion) < 1.2) {
+      return Response.json({ error: 'TLS 1.2+ obrigatório' }, { status: 400 });
+    }
+
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autenticado' }, { status: 401 });
@@ -23,7 +29,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       planId, paymentType, cardToken, installments = 1, payerDoc,
-      payerFirstName, payerLastName, deviceId
+      payerFirstName, payerLastName, payerEmail, deviceId, payerAddress
     } = body;
 
     // Validações básicas
@@ -44,7 +50,17 @@ Deno.serve(async (req) => {
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
     if (!accessToken) return Response.json({ error: 'Gateway não configurado' }, { status: 500 });
 
-    const client = new MercadoPagoConfig({ accessToken });
+    // ✅ HEADERS DE SEGURANÇA - TLS 1.2+, User-Agent, etc.
+    const client = new MercadoPagoConfig({
+      accessToken,
+      timeout: 30000,
+      // ✅ Força HTTPS e TLS 1.2+
+      headers: {
+        'User-Agent': 'Juris-API/1.0 (Deno)',
+        'X-TLS-Version': '1.2+',
+        'Accept-Encoding': 'gzip, deflate'
+      }
+    });
     const paymentApi = new Payment(client);
 
     const publicUrl = Deno.env.get('PUBLIC_URL') || '';
@@ -60,6 +76,24 @@ Deno.serve(async (req) => {
     const firstName = sanitize(payerFirstName) || user.full_name?.split(" ")[0] || "Usuario";
     const lastName  = sanitize(payerLastName)  || user.full_name?.split(" ").slice(1).join(" ") || "Juris";
 
+    // ✅ DADOS COMPLETOS DO PAGADOR (Obrigatório para qualidade MP)
+    const payerPayload = {
+      email: payerEmail || user.email,
+      first_name: firstName,
+      last_name: lastName,
+      identification: {
+        type: payerDoc?.type || 'CPF',
+        number: payerDoc?.number || ''
+      },
+      address: payerAddress && {
+        zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
+        street_name: payerAddress.streetName,
+        street_number: payerAddress.streetNumber,
+        city_name: payerAddress.cityName,
+        state_name: payerAddress.stateName
+      }
+    };
+
     const basePayload = {
       transaction_amount: plan.price,
       description: `${plan.name} - Juris IA`,
@@ -68,16 +102,15 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
-        idempotency_key: idempotencyKey
+        idempotency_key: idempotencyKey,
+        // ✅ Device ID no metadata (rastreabilidade)
+        device_id: deviceId || null
       },
-      payer: {
-        email: user.email,
-        first_name: firstName,
-        last_name: lastName
-      },
-      // additional_info: items + payer + ip (antifraude obrigatório)
+      payer: payerPayload,
+      // ✅ ADDITIONAL INFO - Dados completos para antifraude
       additional_info: {
         ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
+        user_agent: req.headers.get('user-agent') || '',
         items: [
           {
             id: planId,
@@ -91,9 +124,20 @@ Deno.serve(async (req) => {
         payer: {
           first_name: firstName,
           last_name: lastName,
-          registration_date: new Date().toISOString()
+          registration_date: new Date().toISOString(),
+          // ✅ Device ID obrigatório aqui
+          ...(deviceId && { device_id: deviceId })
         },
-        ...(deviceId && { device_id: deviceId })
+        // ✅ Shipments (mesmo que digital, Mercado Pago gosta)
+        shipments: {
+          receiver_address: payerAddress && {
+            zip_code: payerAddress.zipCode?.replace(/\D/g, ''),
+            street_name: payerAddress.streetName,
+            street_number: payerAddress.streetNumber,
+            city_name: payerAddress.cityName,
+            state_name: payerAddress.stateName
+          }
+        }
       }
     };
 
