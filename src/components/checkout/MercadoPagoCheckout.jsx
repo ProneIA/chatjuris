@@ -21,14 +21,19 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // SDK MP V2 - Device ID antifraude
+  const { mp, deviceId, ready: mpReady } = useMercadoPago();
+
   // Pix state
   const [pixData, setPixData] = useState(null);
   const [pixCopied, setPixCopied] = useState(false);
   const [pixPolling, setPixPolling] = useState(false);
 
-  // Card state
+  // Card state - inclui firstName e lastName para antifraude
   const [cardForm, setCardForm] = useState({
-    cardNumber: "", expiry: "", cvv: "", holderName: "", cpf: "", installments: 1
+    cardNumber: "", expiry: "", cvv: "",
+    holderName: "", firstName: "", lastName: "",
+    cpf: "", installments: 1
   });
   const [cardResult, setCardResult] = useState(null);
 
