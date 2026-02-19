@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       transaction_amount: 2.00,
       description: "Teste de Homologação API",
       payment_method_id: "pix",
-      notification_url: `${publicUrl.replace(/\/$/, '')}/api/functions/mercadoPagoWebhook`,
+      notification_url: `${publicUrl}/api/functions/mercadoPagoWebhook`,
       external_reference: externalRef,
       statement_descriptor: "JURIS GESTAO",
       payer: {
