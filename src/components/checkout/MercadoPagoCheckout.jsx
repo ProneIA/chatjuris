@@ -245,10 +245,17 @@ export default function MercadoPagoCheckout({ planId, onSuccess, onError }) {
             </div>
           ) : (
             <form onSubmit={handleCardPayment} className="space-y-3">
-              <div>
-                <Label htmlFor="holderName">Nome no cartão</Label>
-                <Input id="holderName" placeholder="Como está no cartão" value={cardForm.holderName}
-                  onChange={e => setCardForm(p => ({ ...p, holderName: e.target.value }))} required />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="firstName">Nome *</Label>
+                  <Input id="firstName" placeholder="Ex: João" value={cardForm.firstName}
+                    onChange={e => setCardForm(p => ({ ...p, firstName: e.target.value }))} required />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Sobrenome *</Label>
+                  <Input id="lastName" placeholder="Ex: Silva" value={cardForm.lastName}
+                    onChange={e => setCardForm(p => ({ ...p, lastName: e.target.value }))} required />
+                </div>
               </div>
               <div>
                 <Label htmlFor="cardNumber">Número do cartão</Label>
