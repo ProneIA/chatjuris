@@ -35,12 +35,19 @@ Deno.serve(async (req) => {
     const requestId      = crypto.randomUUID();
     const externalRef    = `HOMOLOG_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
+    // ── Montar notification_url apenas se for HTTPS válido ────────────────────
+    const webhookUrl = publicUrl.startsWith('https://')
+      ? `${publicUrl}/api/functions/mercadoPagoWebhook`
+      : null;
+
+    console.log('[homologacaoMP] webhook_url final:', webhookUrl);
+
     // ── Payload completo conforme boas práticas MP ────────────────────────────
     const payload = {
       transaction_amount: 2.00,
       description: "Teste de Homologação API",
       payment_method_id: "pix",
-      notification_url: `${publicUrl}/api/functions/mercadoPagoWebhook`,
+      ...(webhookUrl ? { notification_url: webhookUrl } : {}),
       external_reference: externalRef,
       statement_descriptor: "JURIS GESTAO",
       payer: {
