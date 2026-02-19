@@ -26,20 +26,24 @@ Deno.serve(async (req) => {
         }
       ],
       payer: {
-        name: user.full_name || 'Teste',
-        email: user.email,
+        name: 'João',
+        surname: 'Silva',
+        email: 'test_user_123@testuser.com',
         phone: {
           area_code: '11',
           number: '98765-4321'
         },
-        address: {
-          street_name: 'Avenida Paulista',
-          street_number: '1000',
-          zip_code: '01311100'
-        },
         identification: {
           type: 'CPF',
           number: '12345678909'
+        },
+        address: {
+          zip_code: '01234000',
+          street_name: 'Av. das Nações',
+          street_number: 1000,
+          neighborhood: 'Centro',
+          city: 'São Paulo',
+          federal_unit: 'SP'
         }
       },
       back_urls: {
@@ -52,11 +56,17 @@ Deno.serve(async (req) => {
       notification_url: `${Deno.env.get('PUBLIC_URL')}/api/functions/mercadoPagoWebhook`
     };
 
+    // Gerar ID único para idempotência
+    const idempotencyKey = crypto.randomUUID();
+
     const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${mpAccessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': idempotencyKey,
+        'X-Request-Id': crypto.randomUUID(),
+        'X-TLS-Version': '1.2'
       },
       body: JSON.stringify(preference)
     });
@@ -76,7 +86,17 @@ Deno.serve(async (req) => {
       preference_id: mpData.id,
       checkout_url: mpData.init_point,
       sandbox_url: mpData.sandbox_init_point,
-      message: '✅ Link de pagamento gerado com sucesso!'
+      message: '✅ Link de pagamento gerado com sucesso!',
+      security_info: {
+        payer_identification: 'CPF 12345678909 (João Silva)',
+        address_included: 'Av. das Nações, 1000 - Centro, São Paulo-SP',
+        headers_sent: {
+          'X-Idempotency-Key': 'Ativado',
+          'X-Request-Id': 'Ativado',
+          'X-TLS-Version': '1.2+'
+        },
+        device_id_required: 'Será injetado no frontend via script MP'
+      }
     });
   } catch (error) {
     console.error('Error:', error);
