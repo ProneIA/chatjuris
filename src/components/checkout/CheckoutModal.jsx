@@ -60,18 +60,32 @@ export default function CheckoutModal({ open, onClose, plan, userEmail }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isYearly = plan === "pro_yearly";
+
+  // Carrega o widget Hotmart ao abrir o modal do plano anual
+  React.useEffect(() => {
+    if (!open || !isYearly) return;
+    if (document.getElementById('hotmart-widget-script')) return;
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
+    document.head.appendChild(link);
+
+    const script = document.createElement('script');
+    script.id = 'hotmart-widget-script';
+    script.src = 'https://static.hotmart.com/checkout/widget.min.js';
+    document.head.appendChild(script);
+  }, [open, isYearly]);
+
   const handleContinue = () => {
     if (step === 1) {
       setStep(2);
     } else {
-      // Redirecionar para Hotmart com dados pré-preenchidos
       const checkoutUrl = new URL(currentPlan.checkout);
-      if (formData.email) {
-        checkoutUrl.searchParams.set('email', formData.email);
-      }
-      if (formData.name) {
-        checkoutUrl.searchParams.set('name', formData.name);
-      }
+      if (formData.email) checkoutUrl.searchParams.set('email', formData.email);
+      if (formData.name) checkoutUrl.searchParams.set('name', formData.name);
       window.location.href = checkoutUrl.toString();
     }
   };
