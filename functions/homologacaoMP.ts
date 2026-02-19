@@ -51,12 +51,13 @@ Deno.serve(async (req) => {
       external_reference: externalRef,
       statement_descriptor: "JURIS GESTAO",
       payer: {
-        email: "comprador.teste@testuser.com",
-        first_name: "João",
-        last_name: "Silva Teste",
+        // Em produção, o MP exige um email real — usamos o do admin logado
+        email: user.email,
+        first_name: user.full_name?.split(' ')[0] || "Admin",
+        last_name: user.full_name?.split(' ').slice(1).join(' ') || "Juris",
         identification: {
           type: "CPF",
-          number: "12345678909"   // CPF válido no formato correto (dígitos verificadores corretos)
+          number: "12345678909"
         }
       },
       additional_info: {
