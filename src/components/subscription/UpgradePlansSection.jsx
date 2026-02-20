@@ -5,18 +5,17 @@ import { motion } from "framer-motion";
 
 const plans = [
   {
-    id: "monthly",
+    id: "pro_monthly",
     planType: "monthly",
     name: "Mensal",
     icon: Zap,
     price: 119.90,
     period: "/mês",
     description: "Renovação mensal automática",
-    color: "blue",
-    checkoutUrl: "https://mpago.la/2PgvKS6"
+    color: "blue"
   },
   {
-    id: "annual",
+    id: "pro_yearly",
     planType: "annual",
     name: "Anual",
     icon: Crown,
@@ -26,8 +25,7 @@ const plans = [
     annualTotal: 1198.80,
     description: "Economize R$ 240/ano",
     color: "purple",
-    popular: true,
-    checkoutUrl: "https://mpago.li/2dKTAjE"
+    popular: true
   },
 ];
 
