@@ -77,6 +77,21 @@ const adminItems = [
   { title: "Banco de Dados", url: createPageUrl("AdminDatabase"), icon: Shield },
 ];
 
+// Cache busting — força reload quando há nova versão
+const APP_VERSION = "2026-02-20-1";
+if (typeof window !== 'undefined') {
+  const stored = localStorage.getItem("app_version");
+  if (stored && stored !== APP_VERSION) {
+    localStorage.setItem("app_version", APP_VERSION);
+    if ('caches' in window) {
+      caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    }
+    window.location.reload(true);
+  } else if (!stored) {
+    localStorage.setItem("app_version", APP_VERSION);
+  }
+}
+
 const Layout = React.memo(function Layout({ children, currentPageName }) {
     const location = useLocation();
     const [user, setUser] = React.useState(null);
