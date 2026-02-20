@@ -59,7 +59,7 @@ export default function UpgradePlansSection({
     if (onSelectPlan) {
       onSelectPlan(plan);
     } else {
-      window.open(plan.checkoutUrl, '_blank');
+      window.location.href = `/Checkout?plan=${plan.id}`;
     }
   };
 

@@ -76,14 +76,15 @@ export default function AvailablePlansSection({
   const isExpired = subscription?.status === 'expired';
   const isActive = subscription?.status === 'active';
 
+  const planIdMap = {
+    monthly: 'pro_monthly',
+    annual: 'pro_yearly'
+  };
+
   const handleSelectPlan = (planType) => {
-    const mpLinks = {
-      monthly: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=36824280f92847a4a060dbe2b3745836",
-      annual: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=38b87d14e172478fb9c94f3dc6984b61"
-    };
-    
-    if (mpLinks[planType]) {
-      window.open(mpLinks[planType], '_blank');
+    const planId = planIdMap[planType];
+    if (planId) {
+      window.location.href = `/Checkout?plan=${planId}`;
     }
   };
 
