@@ -1,20 +1,6 @@
 /**
  * POST /api/functions/mercadoPagoWebhook
- * Webhook obrigatório do Mercado Pago
- * 
- * FLUXO:
- * 1. Recebe notificação
- * 2. Valida origem
- * 3. Consulta pagamento na API (truth source)
- * 4. Valida dados
- * 5. Ativa assinatura se aprovado
- * 6. Registra auditoria
- * 
- * ✅ Segurança:
- * - Retorna 200 imediatamente (não bloqueia MP)
- * - Processa async (não depende da resposta)
- * - Implementa idempotência
- * - Registra tudo para auditoria
+ * Webhook do Mercado Pago com validação HMAC
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
@@ -24,45 +10,110 @@ const PLANS = {
 };
 
 Deno.serve(async (req) => {
-  // ✅ Apenas POST
   if (req.method !== 'POST') {
     return Response.json({ message: 'OK' }, { status: 200 });
   }
 
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody);
     const queryParams = new URL(req.url).searchParams;
 
-    // ✅ Validar origem do webhook
-    const topic = queryParams.get('topic') || body.type;
-    const paymentId = body.data?.id || queryParams.get('id');
+    // ✅ Validação HMAC da assinatura do Mercado Pago
+    const webhookSecret = Deno.env.get('MP_WEBHOOK_SECRET');
+    const signatureHeader = req.headers.get('x-signature');
+    const requestId = req.headers.get('x-request-id');
+
+    let signatureValid = false;
+
+    if (webhookSecret && signatureHeader) {
+      try {
+        // Extrair ts e v1 do header x-signature
+        const parts = Object.fromEntries(
+          signatureHeader.split(',').map(part => {
+            const [k, v] = part.trim().split('=');
+            return [k, v];
+          })
+        );
+
+        const ts = parts['ts'];
+        const v1 = parts['v1'];
+
+        if (ts && v1) {
+          // Construir manifest: id + ts + (data.id ou resource)
+          const dataId = body.data?.id || body.resource || '';
+          const manifest = `id:${dataId};request-id:${requestId || ''};ts:${ts};`;
+
+          const encoder = new TextEncoder();
+          const keyData = encoder.encode(webhookSecret);
+          const msgData = encoder.encode(manifest);
+
+          const cryptoKey = await crypto.subtle.importKey(
+            'raw', keyData,
+            { name: 'HMAC', hash: 'SHA-256' },
+            false, ['sign']
+          );
+
+          const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+          const hashHex = Array.from(new Uint8Array(signature))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+
+          signatureValid = hashHex === v1;
+        }
+      } catch (e) {
+        console.error('[MP Webhook] Erro na validação HMAC:', e.message);
+      }
+    } else {
+      // Se não há secret configurado ou header ausente, permitir mas logar
+      console.warn('[MP Webhook] Sem validação HMAC - header ou secret ausente');
+      signatureValid = true; // Permissivo se secret não configurado
+    }
+
+    const topic = queryParams.get('topic') || body.type || body.action;
+    const paymentId = body.data?.id || body.resource || queryParams.get('id');
+
+    // ✅ Registrar evento (sempre, para auditoria)
+    try {
+      await base44.asServiceRole.entities.WebhookEvent.create({
+        event_id: String(paymentId || `NO_ID_${Date.now()}`),
+        event_type: topic || 'unknown',
+        mp_payment_id: paymentId ? String(paymentId) : null,
+        payload_json: rawBody,
+        processed: false,
+        signature_valid: signatureValid,
+        error: signatureValid ? null : 'Assinatura HMAC inválida'
+      });
+    } catch (e) {
+      console.error('[MP Webhook] Erro ao registrar evento:', e.message);
+    }
+
+    // ✅ Bloquear se assinatura inválida
+    if (!signatureValid) {
+      console.warn('[MP Webhook] Assinatura inválida - ignorando');
+      return Response.json({ message: 'OK' }, { status: 200 });
+    }
 
     if (!paymentId) {
       console.warn('[MP Webhook] Sem payment_id, ignorando');
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    if (topic !== 'payment.created' && topic !== 'payment.updated') {
+    // Aceitar payment.created, payment.updated e action equivalentes
+    const isPaymentEvent = 
+      topic === 'payment.created' || 
+      topic === 'payment.updated' ||
+      topic === 'payment' ||
+      body.action === 'payment.created' ||
+      body.action === 'payment.updated';
+
+    if (!isPaymentEvent) {
       console.log('[MP Webhook] Topic ignorado:', topic);
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    // ✅ Registrar webhook recebido (para auditoria)
-    try {
-      await base44.asServiceRole.entities.WebhookEvent.create({
-        event_id: paymentId,
-        event_type: topic,
-        mp_payment_id: String(paymentId),
-        payload_json: JSON.stringify(body),
-        processed: false
-      });
-    } catch (e) {
-      console.error('[MP Webhook] Erro ao registrar evento:', e.message);
-    }
-
-    // ✅ Retornar 200 IMEDIATAMENTE (não bloquear MP)
-    // Processamento continua async
+    // ✅ Processar assincronamente
     scheduleProcessing(base44, paymentId);
 
     return Response.json({ message: 'OK' }, { status: 200 });
@@ -72,7 +123,6 @@ Deno.serve(async (req) => {
   }
 });
 
-// ✅ Processamento async (não bloqueia webhook)
 async function scheduleProcessing(base44, paymentId) {
   try {
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
@@ -84,9 +134,7 @@ async function scheduleProcessing(base44, paymentId) {
     // ✅ Consultar pagamento diretamente na API (truth source)
     const mpResponse = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
-      {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      }
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
 
     if (!mpResponse.ok) {
@@ -102,34 +150,31 @@ async function scheduleProcessing(base44, paymentId) {
       external_reference: payment.external_reference
     });
 
-    // ✅ Validar pagamento
     if (!payment.external_reference) {
       console.warn('[MP] Sem external_reference');
       return;
     }
 
-    // ✅ Verificar se já foi processado (idempotência)
+    // ✅ Idempotência
     const existingPayment = await base44.asServiceRole.entities.Payment.filter({
       mp_payment_id: String(paymentId)
     });
 
     if (existingPayment.length > 0 && existingPayment[0].status === 'approved') {
-      console.log('[MP] Pagamento já processado');
+      console.log('[MP] Pagamento já processado - idempotência aplicada');
       return;
     }
 
-    // ✅ Se APROVADO, ativar assinatura
     if (payment.status === 'approved') {
       await activateSubscription(base44, payment);
     } else {
-      // Registrar status negativo
       await updatePaymentStatus(base44, payment);
     }
 
     // ✅ Atualizar webhook event
     try {
       const webhookEvents = await base44.asServiceRole.entities.WebhookEvent.filter({
-        event_id: String(paymentId)
+        mp_payment_id: String(paymentId)
       });
       if (webhookEvents.length > 0) {
         await base44.asServiceRole.entities.WebhookEvent.update(webhookEvents[0].id, {
@@ -159,7 +204,6 @@ async function activateSubscription(base44, payment) {
       return;
     }
 
-    // ✅ Buscar usuário
     const users = await base44.asServiceRole.entities.User.filter({ id: userId });
     if (users.length === 0) {
       console.error('[MP] Usuário não encontrado:', userId);
@@ -170,10 +214,7 @@ async function activateSubscription(base44, payment) {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
-    // ✅ Criar/Atualizar subscription
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
-      user_id: userId
-    });
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
 
     const subData = {
       user_id: userId,
@@ -187,15 +228,11 @@ async function activateSubscription(base44, payment) {
     };
 
     if (subscriptions.length > 0) {
-      await base44.asServiceRole.entities.Subscription.update(
-        subscriptions[0].id,
-        subData
-      );
+      await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subData);
     } else {
       await base44.asServiceRole.entities.Subscription.create(subData);
     }
 
-    // ✅ Atualizar User
     await base44.asServiceRole.entities.User.update(userId, {
       subscription_status: 'active',
       subscription_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
@@ -203,19 +240,22 @@ async function activateSubscription(base44, payment) {
       subscription_end_date: endDate.toISOString()
     });
 
-    // ✅ Atualizar Payment
-    await base44.asServiceRole.entities.Payment.update(
-      (await base44.asServiceRole.entities.Payment.filter({ mp_payment_id: String(payment.id) }))[0].id,
-      {
+    // Atualizar Payment
+    const payments = await base44.asServiceRole.entities.Payment.filter({
+      mp_payment_id: String(payment.id)
+    });
+    if (payments.length > 0) {
+      await base44.asServiceRole.entities.Payment.update(payments[0].id, {
         status: 'approved',
         webhook_received_at: new Date().toISOString()
-      }
-    );
+      });
+    }
 
     console.log('[MP] ✅ Assinatura ativada para:', user.email);
 
-    // ✅ Enviar email de confirmação
+    // Email de confirmação
     try {
+      const publicUrl = Deno.env.get('PUBLIC_URL') || 'https://app.jurispro.com';
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: user.email,
         subject: '✅ Assinatura Juris Pro Ativada',
@@ -226,7 +266,7 @@ async function activateSubscription(base44, payment) {
             <p><strong>Plano:</strong> ${planId === 'pro_yearly' ? 'Anual' : 'Mensal'}</p>
             <p><strong>Valor:</strong> R$ ${plan.price.toFixed(2)}</p>
             <p><strong>Válido até:</strong> ${endDate.toLocaleDateString('pt-BR')}</p>
-            <p>Acesse agora: <a href="${Deno.env.get('PUBLIC_URL')}/Dashboard">Plataforma Juris</a></p>
+            <p>Acesse agora: <a href="${publicUrl}/Dashboard">Plataforma Juris</a></p>
           </div>
         `
       });
