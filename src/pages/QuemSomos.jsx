@@ -113,13 +113,13 @@ export default function QuemSomos() {
           <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-8" />
           <div className="space-y-6 text-gray-600 leading-relaxed">
             <p>
-              O Juris nasceu da percepção de que o setor jurídico brasileiro precisava de uma solução tecnológica que realmente entendesse as particularidades do direito nacional.
+              A JURIS nasceu da vivência real na advocacia.
             </p>
             <p>
-              Fundado por uma equipe de desenvolvedores e advogados, combinamos expertise técnica com conhecimento jurídico profundo para criar uma plataforma que fala a linguagem do direito brasileiro.
+              Como estudante de Direito e estagiário em escritórios, percebi que muitos profissionais perdiam tempo com tarefas operacionais e sistemas pouco eficientes, quando deveriam estar focados em estratégia, clientes e crescimento.
             </p>
             <p>
-              Hoje, ajudamos advogados em todo o Brasil a trabalhar de forma mais inteligente, economizando tempo em tarefas rotineiras e focando no que realmente importa: seus clientes e casos.
+              Dessa inquietação surgiu a JURIS: uma plataforma criada a partir da prática, unindo tecnologia, inteligência artificial e conhecimento jurídico para transformar a rotina do advogado brasileiro.
             </p>
           </div>
         </div>
