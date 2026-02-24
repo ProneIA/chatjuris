@@ -175,7 +175,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     }
   ];
 
-  const colorClasses = React.useMemo(() => ({
+  const colorClasses = {
     blue: { bg: "bg-blue-500/10", text: "text-blue-500", border: "border-blue-500/20" },
     emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500", border: "border-emerald-500/20" },
     purple: { bg: "bg-purple-500/10", text: "text-purple-500", border: "border-purple-500/20" },
@@ -184,7 +184,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     orange: { bg: "bg-orange-500/10", text: "text-orange-500", border: "border-orange-500/20" },
     yellow: { bg: "bg-yellow-500/10", text: "text-yellow-600", border: "border-yellow-500/20" },
     gray: { bg: isDark ? "bg-neutral-800" : "bg-gray-100", text: isDark ? "text-neutral-400" : "text-gray-500", border: isDark ? "border-neutral-700" : "border-gray-200" }
-  }), [isDark]);
+  };
 
   if (isLoading) {
     return (
