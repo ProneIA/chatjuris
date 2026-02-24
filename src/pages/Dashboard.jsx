@@ -135,9 +135,9 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     { title: "Assistente IA", icon: Sparkles, url: createPageUrl("AIAssistant"), color: "purple", badge: "IA" },
     { title: "Calculadora", icon: Calculator, url: createPageUrl("LegalCalculator"), color: "blue" },
     { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearch"), color: "amber" },
-  ];
+  ], []);
 
-  const statCards = [
+  const statCards = React.useMemo(() => [
     {
       title: "Clientes Ativos",
       value: clients.length,
