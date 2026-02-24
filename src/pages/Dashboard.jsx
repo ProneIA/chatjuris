@@ -39,47 +39,35 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
   }, []);
 
   const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ['clients', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 100);
-    },
+    queryKey: ['dashboard-clients', user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, '-created_date', 20),
     enabled: !!user?.email,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000
   });
 
   const { data: cases = [], isLoading: loadingCases } = useQuery({
-    queryKey: ['cases', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 50);
-    },
+    queryKey: ['dashboard-cases', user?.email],
+    queryFn: () => base44.entities.Case.filter({ created_by: user.email }, '-created_date', 8),
     enabled: !!user?.email,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000
   });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
-    queryKey: ['tasks', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 20);
-    },
+    queryKey: ['dashboard-tasks', user?.email],
+    queryFn: () => base44.entities.Task.filter({ created_by: user.email, status: 'pending' }, 'due_date', 10),
     enabled: !!user?.email,
     staleTime: 2 * 60 * 1000,
-    cacheTime: 5 * 60 * 1000
+    gcTime: 5 * 60 * 1000
   });
 
   const { data: documents = [], isLoading: loadingDocuments } = useQuery({
-    queryKey: ['documents', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 50);
-    },
+    queryKey: ['dashboard-documents', user?.email],
+    queryFn: () => base44.entities.LegalDocument.filter({ created_by: user.email }, '-created_date', 20),
     enabled: !!user?.email,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000
   });
 
   const activeCases = React.useMemo(() => cases.filter(c => c.status === 'in_progress').length, [cases]);
