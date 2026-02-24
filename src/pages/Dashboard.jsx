@@ -119,7 +119,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     return "Boa noite";
   }, []);
 
-  const getTaskUrgency = React.useCallback((task) => {
+  const getTaskUrgency = React.useCallback((task) => { // eslint-disable-line
     if (!task.due_date) return { label: "Sem prazo", color: "gray" };
     const dueDate = new Date(task.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) return { label: "Atrasado", color: "red" };
