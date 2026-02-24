@@ -99,22 +99,20 @@ Baseado nos dados do radar, identifiquei oportunidades em Direito do Consumidor.
       if (subs.length === 0) {
         subs = await base44.entities.Subscription.filter({ user_id: user.email });
       }
-      
-      if (subs.length === 0) {
-        return null;
-      }
-      
-      const sub = subs[0];
-      if (shouldResetDaily(sub)) {
-        return await base44.entities.Subscription.update(sub.id, {
-          daily_actions_used: 0,
-          last_reset_date: new Date().toISOString().split('T')[0]
-        });
-      }
-      return sub;
+      return subs[0] || null;
     },
     enabled: !!user?.id
   });
+
+  // Reset diário separado do queryFn (side-effect correto)
+  React.useEffect(() => {
+    if (subscription && shouldResetDaily(subscription)) {
+      base44.entities.Subscription.update(subscription.id, {
+        daily_actions_used: 0,
+        last_reset_date: new Date().toISOString().split('T')[0]
+      });
+    }
+  }, [subscription?.id]);
 
   const createConversationMutation = useMutation({
     mutationFn: (data) => base44.entities.Conversation.create(data),
