@@ -291,9 +291,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
     return (
       <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <React.Suspense fallback={null}><PWAHead /></React.Suspense>
+        <React.Suspense fallback={null}><KeyboardShortcuts /></React.Suspense>
         <React.Suspense fallback={null}>
-          <PWAHead />
-          <KeyboardShortcuts />
           <InstallAppBanner 
             theme={theme} 
             deferredPrompt={deferredPrompt}
@@ -301,6 +301,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             isStandalone={isStandalone}
             onInstall={handleInstallApp}
           />
+        </React.Suspense>
+        <React.Suspense fallback={null}>
           <InstallInstructionsDialog 
             open={showInstallModal} 
             onOpenChange={setShowInstallModal} 
