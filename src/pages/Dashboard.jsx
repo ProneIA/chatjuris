@@ -128,9 +128,9 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     const days = differenceInDays(dueDate, new Date());
     if (days <= 7) return { label: `${days} dias`, color: "blue" };
     return { label: format(dueDate, "dd/MM"), color: "gray" };
-  };
+  }, []);
 
-  const quickActions = [
+  const quickActions = React.useMemo(() => [
     { title: "Novo Processo", icon: Plus, url: createPageUrl("Cases"), color: "emerald" },
     { title: "Assistente IA", icon: Sparkles, url: createPageUrl("AIAssistant"), color: "purple", badge: "IA" },
     { title: "Calculadora", icon: Calculator, url: createPageUrl("LegalCalculator"), color: "blue" },
