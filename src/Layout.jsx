@@ -273,6 +273,11 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
       }
     }, [deferredPrompt]);
 
+    const visibleNavItems = React.useMemo(() =>
+      user?.role === 'admin' ? [...navigationItems, ...adminItems] : navigationItems,
+      [user?.role]
+    );
+
     // Public pages - no layout
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
@@ -281,11 +286,6 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     if (isLoading) return <>{children}</>;
     if (!user) return <>{children}</>;
     if (!accessChecked && user) return <>{children}</>;
-
-    const visibleNavItems = React.useMemo(() =>
-      user?.role === 'admin' ? [...navigationItems, ...adminItems] : navigationItems,
-      [user?.role]
-    );
 
     const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
 
