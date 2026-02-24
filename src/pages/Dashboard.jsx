@@ -97,17 +97,18 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     cacheTime: 10 * 60 * 1000
   });
 
-  const activeCases = cases.filter(c => c.status === 'in_progress').length;
+  const activeCases = React.useMemo(() => cases.filter(c => c.status === 'in_progress').length, [cases]);
   const totalCases = cases.length;
-  const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length;
-  const pendingTasks = tasks.filter(t => t.status !== 'completed').length;
-  const pendingDocuments = documents.filter(d => d.status === 'draft' || d.status === 'review').length;
+  const urgentTasks = React.useMemo(() => tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length, [tasks]);
+  const pendingTasks = React.useMemo(() => tasks.filter(t => t.status !== 'completed').length, [tasks]);
+  const pendingDocuments = React.useMemo(() => documents.filter(d => d.status === 'draft' || d.status === 'review').length, [documents]);
 
-  const upcomingTasks = tasks
-    .filter(t => t.status !== 'completed')
-    .slice(0, 5);
+  const upcomingTasks = React.useMemo(() =>
+    tasks.filter(t => t.status !== 'completed').slice(0, 5),
+    [tasks]
+  );
 
-  const recentCases = cases.slice(0, 4);
+  const recentCases = React.useMemo(() => cases.slice(0, 4), [cases]);
 
   const isLoading = loadingClients || loadingCases || loadingTasks || loadingDocuments;
 
