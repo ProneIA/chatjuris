@@ -112,14 +112,14 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
 
   const isLoading = loadingClients || loadingCases || loadingTasks || loadingDocuments;
 
-  const getGreeting = () => {
+  const getGreeting = React.useCallback(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Bom dia";
     if (hour < 18) return "Boa tarde";
     return "Boa noite";
-  };
+  }, []);
 
-  const getTaskUrgency = (task) => {
+  const getTaskUrgency = React.useCallback((task) => {
     if (!task.due_date) return { label: "Sem prazo", color: "gray" };
     const dueDate = new Date(task.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) return { label: "Atrasado", color: "red" };
