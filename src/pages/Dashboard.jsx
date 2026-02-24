@@ -130,12 +130,12 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     return { label: format(dueDate, "dd/MM"), color: "gray" };
   };
 
-  const quickActions = React.useMemo(() => [
+  const quickActions = [
     { title: "Novo Processo", icon: Plus, url: createPageUrl("Cases"), color: "emerald" },
     { title: "Assistente IA", icon: Sparkles, url: createPageUrl("AIAssistant"), color: "purple", badge: "IA" },
     { title: "Calculadora", icon: Calculator, url: createPageUrl("LegalCalculator"), color: "blue" },
     { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearch"), color: "amber" },
-  ], []);
+  ];
 
   const statCards = React.useMemo(() => [
     {
