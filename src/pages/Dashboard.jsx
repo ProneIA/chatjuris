@@ -173,9 +173,9 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
       color: urgentTasks > 0 ? "red" : "emerald",
       subtitle: urgentTasks > 0 ? "urgentes" : "em dia"
     }
-  ];
+  ], [clients.length, totalCases, activeCases, pendingDocuments, urgentTasks, pendingTasks]);
 
-  const colorClasses = {
+  const colorClasses = React.useMemo(() => ({
     blue: { bg: "bg-blue-500/10", text: "text-blue-500", border: "border-blue-500/20" },
     emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500", border: "border-emerald-500/20" },
     purple: { bg: "bg-purple-500/10", text: "text-purple-500", border: "border-purple-500/20" },
