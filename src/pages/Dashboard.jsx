@@ -137,7 +137,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearch"), color: "amber" },
   ];
 
-  const statCards = React.useMemo(() => [
+  const statCards = [
     {
       title: "Clientes Ativos",
       value: clients.length,
