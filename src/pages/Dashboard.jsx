@@ -119,7 +119,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     return "Boa noite";
   }, []);
 
-  const getTaskUrgency = React.useCallback((task) => { // eslint-disable-line
+  const getTaskUrgency = (task) => {
     if (!task.due_date) return { label: "Sem prazo", color: "gray" };
     const dueDate = new Date(task.due_date);
     if (isPast(dueDate) && !isToday(dueDate)) return { label: "Atrasado", color: "red" };
@@ -128,7 +128,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
     const days = differenceInDays(dueDate, new Date());
     if (days <= 7) return { label: `${days} dias`, color: "blue" };
     return { label: format(dueDate, "dd/MM"), color: "gray" };
-  }, []);
+  };
 
   const quickActions = React.useMemo(() => [
     { title: "Novo Processo", icon: Plus, url: createPageUrl("Cases"), color: "emerald" },
