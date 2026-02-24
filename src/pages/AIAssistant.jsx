@@ -92,21 +92,16 @@ Baseado nos dados do radar, identifiquei oportunidades em Direito do Consumidor.
   });
 
   const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      if (subs.length === 0) {
-        subs = await base44.entities.Subscription.filter({ user_id: user.email });
-      }
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
+    queryKey: ['ai-subscription', user?.id],
+    queryFn: () => base44.entities.Subscription.filter({ user_id: user.id }).then(subs => subs[0] || null),
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 
-  // Reset diário separado do queryFn (side-effect correto)
+  // Reset diário como side-effect separado (não dentro do queryFn)
   React.useEffect(() => {
-    if (subscription && shouldResetDaily(subscription)) {
+    if (subscription?.id && shouldResetDaily(subscription)) {
       base44.entities.Subscription.update(subscription.id, {
         daily_actions_used: 0,
         last_reset_date: new Date().toISOString().split('T')[0]
