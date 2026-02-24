@@ -33,24 +33,9 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
   const isDark = theme === 'dark';
   
   const [user, setUser] = React.useState(null);
-  const [userSubscription, setUserSubscription] = React.useState(null);
   
   React.useEffect(() => {
-    const initUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-        
-        // Buscar subscription do usuário
-        if (userData) {
-          const subs = await base44.entities.Subscription.filter({ user_id: userData.id });
-          setUserSubscription(subs[0] || null);
-        }
-      } catch (e) {
-        console.log('Usuário não logado');
-      }
-    };
-    initUser();
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const { data: clients = [], isLoading: loadingClients } = useQuery({
