@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import CouponsManager from "@/components/admin/CouponsManager";
 import moment from "moment";
 import 'moment/locale/pt-br';
 moment.locale('pt-br');
