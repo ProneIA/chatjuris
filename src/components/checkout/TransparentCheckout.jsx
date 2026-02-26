@@ -552,15 +552,25 @@ export default function TransparentCheckout({ planId, user, onSuccess, theme = '
         ))}
       </div>
 
+      {/* Cupom aplicado */}
+      {couponData && (
+        <div className={`flex items-center gap-2 mb-4 px-3 py-2 rounded-lg ${isDark ? 'bg-green-900/20 border border-green-800' : 'bg-green-50 border border-green-200'}`}>
+          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+          <span className={`text-sm ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+            Cupom <strong>{couponData.code}</strong> aplicado — {couponData.discountType === 'percent' ? `${couponData.discount}% de desconto` : `R$ ${couponData.discount.toFixed(2).replace('.', ',')} de desconto`}
+          </span>
+        </div>
+      )}
+
       {/* Conteúdo do método selecionado */}
       {activeMethod === 'pix' && (
-        <PixPaymentSection planId={planId} payerData={payerData} onSuccess={onSuccess} isDark={isDark} />
+        <PixPaymentSection planId={planId} payerData={{ ...payerData, couponCode: couponData?.code }} onSuccess={onSuccess} isDark={isDark} />
       )}
       {(activeMethod === 'credit_card' || activeMethod === 'debit_card') && (
         <CardPaymentSection
           key={activeMethod}
           planId={planId}
-          payerData={payerData}
+          payerData={{ ...payerData, couponCode: couponData?.code }}
           cardType={activeMethod}
           onSuccess={onSuccess}
           isDark={isDark}
