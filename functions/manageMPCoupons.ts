@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
             status: "active",
             date_expiration: "2026-12-31T23:59:59.000-03:00",
             eligibility: {
-              preapproval_plan_ids: ["ID_DO_SEU_PLANO_MENSAL_AQUI"]
+              preapproval_plan_ids: ["36824280f92847a4a060dbe2b3745836"]
             },
             rules: {
               max_redeems_per_user: 1
