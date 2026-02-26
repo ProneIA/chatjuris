@@ -278,10 +278,10 @@ export default function CouponsManager({ isDark }) {
               <Input type="date" value={couponForm.date_expiration?.split('T')[0]} onChange={e => setCouponForm(p => ({ ...p, date_expiration: `${e.target.value}T23:59:59.000-03:00` }))} />
             </div>
 
-            <div className={`p-3 rounded-lg border text-xs ${isDark ? 'bg-neutral-800 border-neutral-700 text-neutral-400' : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
+            <div className={`p-3 rounded-lg border text-xs ${isDark ? 'bg-green-900/30 border-green-800 text-green-400' : 'bg-green-50 border-green-100 text-green-700'}`}>
               <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>O campo <strong>eligibility.preapproval_plan_ids</strong> restringe o cupom ao plano mensal. Você precisará do ID do seu plano no Mercado Pago para configurar isso via API. O cupom será criado sem essa restrição se não informado.</p>
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <p>Este cupom será restrito ao <strong>Plano Mensal (Assinatura Mensal Juris — R$ 119,90/mês)</strong> via <code>eligibility.preapproval_plan_ids</code>. Usuários de outros planos não poderão utilizá-lo.</p>
               </div>
             </div>
           </div>
