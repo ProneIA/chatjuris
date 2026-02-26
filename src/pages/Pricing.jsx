@@ -125,12 +125,14 @@ export default function Pricing({ theme = 'light' }) {
 
   // Verificar se há um plano selecionado após login
   React.useEffect(() => {
+    if (!user) return;
     const selectedPlan = localStorage.getItem('selected_plan');
-    if (selectedPlan && user) {
+    if (selectedPlan) {
       localStorage.removeItem('selected_plan');
-      handleSelectPlan(selectedPlan);
+      // Redirecionar diretamente sem chamar handleSelectPlan (evita loop)
+      window.location.href = createPageUrl('Checkout') + '?plan=' + selectedPlan;
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Removido: lógica antiga que causava bug (marcava todos como assinados)
 
