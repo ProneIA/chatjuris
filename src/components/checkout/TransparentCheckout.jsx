@@ -10,6 +10,68 @@ const PLAN_AMOUNTS = {
   pro_yearly: 1198.80
 };
 
+// ============ COUPON SECTION ============
+function CouponSection({ planId, onApply, isDark }) {
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [applied, setApplied] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleApply = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    setError(null);
+    const res = await base44.functions.invoke('validateCoupon', { code: code.trim().toUpperCase(), planId });
+    setLoading(false);
+    if (res.data?.valid) {
+      setApplied({ code: code.trim().toUpperCase(), discount: res.data.discount, discountType: res.data.discount_type, finalAmount: res.data.final_amount });
+      onApply({ code: code.trim().toUpperCase(), discount: res.data.discount, discountType: res.data.discount_type, finalAmount: res.data.final_amount });
+    } else {
+      setError(res.data?.error || 'Cupom inválido ou expirado.');
+      setApplied(null);
+      onApply(null);
+    }
+  };
+
+  const handleRemove = () => {
+    setApplied(null);
+    setCode('');
+    setError(null);
+    onApply(null);
+  };
+
+  return (
+    <div className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-gray-50 border-gray-200'}`}>
+      <p className={`text-xs font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-600'}`}>Cupom de desconto</p>
+      {applied ? (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span className={`text-sm font-medium ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+              {applied.code} — {applied.discountType === 'percent' ? `${applied.discount}% OFF` : `R$ ${applied.discount.toFixed(2).replace('.', ',')} OFF`}
+            </span>
+          </div>
+          <button onClick={handleRemove} className={`text-xs underline ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Remover</button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Input
+            value={code}
+            onChange={e => setCode(e.target.value.toUpperCase())}
+            placeholder="Ex: MENSAL50OFF"
+            className={`text-sm ${isDark ? 'bg-neutral-700 border-neutral-600 text-white' : ''}`}
+            onKeyDown={e => e.key === 'Enter' && handleApply()}
+          />
+          <Button variant="outline" size="sm" onClick={handleApply} disabled={loading || !code.trim()} className="shrink-0">
+            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Aplicar'}
+          </Button>
+        </div>
+      )}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  );
+}
+
 // ============ HELPERS ============
 function formatCPF(v) {
   const c = v.replace(/\D/g, '');
