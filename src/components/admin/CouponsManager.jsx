@@ -90,7 +90,7 @@ export default function CouponsManager({ isDark }) {
             Cupons de Desconto — Mercado Pago
           </h2>
           <p className={`text-sm mt-0.5 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-            Gerencie cupons diretamente na API do Mercado Pago
+            Cupom restrito ao Plano Mensal · ID: <span className="font-mono">36824280f92847a4a060dbe2b3745836</span>
           </p>
         </div>
         <div className="flex gap-2">
