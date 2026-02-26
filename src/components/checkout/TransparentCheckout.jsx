@@ -486,6 +486,7 @@ export default function TransparentCheckout({ planId, user, onSuccess, theme = '
     email: user?.email || ''
   });
   const [payerError, setPayerError] = useState(null);
+  const [couponData, setCouponData] = useState(null);
 
   const methods = [
     { id: 'pix', label: 'PIX', icon: QrCode, color: 'text-green-500' },
