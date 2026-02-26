@@ -727,6 +727,11 @@ export default function AdminPanel({ theme = 'light' }) {
             </Card>
           </TabsContent>
 
+          {/* CUPONS */}
+          <TabsContent value="coupons" className="space-y-4">
+            <CouponsManager isDark={isDark} />
+          </TabsContent>
+
           {/* LOGS */}
           <TabsContent value="logs" className="space-y-4">
             <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
