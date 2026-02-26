@@ -24,10 +24,17 @@ function CouponSection({ planId, onApply, isDark }) {
     const res = await base44.functions.invoke('validateCoupon', { couponCode: code.trim().toUpperCase(), planId });
     setLoading(false);
     if (res.data?.valid) {
-      setApplied({ code: code.trim().toUpperCase(), discount: res.data.discount, discountType: res.data.discount_type, finalAmount: res.data.final_amount });
-      onApply({ code: code.trim().toUpperCase(), discount: res.data.discount, discountType: res.data.discount_type, finalAmount: res.data.final_amount });
+      const couponApplied = {
+        code: code.trim().toUpperCase(),
+        discount: res.data.discount_percentage,
+        discountType: 'percent',
+        finalAmount: res.data.final_price,
+        discountAmount: res.data.discount_amount
+      };
+      setApplied(couponApplied);
+      onApply(couponApplied);
     } else {
-      setError(res.data?.error || 'Cupom inválido ou expirado.');
+      setError(res.data?.message || res.data?.error || 'Cupom inválido ou expirado.');
       setApplied(null);
       onApply(null);
     }
