@@ -55,7 +55,7 @@ function CouponSection({ planId, onApply, isDark }) {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-500" />
             <span className={`text-sm font-medium ${isDark ? 'text-green-400' : 'text-green-700'}`}>
-              {applied.code} — {applied.discountType === 'percent' ? `${applied.discount}% OFF` : `R$ ${applied.discount.toFixed(2).replace('.', ',')} OFF`}
+              {applied.code} — {applied.discountType === 'percent' ? `${applied.discount}% OFF` : `R$ ${Number(applied.discount).toFixed(2).replace('.', ',')} OFF`}
             </span>
           </div>
           <button onClick={handleRemove} className={`text-xs underline ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>Remover</button>
