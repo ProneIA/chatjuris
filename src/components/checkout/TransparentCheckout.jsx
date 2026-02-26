@@ -21,7 +21,7 @@ function CouponSection({ planId, onApply, isDark }) {
     if (!code.trim()) return;
     setLoading(true);
     setError(null);
-    const res = await base44.functions.invoke('validateCoupon', { code: code.trim().toUpperCase(), planId });
+    const res = await base44.functions.invoke('validateCoupon', { couponCode: code.trim().toUpperCase(), planId });
     setLoading(false);
     if (res.data?.valid) {
       setApplied({ code: code.trim().toUpperCase(), discount: res.data.discount, discountType: res.data.discount_type, finalAmount: res.data.final_amount });
