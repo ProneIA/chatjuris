@@ -16,8 +16,11 @@ Deno.serve(async (req) => {
         const result = await validateUserAccess(base44, user);
         return Response.json(result);
     } catch (error) {
+        // Fallback conservador: permitir acesso mas logar o erro
+        // Não bloquear por falha técnica, mas registrar
+        console.error('[canAccessSystem] Erro:', error.message);
         return Response.json({ 
-            canAccess: true, // Em caso de erro técnico, não bloquear o usuário
+            canAccess: true,
             reason: 'error_fallback',
             error: error.message
         }, { status: 200 });
