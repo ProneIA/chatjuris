@@ -321,6 +321,10 @@ export default function AdminPanel({ theme = 'light' }) {
               <UserCheck className="w-4 h-4 mr-2" />
               Liberação Manual
             </TabsTrigger>
+            <TabsTrigger value="coupons">
+              <Tag className="w-4 h-4 mr-2" />
+              Cupons
+            </TabsTrigger>
             <TabsTrigger value="logs">
               <Activity className="w-4 h-4 mr-2" />
               Logs ({auditLogs.length})
