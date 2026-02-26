@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
 
     // ── Criar campanha/cupom ───────────────────────────────────────────────────
     if (action === 'create') {
+      const MONTHLY_PLAN_ID = "36824280f92847a4a060dbe2b3745836";
       const payload = coupon_data || {
         name: "DESCONTO_50_MENSAL",
         code: "MENSAL50OFF",
@@ -50,6 +51,9 @@ Deno.serve(async (req) => {
         total_amount: 10000,
         status: "active",
         date_expiration: "2026-12-31T23:59:59.000-03:00",
+        eligibility: {
+          preapproval_plan_ids: [MONTHLY_PLAN_ID]
+        },
         rules: {
           max_redeems_per_user: 1
         }
