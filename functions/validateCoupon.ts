@@ -20,14 +20,17 @@ function aplicarCupom({ plano, cupom }) {
 
   // PLANO MENSAL
   if (plano === "pro_monthly" || plano === "mensal") {
-    precoBase = 119.90;
+  precoBase = 119.90;
 
-    if (cupom === "JURIS25") {
-      desconto = precoBase * 0.25;
-      percentual = 25;
-    } else if (cupom) {
-      throw new Error("Cupom inválido para o plano mensal");
-    }
+  if (cupom === "JURIS25") {
+    desconto = precoBase * 0.25;
+    percentual = 25;
+  } else if (cupom === "MENSAL50OFF") {
+    desconto = precoBase * 0.50;
+    percentual = 50;
+  } else if (cupom) {
+    throw new Error("Cupom inválido para o plano mensal");
+  }
     
     precoMensalEquivalente = Number((precoBase - desconto).toFixed(2));
   }
