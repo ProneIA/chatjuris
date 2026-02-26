@@ -512,6 +512,9 @@ export default function TransparentCheckout({ planId, user, onSuccess, theme = '
         <h3 className={`text-base font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>1. Dados do Pagador</h3>
         <PayerDataForm data={payerData} onChange={setPayerData} isDark={isDark} />
         {payerError && <ErrorBox message={payerError} isDark={isDark} />}
+        <div className="mt-4">
+          <CouponSection planId={planId} onApply={setCouponData} isDark={isDark} />
+        </div>
         <Button onClick={handlePayerNext} className="w-full mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
           Continuar para Pagamento →
         </Button>
