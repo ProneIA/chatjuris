@@ -173,9 +173,5 @@ function findBestSubscription(subscriptions, now) {
     );
     if (activeTrial) return activeTrial;
 
-    // 4. Qualquer subscription com status active (mesmo sem end_date explícita)
-    const anyActive = subscriptions.find(s => s.status === 'active');
-    if (anyActive) return anyActive;
-
     return null;
 }
