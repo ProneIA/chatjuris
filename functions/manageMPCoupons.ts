@@ -23,6 +23,14 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     };
 
+    // ── Listar planos de assinatura do MP (para pegar o ID do plano mensal) ────
+    if (action === 'list_plans') {
+      const res = await fetch(`${MP_API_BASE}/preapproval_plan/search?status=active&limit=50`, { headers });
+      const data = await res.json();
+      if (!res.ok) return Response.json({ error: data.message || 'Erro ao listar planos', detail: data }, { status: res.status });
+      return Response.json({ success: true, data: data.results || [] });
+    }
+
     // ── Listar campanhas/cupons ────────────────────────────────────────────────
     if (action === 'list') {
       const res = await fetch(`${MP_API_BASE}/v1/discount-campaigns?limit=50`, { headers });
