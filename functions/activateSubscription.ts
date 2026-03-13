@@ -79,17 +79,12 @@ Deno.serve(async (req) => {
         
         const subscriptionData = {
             user_id: user.id,
-            plan: 'pro',
             plan_type: plan_type,
             status: plan_type === 'lifetime' ? 'lifetime' : 'active',
-            payment_status: 'paid',
             payment_method: payment_method || 'direct',
             payment_external_id: payment_id,
-            start_date: now.toISOString().split('T')[0],
-            end_date: updateData.subscription_end_date ? updateData.subscription_end_date.split('T')[0] : null,
-            daily_actions_limit: 999999,
-            daily_actions_used: 0,
-            last_reset_date: now.toISOString().split('T')[0]
+            start_date: now.toISOString(),
+            end_date: updateData.subscription_end_date || null
         };
         
         if (subscriptions.length > 0) {
