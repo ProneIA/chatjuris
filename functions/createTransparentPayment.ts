@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { planId, paymentMethod, payerData, cardToken, installments, deviceId } = body;
+    const { planId, paymentMethod, payerData, cardToken, installments, deviceId, couponCode } = body;
 
     // ✅ Validar plano
     const plan = PLANS[planId];
