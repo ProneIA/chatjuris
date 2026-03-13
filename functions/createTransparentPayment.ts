@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
 
     // ✅ Construir payload para API do MP (POST /v1/payments)
     const paymentPayload = {
-      transaction_amount: plan.amount,
+      transaction_amount: finalAmount,
       description: plan.description,
       external_reference: user.id,
       metadata: {
