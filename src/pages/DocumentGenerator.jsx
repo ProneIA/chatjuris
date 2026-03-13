@@ -105,6 +105,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
   const [formData, setFormData] = useState({});
   const [generatedContent, setGeneratedContent] = useState("");
   const [documentTitle, setDocumentTitle] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState("");
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
