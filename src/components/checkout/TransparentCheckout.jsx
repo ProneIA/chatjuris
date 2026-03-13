@@ -236,7 +236,7 @@ function PixPaymentSection({ planId, payerData, onSuccess, isDark }) {
 }
 
 // ============ CARD SECTION ============
-function CardPaymentSection({ planId, payerData, cardType, onSuccess, isDark }) {
+function CardPaymentSection({ planId, payerData, cardType, onSuccess, isDark, finalAmount }) {
   const [mp, setMp] = useState(null);
   const [mpReady, setMpReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -244,7 +244,7 @@ function CardPaymentSection({ planId, payerData, cardType, onSuccess, isDark }) 
   const [cardData, setCardData] = useState({ number: '', name: '', expiry: '', cvv: '' });
   const [installments, setInstallments] = useState(1);
   const isCredit = cardType === 'credit_card';
-  const planAmount = PLAN_AMOUNTS[planId];
+  const planAmount = finalAmount || PLAN_AMOUNTS[planId];
   const maxInstallments = planId === 'pro_yearly' ? 12 : 1;
 
   // Carregar SDK MercadoPago
