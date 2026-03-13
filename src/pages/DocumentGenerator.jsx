@@ -249,6 +249,7 @@ export default function DocumentGenerator({ theme = 'light' }) {
   const handleTemplateSelect = (templateId) => {
     setSelectedTemplate(templateId);
     setFormData({});
+    setSelectedClientId("");
     setStep(3);
   };
 
