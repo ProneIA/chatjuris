@@ -142,7 +142,8 @@ function PixPaymentSection({ planId, payerData, onSuccess, isDark }) {
     const res = await base44.functions.invoke('createTransparentPayment', {
       planId,
       paymentMethod: 'pix',
-      payerData
+      payerData,
+      couponCode: payerData.couponCode || null
     });
 
     if (!res.data.success) {
