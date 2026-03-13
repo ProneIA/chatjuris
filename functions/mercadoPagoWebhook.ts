@@ -242,7 +242,7 @@ async function activateSubscription(base44, payment) {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
 
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId });
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId }, '-created_date', 1);
 
     const subData = {
       user_id: userId,
