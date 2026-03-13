@@ -314,7 +314,8 @@ function CardPaymentSection({ planId, payerData, cardType, onSuccess, isDark, fi
       paymentMethod: cardType,
       payerData,
       cardToken: tokenData.id,
-      installments: isCredit ? installments : 1
+      installments: isCredit ? installments : 1,
+      couponCode: payerData.couponCode || null
     });
 
     setLoading(false);
