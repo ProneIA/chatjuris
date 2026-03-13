@@ -270,7 +270,7 @@ async function activateSubscription(base44, user, planId, plan, mpPaymentId) {
       payment_external_id: mpPaymentId
     };
 
-    const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id });
+    const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id }, '-created_date', 1);
     if (existing.length > 0) {
       await base44.asServiceRole.entities.Subscription.update(existing[0].id, subData);
     } else {
