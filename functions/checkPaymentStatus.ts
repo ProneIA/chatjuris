@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
             payment_external_id: String(paymentId)
           };
 
-          const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id });
+          const existing = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.id }, '-created_date', 1);
           if (existing.length > 0) {
             await base44.asServiceRole.entities.Subscription.update(existing[0].id, subData);
           } else {
