@@ -444,6 +444,50 @@ export default function DocumentGenerator({ theme = 'light' }) {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Seleção de cliente para pré-preencher dados */}
+                  {clients.length > 0 && (
+                    <div className={`p-4 rounded-lg border-2 border-dashed ${isDark ? 'border-purple-700 bg-purple-900/20' : 'border-purple-300 bg-purple-50'}`}>
+                      <label className={`text-sm font-semibold mb-2 block ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                        🔗 Pré-preencher com dados do cliente (opcional)
+                      </label>
+                      <select
+                        value={selectedClientId}
+                        onChange={(e) => {
+                          const clientId = e.target.value;
+                          setSelectedClientId(clientId);
+                          if (clientId) {
+                            const client = clients.find(c => c.id === clientId);
+                            if (client) {
+                              const qualificacao = [
+                                client.name,
+                                client.cpf_cnpj ? `CPF/CNPJ: ${client.cpf_cnpj}` : '',
+                                client.address || '',
+                              ].filter(Boolean).join(', ');
+                              // Preenche campos relevantes conforme o template
+                              const updates = {};
+                              const template = documentTemplates.find(t => t.id === selectedTemplate);
+                              template?.fields.forEach(f => {
+                                if (['autor', 'outorgante', 'recorrente'].includes(f.name)) updates[f.name] = qualificacao;
+                                if (['parte1'].includes(f.name)) updates[f.name] = qualificacao;
+                              });
+                              setFormData(prev => ({ ...prev, ...updates }));
+                            }
+                          }
+                        }}
+                        className={`w-full px-3 py-2 rounded-lg border ${
+                          isDark
+                            ? 'bg-neutral-800 border-neutral-700 text-white'
+                            : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <option value="">Selecione um cliente para pré-preencher...</option>
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}{c.cpf_cnpj ? ` — ${c.cpf_cnpj}` : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
                   {documentTemplates.find(t => t.id === selectedTemplate)?.fields.map((field) => (
                     <div key={field.name} className="space-y-2">
                       <label className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
