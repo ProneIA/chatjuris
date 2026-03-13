@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
       user_email: user.email,
       plan_id: planId,
       payment_type: paymentMethod === 'pix' ? 'pix' : 'credit_card',
-      amount: plan.amount,
+      amount: finalAmount,
       status: 'pending',
       idempotency_key: idempotencyKey
     });
