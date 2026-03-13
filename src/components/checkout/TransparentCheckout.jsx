@@ -583,6 +583,7 @@ export default function TransparentCheckout({ planId, user, onSuccess, theme = '
           cardType={activeMethod}
           onSuccess={onSuccess}
           isDark={isDark}
+          finalAmount={couponData?.finalAmount || null}
         />
       )}
 
