@@ -84,6 +84,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Token do cartão obrigatório' }, { status: 400 });
     }
 
+    // ✅ Validar e aplicar cupom no backend (nunca confiar no valor do frontend)
+    let finalAmount = plan.amount;
+    if (couponCode) {
+      const VALID_COUPONS = {
+        pro_monthly: { JURIS25: 0.25, MENSAL50OFF: 0.50 },
+        pro_yearly:  { JURIS50: 0.50 }
+      };
+      const planCoupons = VALID_COUPONS[planId] || {};
+      const discountRate = planCoupons[couponCode.toUpperCase()];
+      if (discountRate) {
+        finalAmount = Math.max(parseFloat((plan.amount * (1 - discountRate)).toFixed(2)), 0.01);
+        console.log(`[MP] Cupom ${couponCode} aplicado: ${discountRate * 100}% OFF — valor final R$ ${finalAmount}`);
+      } else {
+        console.warn(`[MP] Cupom inválido ignorado: ${couponCode} para plano ${planId}`);
+      }
+    }
+
     // ✅ Validar parcelamento — segurança no backend
     let finalInstallments = 1;
     if (paymentMethod === 'credit_card') {
