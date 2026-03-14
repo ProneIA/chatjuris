@@ -1,12 +1,10 @@
 /**
  * POST /api/functions/createTransparentPayment
  * Checkout Transparente Mercado Pago — 100% backend
- * 
  * Suporta: PIX, cartão de crédito, cartão de débito
- * Plano mensal: sem parcelamento (installments=1)
- * Plano anual: até 12x com juros do MP
+ * Suporta: cupons fixos e cupons de afiliados
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const PLANS = {
   pro_monthly: {
@@ -25,7 +23,12 @@ const PLANS = {
   }
 };
 
-// Valida CPF
+// Cupons fixos do sistema
+const SYSTEM_COUPONS = {
+  pro_monthly: { JURIS25: 0.25, MENSAL50OFF: 0.50 },
+  pro_yearly:  { JURIS50: 0.50 }
+};
+
 function validateCPF(cpf) {
   const clean = cpf.replace(/\D/g, '');
   if (clean.length !== 11 || /^(\d)\1{10}$/.test(clean)) return false;
@@ -57,59 +60,79 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { planId, paymentMethod, payerData, cardToken, installments, deviceId, couponCode } = body;
 
-    // ✅ Validar plano
     const plan = PLANS[planId];
     if (!plan) {
       return Response.json({ error: 'Plano inválido' }, { status: 400 });
     }
 
-    // ✅ Validar método de pagamento
     const allowedMethods = ['pix', 'credit_card', 'debit_card'];
     if (!allowedMethods.includes(paymentMethod)) {
       return Response.json({ error: 'Método de pagamento não permitido' }, { status: 400 });
     }
 
-    // ✅ Validar dados do pagador
     if (!payerData?.fullName || !payerData?.cpf || !payerData?.email) {
       return Response.json({ error: 'Dados do pagador incompletos (nome, CPF, email)' }, { status: 400 });
     }
 
-    // ✅ Validar CPF
     if (!validateCPF(payerData.cpf)) {
       return Response.json({ error: 'CPF inválido' }, { status: 400 });
     }
 
-    // ✅ Validar token para cartão
     if ((paymentMethod === 'credit_card' || paymentMethod === 'debit_card') && !cardToken) {
       return Response.json({ error: 'Token do cartão obrigatório' }, { status: 400 });
     }
 
-    // ✅ Validar e aplicar cupom no backend (nunca confiar no valor do frontend)
+    // ✅ Validar e aplicar cupom no backend
     let finalAmount = plan.amount;
-    if (couponCode) {
-      const VALID_COUPONS = {
-        pro_monthly: { JURIS25: 0.25, MENSAL50OFF: 0.50 },
-        pro_yearly:  { JURIS50: 0.50 }
-      };
-      const planCoupons = VALID_COUPONS[planId] || {};
-      const discountRate = planCoupons[couponCode.toUpperCase()];
-      if (discountRate) {
-        finalAmount = Math.max(parseFloat((plan.amount * (1 - discountRate)).toFixed(2)), 0.01);
-        console.log(`[MP] Cupom ${couponCode} aplicado: ${discountRate * 100}% OFF — valor final R$ ${finalAmount}`);
+    let discountAmount = 0;
+    let appliedCouponCode = null;
+    let affiliateId = null;
+    let couponType = null;
+
+    if (couponCode && couponCode.trim()) {
+      const couponUpper = couponCode.trim().toUpperCase();
+      const couponLower = couponCode.trim().toLowerCase();
+
+      // Checar cupons fixos
+      const planCoupons = SYSTEM_COUPONS[planId] || {};
+      if (planCoupons[couponUpper]) {
+        const discountRate = planCoupons[couponUpper];
+        discountAmount = parseFloat((plan.amount * discountRate).toFixed(2));
+        finalAmount = Math.max(parseFloat((plan.amount - discountAmount).toFixed(2)), 0.01);
+        appliedCouponCode = couponUpper;
+        couponType = 'system';
+        console.log(`[MP] Cupom sistema ${couponCode}: ${discountRate * 100}% OFF — R$ ${finalAmount}`);
       } else {
-        console.warn(`[MP] Cupom inválido ignorado: ${couponCode} para plano ${planId}`);
+        // Checar cupons de afiliados
+        const affiliates = await base44.asServiceRole.entities.Affiliate.filter({
+          affiliate_code: couponLower,
+          status: 'active'
+        });
+
+        if (affiliates.length > 0) {
+          const affiliate = affiliates[0];
+
+          // 🛡️ Antifraude: afiliado não pode comprar com próprio cupom
+          if (affiliate.user_email === user.email) {
+            return Response.json({ error: 'Você não pode usar o seu próprio cupom de afiliado' }, { status: 400 });
+          }
+
+          const discountRate = (affiliate.commission_rate || 0) / 100;
+          discountAmount = parseFloat((plan.amount * discountRate).toFixed(2));
+          finalAmount = Math.max(parseFloat((plan.amount - discountAmount).toFixed(2)), 0.01);
+          appliedCouponCode = couponLower;
+          affiliateId = affiliate.id;
+          couponType = 'affiliate';
+          console.log(`[MP] Cupom afiliado ${couponCode} (${affiliate.name}): ${affiliate.commission_rate}% OFF — R$ ${finalAmount}`);
+        } else {
+          console.warn(`[MP] Cupom inválido ignorado: ${couponCode}`);
+        }
       }
     }
 
-    // ✅ Validar parcelamento — segurança no backend
     let finalInstallments = 1;
     if (paymentMethod === 'credit_card') {
       finalInstallments = Math.max(1, Math.min(parseInt(installments) || 1, plan.maxInstallments));
-    }
-
-    // ✅ Bloco boleto proibido (segurança extra)
-    if (paymentMethod === 'boleto' || paymentMethod === 'ticket') {
-      return Response.json({ error: 'Boleto não permitido' }, { status: 400 });
     }
 
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
@@ -123,7 +146,6 @@ Deno.serve(async (req) => {
     const lastName = nameParts.slice(1).join(' ') || 'Usuario';
     const cpfClean = payerData.cpf.replace(/\D/g, '');
 
-    // ✅ Construir payload para API do MP (POST /v1/payments)
     const paymentPayload = {
       transaction_amount: finalAmount,
       description: plan.description,
@@ -132,6 +154,8 @@ Deno.serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         plan_id: planId,
+        coupon_code: appliedCouponCode || null,
+        affiliate_id: affiliateId || null,
         idempotency_key: idempotencyKey
       },
       payer: {
@@ -145,10 +169,9 @@ Deno.serve(async (req) => {
       }
     };
 
-    // ✅ Adicionar campos por método de pagamento
     if (paymentMethod === 'pix') {
       paymentPayload.payment_method_id = 'pix';
-      paymentPayload.date_of_expiration = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24h
+      paymentPayload.date_of_expiration = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     } else if (paymentMethod === 'credit_card') {
       paymentPayload.token = cardToken;
       paymentPayload.installments = finalInstallments;
@@ -166,18 +189,20 @@ Deno.serve(async (req) => {
       };
     }
 
-    // ✅ Registrar intenção de pagamento (antes de chamar MP — para auditoria)
+    // Registrar intenção de pagamento com coupon_code e affiliate_id
     const paymentRecord = await base44.asServiceRole.entities.Payment.create({
       user_id: user.id,
       user_email: user.email,
       plan_id: planId,
       payment_type: paymentMethod === 'pix' ? 'pix' : 'credit_card',
       amount: finalAmount,
+      coupon_code: appliedCouponCode || null,
+      affiliate_id: affiliateId || null,
+      discount_amount: discountAmount || null,
       status: 'pending',
       idempotency_key: idempotencyKey
     });
 
-    // ✅ Criar pagamento na API do Mercado Pago
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: {
@@ -203,7 +228,6 @@ Deno.serve(async (req) => {
       }, { status: 422 });
     }
 
-    // ✅ Atualizar registro com ID do MP
     await base44.asServiceRole.entities.Payment.update(paymentRecord.id, {
       mp_payment_id: String(mpData.id),
       status: mpData.status === 'approved' ? 'approved' : (mpData.status === 'rejected' ? 'rejected' : 'pending'),
@@ -211,12 +235,14 @@ Deno.serve(async (req) => {
       raw_response: JSON.stringify({ id: mpData.id, status: mpData.status, status_detail: mpData.status_detail })
     });
 
-    // ✅ Se aprovado imediatamente — ativar assinatura
     if (mpData.status === 'approved') {
       await activateSubscription(base44, user, planId, plan, String(mpData.id));
+      // Processar comissão de afiliado imediatamente se aprovado
+      if (affiliateId && couponType === 'affiliate' && appliedCouponCode) {
+        await processAffiliateCommission(base44, paymentRecord.id, appliedCouponCode, plan.amount, user.email, affiliateId);
+      }
     }
 
-    // ✅ Montar resposta para o frontend
     const response = {
       success: true,
       paymentId: mpData.id,
@@ -224,7 +250,6 @@ Deno.serve(async (req) => {
       statusDetail: mpData.status_detail
     };
 
-    // PIX: retornar QR code
     if (paymentMethod === 'pix' && mpData.point_of_interaction?.transaction_data) {
       const txData = mpData.point_of_interaction.transaction_data;
       response.pix = {
@@ -233,7 +258,6 @@ Deno.serve(async (req) => {
         expiresAt: paymentPayload.date_of_expiration
       };
 
-      // Salvar QR no registro
       await base44.asServiceRole.entities.Payment.update(paymentRecord.id, {
         pix_qr_code: txData.qr_code_base64,
         pix_qr_code_text: txData.qr_code,
@@ -241,7 +265,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Cartão 3DS / desafio
     if (mpData.three_ds_info?.external_resource_url) {
       response.threeDsUrl = mpData.three_ds_info.external_resource_url;
     }
@@ -287,5 +310,47 @@ async function activateSubscription(base44, user, planId, plan, mpPaymentId) {
     console.log('[MP] ✅ Assinatura ativada imediatamente para:', user.email);
   } catch (e) {
     console.error('[activateSubscription] Erro:', e.message);
+  }
+}
+
+async function processAffiliateCommission(base44, paymentId, affiliateCode, subscriptionValue, customerEmail, affiliateId) {
+  try {
+    const affiliates = await base44.asServiceRole.entities.Affiliate.filter({
+      id: affiliateId,
+      status: 'active'
+    });
+
+    if (affiliates.length === 0) {
+      console.log('[Affiliate] Afiliado não encontrado:', affiliateId);
+      return;
+    }
+
+    const affiliate = affiliates[0];
+    const commissionAmount = parseFloat(((subscriptionValue * affiliate.commission_rate) / 100).toFixed(2));
+
+    await base44.asServiceRole.entities.AffiliateCommission.create({
+      affiliate_id: affiliate.id,
+      affiliate_code: affiliateCode,
+      subscription_id: paymentId,
+      customer_email: customerEmail,
+      subscription_value: subscriptionValue,
+      commission_rate: affiliate.commission_rate,
+      commission_amount: commissionAmount,
+      status: 'pending'
+    });
+
+    await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
+      total_sales: (affiliate.total_sales || 0) + 1,
+      total_commission: parseFloat(((affiliate.total_commission || 0) + commissionAmount).toFixed(2))
+    });
+
+    // Atualizar Payment com affiliate_id confirmado
+    await base44.asServiceRole.entities.Payment.update(paymentId, {
+      affiliate_id: affiliate.id
+    });
+
+    console.log(`[Affiliate] ✅ Comissão R$ ${commissionAmount} criada para ${affiliate.name}`);
+  } catch (error) {
+    console.error('[processAffiliateCommission] Erro:', error.message);
   }
 }

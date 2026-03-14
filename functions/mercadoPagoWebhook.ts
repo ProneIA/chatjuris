@@ -1,28 +1,21 @@
 /**
  * POST /api/functions/mercadoPagoWebhook
- * Webhook do Mercado Pago com validação HMAC correta
- * 
- * FLUXO:
- * 1. Recebe notificação
- * 2. Valida assinatura HMAC (MP_WEBHOOK_SECRET)
- * 3. Consulta pagamento na API (truth source)
- * 4. Ativa assinatura se aprovado
- * 5. Registra auditoria
+ * Webhook do Mercado Pago com validação HMAC
+ * Inclui processamento de comissões de afiliados após pagamento aprovado
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const PLANS = {
   pro_monthly: { price: 119.90, durationDays: 30 },
   pro_yearly: { price: 1198.80, durationDays: 365 }
 };
 
-// ✅ Validação HMAC do Mercado Pago
 async function validateMPSignature(req, body) {
   try {
     const secret = Deno.env.get('MP_WEBHOOK_SECRET');
     if (!secret) {
       console.warn('[MP Webhook] MP_WEBHOOK_SECRET não configurado, pulando validação');
-      return true; // Se não há secret configurado, permite passar
+      return true;
     }
 
     const signatureHeader = req.headers.get('x-signature');
@@ -33,7 +26,6 @@ async function validateMPSignature(req, body) {
       return false;
     }
 
-    // Extrair ts e v1 do header: "ts=xxx,v1=yyy"
     const parts = {};
     signatureHeader.split(',').forEach(part => {
       const [key, value] = part.split('=');
@@ -48,17 +40,14 @@ async function validateMPSignature(req, body) {
       return false;
     }
 
-    // Construir o manifest para validação
     const url = new URL(req.url);
     const dataId = new URLSearchParams(url.search).get('data.id') || '';
-    
-    // Manifest: "id:{data.id};request-id:{x-request-id};ts:{ts};"
+
     let manifest = '';
     if (dataId) manifest += `id:${dataId};`;
     if (requestId) manifest += `request-id:${requestId};`;
     manifest += `ts:${ts};`;
 
-    // HMAC-SHA256
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
     const msgData = encoder.encode(manifest);
@@ -95,14 +84,11 @@ Deno.serve(async (req) => {
     const body = JSON.parse(rawBody);
     const queryParams = new URL(req.url).searchParams;
 
-    // ✅ Validar assinatura HMAC
     const signatureValid = await validateMPSignature(req, rawBody);
 
-    // Extrair topic e paymentId
     const topic = queryParams.get('topic') || body.type || body.action;
     const paymentId = body.data?.id || queryParams.get('id') || queryParams.get('data.id');
 
-    // ✅ Registrar evento (sempre, mesmo inválido, para auditoria)
     try {
       await base44.asServiceRole.entities.WebhookEvent.create({
         event_id: paymentId ? String(paymentId) : `NO_ID_${Date.now()}`,
@@ -117,10 +103,9 @@ Deno.serve(async (req) => {
       console.error('[MP Webhook] Erro ao registrar evento:', e.message);
     }
 
-    // ✅ Rejeitar se assinatura inválida
     if (!signatureValid) {
       console.warn('[MP Webhook] Requisição rejeitada: assinatura inválida');
-      return Response.json({ message: 'OK' }, { status: 200 }); // Retorna 200 para não reenvio infinito
+      return Response.json({ message: 'OK' }, { status: 200 });
     }
 
     if (!paymentId) {
@@ -128,9 +113,8 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    // ✅ Filtrar apenas eventos de pagamento
-    const isPaymentEvent = topic === 'payment' || 
-                           topic === 'payment.created' || 
+    const isPaymentEvent = topic === 'payment' ||
+                           topic === 'payment.created' ||
                            topic === 'payment.updated' ||
                            body.action === 'payment.created' ||
                            body.action === 'payment.updated';
@@ -140,7 +124,7 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    // ✅ Retornar 200 IMEDIATAMENTE e processar async
+    // Retornar 200 imediatamente e processar async
     scheduleProcessing(base44, paymentId);
 
     return Response.json({ message: 'OK' }, { status: 200 });
@@ -159,7 +143,6 @@ async function scheduleProcessing(base44, paymentId) {
       return;
     }
 
-    // ✅ Consultar pagamento na API (truth source)
     const mpResponse = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
@@ -183,7 +166,7 @@ async function scheduleProcessing(base44, paymentId) {
       return;
     }
 
-    // ✅ Idempotência: verificar se já foi processado
+    // Idempotência
     const existingPayment = await base44.asServiceRole.entities.Payment.filter({
       mp_payment_id: String(paymentId)
     });
@@ -195,11 +178,12 @@ async function scheduleProcessing(base44, paymentId) {
 
     if (payment.status === 'approved') {
       await activateSubscription(base44, payment);
+      // ✅ Processar comissão de afiliado após pagamento via webhook
+      await processAffiliateCommissionFromWebhook(base44, payment, existingPayment[0] || null);
     } else {
       await updatePaymentStatus(base44, payment);
     }
 
-    // ✅ Atualizar webhook event
     try {
       const webhookEvents = await base44.asServiceRole.entities.WebhookEvent.filter({
         mp_payment_id: String(paymentId)
@@ -218,6 +202,89 @@ async function scheduleProcessing(base44, paymentId) {
 
   } catch (error) {
     console.error('[scheduleProcessing] Erro:', error.message);
+  }
+}
+
+async function processAffiliateCommissionFromWebhook(base44, payment, paymentRecord) {
+  try {
+    // Buscar o registro de Payment no banco para pegar coupon_code e affiliate_id
+    let couponCode = payment.metadata?.coupon_code;
+    let affiliateId = payment.metadata?.affiliate_id;
+
+    // Fallback: buscar no registro do Payment
+    if (!couponCode && paymentRecord) {
+      couponCode = paymentRecord.coupon_code;
+      affiliateId = paymentRecord.affiliate_id;
+    }
+
+    if (!couponCode) {
+      console.log('[Affiliate] Nenhum cupom de afiliado neste pagamento');
+      return;
+    }
+
+    // Verificar se já existe comissão para evitar duplicatas
+    const existingCommissions = await base44.asServiceRole.entities.AffiliateCommission.filter({
+      subscription_id: paymentRecord?.id || String(payment.id)
+    });
+
+    if (existingCommissions.length > 0) {
+      console.log('[Affiliate] Comissão já processada para este pagamento');
+      return;
+    }
+
+    // Buscar afiliado pelo código
+    let affiliate = null;
+    if (affiliateId) {
+      const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ id: affiliateId, status: 'active' });
+      if (affiliates.length > 0) affiliate = affiliates[0];
+    }
+
+    if (!affiliate) {
+      const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ affiliate_code: couponCode.toLowerCase(), status: 'active' });
+      if (affiliates.length > 0) affiliate = affiliates[0];
+    }
+
+    if (!affiliate) {
+      console.log('[Affiliate] Afiliado não encontrado para cupom:', couponCode);
+      return;
+    }
+
+    // Usar o valor original do plano (sem desconto) para calcular a comissão
+    const planId = payment.metadata?.plan_id;
+    const plan = PLANS[planId];
+    const subscriptionValue = plan ? plan.price : payment.transaction_amount;
+
+    const commissionAmount = parseFloat(((subscriptionValue * affiliate.commission_rate) / 100).toFixed(2));
+    const userId = payment.external_reference;
+    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+    const customerEmail = users[0]?.email || payment.metadata?.user_email || '';
+
+    await base44.asServiceRole.entities.AffiliateCommission.create({
+      affiliate_id: affiliate.id,
+      affiliate_code: couponCode,
+      subscription_id: paymentRecord?.id || String(payment.id),
+      customer_email: customerEmail,
+      subscription_value: subscriptionValue,
+      commission_rate: affiliate.commission_rate,
+      commission_amount: commissionAmount,
+      status: 'pending'
+    });
+
+    await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
+      total_sales: (affiliate.total_sales || 0) + 1,
+      total_commission: parseFloat(((affiliate.total_commission || 0) + commissionAmount).toFixed(2))
+    });
+
+    // Confirmar affiliate_id no Payment
+    if (paymentRecord?.id) {
+      await base44.asServiceRole.entities.Payment.update(paymentRecord.id, {
+        affiliate_id: affiliate.id
+      });
+    }
+
+    console.log(`[Affiliate] ✅ Comissão R$ ${commissionAmount} criada para ${affiliate.name} via webhook`);
+  } catch (error) {
+    console.error('[processAffiliateCommissionFromWebhook] Erro:', error.message);
   }
 }
 
@@ -268,7 +335,6 @@ async function activateSubscription(base44, payment) {
       subscription_end_date: endDate.toISOString()
     });
 
-    // ✅ Atualizar Payment
     const payments = await base44.asServiceRole.entities.Payment.filter({ mp_payment_id: String(payment.id) });
     if (payments.length > 0) {
       await base44.asServiceRole.entities.Payment.update(payments[0].id, {
@@ -276,7 +342,6 @@ async function activateSubscription(base44, payment) {
         webhook_received_at: new Date().toISOString()
       });
     } else {
-      // Criar registro se não existir (pagamento via checkout sem preferência prévia)
       await base44.asServiceRole.entities.Payment.create({
         user_id: userId,
         user_email: user.email,

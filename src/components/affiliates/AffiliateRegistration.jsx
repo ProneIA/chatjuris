@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AffiliateRegistration({ theme = 'light', isOwner = false }) {
@@ -17,6 +17,7 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
       </div>
     );
   }
+
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
@@ -24,17 +25,10 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     user_email: '',
     phone: '',
     pix_key: '',
-    commission_rate: 30,
+    commission_rate: 20,
+    affiliate_code: '',
     notes: ''
   });
-
-  const generateCode = (name) => {
-    return name.toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, '')
-      .substring(0, 10) + Math.random().toString(36).substring(2, 6);
-  };
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -43,14 +37,7 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['affiliates'] });
-      setForm({
-        name: '',
-        user_email: '',
-        phone: '',
-        pix_key: '',
-        commission_rate: 30,
-        notes: ''
-      });
+      setForm({ name: '', user_email: '', phone: '', pix_key: '', commission_rate: 20, affiliate_code: '', notes: '' });
       toast.success("Afiliado cadastrado com sucesso!");
     },
     onError: (error) => {
@@ -58,10 +45,28 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     }
   });
 
+  // Auto-gerar código a partir do nome se não preenchido
+  const handleNameChange = (name) => {
+    const autoCode = name.toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 15);
+    setForm({ ...form, name, affiliate_code: form.affiliate_code || autoCode });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const affiliate_code = generateCode(form.name);
-    createMutation.mutate({ ...form, affiliate_code, status: 'active' });
+    if (!form.affiliate_code.trim()) {
+      toast.error("Código do cupom é obrigatório");
+      return;
+    }
+    const cleanCode = form.affiliate_code.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!cleanCode) {
+      toast.error("Código deve conter apenas letras e números");
+      return;
+    }
+    createMutation.mutate({ ...form, affiliate_code: cleanCode, status: 'active' });
   };
 
   return (
@@ -79,7 +84,8 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
               <Label>Nome Completo *</Label>
               <Input
                 value={form.name}
-                onChange={(e) => setForm({...form, name: e.target.value})}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Ex: Pedro Silva"
                 required
               />
             </div>
@@ -89,26 +95,26 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
               <Input
                 type="email"
                 value={form.user_email}
-                onChange={(e) => setForm({...form, user_email: e.target.value})}
+                onChange={(e) => setForm({ ...form, user_email: e.target.value })}
+                placeholder="pedro@email.com"
                 required
               />
             </div>
 
             <div>
-              <Label>Telefone</Label>
+              <Label className="flex items-center gap-1">
+                Código do Cupom *
+                <Info className="w-3 h-3 text-gray-400" />
+              </Label>
               <Input
-                value={form.phone}
-                onChange={(e) => setForm({...form, phone: e.target.value})}
+                value={form.affiliate_code}
+                onChange={(e) => setForm({ ...form, affiliate_code: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '') })}
+                placeholder="Ex: pedro, ana10, juris30"
+                required
               />
-            </div>
-
-            <div>
-              <Label>Chave PIX</Label>
-              <Input
-                value={form.pix_key}
-                onChange={(e) => setForm({...form, pix_key: e.target.value})}
-                placeholder="Email, CPF, telefone ou chave aleatória"
-              />
+              <p className="text-xs text-gray-500 mt-1">
+                Somente letras minúsculas e números. O cliente usará este código no checkout.
+              </p>
             </div>
 
             <div>
@@ -116,9 +122,32 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
               <Input
                 type="number"
                 step="0.01"
+                min="1"
+                max="100"
                 value={form.commission_rate}
-                onChange={(e) => setForm({...form, commission_rate: parseFloat(e.target.value)})}
+                onChange={(e) => setForm({ ...form, commission_rate: parseFloat(e.target.value) })}
                 required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Este % é o desconto aplicado ao cliente E a comissão do afiliado.
+              </p>
+            </div>
+
+            <div>
+              <Label>Telefone</Label>
+              <Input
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+
+            <div>
+              <Label>Chave PIX para Pagamento</Label>
+              <Input
+                value={form.pix_key}
+                onChange={(e) => setForm({ ...form, pix_key: e.target.value })}
+                placeholder="Email, CPF, telefone ou chave aleatória"
               />
             </div>
           </div>
@@ -127,23 +156,31 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
             <Label>Observações</Label>
             <Textarea
               value={form.notes}
-              onChange={(e) => setForm({...form, notes: e.target.value})}
-              rows={3}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={2}
+              placeholder="Anotações internas sobre o afiliado..."
             />
           </div>
 
+          {/* Preview */}
+          {form.affiliate_code && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm">
+              <p className="font-medium text-blue-900 mb-1">Preview do Link de Afiliado:</p>
+              <code className="text-blue-700 break-all">
+                {window.location.origin}/Pricing?ref={form.affiliate_code}
+              </code>
+              <p className="text-blue-600 mt-2">
+                Desconto para o cliente: <strong>{form.commission_rate}%</strong> | 
+                Comissão do afiliado: <strong>{form.commission_rate}% sobre o valor do plano</strong>
+              </p>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2">
-            <Button 
-              type="button" 
+            <Button
+              type="button"
               variant="outline"
-              onClick={() => setForm({
-                name: '',
-                user_email: '',
-                phone: '',
-                pix_key: '',
-                commission_rate: 30,
-                notes: ''
-              })}
+              onClick={() => setForm({ name: '', user_email: '', phone: '', pix_key: '', commission_rate: 20, affiliate_code: '', notes: '' })}
             >
               Limpar
             </Button>
