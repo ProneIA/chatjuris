@@ -14,7 +14,7 @@ export default function CommissionsList({ commissions, isAdmin, theme = 'light' 
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
   
-  const isOwner = user?.email === 'ld.andrade@outlook.com';
+  const isOwner = user?.role === 'admin';
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [affiliates, setAffiliates] = React.useState({});

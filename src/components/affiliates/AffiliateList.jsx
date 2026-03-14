@@ -15,6 +15,7 @@ export default function AffiliateList({ affiliates, theme = 'light', isOwner = f
   }, []);
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
+  const isActualAdmin = user?.role === 'admin';
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }) => base44.entities.Affiliate.update(id, { status }),
