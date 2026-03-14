@@ -20,7 +20,7 @@ export default function WithdrawalRequests({ requests, isOwner, affiliate, theme
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const isActualOwner = user?.email === 'ld.andrade@outlook.com';
+  const isActualOwner = user?.role === 'admin';
 
   const availableBalance = affiliate ? 
     (affiliate.total_commission || 0) - (affiliate.total_paid || 0) : 0;

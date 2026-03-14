@@ -126,7 +126,7 @@ export default function AffiliateList({ affiliates, theme = 'light', isOwner = f
                 )}
               </div>
 
-              {isOwner && user?.email === 'ld.andrade@outlook.com' && (
+              {isActualAdmin && (
                 <div className="flex gap-2">
                   {affiliate.status === 'active' && (
                     <Button
