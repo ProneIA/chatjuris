@@ -65,6 +65,7 @@ const navigationItems = [
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
   { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
   { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
+  { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: Users2 },
   { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
   { title: "Auditoria LGPD", url: createPageUrl("LGPDAudit"), icon: Shield },
   { title: "Conformidade LGPD", url: createPageUrl("LGPDCompliance"), icon: Shield },
