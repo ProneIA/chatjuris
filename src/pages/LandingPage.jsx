@@ -1,420 +1,652 @@
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { 
-  Scale, 
-  FileText, 
-  Clock, 
-  Shield, 
-  Users, 
-  Sparkles,
-  CheckCircle,
-  ArrowRight,
-  ChevronDown
-} from "lucide-react";
-import LandingPageSkeleton from "@/components/landing/LandingPageSkeleton";
 
-// Lazy load do tracker de afiliados (não crítico)
 const AffiliateTracker = lazy(() => import("@/components/subscription/AffiliateTracker"));
 
 export default function LandingPage() {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const observerRef = useRef(null);
 
-  const handleLogin = () => {
-    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
-  };
-
-  const handleStartTrial = () => {
-    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
-  };
+  const handleLogin = () => base44.auth.redirectToLogin(createPageUrl("Dashboard"));
+  const handleStartTrial = () => base44.auth.redirectToLogin(createPageUrl("Dashboard"));
+  const goToPricing = () => { window.location.href = createPageUrl("Pricing"); };
 
   useEffect(() => {
     const checkAuth = async () => {
       const isAuth = await base44.auth.isAuthenticated();
-      if (isAuth) {
-        window.location.href = createPageUrl("Dashboard");
-      }
+      if (isAuth) window.location.href = createPageUrl("Dashboard");
     };
     checkAuth();
 
-    // Preload da imagem hero
-    const img = new Image();
-    img.src = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png';
-    img.onload = () => {
-      setHeroImageLoaded(true);
-      // Pequeno delay para animação suave
-      setTimeout(() => setIsLoaded(true), 100);
-    };
+    // IntersectionObserver for scroll animations
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observerRef.current.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    document.querySelectorAll(".fade-up, .fade-in").forEach((el) => {
+      observerRef.current.observe(el);
+    });
+
+    return () => observerRef.current?.disconnect();
   }, []);
 
-  const goToPricing = () => {
-    window.location.href = createPageUrl("Pricing");
-  };
-
-  const scrollToSection = () => {
-    document.getElementById('vantagens')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const vantagens = [
-    {
-      icon: Sparkles,
-      titulo: "Inteligência Artificial Jurídica",
-      descricao: "Gere petições, contratos e pareceres em segundos com nossa IA treinada em milhares de documentos jurídicos."
-    },
-    {
-      icon: Clock,
-      titulo: "Economize 80% do Tempo",
-      descricao: "Automatize tarefas repetitivas e foque no que realmente importa: seus clientes e estratégias."
-    },
-    {
-      icon: FileText,
-      titulo: "Gestão Completa de Processos",
-      descricao: "Organize todos os seus casos, prazos e documentos em um único lugar, com alertas automáticos."
-    },
-    {
-      icon: Shield,
-      titulo: "Segurança Total",
-      descricao: "Seus dados protegidos com criptografia de ponta e em conformidade total com a LGPD."
-    },
-    {
-      icon: Users,
-      titulo: "Colaboração em Equipe",
-      descricao: "Compartilhe processos e documentos com sua equipe de forma segura e organizada."
-    },
-    {
-      icon: Scale,
-      titulo: "Jurisprudência Atualizada",
-      descricao: "Acesse decisões dos principais tribunais e fortaleça suas teses com fundamentação sólida."
-    }
+  const pillars = [
+    { num: "01", title: "IA Jurídica", text: "Petições, contratos e pareceres em segundos com IA treinada em documentos jurídicos brasileiros." },
+    { num: "02", title: "Gestão de Processos", text: "Organize casos, prazos e documentos. Alertas automáticos para nunca perder um prazo." },
+    { num: "03", title: "Jurisprudência", text: "Acesse decisões dos principais tribunais e fortaleça suas teses com fundamentação sólida." },
+    { num: "04", title: "Segurança LGPD", text: "Criptografia de ponta, conformidade total com a LGPD e backups automáticos." },
+    { num: "05", title: "Equipes", text: "Colaboração segura com controle de acesso granular para cada membro do escritório." },
   ];
 
-  // Mostrar skeleton enquanto carrega
-  if (!isLoaded) {
-    return <LandingPageSkeleton />;
-  }
+  const scrollToSection = () => {
+    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
-    <div className="min-h-screen w-full bg-white">
+    <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased" }}>
       <Suspense fallback={null}>
         <AffiliateTracker />
       </Suspense>
 
       <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        :root {
+          --primary: #C8A84B;
+          --dark: #0a0a0a;
+          --white: #FFFFFF;
+          --gray: #1E1E1E;
         }
 
-        .animate-fade-in-up {
-          animation: fadeInUp 0.4s ease-out forwards;
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
 
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.4s; }
-        .stagger-5 { animation-delay: 0.5s; }
-        .stagger-6 { animation-delay: 0.6s; }
-
+        ::-webkit-scrollbar { width: 0; }
         html { scroll-behavior: smooth; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f5f5f5; }
-        ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
 
-        /* Prevenir layout shift */
-        .hero-section {
-          min-height: 100vh;
-          width: 100%;
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+
+        .font-oswald { font-family: 'Oswald', 'Helvetica Neue', Arial, sans-serif; }
+
+        .fade-up {
+          opacity: 0;
+          transform: translateY(2rem);
+          transition: opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1);
+        }
+        .fade-in {
+          opacity: 0;
+          transition: opacity 1.5s ease-out;
+        }
+        .fade-up.is-visible, .fade-in.is-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+        .delay-400 { transition-delay: 400ms; }
+        .delay-500 { transition-delay: 500ms; }
+
+        .text-outline {
+          -webkit-text-stroke: 1px var(--white);
+          color: transparent;
+        }
+        .text-outline-dark {
+          -webkit-text-stroke: 1px var(--dark);
+          color: transparent;
         }
 
-        .hero-image-container {
+        .nav-blend {
+          mix-blend-mode: difference;
+        }
+
+        .hero-vignette {
+          background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 150%);
+        }
+
+        .pillar-card {
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(0,0,0,0.5);
+          padding: 2rem;
+          transition: all 0.3s ease;
+          cursor: default;
+        }
+        .pillar-card:hover {
+          background: var(--primary);
+          border-color: var(--primary);
+        }
+        .pillar-card:hover .pillar-num { color: rgba(255,255,255,0.4); }
+        .pillar-card:hover .pillar-title { color: #fff; }
+        .pillar-card:hover .pillar-text { color: rgba(255,255,255,0.9); }
+
+        .pillar-num {
+          font-size: 4rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.15);
+          font-family: 'Oswald', sans-serif;
+          line-height: 1;
+          margin-bottom: 0.5rem;
+          transition: color 0.3s ease;
+        }
+        .pillar-title {
+          font-family: 'Oswald', sans-serif;
+          font-size: 1.1rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #fff;
+          margin-bottom: 0.75rem;
+          transition: color 0.3s ease;
+        }
+        .pillar-text {
+          font-size: 0.875rem;
+          color: rgba(255,255,255,0.5);
+          line-height: 1.6;
+          transition: color 0.3s ease;
+        }
+
+        .grid-pattern {
+          background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+          background-size: 60px 60px;
+          opacity: 0.03;
+        }
+
+        .chapter-label {
+          font-family: 'Oswald', sans-serif;
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: var(--primary);
+          font-weight: 500;
+        }
+
+        .sticky-image-strip::after {
+          content: '';
           position: absolute;
-          inset: 0;
-          background-color: #1a1a1a;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          width: 8px;
+          background: var(--primary);
         }
 
-        .hero-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
+        .btn-white {
+          display: inline-block;
+          padding: 1rem 2.5rem;
+          background: #fff;
+          color: #000;
+          font-family: 'Oswald', sans-serif;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          border: none;
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+          text-decoration: none;
+          border-radius: 0;
+        }
+        .btn-white:hover {
+          background: #000;
+          color: #fff;
+        }
+        .btn-outline-white {
+          display: inline-block;
+          padding: 1rem 2.5rem;
+          background: transparent;
+          color: #fff;
+          font-family: 'Oswald', sans-serif;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          border: 2px solid #fff;
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+          text-decoration: none;
+          border-radius: 0;
+        }
+        .btn-outline-white:hover {
+          background: #fff;
+          color: #000;
+        }
+
+        .social-icon {
+          width: 36px;
+          height: 36px;
+          border: 1px solid rgba(255,255,255,0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: border-color 0.2s;
+          cursor: pointer;
+          font-size: 0.9rem;
+          color: rgba(255,255,255,0.6);
+        }
+        .social-icon:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+        }
+
+        @media (max-width: 1023px) {
+          .sticky-panel { position: relative !important; height: 60vw !important; }
         }
       `}</style>
 
-      {/* Hero Section */}
-      <section className="hero-section relative overflow-hidden">
-        <div className="hero-image-container">
-          {heroImageLoaded && (
+      {/* ── NAV ── */}
+      <nav
+        className="nav-blend"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          padding: "1.25rem 2.5rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span
+            className="font-oswald"
+            style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 700, letterSpacing: "-0.02em", textTransform: "uppercase" }}
+          >
+            Juris
+          </span>
+          <div style={{ display: "flex", gap: "3px" }}>
+            {["#C8A84B", "#fff", "#555", "#C8A84B", "#fff"].map((c, i) => (
+              <div key={i} style={{ width: 6, height: 6, background: c }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop links */}
+        <div className="hidden md:flex" style={{ gap: "2.5rem", alignItems: "center" }}>
+          {[
+            { label: "Quem Somos", to: createPageUrl("QuemSomos") },
+            { label: "Funcionalidades", to: createPageUrl("Funcionalidades") },
+            { label: "Preços", to: createPageUrl("Pricing") },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              className="font-oswald"
+              style={{ color: "#fff", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.12em", textDecoration: "none", fontWeight: 500, opacity: 0.8, transition: "opacity 0.2s" }}
+              onMouseEnter={e => e.target.style.opacity = 1}
+              onMouseLeave={e => e.target.style.opacity = 0.8}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <button
+            onClick={handleLogin}
+            className="font-oswald"
+            style={{ color: "#fff", background: "none", border: "none", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500, cursor: "pointer", opacity: 0.8 }}
+          >
+            Entrar
+          </button>
+          <button onClick={handleStartTrial} className="btn-white" style={{ padding: "0.6rem 1.5rem", fontSize: "0.75rem" }}>
+            Teste 7 dias
+          </button>
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="flex md:hidden"
+          onClick={() => setMenuOpen(!menuOpen)}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: "1.5rem" }}
+        >
+          {menuOpen ? "✕" : "☰"}
+        </button>
+      </nav>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 99,
+            background: "var(--dark)", display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: "2rem"
+          }}
+        >
+          {[
+            { label: "Quem Somos", to: createPageUrl("QuemSomos") },
+            { label: "Funcionalidades", to: createPageUrl("Funcionalidades") },
+            { label: "Preços", to: createPageUrl("Pricing") },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              onClick={() => setMenuOpen(false)}
+              className="font-oswald"
+              style={{ color: "#fff", fontSize: "2rem", textTransform: "uppercase", letterSpacing: "0.1em", textDecoration: "none", fontWeight: 600 }}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <button onClick={handleLogin} className="font-oswald" style={{ color: "rgba(255,255,255,0.6)", background: "none", border: "none", fontSize: "1.2rem", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer" }}>
+            Entrar
+          </button>
+          <button onClick={handleStartTrial} className="btn-white">Teste Grátis 7 Dias</button>
+        </div>
+      )}
+
+      {/* ── HERO ── */}
+      <section
+        style={{
+          position: "relative",
+          height: "100vh",
+          minHeight: "600px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        {/* Background image */}
+        <img
+          src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1920&q=80&auto=format&fit=crop"
+          alt=""
+          style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", filter: "grayscale(1) contrast(1.25)",
+          }}
+        />
+        {/* Overlays */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)" }} />
+        <div className="hero-vignette" style={{ position: "absolute", inset: 0 }} />
+
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "0 1.5rem", maxWidth: "900px" }}>
+          <p className="chapter-label fade-in" style={{ marginBottom: "1.5rem" }}>
+            ✦ Plataforma Jurídica com Inteligência Artificial
+          </p>
+          <h1
+            className="font-oswald fade-up"
+            style={{
+              fontSize: "clamp(3.5rem, 10vw, 7rem)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: "#fff",
+              margin: 0,
+            }}
+          >
+            Direito<br />
+            <span className="text-outline">Tradicional.</span>
+          </h1>
+          <h2
+            className="font-oswald fade-up delay-100"
+            style={{
+              fontSize: "clamp(3.5rem, 10vw, 7rem)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: "var(--primary)",
+              margin: "0 0 1.5rem",
+            }}
+          >
+            Soluções Modernas.
+          </h2>
+          <p
+            className="fade-up delay-200"
+            style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.1rem", maxWidth: "520px", margin: "0 auto 2.5rem", lineHeight: 1.7 }}
+          >
+            Gerencie processos, gere documentos e pesquise jurisprudência com IA — tudo em uma única plataforma para advogados modernos.
+          </p>
+          <div className="fade-up delay-300" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={handleStartTrial} className="btn-white">Teste Grátis 7 Dias</button>
+            <button onClick={goToPricing} className="btn-outline-white">Ver Planos</button>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <button
+          onClick={scrollToSection}
+          style={{
+            position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)",
+            background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)",
+            animation: "bounce 2s infinite", fontSize: "1.5rem"
+          }}
+        >
+          ↓
+        </button>
+        <style>{`@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }`}</style>
+      </section>
+
+      {/* ── STICKY SCROLL SPLIT ── */}
+      <section id="features" style={{ display: "flex", flexWrap: "wrap" }}>
+        {/* Left sticky image */}
+        <div style={{ width: "100%", flex: "0 0 50%" }} className="sticky-panel hidden lg:block">
+          <div
+            className="sticky-image-strip"
+            style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden", position: "sticky" }}
+          >
             <img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/690e408daf48e0f633c6cf3a/ec0dffc16_Gemini_Generated_Image_72n7ph72n7ph72n7.png"
-              alt="Juris - Plataforma Jurídica"
-              className="hero-image animate-fade-in"
-              loading="eager"
-              width="1920"
-              height="1080"
+              src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=80&auto=format&fit=crop"
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)" }}
             />
-          )}
-        </div>
-        <div className="absolute inset-0 bg-black/60" />
-
-        <div className="relative z-10 min-h-screen flex flex-col">
-          {/* Navegação */}
-          <nav className="w-full px-4 sm:px-6 md:px-12 py-4 sm:py-6 flex items-center justify-between opacity-0 animate-fade-in">
-            <span className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
-              Juris
-            </span>
-            
-            <div className="hidden md:flex items-center gap-6 lg:gap-8">
-              <Link 
-                to={createPageUrl("QuemSomos")}
-                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
-              >
-                Quem somos
-              </Link>
-              <Link 
-                to={createPageUrl("Funcionalidades")}
-                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
-              >
-                Funcionalidades
-              </Link>
-              <Link 
-                to={createPageUrl("PrivacyPolicy")}
-                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
-              >
-                Privacidade
-              </Link>
-              <button 
-                onClick={handleLogin}
-                className="text-sm text-white/80 hover:text-white transition-colors duration-200"
-              >
-                Entrar
-              </button>
-              <button 
-                onClick={handleStartTrial}
-                className="px-5 lg:px-6 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
-              >
-                Teste grátis 7 dias
-              </button>
-            </div>
-
-            {/* Mobile */}
-            <div className="flex md:hidden items-center gap-2">
-              <button 
-                onClick={handleLogin}
-                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors duration-200"
-              >
-                Entrar
-              </button>
-              <button 
-                onClick={handleStartTrial}
-                className="px-4 py-2 text-sm font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
-              >
-                Teste 7 dias
-              </button>
-            </div>
-          </nav>
-
-          {/* Título centralizado */}
-          <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
-            <div className="text-center max-w-4xl mx-auto">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-white tracking-tight leading-tight opacity-0 animate-fade-in-up stagger-1">
-                Direito Tradicional.
-              </h1>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-tight mt-1 sm:mt-2 opacity-0 animate-fade-in-up stagger-2">
-                Soluções Modernas.
-              </h1>
-              
-              <div className="w-16 sm:w-20 h-0.5 bg-white mx-auto mt-6 sm:mt-8 opacity-0 animate-fade-in stagger-3" />
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 sm:mt-10 opacity-0 animate-fade-in-up stagger-4">
-                <button 
-                  onClick={handleStartTrial}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all duration-200"
-                >
-                  Teste Grátis 7 Dias
-                </button>
-                <button 
-                  onClick={goToPricing}
-                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border-2 border-white text-white rounded-none hover:bg-white hover:text-gray-900 transition-all duration-200"
-                >
-                  Ver Planos
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Indicador de scroll */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-0 animate-fade-in stagger-5">
-            <button onClick={scrollToSection} className="text-white/70 hover:text-white transition-colors duration-200">
-              <ChevronDown className="w-8 h-8" />
-            </button>
+            <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 8, background: "var(--primary)" }} />
           </div>
         </div>
-      </section>
 
-      {/* Seção de Vantagens */}
-      <section id="vantagens" className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-white">
-        <div className="max-w-6xl mx-auto">
-          {/* Header da seção */}
-          <div className="text-center mb-12 sm:mb-20">
-            <p className="text-gray-500 uppercase tracking-widest text-xs sm:text-sm mb-3 sm:mb-4">
-              Por que escolher o Juris
-            </p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-4 sm:mb-6 px-2">
-              Tudo que seu escritório precisa.
-              <span className="block font-semibold mt-1 sm:mt-2">Em uma única plataforma.</span>
-            </h2>
-            <div className="w-12 sm:w-16 h-0.5 bg-gray-900 mx-auto" />
-          </div>
-
-          {/* Grid de vantagens */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-20">
-            {vantagens.map((vantagem, index) => {
-              const Icon = vantagem.icon;
-              return (
-                <div 
-                  key={index}
-                  className="p-6 sm:p-8 border border-gray-200 hover:border-gray-400 transition-all duration-200 group active:scale-[0.98]"
-                >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-gray-300 flex items-center justify-center mb-4 sm:mb-6 group-hover:border-gray-900 transition-colors duration-200">
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2 sm:mb-3">
-                    {vantagem.titulo}
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    {vantagem.descricao}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CTA Section */}
-          <div className="border border-gray-200 p-6 sm:p-10 lg:p-12 text-center">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-light text-gray-900 mb-3 sm:mb-4">
-              Pronto para transformar seu escritório?
+        {/* Right scrollable text */}
+        <div style={{ flex: "1 1 50%", padding: "8rem 4rem 8rem 5rem", display: "flex", flexDirection: "column", gap: "8rem" }}>
+          {/* Chapter 01 */}
+          <div className="fade-up">
+            <p className="chapter-label" style={{ marginBottom: "1rem" }}>Chapter 01</p>
+            <div style={{ height: 1, background: "#e5e5e5", marginBottom: "2rem" }} />
+            <h3
+              className="font-oswald"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 600, letterSpacing: "-0.03em", textTransform: "uppercase", lineHeight: 1.05, marginBottom: "1.5rem", color: "#0a0a0a" }}
+            >
+              Inteligência<br />Artificial<br />Jurídica
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
-              Junte-se a milhares de advogados que já economizam tempo e aumentam sua produtividade com o Juris.
+            <p style={{ color: "rgba(0,0,0,0.65)", lineHeight: 1.8, fontSize: "1rem", maxWidth: "480px" }}>
+              Nossa IA foi treinada em milhares de documentos jurídicos brasileiros. Gere petições iniciais, contestações, recursos e contratos em questão de segundos — com fundamentação legal precisa e linguagem forense adequada.
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-              <button 
-                onClick={handleStartTrial}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
+          </div>
+
+          {/* Chapter 02 */}
+          <div className="fade-up">
+            <p className="chapter-label" style={{ marginBottom: "1rem" }}>Chapter 02</p>
+            <div style={{ height: 1, background: "#e5e5e5", marginBottom: "2rem" }} />
+            <h3
+              className="font-oswald"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 600, letterSpacing: "-0.03em", textTransform: "uppercase", lineHeight: 1.05, marginBottom: "1.5rem", color: "#0a0a0a" }}
+            >
+              Gestão<br />Completa<br />de Processos
+            </h3>
+            <p style={{ color: "rgba(0,0,0,0.65)", lineHeight: 1.8, fontSize: "1rem", maxWidth: "480px" }}>
+              Do primeiro atendimento até a sentença final. Organize todos os seus casos, gerencie prazos processuais com alertas automáticos, controle honorários e documentos em um único lugar — acessível de qualquer dispositivo.
+            </p>
+          </div>
+
+          {/* Chapter 03 — Quote card */}
+          <div className="fade-up">
+            <p className="chapter-label" style={{ marginBottom: "1rem" }}>Chapter 03</p>
+            <div style={{ height: 1, background: "#e5e5e5", marginBottom: "2rem" }} />
+            <div style={{ background: "#0a0a0a", padding: "3rem", position: "relative" }}>
+              <p
+                className="font-oswald"
+                style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.15, color: "#fff", marginBottom: "2rem" }}
               >
-                Teste Grátis 7 Dias
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={goToPricing}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-medium border border-gray-300 text-gray-900 rounded-none hover:border-gray-900 transition-all duration-200"
-              >
-                Ver Planos
-              </button>
+                "Economize 80% do tempo em tarefas repetitivas."
+              </p>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+                Advogados que usam o Juris relatam ganho médio de 15h semanais — horas devolvidas para o que realmente importa: estratégia e clientes.
+              </p>
+              <div style={{ height: 3, background: "var(--primary)", width: "4rem" }} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Seção de Benefícios - Lazy loaded */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-            <div>
-              <p className="text-gray-500 uppercase tracking-widest text-xs sm:text-sm mb-3 sm:mb-4">
-                Solução Completa
+      {/* ── VALUES / PILARES ── */}
+      <section style={{ background: "#121212", position: "relative", overflow: "hidden", padding: "7rem 2.5rem" }}>
+        {/* Grid pattern */}
+        <div className="grid-pattern" style={{ position: "absolute", inset: 0 }} />
+
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          {/* Header */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-end", marginBottom: "4rem" }}>
+            <h2
+              className="font-oswald fade-up"
+              style={{ fontSize: "clamp(3rem, 7vw, 5.5rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1, color: "#fff", flex: "1 1 500px", margin: 0 }}
+            >
+              Nossos<br />Pilares
+            </h2>
+            <p className="fade-up delay-100" style={{ color: "rgba(255,255,255,0.5)", maxWidth: "300px", lineHeight: 1.7, fontSize: "0.95rem", flex: "0 0 300px" }}>
+              Cinco fundamentos que fazem do Juris a plataforma mais completa para advogados brasileiros.
+            </p>
+          </div>
+
+          {/* Cards grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1px" }}>
+            {pillars.map((p, i) => (
+              <div
+                key={p.num}
+                className={`pillar-card fade-up delay-${i * 100 > 400 ? 400 : i * 100}`}
+              >
+                <div className="pillar-num">{p.num}</div>
+                <div className="pillar-title">{p.title}</div>
+                <div className="pillar-text">{p.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={{ position: "relative", overflow: "hidden", minHeight: "560px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <img
+          src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)" }}
+        />
+        {/* Double overlay */}
+        <div style={{ position: "absolute", inset: 0, background: "rgba(200,168,75,0.9)", mixBlendMode: "multiply" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)" }} />
+
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "5rem 2rem", maxWidth: "820px" }}>
+          <p className="chapter-label fade-in" style={{ color: "rgba(255,255,255,0.8)", marginBottom: "1.5rem" }}>
+            ✦ Comece Agora
+          </p>
+          <h2
+            className="font-oswald fade-up"
+            style={{
+              fontSize: "clamp(3rem, 9vw, 6rem)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: "#fff",
+              marginBottom: "1.5rem",
+            }}
+          >
+            Transforme Seu<br />Escritório Hoje.
+          </h2>
+          <p className="fade-up delay-100" style={{ color: "rgba(255,255,255,0.8)", fontSize: "1rem", lineHeight: 1.7, maxWidth: "500px", margin: "0 auto 2.5rem" }}>
+            Junte-se a milhares de advogados que já economizam tempo e aumentam sua produtividade. Teste grátis por 7 dias — sem cartão de crédito.
+          </p>
+          <div className="fade-up delay-200" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={handleStartTrial} className="btn-white">Teste Grátis 7 Dias</button>
+            <button onClick={goToPricing} className="btn-outline-white">Ver Planos</button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer style={{ background: "#000", padding: "5rem 2.5rem 2rem" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "3rem", marginBottom: "4rem" }}>
+            {/* Brand column */}
+            <div style={{ gridColumn: "span 2" }}>
+              <span
+                className="font-oswald"
+                style={{ color: "#fff", fontSize: "2rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "-0.02em", display: "block", marginBottom: "1rem" }}
+              >
+                Juris
+              </span>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.875rem", lineHeight: 1.7, maxWidth: "280px", marginBottom: "1.5rem" }}>
+                A plataforma jurídica com inteligência artificial para advogados e escritórios modernos.
               </p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-light text-gray-900 mb-4 sm:mb-6">
-                Do primeiro atendimento
-                <span className="block font-semibold mt-1 sm:mt-2">até a sentença final.</span>
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-6 sm:mb-8">
-                O Juris foi desenvolvido por advogados, para advogados. Entendemos as dores do dia a dia e criamos uma ferramenta que realmente resolve seus problemas.
-              </p>
-              
-              <ul className="space-y-3 sm:space-y-4">
-                {[
-                  "Geração automática de documentos jurídicos",
-                  "Controle de prazos processuais",
-                  "Gestão de clientes e honorários",
-                  "Pesquisa de jurisprudência com IA",
-                  "Calendário integrado com lembretes"
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-gray-700">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900 flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                {["in", "tw", "ig"].map((s) => (
+                  <div key={s} className="social-icon font-oswald" style={{ fontWeight: 600, fontSize: "0.7rem", textTransform: "uppercase" }}>{s}</div>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            <div className="border border-gray-200 bg-white p-6 sm:p-8 lg:p-10">
-              <div className="text-center">
-                <p className="text-gray-500 text-xs sm:text-sm mb-2">A partir de</p>
-                <p className="text-4xl sm:text-5xl font-light text-gray-900 mb-2">
-                  R$ 99<span className="text-xl sm:text-2xl">,90</span>
-                </p>
-                <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8">/mês</p>
-                
-                <button 
-                  onClick={goToPricing}
-                  className="inline-block w-full px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all duration-200"
-                >
-                  Ver planos
-                </button>
-                
-                <p className="text-gray-500 text-xs sm:text-sm mt-3 sm:mt-4">
-                  Cancele quando quiser. Sem multas.
-                </p>
+            {/* Links col 1 */}
+            <div>
+              <p className="chapter-label" style={{ color: "rgba(255,255,255,0.3)", marginBottom: "1.5rem" }}>Produto</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {[
+                  { label: "Funcionalidades", to: createPageUrl("Funcionalidades") },
+                  { label: "Preços", to: createPageUrl("Pricing") },
+                  { label: "Quem Somos", to: createPageUrl("QuemSomos") },
+                ].map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}
+                    onMouseEnter={e => e.target.style.color = "var(--primary)"}
+                    onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.5)"}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Links col 2 */}
+            <div>
+              <p className="chapter-label" style={{ color: "rgba(255,255,255,0.3)", marginBottom: "1.5rem" }}>Legal</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {[
+                  { label: "Política de Privacidade", to: createPageUrl("PrivacyPolicy") },
+                  { label: "Termos de Uso", to: createPageUrl("TermsOfService") },
+                  { label: "Contato", to: createPageUrl("ContactPublic") },
+                ].map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.to}
+                    style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.875rem", textDecoration: "none", transition: "color 0.2s" }}
+                    onMouseEnter={e => e.target.style.color = "var(--primary)"}
+                    onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.5)"}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="py-8 sm:py-12 px-4 sm:px-6 md:px-12 bg-white border-t border-gray-200">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 text-center sm:text-left">
-            <span className="text-lg sm:text-xl font-semibold text-gray-900 tracking-tight">
-              Juris
-            </span>
-            <p className="text-gray-500 text-xs sm:text-sm order-3 sm:order-2">
+          {/* Bottom bar */}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.5rem", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center" }}>
+            <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.75rem", margin: 0 }}>
               © 2024 Juris. Todos os direitos reservados.
             </p>
-            <div className="flex items-center gap-4 sm:gap-6 order-2 sm:order-3">
-              <Link 
-                to={createPageUrl("PrivacyPolicy")}
-                className="text-gray-600 hover:text-gray-900 text-sm transition-colors duration-200"
-              >
-                Política de Privacidade
-              </Link>
-              <Link 
-                to={createPageUrl("ContactPublic")}
-                className="text-gray-600 hover:text-gray-900 text-sm transition-colors duration-200"
-              >
-                Contato
-              </Link>
+            <div style={{ display: "flex", gap: "1.5rem" }}>
+              {["Privacidade", "Termos", "Cookies"].map((l) => (
+                <span key={l} style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.75rem", cursor: "pointer" }}>{l}</span>
+              ))}
             </div>
           </div>
         </div>
