@@ -1,115 +1,105 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Mail, Phone, MapPin, Clock, Scale, ArrowRight } from "lucide-react";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { PublicNav, PublicFooter, publicStyles } from "@/components/landing/PublicLayout";
+
+const contacts = [
+  { icon: Mail, num: "01", title: "Email", sub: "Resposta em até 24 horas úteis", value: "juris.ia.tech@gmail.com", href: "mailto:juris.ia.tech@gmail.com" },
+  { icon: Phone, num: "02", title: "Telefone", sub: "Segunda a Sexta, 9h às 18h", value: "(86) 99993-1754", href: "tel:+5586999931754" },
+  { icon: Clock, num: "03", title: "Horário", sub: "Atendimento presencial", value: "Seg — Sex: 9h às 18h", href: null },
+  { icon: MapPin, num: "04", title: "Localização", sub: "Brasil", value: "Piripiri, PI", href: null },
+];
 
 export default function ContactPublic() {
-  return (
-    <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between border-b border-gray-200">
-        <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-          <Scale className="w-6 h-6 text-gray-900" />
-          <span className="text-xl font-semibold tracking-tight">Juris</span>
-        </Link>
-        <Link 
-          to={createPageUrl("LandingPage")}
-          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          ← Voltar
-        </Link>
-      </nav>
+  const observerRef = useRef(null);
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
-        <div className="text-center mb-16">
-          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Contato</p>
-          <h1 className="text-3xl md:text-4xl font-light mb-4">Entre em Contato</h1>
-          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
-          <p className="text-gray-600 max-w-xl mx-auto">
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-visible"); observerRef.current.unobserve(e.target); } }),
+      { threshold: 0.15 }
+    );
+    document.querySelectorAll(".pub-fade-up, .pub-fade-in").forEach((el) => observerRef.current.observe(el));
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  return (
+    <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased", background: "#fff" }}>
+      <style>{publicStyles}{`
+        .contact-card { border: 1px solid #e5e5e5; padding: 2.5rem; transition: border-color 0.3s; }
+        .contact-card:hover { border-color: var(--primary); }
+      `}</style>
+      <PublicNav />
+
+      {/* Hero */}
+      <section style={{ position: "relative", paddingTop: "64px", minHeight: "55vh", display: "flex", alignItems: "center", overflow: "hidden" }}>
+        <img
+          src="https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.2)" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 140%)" }} />
+
+        <div style={{ position: "relative", zIndex: 2, padding: "5rem 2.5rem", maxWidth: "900px", margin: "0 auto" }}>
+          <p className="pub-label pub-fade-in" style={{ marginBottom: "1.5rem" }}>✦ Fale Conosco</p>
+          <h1 className="pub-font pub-fade-up"
+            style={{ fontSize: "clamp(3rem, 8vw, 6rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1, color: "#fff", margin: "0 0 1.5rem" }}>
+            Entre em<br />
+            <span style={{ WebkitTextStroke: "1px #fff", color: "transparent" }}>Contato.</span>
+          </h1>
+          <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(255,255,255,0.7)", fontSize: "1.1rem", maxWidth: "460px", lineHeight: 1.7 }}>
             Estamos aqui para ajudar. Entre em contato através dos canais abaixo.
           </p>
         </div>
+      </section>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-16">
-          {/* Email */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
-              <Mail className="w-5 h-5 text-gray-700" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">Email</h3>
-            <p className="text-gray-500 text-sm mb-4">Resposta em até 24 horas úteis</p>
-            <a 
-              href="mailto:juris.ia.tech@gmail.com" 
-              className="text-gray-900 hover:text-gray-600 transition-colors font-medium"
-            >
-              juris.ia.tech@gmail.com
-            </a>
-          </div>
-
-          {/* Telefone */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
-              <Phone className="w-5 h-5 text-gray-700" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">Telefone</h3>
-            <p className="text-gray-500 text-sm mb-4">Segunda a Sexta, 9h às 18h</p>
-            <a 
-              href="tel:+5586999931754" 
-              className="text-gray-900 hover:text-gray-600 transition-colors font-medium"
-            >
-              (86) 99993-1754
-            </a>
-          </div>
-
-          {/* Horário */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
-              <Clock className="w-5 h-5 text-gray-700" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">Horário de Atendimento</h3>
-            <p className="text-gray-600 mb-1">Segunda a Sexta: 9h às 18h</p>
-          </div>
-
-          {/* Endereço */}
-          <div className="border border-gray-200 p-8 hover:border-gray-400 transition-colors">
-            <div className="w-12 h-12 border border-gray-300 flex items-center justify-center mb-6">
-              <MapPin className="w-5 h-5 text-gray-700" />
-            </div>
-            <h3 className="text-lg font-medium mb-2">Localização</h3>
-            <p className="text-gray-600">
-              Piripiri, PI<br />
-              Brasil
-            </p>
-          </div>
+      {/* Contacts grid */}
+      <section style={{ padding: "7rem 2.5rem", maxWidth: "1200px", margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1px", background: "#e5e5e5" }}>
+          {contacts.map((c, i) => {
+            const Icon = c.icon;
+            return (
+              <div key={c.num} className="contact-card pub-fade-up" style={{ transitionDelay: `${i * 100}ms`, background: "#fff" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+                  <div style={{ width: 44, height: 44, border: "1px solid #e5e5e5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon style={{ width: 20, height: 20, color: "#555" }} />
+                  </div>
+                  <span className="pub-font" style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.2)", fontWeight: 600, letterSpacing: "0.1em" }}>{c.num}</span>
+                </div>
+                <h3 className="pub-font" style={{ fontSize: "1rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#0a0a0a", marginBottom: "0.4rem" }}>{c.title}</h3>
+                <p style={{ fontSize: "0.8rem", color: "rgba(0,0,0,0.4)", marginBottom: "0.75rem" }}>{c.sub}</p>
+                {c.href ? (
+                  <a href={c.href} style={{ color: "#0a0a0a", fontWeight: 600, fontSize: "0.95rem", textDecoration: "none", transition: "color 0.2s" }}
+                    onMouseEnter={e => e.target.style.color = "var(--primary)"}
+                    onMouseLeave={e => e.target.style.color = "#0a0a0a"}>{c.value}</a>
+                ) : (
+                  <p style={{ color: "#0a0a0a", fontWeight: 600, fontSize: "0.95rem", margin: 0 }}>{c.value}</p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* CTA */}
-        <div className="border border-gray-200 p-10 md:p-12 text-center">
-          <h3 className="text-2xl font-light mb-4">Pronto para começar?</h3>
-          <p className="text-gray-600 mb-8 max-w-lg mx-auto">
-            Crie sua conta e transforme sua prática jurídica com inteligência artificial.
+        {/* CTA box */}
+        <div className="pub-fade-up" style={{ marginTop: "1px", background: "#0a0a0a", padding: "4rem", textAlign: "center" }}>
+          <p className="pub-label" style={{ marginBottom: "1.5rem" }}>✦ Pronto para Começar</p>
+          <h3 className="pub-font" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.02em", color: "#fff", marginBottom: "1rem" }}>
+            Transforme sua Prática Jurídica.
+          </h3>
+          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "2rem", fontSize: "0.95rem" }}>
+            Crie sua conta e comece a usar a IA jurídica mais avançada do Brasil.
           </p>
-          <Link 
-            to={createPageUrl("Pricing")}
-            className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-colors"
-          >
+          <Link to={createPageUrl("Pricing")}
+            style={{ display: "inline-flex", alignItems: "center", padding: "0.9rem 2.5rem", background: "var(--primary)", color: "#000", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.1em", textDecoration: "none", borderRadius: 0, transition: "background 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#fff"}
+            onMouseLeave={e => e.currentTarget.style.background = "var(--primary)"}>
             Criar Conta Grátis
-            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-            <Scale className="w-5 h-5 text-gray-900" />
-            <span className="font-medium">Juris</span>
-          </Link>
-          <p className="text-gray-500 text-sm">© 2024 Juris. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

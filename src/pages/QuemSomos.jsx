@@ -1,158 +1,135 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Scale, Users, Target, Award, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { PublicNav, PublicFooter, publicStyles } from "@/components/landing/PublicLayout";
 
 export default function QuemSomos() {
-  const handleLogin = () => {
-    base44.auth.redirectToLogin(createPageUrl("Dashboard"));
-  };
+  const handleLogin = () => base44.auth.redirectToLogin(createPageUrl("Dashboard"));
+  const observerRef = useRef(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-visible"); observerRef.current.unobserve(e.target); } }),
+      { threshold: 0.15 }
+    );
+    document.querySelectorAll(".pub-fade-up, .pub-fade-in").forEach((el) => observerRef.current.observe(el));
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  const values = [
+    { num: "01", title: "Foco no Cliente", text: "Desenvolvemos soluções pensadas nas necessidades reais dos advogados brasileiros." },
+    { num: "02", title: "Inovação", text: "Utilizamos as mais avançadas tecnologias de IA disponíveis no mercado." },
+    { num: "03", title: "Colaboração", text: "Facilitamos o trabalho em equipe com ferramentas modernas e seguras." },
+    { num: "04", title: "Excelência", text: "Comprometidos com a qualidade em cada detalhe da plataforma." },
+  ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <nav className="w-full px-6 md:px-12 py-6 flex items-center justify-between bg-white border-b border-gray-200">
-        <Link to={createPageUrl("LandingPage")} className="text-2xl font-semibold text-gray-900 tracking-tight">
-          Juris
-        </Link>
-        
-        <div className="hidden md:flex items-center gap-8">
-          <Link 
-            to={createPageUrl("QuemSomos")}
-            className="text-sm text-gray-900 font-medium"
-          >
-            Quem somos
-          </Link>
-          <Link 
-            to={createPageUrl("Funcionalidades")}
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Funcionalidades
-          </Link>
-          <button 
-            onClick={handleLogin}
-            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Entrar
-          </button>
-          <button 
-            onClick={handleLogin}
-            className="px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
-          >
-            Teste grátis
-          </button>
-        </div>
-
-        {/* Mobile */}
-        <button 
-          onClick={handleLogin}
-          className="md:hidden px-6 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-none border-0 hover:bg-gray-800 transition-all"
-        >
-          Entrar
-        </button>
-      </nav>
+    <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased", background: "#fff" }}>
+      <style>{publicStyles}</style>
+      <PublicNav />
 
       {/* Hero */}
-      <section className="pt-16 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Sobre nós</p>
-          <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-6">
-            Transformando a advocacia com inteligência artificial
+      <section style={{ position: "relative", paddingTop: "64px", minHeight: "70vh", display: "flex", alignItems: "center", overflow: "hidden" }}>
+        <img
+          src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.2)" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 140%)" }} />
+
+        <div style={{ position: "relative", zIndex: 2, padding: "5rem 2.5rem", maxWidth: "900px", margin: "0 auto" }}>
+          <p className="pub-label pub-fade-in" style={{ marginBottom: "1.5rem" }}>✦ Sobre Nós</p>
+          <h1 className="pub-font pub-fade-up"
+            style={{ fontSize: "clamp(3rem, 8vw, 6rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1, color: "#fff", margin: "0 0 1.5rem" }}>
+            A Plataforma<br />
+            <span style={{ WebkitTextStroke: "1px #fff", color: "transparent" }}>Jurídica do</span><br />
+            <span style={{ color: "var(--primary)" }}>Futuro.</span>
           </h1>
-          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
-          <p className="text-xl text-gray-600 leading-relaxed">
+          <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(255,255,255,0.7)", fontSize: "1.1rem", maxWidth: "520px", lineHeight: 1.7 }}>
             Somos uma equipe apaixonada por tecnologia e direito, dedicada a criar ferramentas que simplificam o trabalho jurídico.
           </p>
         </div>
       </section>
 
-      {/* Nossa Missão */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-light text-gray-900 mb-6">Nossa Missão</h2>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Democratizar o acesso à tecnologia jurídica avançada, permitindo que advogados de todos os portes aumentem sua produtividade e ofereçam serviços de maior qualidade aos seus clientes.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Acreditamos que a inteligência artificial pode ser uma aliada poderosa na prática jurídica, automatizando tarefas repetitivas e permitindo que os profissionais foquem no que realmente importa: a estratégia e o atendimento ao cliente.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
-                <Target className="w-8 h-8 text-gray-700 mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Foco no Cliente</h3>
-                <p className="text-sm text-gray-600">Desenvolvemos soluções pensadas nas necessidades reais dos advogados.</p>
+      {/* Missão */}
+      <section style={{ padding: "7rem 2.5rem", maxWidth: "1200px", margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "5rem", alignItems: "center" }}>
+          <div>
+            <p className="pub-label pub-fade-in" style={{ marginBottom: "1rem" }}>Nossa Missão</p>
+            <div style={{ height: 1, background: "#e5e5e5", marginBottom: "2rem" }} />
+            <h2 className="pub-font pub-fade-up" style={{ fontSize: "clamp(2.5rem, 5vw, 3.5rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1.05, color: "#0a0a0a", margin: "0 0 1.5rem" }}>
+              Democratizar<br />a Tecnologia<br />Jurídica.
+            </h2>
+            <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(0,0,0,0.6)", lineHeight: 1.8, marginBottom: "1rem" }}>
+              Permitir que advogados de todos os portes aumentem sua produtividade e ofereçam serviços de maior qualidade aos seus clientes.
+            </p>
+            <p className="pub-fade-up pub-delay-2" style={{ color: "rgba(0,0,0,0.6)", lineHeight: 1.8 }}>
+              Acreditamos que a inteligência artificial pode ser uma aliada poderosa na prática jurídica, automatizando tarefas repetitivas.
+            </p>
+          </div>
+
+          {/* Values grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "#e5e5e5" }}>
+            {values.map((v, i) => (
+              <div key={v.num} className="pub-fade-up" style={{ transitionDelay: `${i * 100}ms`, background: "#fff", padding: "2rem" }}>
+                <div className="pub-font" style={{ fontSize: "2.5rem", fontWeight: 700, color: "rgba(0,0,0,0.1)", lineHeight: 1, marginBottom: "0.5rem" }}>{v.num}</div>
+                <div className="pub-font" style={{ fontSize: "0.85rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#0a0a0a", marginBottom: "0.5rem" }}>{v.title}</div>
+                <div style={{ fontSize: "0.85rem", color: "rgba(0,0,0,0.55)", lineHeight: 1.6 }}>{v.text}</div>
               </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
-                <Sparkles className="w-8 h-8 text-gray-700 mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Inovação</h3>
-                <p className="text-sm text-gray-600">Utilizamos as mais avançadas tecnologias de IA do mercado.</p>
-              </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
-                <Users className="w-8 h-8 text-gray-700 mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Colaboração</h3>
-                <p className="text-sm text-gray-600">Facilitamos o trabalho em equipe com ferramentas colaborativas.</p>
-              </div>
-              <div className="bg-white p-6 border border-gray-200 hover:border-gray-400 transition-colors rounded-none">
-                <Award className="w-8 h-8 text-gray-700 mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Excelência</h3>
-                <p className="text-sm text-gray-600">Comprometidos com a qualidade em cada detalhe.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Nossa História */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-light text-gray-900 mb-8 text-center">Nossa História</h2>
-          <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-8" />
-          <div className="space-y-6 text-gray-600 leading-relaxed">
-            <p>
-              A JURIS nasceu da vivência real na advocacia.
-            </p>
-            <p>
-              Como estudante de Direito e estagiário em escritórios, percebi que muitos profissionais perdiam tempo com tarefas operacionais e sistemas pouco eficientes, quando deveriam estar focados em estratégia, clientes e crescimento.
-            </p>
-            <p>
-              Dessa inquietação surgiu a JURIS: uma plataforma criada a partir da prática, unindo tecnologia, inteligência artificial e conhecimento jurídico para transformar a rotina do advogado brasileiro.
-            </p>
+      {/* História — dark section */}
+      <section style={{ background: "#121212", padding: "7rem 2.5rem", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "60px 60px", opacity: 0.03 }} />
+        <div style={{ maxWidth: "800px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <p className="pub-label pub-fade-in" style={{ marginBottom: "1rem" }}>Nossa História</p>
+          <div style={{ height: 1, background: "rgba(255,255,255,0.1)", marginBottom: "2rem" }} />
+          <h2 className="pub-font pub-fade-up" style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#fff", lineHeight: 1.05, marginBottom: "2.5rem" }}>
+            Nascida da<br />Vivência Real<br />na Advocacia.
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            {[
+              "A JURIS nasceu da vivência real na advocacia.",
+              "Como estudante de Direito e estagiário em escritórios, percebi que muitos profissionais perdiam tempo com tarefas operacionais e sistemas pouco eficientes, quando deveriam estar focados em estratégia, clientes e crescimento.",
+              "Dessa inquietação surgiu a JURIS: uma plataforma criada a partir da prática, unindo tecnologia, inteligência artificial e conhecimento jurídico para transformar a rotina do advogado brasileiro."
+            ].map((p, i) => (
+              <p key={i} className="pub-fade-up" style={{ transitionDelay: `${i * 100}ms`, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, fontSize: "1rem", margin: 0 }}>{p}</p>
+            ))}
           </div>
+          <div style={{ marginTop: "3rem", height: 3, background: "var(--primary)", width: "4rem" }} />
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 bg-gray-900">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-light text-white mb-6">
-            Pronto para transformar sua prática jurídica?
+      <section style={{ position: "relative", overflow: "hidden", minHeight: "480px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <img
+          src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(200,168,75,0.88)", mixBlendMode: "multiply" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "4rem 2rem" }}>
+          <h2 className="pub-font pub-fade-up" style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#fff", lineHeight: 1, marginBottom: "1.5rem" }}>
+            Comece Sua<br />Transformação Hoje.
           </h2>
-          <p className="text-gray-400 mb-8">
-            Comece gratuitamente e descubra como a IA pode ajudar no seu dia a dia.
+          <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(255,255,255,0.8)", fontSize: "1rem", marginBottom: "2rem" }}>
+            Teste grátis por 7 dias. Sem cartão de crédito.
           </p>
-          <button 
-            onClick={handleLogin} 
-            className="px-8 py-3.5 text-base font-medium bg-white text-gray-900 rounded-none border-0 hover:bg-gray-100 transition-all"
-          >
-            Começar gratuitamente
+          <button onClick={handleLogin} className="pub-fade-up pub-delay-2 pub-btn-dark" style={{ background: "#fff", color: "#000" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#0a0a0a"}
+            onMouseLeave={e => e.currentTarget.style.background = "#fff"}>
+            Começar Gratuitamente
           </button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-gray-200">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to={createPageUrl("LandingPage")} className="flex items-center gap-2">
-            <Scale className="w-5 h-5 text-gray-900" />
-            <span className="font-medium text-gray-900">Juris</span>
-          </Link>
-          <p className="text-sm text-gray-500">© 2024 Juris. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

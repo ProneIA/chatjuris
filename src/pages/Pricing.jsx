@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Check, X, Zap, Crown, Star, ArrowRight, Shield, Clock, Users, Sparkles, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
-import { motion } from "framer-motion";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
+import { PublicNav, PublicFooter, publicStyles } from "@/components/landing/PublicLayout";
 
 const plans = [
   {
@@ -31,10 +31,7 @@ const plans = [
       { text: "Gerador de imagens IA", included: true },
       { text: "Suporte prioritário 24/7", included: true },
     ],
-    limits: {
-      daily_actions_limit: 999999,
-      daily_actions_used: 0
-    }
+    limits: { daily_actions_limit: 999999, daily_actions_used: 0 }
   },
   {
     id: "pro_yearly",
@@ -45,8 +42,8 @@ const plans = [
     period: "/mês",
     billingType: "yearly",
     annualTotal: 1198.80,
-    description: "Melhor valor - pague anualmente e economize",
-    popular: false,
+    description: "Melhor valor — pague anualmente e economize",
+    popular: true,
     discount: 17,
     features: [
       { text: "IA ILIMITADA - sem restrições", included: true, highlight: true },
@@ -62,11 +59,8 @@ const plans = [
       { text: "Gerador de imagens IA", included: true },
       { text: "Suporte prioritário 24/7", included: true },
     ],
-    limits: {
-      daily_actions_limit: 999999,
-      daily_actions_used: 0
-    },
-    savingsText: "Economize R$ 240/ano - 2 meses grátis!"
+    limits: { daily_actions_limit: 999999, daily_actions_used: 0 },
+    savingsText: "Economize R$ 240/ano — 2 meses grátis!"
   },
 ];
 
@@ -75,28 +69,41 @@ const testimonials = [
   { name: "Dra. Carla S.", role: "Advogada Trabalhista", text: "A melhor ferramenta que já usei. Indico para todos os colegas." },
 ];
 
-export default function Pricing({ theme = 'light' }) {
+const trustBadges = [
+  { icon: Shield, title: "100% Seguro", sub: "Dados criptografados" },
+  { icon: Zap, title: "Pagamento Seguro", sub: "Mercado Pago" },
+  { icon: Clock, title: "Cancele Quando Quiser", sub: "Sem compromisso" },
+  { icon: Users, title: "Suporte 24/7", sub: "Equipe especializada" },
+];
+
+export default function Pricing({ theme = "light" }) {
   const [user, setUser] = React.useState(null);
   const [trialDaysLeft, setTrialDaysLeft] = React.useState(0);
+  const observerRef = useRef(null);
 
   React.useEffect(() => {
     base44.auth.me()
       .then(async (u) => {
         setUser(u);
-        
-        // Calcular dias restantes do trial
-        if (u?.trial_status === 'active' && u?.trial_end_date) {
-          const today = new Date();
-          const endDate = new Date(u.trial_end_date);
-          const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-          setTrialDaysLeft(daysLeft > 0 ? daysLeft : 0);
+        if (u?.trial_status === "active" && u?.trial_end_date) {
+          const days = Math.ceil((new Date(u.trial_end_date) - new Date()) / (1000 * 60 * 60 * 24));
+          setTrialDaysLeft(days > 0 ? days : 0);
         }
       })
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-visible"); observerRef.current.unobserve(e.target); } }),
+      { threshold: 0.15 }
+    );
+    document.querySelectorAll(".pub-fade-up, .pub-fade-in").forEach((el) => observerRef.current.observe(el));
+    return () => observerRef.current?.disconnect();
+  }, []);
+
   const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
+    queryKey: ["subscription", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
@@ -104,394 +111,241 @@ export default function Pricing({ theme = 'light' }) {
     },
     enabled: !!user?.id,
     staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000
   });
-
-
 
   const handleSelectPlan = async (planId) => {
     const isAuthenticated = await base44.auth.isAuthenticated();
-    
     if (!isAuthenticated) {
-      // Guardar plano selecionado no localStorage para usar após login
-      localStorage.setItem('selected_plan', planId);
+      localStorage.setItem("selected_plan", planId);
       base44.auth.redirectToLogin(createPageUrl("Pricing"));
       return;
     }
-
-    // Abrir modal de checkout
-    window.location.href = createPageUrl('Checkout') + '?plan=' + planId;
+    window.location.href = createPageUrl("Checkout") + "?plan=" + planId;
   };
 
-  // Verificar se há um plano selecionado após login
   React.useEffect(() => {
     if (!user) return;
-    const selectedPlan = localStorage.getItem('selected_plan');
+    const selectedPlan = localStorage.getItem("selected_plan");
     if (selectedPlan) {
-      localStorage.removeItem('selected_plan');
-      // Redirecionar diretamente sem chamar handleSelectPlan (evita loop)
-      window.location.href = createPageUrl('Checkout') + '?plan=' + selectedPlan;
+      localStorage.removeItem("selected_plan");
+      window.location.href = createPageUrl("Checkout") + "?plan=" + selectedPlan;
     }
   }, [user?.id]);
 
-  // Removido: lógica antiga que causava bug (marcava todos como assinados)
+  const isCurrentPlan = (plan) => {
+    if (!subscription) return false;
+    const today = new Date().toISOString().split("T")[0];
+    const isExpired = subscription.end_date && today > subscription.end_date;
+    const isActive = subscription.status === "active" || subscription.status === "trial";
+    if (isExpired || !isActive || subscription.status === "trial") return false;
+    const planTypeToId = { monthly: "pro_monthly", annual: "pro_yearly", lifetime: "pro_lifetime" };
+    return planTypeToId[subscription.plan_type] === plan.id;
+  };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
+    <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased", background: "#fff" }}>
+      <style>{publicStyles}{`
+        .plan-card { border: 1px solid #e5e5e5; transition: border-color 0.3s; }
+        .plan-card.popular { background: #0a0a0a; border-color: #0a0a0a; }
+        .plan-card:not(.popular):hover { border-color: var(--primary); }
+        .feature-row { display:flex; align-items:flex-start; gap:0.75rem; margin-bottom:0.75rem; }
+      `}</style>
       <AffiliateTracker />
-      
-      <div className="max-w-6xl mx-auto px-4 py-8 sm:py-16">
-        {/* Back Button - only show if user is logged in */}
-        {user && (
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="mb-6"
-          >
-            <Link 
-              to={createPageUrl("Dashboard")} 
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
-            >
-              <ArrowRight className="w-4 h-4 rotate-180" />
-              Voltar ao Painel
+      <PublicNav />
+
+      {/* Hero */}
+      <section style={{ position: "relative", paddingTop: "64px", minHeight: "60vh", display: "flex", alignItems: "center", overflow: "hidden" }}>
+        <img
+          src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.2)" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 140%)" }} />
+
+        <div style={{ position: "relative", zIndex: 2, padding: "5rem 2.5rem", maxWidth: "900px", margin: "0 auto" }}>
+          {user && (
+            <Link to={createPageUrl("Dashboard")}
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", color: "rgba(255,255,255,0.5)", textDecoration: "none", fontSize: "0.8rem", marginBottom: "2rem", fontFamily: "'Oswald',sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              ← Voltar ao Painel
             </Link>
-          </motion.div>
-        )}
-      
-        {/* Hero Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10 sm:mb-16"
-        >
-          {user && user.trial_status === 'active' && trialDaysLeft > 0 ? (
-            <>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-800 font-semibold mb-4">
-                <Sparkles className="w-5 h-5" />
-                <span>Período de Teste: {trialDaysLeft} {trialDaysLeft === 1 ? 'dia' : 'dias'} restantes</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
-                Aproveite seu Teste Grátis<br className="hidden sm:block" />
-                <span className="font-semibold">Continue com Acesso Completo</span>
-              </h1>
-            </>
-          ) : user && user.trial_status === 'expired' ? (
-            <>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-100 text-red-800 font-semibold mb-4">
-                <AlertTriangle className="w-5 h-5" />
-                <span>Período de Teste Expirado</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
-                Assine para Continuar<br className="hidden sm:block" />
-                <span className="font-semibold">Seu teste de 7 dias terminou</span>
-              </h1>
-            </>
-          ) : (
-            <>
-              <p className="text-gray-500 uppercase tracking-widest text-xs mb-4">Planos e Preços</p>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-light mb-4 sm:mb-6 text-gray-900 leading-tight px-2">
-                Transforme sua Advocacia<br className="hidden sm:block" />
-                <span className="font-semibold">com Inteligência Artificial</span>
-              </h1>
-            </>
           )}
 
-          <div className="w-16 h-0.5 bg-gray-900 mx-auto mb-6" />
-          
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-2">
-            Junte-se a <span className="font-semibold text-gray-900">+80 advogados</span> que já economizam 
-            <span className="font-semibold text-gray-900"> 2 dias de trabalho por semana</span> com o Juris
+          {user?.trial_status === "active" && trialDaysLeft > 0 ? (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "var(--primary)", color: "#000", padding: "0.5rem 1rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <Sparkles style={{ width: 14, height: 14 }} />
+              Teste: {trialDaysLeft} {trialDaysLeft === 1 ? "dia" : "dias"} restantes
+            </div>
+          ) : user?.trial_status === "expired" ? (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "#ef4444", color: "#fff", padding: "0.5rem 1rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <AlertTriangle style={{ width: 14, height: 14 }} />
+              Período de Teste Expirado
+            </div>
+          ) : null}
+
+          <h1 className="pub-font pub-fade-up"
+            style={{ fontSize: "clamp(3rem, 8vw, 6rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1, color: "#fff", margin: "0 0 1.5rem" }}>
+            Planos &<br />
+            <span style={{ WebkitTextStroke: "1px #fff", color: "transparent" }}>Preços</span><br />
+            <span style={{ color: "var(--primary)" }}>Simples.</span>
+          </h1>
+          <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(255,255,255,0.7)", fontSize: "1.1rem", maxWidth: "480px", lineHeight: 1.7 }}>
+            +80 advogados economizando <strong style={{ color: "#fff" }}>2 dias de trabalho por semana</strong> com o Juris.
           </p>
 
-          {/* Social Proof Stats */}
-          <div className="flex flex-wrap justify-center gap-8 sm:gap-12 mb-8 sm:mb-12">
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">80+</div>
-              <div className="text-xs sm:text-sm text-gray-500">Advogados Ativos</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">1.200+</div>
-              <div className="text-xs sm:text-sm text-gray-500">Documentos Gerados</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-semibold text-gray-900">4.9/5</div>
-              <div className="text-xs sm:text-sm text-gray-500">Avaliação Média</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Plans Grid */}
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-12 sm:mb-20">
-          {plans.map((plan, index) => {
-            const Icon = plan.icon;
-            
-            // LÓGICA CORRETA: Verificar plano ativo do usuário
-            const isCurrentPlan = (() => {
-              if (!subscription) return false;
-              
-              const today = new Date().toISOString().split('T')[0];
-              const isExpired = subscription.end_date && today > subscription.end_date;
-              const isActive = subscription.status === 'active' || subscription.status === 'trial';
-              
-              // Se expirado ou não ativo, nenhum plano é "atual"
-              if (isExpired || !isActive) return false;
-              
-              // Mapear plan_type da subscription para o plan.id
-              const planTypeToId = {
-                'monthly': 'pro_monthly',
-                'annual': 'pro_yearly',
-                'lifetime': 'pro_lifetime'
-              };
-              
-              // Se está em trial, nenhum plano pago é marcado como atual
-              if (subscription.status === 'trial') return false;
-              
-              // Verificar se este plano específico é o ativo
-              return planTypeToId[subscription.plan_type] === plan.id;
-            })();
-            
-            const isPro = plan.id.startsWith('pro_');
-
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`relative overflow-hidden rounded-none ${
-                  plan.popular
-                    ? "bg-gray-900 text-white border-2 border-gray-900" 
-                    : "bg-white border border-gray-200"
-                }`}
-              >
-                {/* Discount Badge */}
-                {plan.discount && (
-                  <div className="absolute top-0 right-0">
-                    <div className={`${plan.popular ? 'bg-red-600' : 'bg-gray-700'} text-white text-xs font-bold px-4 py-2 animate-pulse`}>
-                      🔥 {plan.discount}% OFF
-                    </div>
-                  </div>
-                )}
-
-                {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-white text-gray-900 text-xs font-medium px-3 py-1 flex items-center gap-1">
-                      <Crown className="w-3 h-3" />
-                      RECOMENDADO
-                    </span>
-                  </div>
-                )}
-
-                <div className="p-5 sm:p-8">
-                  {/* Plan Header */}
-                  <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
-                    <div className={`w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center mb-3 sm:mb-4 ${
-                      plan.popular ? "bg-white" : "bg-gray-100"
-                    }`}>
-                      <Icon className={`w-5 h-5 sm:w-7 sm:h-7 ${plan.popular ? "text-gray-900" : "text-gray-700"}`} />
-                    </div>
-                    
-                    <h3 className={`text-xl sm:text-2xl font-semibold mb-1 sm:mb-2 ${plan.popular ? "text-white" : "text-gray-900"}`}>
-                      {plan.name}
-                    </h3>
-                    <p className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-600"}`}>
-                      {plan.description}
-                    </p>
-                  </div>
-
-                  {/* Price */}
-                  <div className="mb-6 sm:mb-8">
-                   <div className="flex flex-col gap-2">
-                     {plan.originalPrice && (
-                       <div className="flex items-center gap-2">
-                         <span className={`text-lg sm:text-2xl line-through ${plan.popular ? "text-red-400" : "text-gray-400"} font-medium`}>
-                           De R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
-                         </span>
-                         {plan.isLifetime && (
-                           <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 animate-pulse">
-                             -50%
-                           </span>
-                         )}
-                       </div>
-                     )}
-                     <div className="flex items-baseline gap-2 flex-wrap">
-                       <span className={`text-4xl sm:text-6xl font-bold ${plan.popular ? "text-white" : "text-gray-900"}`}>
-                         R$ {plan.price.toFixed(2).replace('.', ',')}
-                       </span>
-                       <span className={`text-sm sm:text-base ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
-                         {plan.period}
-                       </span>
-                     </div>
-                   </div>
-                   {plan.savingsText && (
-                     <p className={`text-xs sm:text-sm mt-2 font-semibold ${plan.popular ? "text-green-400" : "text-green-600"}`}>
-                       {plan.savingsText}
-                     </p>
-                   )}
-                   {plan.annualTotal && (
-                     <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                       R$ {plan.annualTotal.toFixed(2).replace('.', ',')} cobrado anualmente
-                     </p>
-                   )}
-                   {plan.installments && (
-                     <p className={`text-xs sm:text-sm mt-1 ${plan.popular ? "text-gray-400" : "text-gray-500"}`}>
-                       {plan.installments}
-                     </p>
-                   )}
-                  </div>
-
-                  {/* CTA Button */}
-                  <button
-                   onClick={() => !isCurrentPlan && handleSelectPlan(plan.id)}
-                   disabled={isCurrentPlan}
-                   className={`w-full py-4 sm:py-5 text-sm sm:text-base font-medium mb-6 sm:mb-8 transition-all flex items-center justify-center gap-2 rounded-none border-0 ${
-                     isCurrentPlan
-                       ? plan.popular ? "bg-gray-700 text-gray-400 cursor-not-allowed" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                       : plan.popular
-                       ? "bg-white text-gray-900 hover:bg-gray-100"
-                       : "bg-gray-900 text-white hover:bg-gray-800"
-                   }`}
-                  >
-                    {isCurrentPlan ? (
-                      <>
-                        <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Plano Atual
-                      </>
-                    ) : (
-                     <>
-                       Assinar Agora
-                       <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                     </>
-                    )}
-                  </button>
-
-                  {/* Features List */}
-                  <div className="space-y-2.5 sm:space-y-3">
-                    <p className={`text-xs sm:text-sm font-medium uppercase tracking-wider mb-3 sm:mb-4 ${
-                      plan.popular ? "text-gray-400" : "text-gray-500"
-                    }`}>
-                      {isPro ? "Tudo incluso:" : "Inclui:"}
-                    </p>
-                    {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-2 sm:gap-3">
-                        <div className={`shrink-0 w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mt-0.5 ${
-                          feature.included 
-                            ? plan.popular ? "bg-white/10" : "bg-gray-100"
-                            : plan.popular ? "bg-gray-800" : "bg-gray-50"
-                        }`}>
-                          {feature.included ? (
-                            <Check className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${plan.popular ? "text-white" : "text-gray-700"}`} />
-                          ) : (
-                            <X className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${plan.popular ? "text-gray-600" : "text-gray-400"}`} />
-                          )}
-                        </div>
-                        <span className={`text-xs sm:text-sm ${
-                          feature.highlight && feature.included
-                            ? "font-bold"
-                            : feature.included 
-                            ? "font-medium" 
-                            : "line-through opacity-50"
-                        } ${plan.popular ? (feature.included ? "text-white" : "text-gray-500") : (feature.included ? "text-gray-700" : "text-gray-400")}`}>
-                          {feature.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Testimonials */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-12 sm:mb-20"
-        >
-          <h2 className="text-xl sm:text-2xl font-light text-center mb-2">
-            O que dizem nossos usuários
-          </h2>
-          <div className="w-12 h-0.5 bg-gray-900 mx-auto mb-10" />
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-4xl mx-auto">
-            {testimonials.map((t, i) => (
-              <div key={i} className="border border-gray-200 p-4 sm:p-6 rounded-none w-full sm:w-auto sm:max-w-md">
-                <div className="flex gap-1 mb-3 sm:mb-4 justify-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-gray-900 text-gray-900" />
-                  ))}
-                </div>
-                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 italic text-center">"{t.text}"</p>
-                <div className="text-center">
-                  <p className="font-medium text-gray-900 text-sm sm:text-base">{t.name}</p>
-                  <p className="text-xs sm:text-sm text-gray-500">{t.role}</p>
-                </div>
+          {/* Stats */}
+          <div className="pub-fade-up pub-delay-2" style={{ display: "flex", gap: "3rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
+            {[["80+", "Advogados Ativos"], ["1.200+", "Docs Gerados"], ["4.9/5", "Avaliação"]].map(([n, l]) => (
+              <div key={l}>
+                <div className="pub-font" style={{ fontSize: "2rem", fontWeight: 700, color: "var(--primary)" }}>{n}</div>
+                <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{l}</div>
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
+      </section>
 
-        {/* Trust Badges */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10 sm:mb-16"
-        >
-          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
-            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
-            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">100% Seguro</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Dados criptografados</p>
+      {/* Plans */}
+      <section style={{ padding: "7rem 2.5rem", maxWidth: "1000px", margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1px", background: "#e5e5e5" }}>
+          {plans.map((plan) => {
+            const Icon = plan.icon;
+            const current = isCurrentPlan(plan);
+            return (
+              <div key={plan.id} className={`plan-card pub-fade-up${plan.popular ? " popular" : ""}`} style={{ background: plan.popular ? "#0a0a0a" : "#fff", padding: "3rem", position: "relative" }}>
+                {plan.discount && (
+                  <div style={{ position: "absolute", top: 0, right: 0, background: "var(--primary)", color: "#000", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "0.7rem", padding: "0.4rem 0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    🔥 {plan.discount}% OFF
+                  </div>
+                )}
+                {plan.popular && (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", background: "var(--primary)", color: "#000", padding: "0.3rem 0.8rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    <Crown style={{ width: 12, height: 12 }} /> Recomendado
+                  </div>
+                )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div style={{ width: 44, height: 44, background: plan.popular ? "rgba(200,168,75,0.2)" : "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon style={{ width: 22, height: 22, color: plan.popular ? "var(--primary)" : "#555" }} />
+                  </div>
+                  <div>
+                    <h3 className="pub-font" style={{ fontSize: "0.9rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: plan.popular ? "#fff" : "#0a0a0a", margin: 0 }}>{plan.name}</h3>
+                    <p style={{ fontSize: "0.8rem", color: plan.popular ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.45)", margin: 0 }}>{plan.description}</p>
+                  </div>
+                </div>
+
+                {plan.originalPrice && (
+                  <p style={{ fontSize: "1rem", color: plan.popular ? "rgba(255,255,255,0.3)" : "#aaa", textDecoration: "line-through", margin: "0 0 0.25rem" }}>
+                    R$ {plan.originalPrice.toFixed(2).replace(".", ",")}
+                  </p>
+                )}
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  <span className="pub-font" style={{ fontSize: "3.5rem", fontWeight: 700, color: plan.popular ? "#fff" : "#0a0a0a", lineHeight: 1 }}>
+                    R$ {plan.price.toFixed(2).replace(".", ",")}
+                  </span>
+                  <span style={{ color: plan.popular ? "rgba(255,255,255,0.4)" : "#aaa", fontSize: "0.9rem" }}>{plan.period}</span>
+                </div>
+                {plan.savingsText && <p style={{ color: "#4ade80", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.25rem" }}>{plan.savingsText}</p>}
+                {plan.annualTotal && <p style={{ color: plan.popular ? "rgba(255,255,255,0.3)" : "#aaa", fontSize: "0.8rem", marginBottom: "2rem" }}>R$ {plan.annualTotal.toFixed(2).replace(".", ",")} cobrado anualmente</p>}
+                {!plan.annualTotal && <div style={{ marginBottom: "2rem" }} />}
+
+                <button
+                  onClick={() => !current && handleSelectPlan(plan.id)}
+                  disabled={current}
+                  style={{ width: "100%", padding: "1rem", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", border: "none", borderRadius: 0, cursor: current ? "not-allowed" : "pointer", marginBottom: "2rem", transition: "all 0.2s",
+                    background: current ? (plan.popular ? "#333" : "#e5e5e5") : (plan.popular ? "var(--primary)" : "#0a0a0a"),
+                    color: current ? (plan.popular ? "#666" : "#aaa") : (plan.popular ? "#000" : "#fff") }}
+                  onMouseEnter={e => !current && (e.currentTarget.style.opacity = "0.85")}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+                >
+                  {current ? "✓ Plano Atual" : "Assinar Agora →"}
+                </button>
+
+                <p style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.15em", color: plan.popular ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)", marginBottom: "1rem", fontFamily: "'Oswald',sans-serif" }}>
+                  Tudo incluso:
+                </p>
+                {plan.features.map((feature, idx) => (
+                  <div key={idx} className="feature-row">
+                    <div style={{ width: 18, height: 18, background: feature.included ? (plan.popular ? "rgba(200,168,75,0.2)" : "#f0f0f0") : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                      {feature.included
+                        ? <Check style={{ width: 11, height: 11, color: plan.popular ? "var(--primary)" : "#555" }} />
+                        : <X style={{ width: 11, height: 11, color: "#ccc" }} />}
+                    </div>
+                    <span style={{ fontSize: "0.82rem", fontWeight: feature.highlight ? 700 : 400, color: feature.included ? (plan.popular ? (feature.highlight ? "#fff" : "rgba(255,255,255,0.7)") : (feature.highlight ? "#0a0a0a" : "#555")) : "#ccc", textDecoration: feature.included ? "none" : "line-through" }}>
+                      {feature.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section style={{ background: "#121212", padding: "6rem 2.5rem", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)", backgroundSize: "60px 60px", opacity: 0.03 }} />
+        <div style={{ maxWidth: "1000px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <p className="pub-label pub-fade-in" style={{ marginBottom: "1rem" }}>Depoimentos</p>
+          <h2 className="pub-font pub-fade-up" style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#fff", marginBottom: "3rem" }}>O que dizem nossos usuários.</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1px", background: "rgba(255,255,255,0.05)" }}>
+            {testimonials.map((t, i) => (
+              <div key={i} className="pub-fade-up" style={{ transitionDelay: `${i * 100}ms`, padding: "2.5rem", background: "#121212" }}>
+                <div style={{ display: "flex", gap: "3px", marginBottom: "1.5rem" }}>
+                  {[...Array(5)].map((_, s) => <Star key={s} style={{ width: 14, height: 14, color: "var(--primary)", fill: "var(--primary)" }} />)}
+                </div>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "1rem", lineHeight: 1.7, fontStyle: "italic", marginBottom: "1.5rem" }}>"{t.text}"</p>
+                <p className="pub-font" style={{ color: "#fff", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{t.name}</p>
+                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.8rem" }}>{t.role}</p>
+              </div>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
-            <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
-            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Pagamento Seguro</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Mercado Pago</p>
-          </div>
+      {/* Trust badges */}
+      <section style={{ padding: "5rem 2.5rem", maxWidth: "1000px", margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1px", background: "#e5e5e5" }}>
+          {trustBadges.map((b, i) => {
+            const Icon = b.icon;
+            return (
+              <div key={b.title} className="pub-fade-up" style={{ transitionDelay: `${i * 100}ms`, background: "#fff", padding: "2rem", textAlign: "center" }}>
+                <Icon style={{ width: 28, height: 28, color: "#555", margin: "0 auto 1rem" }} />
+                <p className="pub-font" style={{ fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#0a0a0a", marginBottom: "0.25rem" }}>{b.title}</p>
+                <p style={{ color: "rgba(0,0,0,0.4)", fontSize: "0.78rem" }}>{b.sub}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
-          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
-            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
-            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Cancele Quando Quiser</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Sem compromisso</p>
-          </div>
-
-          <div className="border border-gray-200 p-4 sm:p-5 text-center rounded-none">
-            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-700 mx-auto mb-2 sm:mb-3" />
-            <p className="font-medium text-gray-900 text-sm sm:text-base mb-0.5 sm:mb-1">Suporte 24/7</p>
-            <p className="text-[10px] sm:text-xs text-gray-500">Equipe especializada</p>
-          </div>
-        </motion.div>
-
-        {/* Final CTA */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-center bg-gray-900 text-white p-6 sm:p-10 max-w-3xl mx-auto rounded-none"
-        >
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-light mb-3 sm:mb-4">
-            Pronto para Revolucionar sua Prática?
+      {/* Final CTA */}
+      <section style={{ position: "relative", overflow: "hidden", minHeight: "440px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <img
+          src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1600&q=80&auto=format&fit=crop"
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)" }}
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(200,168,75,0.88)", mixBlendMode: "multiply" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "4rem 2rem" }}>
+          <h2 className="pub-font pub-fade-up" style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#fff", lineHeight: 1, marginBottom: "1.5rem" }}>
+            Comece Hoje.<br />Economize R$ 240.
           </h2>
-          <p className="text-sm sm:text-base text-gray-400 mb-5 sm:mb-6 px-2">
-            Comece hoje e veja a diferença em minutos.
+          <p className="pub-fade-up pub-delay-1" style={{ color: "rgba(255,255,255,0.8)", marginBottom: "2rem" }}>
+            Cancele quando quiser. Sem taxas ocultas.
           </p>
-          <button
-            onClick={() => handleSelectPlan("pro_yearly")}
-            className="w-full sm:w-auto bg-white text-gray-900 hover:bg-gray-100 px-8 sm:px-10 py-4 sm:py-5 text-sm sm:text-base font-medium transition-all flex items-center justify-center gap-2 mx-auto rounded-none border-0"
-          >
-            Começar com o Plano Anual - Economize R$ 240
-            <ArrowRight className="w-4 h-4" />
+          <button onClick={() => handleSelectPlan("pro_yearly")}
+            className="pub-fade-up pub-delay-2"
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "1rem 2.5rem", background: "#fff", color: "#000", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.1em", border: "none", cursor: "pointer", borderRadius: 0, transition: "all 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#0a0a0a"; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.color = "#000"; }}>
+            Plano Anual — Economize R$ 240 <ArrowRight style={{ width: 16, height: 16 }} />
           </button>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-3 sm:mt-4">
-            Cancele a qualquer momento. Sem taxas ocultas.
-          </p>
-        </motion.div>
-      </div>
+        </div>
+      </section>
 
-
+      <PublicFooter />
     </div>
   );
 }
