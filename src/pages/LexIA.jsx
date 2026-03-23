@@ -410,8 +410,15 @@ function CheckoutModal({ plan, onClose }) {
             </div>
           )}
 
-          {/* BRICK CONTAINER — mantido no DOM para o MP renderizar */}
-          <div id="lexia-brick-container" style={{ display: step === "brick" ? "block" : "none" }} />
+          {/* BRICK CONTAINER — sempre no DOM, visível apenas quando brick está pronto */}
+          <div
+            id="lexia-brick-container"
+            style={{
+              display: (step === "loading" || step === "brick") ? "block" : "none",
+              visibility: step === "brick" ? "visible" : "hidden",
+              minHeight: step === "brick" ? "auto" : "1px",
+            }}
+          />
 
           {/* Security note when brick is visible */}
           {step === "brick" && (
