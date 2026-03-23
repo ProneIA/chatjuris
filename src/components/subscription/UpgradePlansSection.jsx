@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Zap, Crown, Building2, Clock, AlertTriangle, Star } from "lucide-react";
 import { motion } from "framer-motion";
@@ -204,7 +204,7 @@ export default function UpgradePlansSection({ subscription, onSelectPlan, theme 
   const isActive = subscription?.status === "active";
   const currentPlanType = subscription?.plan_type;
 
-  const trialDaysLeft = React.useMemo(() => {
+  const trialDaysLeft = useMemo(() => {
     if (isInTrial && subscription?.end_date) {
       const days = Math.ceil((new Date(subscription.end_date) - new Date()) / 864e5);
       return days > 0 ? days : 0;
