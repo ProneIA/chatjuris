@@ -8,17 +8,27 @@ export const SITE_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
 
   :root {
-    --gold: #C8A84B;
+    --primary: #C1232E;
+    --primary-dark: #721212;
+    --gold: #C1232E;
+    --bg: #000000;
+    --surface: #121212;
+    --surface-2: #1E1E1E;
+    --text: #FFFFFF;
+    --text-muted: rgba(255,255,255,0.5);
+    --border: rgba(255,255,255,0.1);
     --dark: #0a0a0a;
   }
 
   * { box-sizing: border-box; }
-  body { margin: 0; }
-  ::-webkit-scrollbar { width: 0; }
+  body { margin: 0; background: #000; }
+  ::-webkit-scrollbar { width: 0; background: transparent; }
   html { scroll-behavior: smooth; }
+  ::selection { background: var(--primary); color: #fff; }
 
   /* Typography */
   .D { font-family: 'Oswald', 'Helvetica Neue', Arial, sans-serif; }
+  body, p, span, a, li, td, th { font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 500; }
 
   /* Labels */
   .lbl {
@@ -26,7 +36,7 @@ export const SITE_CSS = `
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.22em;
-    color: var(--gold);
+    color: var(--primary);
     font-weight: 500;
   }
 
@@ -43,7 +53,7 @@ export const SITE_CSS = `
   .outline-w { -webkit-text-stroke: 2px #fff; color: transparent; }
   .outline-d { -webkit-text-stroke: 2px var(--dark); color: transparent; }
 
-  /* Buttons */
+  /* Buttons — no border-radius, hover inverts */
   .btn-dark {
     display: inline-flex; align-items: center; gap: .5rem;
     padding: .85rem 2rem;
@@ -51,9 +61,9 @@ export const SITE_CSS = `
     font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8rem;
     text-transform: uppercase; letter-spacing: .12em;
     border: none; cursor: pointer; border-radius: 0;
-    text-decoration: none; transition: background .2s, color .2s;
+    text-decoration: none; transition: background .3s, color .3s;
   }
-  .btn-dark:hover { background: var(--gold); color: #000; }
+  .btn-dark:hover { background: var(--primary); color: #fff; }
 
   .btn-white {
     display: inline-flex; align-items: center; gap: .5rem;
@@ -62,9 +72,9 @@ export const SITE_CSS = `
     font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8rem;
     text-transform: uppercase; letter-spacing: .12em;
     border: none; cursor: pointer; border-radius: 0;
-    text-decoration: none; transition: background .2s, color .2s;
+    text-decoration: none; transition: background .3s, color .3s;
   }
-  .btn-white:hover { background: var(--gold); color: #000; }
+  .btn-white:hover { background: var(--primary); color: #fff; }
 
   .btn-outline-w {
     display: inline-flex; align-items: center; gap: .5rem;
@@ -73,28 +83,28 @@ export const SITE_CSS = `
     font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8rem;
     text-transform: uppercase; letter-spacing: .12em;
     border: 2px solid #fff; cursor: pointer; border-radius: 0;
-    text-decoration: none; transition: background .2s, color .2s;
+    text-decoration: none; transition: background .3s, color .3s, border-color .3s;
   }
-  .btn-outline-w:hover { background: #fff; color: #000; }
+  .btn-outline-w:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
 
   .btn-gold {
     display: inline-flex; align-items: center; gap: .5rem;
     padding: .85rem 2rem;
-    background: var(--gold); color: #000;
+    background: var(--primary); color: #fff;
     font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .8rem;
     text-transform: uppercase; letter-spacing: .12em;
     border: none; cursor: pointer; border-radius: 0;
-    text-decoration: none; transition: background .2s, color .2s;
+    text-decoration: none; transition: background .3s, color .3s;
   }
   .btn-gold:hover { background: #fff; color: #000; }
 
   /* Pillar cards */
   .pillar {
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid var(--border);
     background: rgba(0,0,0,.5);
     padding: 2rem; transition: all .35s ease; cursor: default;
   }
-  .pillar:hover { background: var(--gold); border-color: var(--gold); }
+  .pillar:hover { background: var(--primary); border-color: var(--primary); }
   .pillar:hover .p-num { color: rgba(255,255,255,.4); }
   .pillar:hover .p-txt { color: rgba(255,255,255,.9); }
   .p-num { font-family:'Oswald',sans-serif; font-size:3.5rem; font-weight:700; color:rgba(255,255,255,.15); line-height:1; margin-bottom:.5rem; transition:color .3s; }
@@ -114,22 +124,38 @@ export const SITE_CSS = `
 
   /* Social icons */
   .soc {
-    width:36px; height:36px; border:1px solid rgba(255,255,255,.2);
+    width:36px; height:36px; border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center;
     transition: border-color .2s, color .2s; cursor:pointer;
     font-family:'Oswald',sans-serif; font-weight:600; font-size:.7rem;
-    text-transform:uppercase; color:rgba(255,255,255,.5);
+    text-transform:uppercase; color:var(--text-muted);
   }
-  .soc:hover { border-color:var(--gold); color:var(--gold); }
+  .soc:hover { border-color:var(--primary); color:var(--primary); }
 
   /* Card hover (light) */
   .card-hover { border:1px solid #e5e5e5; transition: border-color .3s; }
-  .card-hover:hover { border-color: var(--gold); }
+  .card-hover:hover { border-color: var(--primary); }
 
   /* Feature card */
   .feat-dark { background:#0a0a0a; }
   .feat-light { background:#fff; }
   .feat-light:hover { background:#fafafa; }
+
+  /* Inputs */
+  input, textarea, select {
+    border-radius: 0 !important;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: border-color .3s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  /* Images */
+  img.grayscale { filter: grayscale(100%) contrast(1.25); }
 
   @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
   @media(max-width:1023px){ .sticky-panel{ position:relative !important; height:60vw !important; } }
@@ -154,15 +180,15 @@ export function SiteNav({ blend = false }) {
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
           padding: "1.25rem 2.5rem",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: blend ? "transparent" : "#fff",
-          borderBottom: blend ? "none" : "1px solid #e5e5e5",
+          background: blend ? "transparent" : "#000",
+          borderBottom: blend ? "none" : "1px solid rgba(255,255,255,0.1)",
         }}
       >
         <Link to={createPageUrl("LandingPage")} style={{ display:"flex", alignItems:"center", gap:".75rem", textDecoration:"none" }}>
-          <span className="D" style={{ color: blend ? "#fff" : "#0a0a0a", fontSize:"1.4rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em" }}>Juris</span>
+          <span className="D" style={{ color: "#fff", fontSize:"1.4rem", fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em" }}>Juris</span>
           <div style={{ display:"flex", gap:"3px" }}>
-            {["#C8A84B","#fff","#555","#C8A84B","#fff"].map((c,i)=>(
-              <div key={i} style={{ width:6, height:6, background: blend ? c : (c=="#fff"?"#0a0a0a":c) }} />
+            {["#C1232E","#fff","#555","#C1232E","#fff"].map((c,i)=>(
+              <div key={i} style={{ width:6, height:6, background: c }} />
             ))}
           </div>
         </Link>
@@ -170,28 +196,35 @@ export function SiteNav({ blend = false }) {
         <div className="hidden md:flex" style={{ gap:"2.5rem", alignItems:"center" }}>
           {links.map(item => (
             <Link key={item.label} to={item.to} className="D"
-              style={{ color: blend ? "#fff" : "#555", fontSize:".8rem", textTransform:"uppercase", letterSpacing:".12em", textDecoration:"none", fontWeight:500, opacity:.85, transition:"opacity .2s,color .2s" }}
-              onMouseEnter={e=>{e.target.style.opacity=1; e.target.style.color="var(--gold)";}}
-              onMouseLeave={e=>{e.target.style.opacity=.85; e.target.style.color=blend?"#fff":"#555";}}
+              style={{ color: "#fff", fontSize:".8rem", textTransform:"uppercase", letterSpacing:".12em", textDecoration:"none", fontWeight:500, opacity:.7, transition:"opacity .2s,color .2s" }}
+              onMouseEnter={e=>{e.target.style.opacity=1; e.target.style.color="var(--primary)";}}
+              onMouseLeave={e=>{e.target.style.opacity=.7; e.target.style.color="#fff";}}
             >{item.label}</Link>
           ))}
           <button onClick={login} className="D"
-            style={{ color: blend?"#fff":"#555", background:"none", border:"none", fontSize:".8rem", textTransform:"uppercase", letterSpacing:".12em", fontWeight:500, cursor:"pointer", opacity:.85 }}>
+            style={{ color:"rgba(255,255,255,.7)", background:"none", border:"none", fontSize:".8rem", textTransform:"uppercase", letterSpacing:".12em", fontWeight:500, cursor:"pointer", opacity:.85, transition:"color .2s" }}
+            onMouseEnter={e=>e.currentTarget.style.color="var(--primary)"}
+            onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,.7)"}
+          >
             Entrar
           </button>
-          <button onClick={login} className="btn-dark" style={{ padding:".6rem 1.4rem", fontSize:".72rem" }}>
+          <button onClick={login} className="D"
+            style={{ background:"var(--primary)", color:"#fff", border:"none", padding:".6rem 1.4rem", fontSize:".72rem", fontFamily:"'Oswald',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:".12em", cursor:"pointer", borderRadius:0, transition:"background .3s" }}
+            onMouseEnter={e=>e.currentTarget.style.background="var(--primary-dark)"}
+            onMouseLeave={e=>e.currentTarget.style.background="var(--primary)"}
+          >
             Teste 7 dias
           </button>
         </div>
 
         <button className="flex md:hidden" onClick={()=>setOpen(!open)}
-          style={{ background:"none", border:"none", cursor:"pointer", color: blend?"#fff":"#0a0a0a", fontSize:"1.5rem" }}>
+          style={{ background:"none", border:"none", cursor:"pointer", color:"#fff", fontSize:"1.5rem" }}>
           {open ? "✕" : "☰"}
         </button>
       </nav>
 
       {open && (
-        <div style={{ position:"fixed", inset:0, zIndex:99, background:"#0a0a0a", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"2rem" }}>
+        <div style={{ position:"fixed", inset:0, zIndex:99, background:"#000", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"2rem" }}>
           {links.map(item=>(
             <Link key={item.label} to={item.to} onClick={()=>setOpen(false)} className="D"
               style={{ color:"#fff", fontSize:"2rem", textTransform:"uppercase", letterSpacing:".1em", textDecoration:"none", fontWeight:600 }}>
@@ -224,7 +257,7 @@ export function SiteFooter() {
   };
 
   return (
-    <footer style={{ background:"#000", padding:"5rem 2.5rem 2rem" }}>
+    <footer style={{ background:"#000", padding:"5rem 2.5rem 2rem", borderTop:"1px solid rgba(255,255,255,0.08)" }}>
       <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(220px, 1fr))", gap:"3rem", marginBottom:"4rem" }}>
           <div style={{ gridColumn:"span 2" }}>
@@ -243,7 +276,7 @@ export function SiteFooter() {
                 {items.map(({label,to})=>(
                   <Link key={label} to={createPageUrl(to)}
                     style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", textDecoration:"none", transition:"color .2s" }}
-                    onMouseEnter={e=>e.target.style.color="var(--gold)"}
+                    onMouseEnter={e=>e.target.style.color="var(--primary)"}
                     onMouseLeave={e=>e.target.style.color="rgba(255,255,255,.5)"}
                   >{label}</Link>
                 ))}
