@@ -167,10 +167,10 @@ export default function Pricing({ theme = "light" }) {
       <section style={{ padding:"7rem 2.5rem" }}>
         <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
           <div style={{ display:"flex", flexWrap:"wrap", gap:"2rem", alignItems:"flex-end", marginBottom:"4rem" }}>
-            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#0a0a0a", margin:0 }}>
+            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#fff", margin:0 }}>
               Escolha Seu<br />Plano.
             </h2>
-            <p className="fu d1" style={{ color:"rgba(0,0,0,.5)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem" }}>
+            <p className="fu d1" style={{ color:"var(--text-muted)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem", fontFamily:"'Helvetica Neue',Arial,sans-serif" }}>
               Sem taxas ocultas. Cancele quando quiser.
             </p>
           </div>
