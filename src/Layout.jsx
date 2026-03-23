@@ -417,7 +417,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
               <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--app-text)" }}>Juris</span>
               <div style={{ display:"flex", gap:3 }}>
-                {["#C1232E","#C8A84B","#555"].map((c,i)=>(
+                {["var(--primary)","var(--primary)","var(--app-muted)"].map((c,i)=>(
                   <div key={i} style={{ width:5, height:5, background:c }} />
                 ))}
               </div>
