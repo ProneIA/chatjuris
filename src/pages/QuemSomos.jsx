@@ -64,7 +64,7 @@ export default function QuemSomos() {
               <span className="lbl">Nossa Missão</span>
               <div style={{ flex:1, height:1, background:"rgba(0,0,0,.15)" }} />
             </div>
-            <h3 className="D" style={{ fontSize:"clamp(2.5rem,5vw,4rem)", fontWeight:600, letterSpacing:"-0.03em", textTransform:"uppercase", lineHeight:1.05, marginBottom:"1.5rem", color:"#0a0a0a" }}>
+            <h3 className="D" style={{ fontSize:"clamp(2.5rem,5vw,4rem)", fontWeight:600, letterSpacing:"-0.03em", textTransform:"uppercase", lineHeight:1.05, marginBottom:"1.5rem", color:"#fff" }}>
               Democratizar<br />a Tecnologia<br />Jurídica.
             </h3>
             <p style={{ color:"rgba(0,0,0,.65)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", marginBottom:"1rem" }}>
