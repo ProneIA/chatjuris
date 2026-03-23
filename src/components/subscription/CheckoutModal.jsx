@@ -136,7 +136,8 @@ export default function CheckoutModal({ plan, onClose }) {
       const res = await base44.functions.invoke("getMercadoPagoPublicKey", {});
       const publicKey = res?.data?.publicKey;
       if (!publicKey) throw new Error("Chave pública não disponível");
-      await initBrick(publicKey);
+      // Aguarda o React renderizar o container no DOM antes de montar o Brick
+      setTimeout(() => initBrick(publicKey), 150);
     } catch (err) {
       setErrorMsg("Não foi possível iniciar o checkout. Tente novamente.");
       setStep("error");
