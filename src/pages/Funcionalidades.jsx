@@ -51,7 +51,7 @@ export default function Funcionalidades() {
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Funcionalidades</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--gold)" }}>Num Só Lugar.</span>
+          Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--primary)" }}>Num Só Lugar.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"500px", lineHeight:1.7, marginBottom:"2rem" }}>
             Ferramentas poderosas de IA combinadas com gestão completa do escritório em uma única plataforma.
