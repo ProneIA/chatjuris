@@ -146,7 +146,7 @@ export default function Pricing({ theme = "light" }) {
           )}
 
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--gold)" }}>Simples.</span>
+            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--primary)" }}>Simples.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7, marginBottom:"2rem" }}>
             +80 advogados economizando <strong style={{ color:"#fff" }}>2 dias de trabalho por semana</strong> com o Juris.
