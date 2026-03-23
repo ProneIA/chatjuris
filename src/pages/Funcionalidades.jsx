@@ -75,15 +75,15 @@ export default function Funcionalidades() {
             {features.map((f, i) => {
               const Icon = f.icon;
               return (
-                <div key={f.num} className="fu" style={{ transitionDelay:`${(i%3)*100}ms`, background: f.dark ? "#0a0a0a" : "#fff", padding:"2.5rem", transition:"background .3s", cursor:"default" }}
-                  onMouseEnter={e=>{ if(!f.dark) e.currentTarget.style.background="#fafafa"; }}
-                  onMouseLeave={e=>{ if(!f.dark) e.currentTarget.style.background="#fff"; }}>
+                <div key={f.num} className="fu" style={{ transitionDelay:`${(i%3)*100}ms`, background: f.dark ? "#000" : "var(--surface)", padding:"2.5rem", transition:"border-color .3s, background .3s", cursor:"default", border:"1px solid var(--border)" }}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderColor="var(--primary)"; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,.1)"; }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
                     <Icon style={{ width:28, height:28, color: f.dark ? "var(--primary)" : "rgba(255,255,255,.6)" }} />
-                    <span className="D" style={{ fontSize:".65rem", color: f.dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.2)", fontWeight:600, letterSpacing:".1em" }}>{f.num}</span>
+                    <span className="D" style={{ fontSize:".65rem", color:"rgba(255,255,255,.15)", fontWeight:600, letterSpacing:".1em" }}>{f.num}</span>
                   </div>
-                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color: f.dark ? "#fff" : "#0a0a0a", marginBottom:".75rem" }}>{f.title}</h3>
-                  <p style={{ fontSize:".875rem", color: f.dark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.55)", lineHeight:1.7 }}>{f.text}</p>
+                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color:"#fff", marginBottom:".75rem" }}>{f.title}</h3>
+                  <p style={{ fontSize:".875rem", color:"var(--text-muted)", lineHeight:1.7, fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>{f.text}</p>
                 </div>
               );
             })}
