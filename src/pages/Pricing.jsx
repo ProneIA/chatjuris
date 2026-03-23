@@ -256,9 +256,7 @@ export default function Pricing({ theme = "light" }) {
                 <div style={{ display:"flex", gap:"3px", marginBottom:"1.5rem" }}>
                   {[...Array(5)].map((_,s)=><Star key={s} style={{ width:14, height:14, color:"var(--gold)", fill:"var(--gold)" }} />)}
                 </div>
-                <p style={{ color:"rgba(255,255,255,.7)", fontSize:"1rem", lineHeight:1.7, fontStyle:"italic", marginBottom:"1.5rem" }}>"{t.text}"</p>
-                <p className="D" style={{ color:"#fff", fontWeight:600, fontSize:".85rem", textTransform:"uppercase", letterSpacing:".05em" }}>{t.name}</p>
-                <p style={{ color:"rgba(255,255,255,.3)", fontSize:".8rem" }}>{t.role}</p>
+                <p style={{ color:"rgba(255,255,255,.7)", fontSize:"1rem", lineHeight:1.7, fontStyle:"italic" }}>"{t.text}"</p>
               </div>
             ))}
             {/* Trust badges alongside */}
