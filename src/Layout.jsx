@@ -412,17 +412,17 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </header>
 
         {/* Sidebar - Desktop */}
-        <aside style={{ background:"var(--app-bg)", borderRight:"1px solid var(--app-border)" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
+        <aside style={{ background:"var(--surface)", borderRight:"1px solid var(--border)" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
           <div className="py-4">
             <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
-              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--app-text)" }}>Juris</span>
+              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--text)" }}>Juris</span>
               <div style={{ display:"flex", gap:3 }}>
-                {["var(--primary)","var(--primary)","var(--app-muted)"].map((c,i)=>(
-                  <div key={i} style={{ width:5, height:5, background:c }} />
+                {[0,1,2].map((i)=>(
+                  <div key={i} style={{ width:5, height:5, background: i < 2 ? "var(--primary)" : "var(--border)" }} />
                 ))}
               </div>
             </Link>
-            <div style={{ height:1, background:"var(--app-border)", margin:"0 0 0.5rem" }} />
+            <div style={{ height:1, background:"var(--border)", margin:"0 0 0.5rem" }} />
             <nav>
               {visibleNavItems.map((item) => {
                 const isActive = location.pathname === item.url;
@@ -430,21 +430,14 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   <Link
                     key={item.title}
                     to={item.url}
+                    className="app-nav-item"
                     style={{
-                      display:"flex", alignItems:"center", gap:"0.75rem",
-                      padding:"0.65rem 1.25rem",
-                      textDecoration:"none",
-                      fontFamily:"'Oswald',sans-serif", fontWeight:500, fontSize:".8rem",
-                      textTransform:"uppercase", letterSpacing:".06em",
-                      background: isActive ? "#C1232E" : "transparent",
-                      color: isActive ? "#fff" : "var(--app-muted)",
-                      borderLeft: isActive ? "none" : "3px solid transparent",
-                      transition:"all .15s",
+                      background: isActive ? "var(--primary)" : "transparent",
+                      color: isActive ? "#fff" : "var(--text-muted)",
+                      borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
                     }}
-                    onMouseEnter={e=>{ if(!isActive){ e.currentTarget.style.borderLeftColor="#C1232E"; e.currentTarget.style.background="var(--app-surface)"; e.currentTarget.style.color="var(--app-text)"; } }}
-                    onMouseLeave={e=>{ if(!isActive){ e.currentTarget.style.borderLeftColor="transparent"; e.currentTarget.style.background="transparent"; e.currentTarget.style.color="var(--app-muted)"; } }}
                   >
-                    <item.icon style={{ width:16, height:16, flexShrink:0, color: isActive ? "#fff" : "var(--app-muted)" }} />
+                    <item.icon style={{ width:16, height:16, flexShrink:0, color: isActive ? "#fff" : "var(--text-muted)" }} />
                     <span>{item.title}</span>
                   </Link>
                 );
@@ -465,7 +458,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <motion.div
                 initial={{ x: -280, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -280, opacity: 0 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                style={{ background:"var(--app-bg)", borderRight:"1px solid var(--app-border)" }}
+                style={{ background:"var(--surface)", borderRight:"1px solid var(--border)" }}
                 className="lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 overflow-y-auto"
               >
                 <nav className="py-2">
@@ -476,17 +469,14 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                         key={item.title}
                         to={item.url}
                         onClick={() => setIsMobileMenuOpen(false)}
+                        className="app-nav-item"
                         style={{
-                          display:"flex", alignItems:"center", gap:"0.75rem",
-                          padding:"0.65rem 1.25rem", textDecoration:"none",
-                          fontFamily:"'Oswald',sans-serif", fontWeight:500, fontSize:".8rem",
-                          textTransform:"uppercase", letterSpacing:".06em",
-                          background: isActive ? "#C1232E" : "transparent",
-                          color: isActive ? "#fff" : "var(--app-muted)",
-                          borderLeft: isActive ? "none" : "3px solid transparent",
+                          background: isActive ? "var(--primary)" : "transparent",
+                          color: isActive ? "#fff" : "var(--text-muted)",
+                          borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
                         }}
                       >
-                        <item.icon style={{ width:16, height:16, color: isActive ? "#fff" : "var(--app-muted)" }} />
+                        <item.icon style={{ width:16, height:16, color: isActive ? "#fff" : "var(--text-muted)" }} />
                         <span>{item.title}</span>
                       </Link>
                     );
@@ -494,7 +484,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   {!isStandalone && (
                     <button
                       onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
-                      style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.65rem 1.25rem", background:"var(--primary)", color:"#fff", border:"none", cursor:"pointer", width:"100%", marginTop:"1rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".8rem", textTransform:"uppercase", letterSpacing:".06em" }}
+                      className="btn-primary"
+                      style={{ width:"100%", marginTop:"1rem", justifyContent:"flex-start", padding:"0.65rem 1.25rem" }}
                     >
                       <Download style={{ width:16, height:16 }} />
                       <span>Instalar Aplicativo</span>
