@@ -254,7 +254,7 @@ export default function Pricing({ theme = "light" }) {
             {testimonials.map((t, i) => (
               <div key={i} className="fu" style={{ transitionDelay:`${i*100}ms`, padding:"3rem", background:"#121212" }}>
                 <div style={{ display:"flex", gap:"3px", marginBottom:"1.5rem" }}>
-                  {[...Array(5)].map((_,s)=><Star key={s} style={{ width:14, height:14, color:"var(--gold)", fill:"var(--gold)" }} />)}
+                  {[...Array(5)].map((_,s)=><Star key={s} style={{ width:14, height:14, color:"var(--primary)", fill:"var(--primary)" }} />)}
                 </div>
                 <p style={{ color:"rgba(255,255,255,.7)", fontSize:"1rem", lineHeight:1.7, fontStyle:"italic" }}>"{t.text}"</p>
               </div>
@@ -264,7 +264,7 @@ export default function Pricing({ theme = "light" }) {
               const Icon = b.icon;
               return (
                 <div key={b.title} className="fu" style={{ transitionDelay:`${(i+2)*100}ms`, padding:"3rem", background:"#121212", display:"flex", flexDirection:"column", justifyContent:"center" }}>
-                  <Icon style={{ width:28, height:28, color:"var(--gold)", marginBottom:"1rem" }} />
+                  <Icon style={{ width:28, height:28, color:"var(--primary)", marginBottom:"1rem" }} />
                   <p className="D" style={{ fontWeight:600, fontSize:".9rem", textTransform:"uppercase", letterSpacing:".05em", color:"#fff", marginBottom:".25rem" }}>{b.title}</p>
                   <p style={{ color:"rgba(255,255,255,.35)", fontSize:".8rem" }}>{b.sub}</p>
                 </div>
