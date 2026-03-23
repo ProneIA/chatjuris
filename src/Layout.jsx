@@ -312,18 +312,27 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </React.Suspense>
 
         <style>{`
-          ::-webkit-scrollbar { width: 6px; }
-          ::-webkit-scrollbar-track { background: ${isDark ? '#0a0a0a' : '#f1f5f9'}; }
-          ::-webkit-scrollbar-thumb { background: ${isDark ? '#333' : '#cbd5e1'}; border-radius: 3px; }
-          ::-webkit-scrollbar-thumb:hover { background: ${isDark ? '#444' : '#94a3b8'}; }
+          @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+          ::-webkit-scrollbar { width: 0; }
+          :root {
+            --app-bg: ${isDark ? '#000' : '#f5f5f5'};
+            --app-surface: ${isDark ? '#0f0f0f' : '#ffffff'};
+            --app-surface2: ${isDark ? '#1a1a1a' : '#f0f0f0'};
+            --app-border: ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'};
+            --app-text: ${isDark ? '#ffffff' : '#0a0a0a'};
+            --app-muted: ${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'};
+            --app-primary: #C1232E;
+            --app-primary-dim: rgba(193,35,46,0.1);
+          }
         `}</style>
 
         {/* Top Bar */}
-        <header className={`fixed top-0 left-0 right-0 h-14 border-b z-50 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <header style={{ background:"var(--app-surface)", borderBottom:"1px solid var(--app-border)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
           <div className="h-full px-4 flex items-center justify-between">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`lg:hidden p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-neutral-800 text-white' : 'hover:bg-gray-100 text-gray-900'}`}
+              style={{ background:"none", border:"none", cursor:"pointer", color:"var(--app-text)", padding:"0.5rem" }}
+              className="lg:hidden"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -332,10 +341,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               to={createPageUrl("Dashboard")} 
               className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
-                <Scale className={`w-4 h-4 ${isDark ? 'text-black' : 'text-white'}`} />
-              </div>
-              <span className={`text-base font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Juris</span>
+              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.3rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--app-text)" }}>Juris</span>
             </Link>
 
             <div className="flex items-center gap-2">
@@ -346,9 +352,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 </Button>
               )}
 
-              <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
+              <button onClick={toggleTheme} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--app-muted)", display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36 }}>
                 {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
+              </button>
 
               {user && (
                 <React.Suspense fallback={<div className="w-9 h-9" />}>
@@ -366,37 +372,37 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                     </div>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={`w-56 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <DropdownMenuContent align="end" style={{ width:220, background:"var(--app-surface)", border:"1px solid var(--app-border)", borderRadius:0 }}>
                   <div className="px-3 py-2">
-                    <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.full_name || 'Usuário'}</p>
-                    <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{user?.email}</p>
+                    <p style={{ fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".85rem", textTransform:"uppercase", color:"var(--app-text)" }}>{user?.full_name || 'Usuário'}</p>
+                    <p style={{ fontSize:".75rem", color:"var(--app-muted)" }}>{user?.email}</p>
                   </div>
-                  <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
+                  <DropdownMenuSeparator style={{ background:"var(--app-border)" }} />
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Settings")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    <Link to={createPageUrl("Settings")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Settings className="w-4 h-4" /><span>Preferências</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("MyData")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    <Link to={createPageUrl("MyData")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Bookmark className="w-4 h-4" /><span>Meus Dados</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Contact")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    <Link to={createPageUrl("Contact")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <MessageSquare className="w-4 h-4" /><span>Contato</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("PrivacyPolicy")} className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                    <Link to={createPageUrl("PrivacyPolicy")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Bookmark className="w-4 h-4" /><span>Política de Privacidade</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className={isDark ? 'bg-neutral-800' : 'bg-gray-200'} />
-                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer text-red-500">
+                  <DropdownMenuSeparator style={{ background:"var(--app-border)" }} />
+                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer" style={{ color:"#C1232E", fontSize:".85rem" }}>
                     <Shield className="w-4 h-4" /><span>Excluir Conta</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-red-600">
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer" style={{ color:"#C1232E", fontSize:".85rem" }}>
                     <LogOut className="w-4 h-4" /><span>Sair</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -406,28 +412,39 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </header>
 
         {/* Sidebar - Desktop */}
-        <aside className={`hidden lg:block fixed left-0 top-14 bottom-0 w-64 border-r overflow-y-auto ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="p-4 space-y-2">
-            <Link to={createPageUrl("Dashboard")} className="flex items-center gap-3 px-3 py-3 mb-2 hover:opacity-80 transition-opacity">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
-                <Scale className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
+        <aside style={{ background:"var(--app-bg)", borderRight:"1px solid var(--app-border)" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
+          <div className="py-4">
+            <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
+              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--app-text)" }}>Juris</span>
+              <div style={{ display:"flex", gap:3 }}>
+                {["#C1232E","#C8A84B","#555"].map((c,i)=>(
+                  <div key={i} style={{ width:5, height:5, background:c }} />
+                ))}
               </div>
-              <span className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Juris</span>
             </Link>
-            <nav className="space-y-1">
+            <div style={{ height:1, background:"var(--app-border)", margin:"0 0 0.5rem" }} />
+            <nav>
               {visibleNavItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
                   <Link
                     key={item.title}
                     to={item.url}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? isDark ? 'bg-neutral-800 text-white' : 'bg-gray-100 text-gray-900'
-                        : isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
+                    style={{
+                      display:"flex", alignItems:"center", gap:"0.75rem",
+                      padding:"0.65rem 1.25rem",
+                      textDecoration:"none",
+                      fontFamily:"'Oswald',sans-serif", fontWeight:500, fontSize:".8rem",
+                      textTransform:"uppercase", letterSpacing:".06em",
+                      background: isActive ? "#C1232E" : "transparent",
+                      color: isActive ? "#fff" : "var(--app-muted)",
+                      borderLeft: isActive ? "none" : "3px solid transparent",
+                      transition:"all .15s",
+                    }}
+                    onMouseEnter={e=>{ if(!isActive){ e.currentTarget.style.borderLeftColor="#C1232E"; e.currentTarget.style.background="var(--app-surface)"; e.currentTarget.style.color="var(--app-text)"; } }}
+                    onMouseLeave={e=>{ if(!isActive){ e.currentTarget.style.borderLeftColor="transparent"; e.currentTarget.style.background="transparent"; e.currentTarget.style.color="var(--app-muted)"; } }}
                   >
-                    <item.icon className="w-5 h-5 shrink-0" />
+                    <item.icon style={{ width:16, height:16, flexShrink:0, color: isActive ? "#fff" : "var(--app-muted)" }} />
                     <span>{item.title}</span>
                   </Link>
                 );
@@ -448,9 +465,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <motion.div
                 initial={{ x: -280, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -280, opacity: 0 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className={`lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 border-r overflow-y-auto ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}
+                style={{ background:"var(--app-bg)", borderRight:"1px solid var(--app-border)" }}
+                className="lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 overflow-y-auto"
               >
-                <nav className="p-4 space-y-1">
+                <nav className="py-2">
                   {visibleNavItems.map((item) => {
                     const isActive = location.pathname === item.url;
                     return (
@@ -458,13 +476,17 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                         key={item.title}
                         to={item.url}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          isActive
-                            ? isDark ? 'bg-neutral-800 text-white' : 'bg-gray-100 text-gray-900'
-                            : isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
+                        style={{
+                          display:"flex", alignItems:"center", gap:"0.75rem",
+                          padding:"0.65rem 1.25rem", textDecoration:"none",
+                          fontFamily:"'Oswald',sans-serif", fontWeight:500, fontSize:".8rem",
+                          textTransform:"uppercase", letterSpacing:".06em",
+                          background: isActive ? "#C1232E" : "transparent",
+                          color: isActive ? "#fff" : "var(--app-muted)",
+                          borderLeft: isActive ? "none" : "3px solid transparent",
+                        }}
                       >
-                        <item.icon className="w-5 h-5" />
+                        <item.icon style={{ width:16, height:16, color: isActive ? "#fff" : "var(--app-muted)" }} />
                         <span>{item.title}</span>
                       </Link>
                     );
@@ -472,9 +494,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   {!isStandalone && (
                     <button
                       onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 w-full mt-4"
+                      style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.65rem 1.25rem", background:"#C1232E", color:"#fff", border:"none", cursor:"pointer", width:"100%", marginTop:"1rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".8rem", textTransform:"uppercase", letterSpacing:".06em" }}
                     >
-                      <Download className="w-5 h-5" />
+                      <Download style={{ width:16, height:16 }} />
                       <span>Instalar Aplicativo</span>
                     </button>
                   )}
@@ -492,13 +514,13 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         )}
 
         {/* Main Content */}
-        <main className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        <main style={{ background:"var(--app-bg)" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
           {showBackButton && (
-            <div className={`border-b ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+            <div style={{ background:"var(--app-surface)", borderBottom:"1px solid var(--app-border)" }}>
               <div className="px-6 py-3 flex items-center justify-between">
                 <Link 
                   to={createPageUrl("Dashboard")}
-                  className={`inline-flex items-center gap-2 text-sm transition-colors ${isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                  style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", fontSize:".8rem", fontFamily:"'Oswald',sans-serif", fontWeight:500, textTransform:"uppercase", letterSpacing:".08em", color:"var(--app-muted)", textDecoration:"none" }}
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Voltar</span>
@@ -506,9 +528,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 {currentPageName === "AIAssistant" && (
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('openAIHistory'))}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors border ${
-                      isDark ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                    }`}
+                    style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", padding:"0.4rem 1rem", border:"1px solid var(--app-border)", background:"transparent", color:"var(--app-muted)", cursor:"pointer", fontFamily:"'Oswald',sans-serif", fontSize:".75rem", textTransform:"uppercase", letterSpacing:".08em" }}
                   >
                     <HistoryIcon className="w-4 h-4" />
                     <span>Histórico</span>
@@ -524,7 +544,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -18, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeInOut" }}
-              className={`min-h-[calc(100vh-3.5rem)] ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}
+              style={{ minHeight:"calc(100vh - 3.5rem)", background:"var(--app-bg)" }}
             >
               {React.cloneElement(children, { theme })}
             </motion.div>
