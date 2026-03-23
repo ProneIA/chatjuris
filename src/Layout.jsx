@@ -327,7 +327,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         `}</style>
 
         {/* Top Bar */}
-        <header style={{ background:"var(--app-surface)", borderBottom:"1px solid var(--app-border)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
+        <header style={{ background:"var(--surface)", borderBottom:"1px solid var(--border)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
           <div className="h-full px-4 flex items-center justify-between">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -505,13 +505,15 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         )}
 
         {/* Main Content */}
-        <main style={{ background:"var(--app-bg)" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        <main style={{ background:"var(--bg)" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
           {showBackButton && (
-            <div style={{ background:"var(--app-surface)", borderBottom:"1px solid var(--app-border)" }}>
+            <div style={{ background:"var(--surface)", borderBottom:"1px solid var(--border)" }}>
               <div className="px-6 py-3 flex items-center justify-between">
                 <Link 
                   to={createPageUrl("Dashboard")}
-                  style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", fontSize:".8rem", fontFamily:"'Oswald',sans-serif", fontWeight:500, textTransform:"uppercase", letterSpacing:".08em", color:"var(--app-muted)", textDecoration:"none" }}
+                  style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", fontSize:".75rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:"var(--text-muted)", textDecoration:"none" }}
+                  onMouseEnter={e=>e.currentTarget.style.color="var(--primary)"}
+                  onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Voltar</span>
@@ -519,7 +521,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 {currentPageName === "AIAssistant" && (
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('openAIHistory'))}
-                    style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", padding:"0.4rem 1rem", border:"1px solid var(--app-border)", background:"transparent", color:"var(--app-muted)", cursor:"pointer", fontFamily:"'Oswald',sans-serif", fontSize:".75rem", textTransform:"uppercase", letterSpacing:".08em" }}
+                    className="btn-ghost"
+                    style={{ padding:"0.4rem 1rem", fontSize:".72rem" }}
                   >
                     <HistoryIcon className="w-4 h-4" />
                     <span>Histórico</span>
@@ -535,7 +538,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -18, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeInOut" }}
-              style={{ minHeight:"calc(100vh - 3.5rem)", background:"var(--app-bg)" }}
+              style={{ minHeight:"calc(100vh - 3.5rem)", background:"var(--bg)" }}
             >
               {React.cloneElement(children, { theme })}
             </motion.div>
