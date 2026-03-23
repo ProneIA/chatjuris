@@ -171,16 +171,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
 
   return (
     <div style={{ minHeight:"100vh", background:"var(--app-bg)", fontFamily:"system-ui,sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
-        .dash-oswald { font-family: 'Oswald', sans-serif !important; }
-        @keyframes dash-fade-up { from { opacity:0; transform:translateY(1.5rem); } to { opacity:1; transform:translateY(0); } }
-        .dash-fu { animation: dash-fade-up .6s cubic-bezier(.16,1,.3,1) both; }
-        .dash-d1 { animation-delay: 80ms; }
-        .dash-d2 { animation-delay: 160ms; }
-        .dash-d3 { animation-delay: 240ms; }
-        .dash-d4 { animation-delay: 320ms; }
-      `}</style>
+      
       <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
         {/* Header com saudação */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 dash-fu">
