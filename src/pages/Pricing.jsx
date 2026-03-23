@@ -421,7 +421,7 @@ export default function Pricing() {
       </section>
 
       {/* ── PLANOS ───────────────────────────────────────── */}
-      <section style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
+      <section id="planos" style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
           {/* Título + toggle */}
