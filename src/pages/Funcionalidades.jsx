@@ -79,7 +79,7 @@ export default function Funcionalidades() {
                   onMouseEnter={e=>{ if(!f.dark) e.currentTarget.style.background="#fafafa"; }}
                   onMouseLeave={e=>{ if(!f.dark) e.currentTarget.style.background="#fff"; }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
-                    <Icon style={{ width:28, height:28, color: f.dark ? "var(--gold)" : "#555" }} />
+                    <Icon style={{ width:28, height:28, color: f.dark ? "var(--primary)" : "rgba(255,255,255,.6)" }} />
                     <span className="D" style={{ fontSize:".65rem", color: f.dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.2)", fontWeight:600, letterSpacing:".1em" }}>{f.num}</span>
                   </div>
                   <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color: f.dark ? "#fff" : "#0a0a0a", marginBottom:".75rem" }}>{f.title}</h3>
