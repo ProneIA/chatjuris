@@ -152,6 +152,53 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── PLANOS PREVIEW ────────────────────────────────────── */}
+      <section style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <p className="lbl fu" style={{ marginBottom: ".75rem" }}>✦ Planos &amp; Preços</p>
+            <h2 className="D fu d1" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#0a0a0a", margin: "0 0 .75rem" }}>
+              Simples. Transparente.
+            </h2>
+            <p className="fu d2" style={{ color: "rgba(0,0,0,.5)", maxWidth: "420px", margin: "0 auto 2rem", lineHeight: 1.6 }}>
+              Escolha o plano ideal. Pagamento seguro via cartão de crédito.
+            </p>
+          </div>
+
+          {/* 3 cards resumidos */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1px", background: "#e0e0ea", marginBottom: "2rem" }}>
+            {[
+              { name: "Básico", price: "R$ 89,90", period: "/mês", desc: "30 docs · 300 créditos IA", dark: false },
+              { name: "Advogado", price: "R$ 119,90", period: "/mês", desc: "60 docs · 600 créditos IA", dark: true, badge: "Mais popular" },
+              { name: "Empresas", price: "R$ 219,90", period: "/mês", desc: "Ilimitado · Suporte prioritário", dark: false },
+            ].map((p) => (
+              <div key={p.name} className="fu"
+                style={{ background: p.dark ? "#0a0a0a" : "#fff", padding: "2.5rem", position: "relative", borderBottom: p.dark ? "4px solid #C8A84B" : "4px solid transparent" }}>
+                {p.badge && (
+                  <div style={{ position: "absolute", top: 0, right: 0, background: "#C8A84B", color: "#000", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".6rem", padding: ".3rem .7rem", textTransform: "uppercase", letterSpacing: ".1em" }}>{p.badge}</div>
+                )}
+                <h3 className="D" style={{ fontSize: ".95rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", color: p.dark ? "#fff" : "#0a0a0a", margin: "0 0 .3rem" }}>{p.name}</h3>
+                <p style={{ color: p.dark ? "rgba(255,255,255,.35)" : "rgba(0,0,0,.4)", fontSize: ".75rem", margin: "0 0 1rem" }}>{p.desc}</p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: ".3rem", marginBottom: "1.5rem" }}>
+                  <span className="D" style={{ fontSize: "2.4rem", fontWeight: 700, color: p.dark ? "#fff" : "#0a0a0a", lineHeight: 1 }}>{p.price}</span>
+                  <span style={{ fontSize: ".8rem", color: p.dark ? "rgba(255,255,255,.3)" : "#aaa" }}>{p.period}</span>
+                </div>
+                <a href={createPageUrl("Pricing")}
+                  style={{ display: "block", width: "100%", padding: ".8rem", textAlign: "center", background: p.dark ? "#C8A84B" : "#0a0a0a", color: p.dark ? "#000" : "#fff", textDecoration: "none", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", boxSizing: "border-box" }}>
+                  Assinar Agora →
+                </a>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center" }}>
+            <a href={createPageUrl("Pricing")} className="btn-dark" style={{ display: "inline-flex" }}>
+              Ver todos os planos e detalhes →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA ───────────────────────────────────────────────── */}
       <section style={{ position:"relative", overflow:"hidden", minHeight:"560px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
