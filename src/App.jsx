@@ -62,6 +62,9 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/LexIA" element={
+        <LexIA />
+      } />
       <Route path="/AffiliatesDashboard" element={
         <LayoutWrapper currentPageName="AffiliatesDashboard">
           <AffiliatesDashboard />
