@@ -79,7 +79,7 @@ export default function LandingPage() {
           <div style={{ position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
             <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=80&auto=format&fit=crop" alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-            <div style={{ position:"absolute", right:0, top:0, bottom:0, width:8, background:"var(--gold)" }} />
+            <div style={{ position:"absolute", right:0, top:0, bottom:0, width:4, background:"var(--primary)" }} />
           </div>
         </div>
 
