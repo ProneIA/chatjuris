@@ -71,7 +71,7 @@ export default function Funcionalidades() {
               Cada funcionalidade foi pensada para resolver um problema real da rotina jurídica.
             </p>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(300px,1fr))", gap:"1px", background:"#e5e5e5" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(300px,1fr))", gap:"1px", background:"rgba(255,255,255,.05)" }}>
             {features.map((f, i) => {
               const Icon = f.icon;
               return (
