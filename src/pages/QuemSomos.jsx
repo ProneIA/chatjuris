@@ -67,10 +67,10 @@ export default function QuemSomos() {
             <h3 className="D" style={{ fontSize:"clamp(2.5rem,5vw,4rem)", fontWeight:600, letterSpacing:"-0.03em", textTransform:"uppercase", lineHeight:1.05, marginBottom:"1.5rem", color:"#fff" }}>
               Democratizar<br />a Tecnologia<br />Jurídica.
             </h3>
-            <p style={{ color:"rgba(0,0,0,.65)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", marginBottom:"1rem" }}>
+            <p style={{ color:"var(--text-muted)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", marginBottom:"1rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
               Permitir que advogados de todos os portes aumentem sua produtividade e ofereçam serviços de maior qualidade aos seus clientes.
             </p>
-            <p style={{ color:"rgba(0,0,0,.65)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px" }}>
+            <p style={{ color:"var(--text-muted)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
               Acreditamos que a inteligência artificial pode ser uma aliada poderosa na prática jurídica, automatizando tarefas repetitivas.
             </p>
           </div>
