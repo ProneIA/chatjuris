@@ -31,8 +31,8 @@ export default function QuemSomos() {
       {/* HERO */}
       <section style={{ position:"relative", height:"100vh", minHeight:"600px", display:"flex", alignItems:"center", overflow:"hidden" }}>
         <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1920&q=80&auto=format&fit=crop" alt=""
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1) contrast(1.2)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.72)" }} />
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1) contrast(1.25)" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.75)" }} />
         <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle, transparent 50%, rgba(0,0,0,.8) 150%)" }} />
 
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
