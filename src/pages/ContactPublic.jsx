@@ -58,7 +58,7 @@ export default function ContactPublic() {
             </p>
           </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px,1fr))", gap:"1px", background:"#e5e5e5" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px,1fr))", gap:"1rem" }}>
             {contacts.map((c, i) => {
               const Icon = c.icon;
               return (
