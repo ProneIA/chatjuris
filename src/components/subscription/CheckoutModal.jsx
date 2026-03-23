@@ -164,11 +164,14 @@ export default function CheckoutModal({ plan, onClose }) {
     if (!name.trim() || !email.trim()) return;
     setLoading(true);
     setStep("brick");
-    // Pequeno delay para o DOM renderizar o container antes de iniciar o brick
-    setTimeout(async () => {
-      await initBrick();
-      setLoading(false);
-    }, 100);
+    // Aguarda o React renderizar o container "mp-brick-container" antes de iniciar o brick
+    // requestAnimationFrame garante que o DOM já foi pintado
+    requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
+        await initBrick();
+        setLoading(false);
+      });
+    });
   };
 
   const handleRetry = async () => {
