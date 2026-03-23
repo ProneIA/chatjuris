@@ -170,55 +170,58 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
   }
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f]' : 'bg-slate-50'}`}>
+    <div style={{ minHeight:"100vh", background:"var(--app-bg)", fontFamily:"system-ui,sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+        .dash-oswald { font-family: 'Oswald', sans-serif !important; }
+        @keyframes dash-fade-up { from { opacity:0; transform:translateY(1.5rem); } to { opacity:1; transform:translateY(0); } }
+        .dash-fu { animation: dash-fade-up .6s cubic-bezier(.16,1,.3,1) both; }
+        .dash-d1 { animation-delay: 80ms; }
+        .dash-d2 { animation-delay: 160ms; }
+        .dash-d3 { animation-delay: 240ms; }
+        .dash-d4 { animation-delay: 320ms; }
+      `}</style>
       <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
         {/* Header com saudação */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-        >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 dash-fu">
           <div>
-            <h1 className={`text-2xl md:text-3xl font-light tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              {getGreeting()}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Advogado'}</span>
+            <h1 className="dash-oswald" style={{ fontSize:"clamp(1.8rem,4vw,2.5rem)", fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1, color:"var(--app-text)", margin:0 }}>
+              {getGreeting()}, <span style={{ color:"var(--app-primary)" }}>{user?.full_name?.split(' ')[0] || 'Advogado'}</span>
             </h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            <p style={{ marginTop:"0.4rem", fontSize:".72rem", textTransform:"uppercase", letterSpacing:".16em", color:"var(--app-muted)" }}>
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Link to={createPageUrl("AIAssistant")}>
-              <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white gap-2">
-                <Sparkles className="w-4 h-4" />
+              <button className="dash-oswald" style={{ display:"inline-flex", alignItems:"center", gap:".5rem", padding:".7rem 1.6rem", background:"var(--app-primary)", color:"#fff", border:"none", cursor:"pointer", fontWeight:700, fontSize:".78rem", textTransform:"uppercase", letterSpacing:".1em" }}>
+                <Sparkles style={{ width:15, height:15 }} />
                 Assistente IA
-              </Button>
+              </button>
             </Link>
           </div>
-        </motion.div>
+        </div>
 
 
 
         {/* Quick Actions */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background:"var(--app-border)" }}>
           {quickActions.map((action, i) => {
             const Icon = action.icon;
-            const colors = colorClasses[action.color];
             return (
-              <Link key={i} to={action.url}>
-                <div className={`relative p-4 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-lg group ${
-                  isDark ? 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-700' : 'bg-white border-slate-200 hover:border-slate-300'
-                }`}>
-                  <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center mb-3`}>
-                    <Icon className={`w-5 h-5 ${colors.text}`} />
+              <Link key={i} to={action.url} style={{ textDecoration:"none" }}>
+                <div
+                  className={`dash-fu dash-d${i+1}`}
+                  style={{ position:"relative", padding:"1.25rem", background:"var(--app-surface)", cursor:"pointer", transition:"border-color .15s, background .15s", borderLeft:"3px solid transparent" }}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderLeftColor="var(--app-primary)"; e.currentTarget.style.background="var(--app-surface2)"; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderLeftColor="transparent"; e.currentTarget.style.background="var(--app-surface)"; }}
+                >
+                  <div style={{ width:36, height:36, background:"var(--app-primary-dim, rgba(193,35,46,0.1))", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:"0.75rem" }}>
+                    <Icon style={{ width:18, height:18, color:"var(--app-primary)" }} />
                   </div>
-                  <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{action.title}</p>
+                  <p className="dash-oswald" style={{ fontWeight:600, fontSize:".78rem", textTransform:"uppercase", letterSpacing:".08em", color:"var(--app-text)", margin:0 }}>{action.title}</p>
                   {action.badge && (
-                    <span className="absolute top-3 right-3 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500 text-white">
+                    <span className="dash-oswald" style={{ position:"absolute", top:"0.75rem", right:"0.75rem", fontSize:".6rem", fontWeight:700, padding:"0.2rem 0.4rem", background:"var(--app-primary)", color:"#fff", letterSpacing:".1em" }}>
                       {action.badge}
                     </span>
                   )}
@@ -226,213 +229,138 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
               </Link>
             );
           })}
-        </motion.div>
+        </div>
 
         {/* Stats Grid */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background:"var(--app-border)" }}>
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
-            const colors = colorClasses[stat.color];
-            const progress = stat.showProgress && stat.total > 0 ? (stat.value / stat.total) * 100 : 0;
-            
             return (
-              <Link key={index} to={stat.link}>
-                <div className={`relative p-5 rounded-xl border transition-all hover:shadow-lg group overflow-hidden ${
-                  isDark ? 'bg-neutral-900/80 border-neutral-800 hover:border-neutral-700' : 'bg-white border-slate-200 hover:border-slate-300'
-                }`}>
-                  {/* Background glow */}
-                  <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full opacity-20 blur-2xl ${colors.bg}`} />
-                  
-                  <div className="relative">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <p className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                          {stat.title}
-                        </p>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          {isLoading ? (
-                            <Skeleton className={`h-8 w-12 ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
-                          ) : (
-                            <>
-                              <span className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {stat.value}
-                              </span>
-                              {stat.total !== undefined && (
-                                <span className={`text-sm ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
-                                  / {stat.total}
-                                </span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                        <p className={`text-xs mt-1 ${colors.text}`}>{stat.subtitle}</p>
-                      </div>
-                      <div className={`w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center`}>
-                        <Icon className={`w-5 h-5 ${colors.text}`} />
-                      </div>
+              <Link key={index} to={stat.link} style={{ textDecoration:"none" }}>
+                <div
+                  className={`dash-fu dash-d${index+1}`}
+                  style={{ padding:"1.5rem", background:"var(--app-surface)", transition:"border-left .15s, background .15s", borderLeft:"3px solid transparent", height:"100%" }}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderLeftColor="var(--app-primary)"; e.currentTarget.style.background="var(--app-surface2)"; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderLeftColor="transparent"; e.currentTarget.style.background="var(--app-surface)"; }}
+                >
+                  <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:"0.75rem" }}>
+                    <p className="dash-oswald" style={{ fontSize:".65rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".16em", color:"var(--app-muted)", margin:0 }}>
+                      {stat.title}
+                    </p>
+                    <div style={{ width:36, height:36, background:"rgba(193,35,46,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <Icon style={{ width:18, height:18, color:"var(--app-primary)" }} />
                     </div>
-                    
-                    {/* Progress bar for cases */}
-                    {stat.showProgress && stat.total > 0 && (
-                      <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-neutral-800' : 'bg-slate-100'}`}>
-                        <div 
-                          className={`h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    )}
                   </div>
+                  {isLoading ? (
+                    <Skeleton style={{ height:40, width:60, background:"var(--app-surface2)" }} />
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"baseline", gap:"0.4rem" }}>
+                      <span className="dash-oswald" style={{ fontSize:"2.5rem", fontWeight:700, lineHeight:1, color:"var(--app-text)" }}>{stat.value}</span>
+                      {stat.total !== undefined && (
+                        <span style={{ fontSize:".875rem", color:"var(--app-muted)" }}>/ {stat.total}</span>
+                      )}
+                    </div>
+                  )}
+                  <p style={{ fontSize:".75rem", color:"var(--app-primary)", marginTop:"0.25rem" }}>{stat.subtitle}</p>
                 </div>
               </Link>
             );
           })}
-        </motion.div>
+        </div>
 
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Próximos Prazos */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={`lg:col-span-2 rounded-xl border overflow-hidden ${
-              isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClasses.orange.bg}`}>
-                  <Clock className={`w-4 h-4 ${colorClasses.orange.text}`} />
-                </div>
-                <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Prazos e Tarefas</h2>
+        {/* Prazos e Tarefas */}
+        <div className="dash-fu" style={{ background:"var(--app-surface)", border:"1px solid var(--app-border)" }}>
+          <div style={{ padding:"1rem 1.5rem", borderBottom:"1px solid var(--app-border)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
+              <Clock style={{ width:16, height:16, color:"var(--app-primary)" }} />
+              <h2 className="dash-oswald" style={{ fontWeight:600, fontSize:".85rem", textTransform:"uppercase", letterSpacing:".1em", color:"var(--app-text)", margin:0 }}>Prazos e Tarefas</h2>
+            </div>
+            <Link to={createPageUrl("Tasks")} className="dash-oswald" style={{ fontSize:".72rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:"var(--app-primary)", textDecoration:"none", display:"flex", alignItems:"center", gap:"0.3rem" }}>
+              Ver todas <ArrowRight style={{ width:12, height:12 }} />
+            </Link>
+          </div>
+          <div style={{ padding:"0.5rem 0" }}>
+            {loadingTasks ? (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem" }}>
+                <LoadingSpinner size="default" text="Carregando tarefas..." />
               </div>
-              <Link to={createPageUrl("Tasks")} className={`text-sm flex items-center gap-1 transition-colors ${isDark ? 'text-neutral-500 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
-                Ver todas <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="p-4">
-              {loadingTasks ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center py-8">
-                    <LoadingSpinner size="default" text="Carregando tarefas..." />
+            ) : upcomingTasks.length === 0 ? (
+              <div style={{ textAlign:"center", padding:"3rem 1rem" }}>
+                <CheckSquare style={{ width:32, height:32, color:"var(--app-muted)", margin:"0 auto 0.75rem" }} />
+                <p className="dash-oswald" style={{ fontWeight:600, fontSize:".8rem", textTransform:"uppercase", letterSpacing:".08em", color:"var(--app-text)" }}>Tudo em dia!</p>
+                <p style={{ fontSize:".8rem", color:"var(--app-muted)", marginTop:"0.25rem" }}>Nenhuma tarefa pendente</p>
+              </div>
+            ) : (
+              upcomingTasks.map(task => {
+                const urgency = getTaskUrgency(task);
+                const urgencyColor = { red:"#ef4444", orange:"#f97316", yellow:"#eab308", blue:"var(--app-primary)", gray:"var(--app-muted)" }[urgency.color] || "var(--app-muted)";
+                return (
+                  <div key={task.id} style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.85rem 1.5rem", borderBottom:"1px solid var(--app-border)", transition:"background .15s" }}
+                    onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <div style={{ width:6, height:6, background:urgencyColor, flexShrink:0 }} />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--app-text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{task.title}</p>
+                    </div>
+                    <span className="dash-oswald" style={{ fontSize:".7rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".08em", color:urgencyColor, flexShrink:0 }}>
+                      {task.due_date && format(new Date(task.due_date), "dd/MM")} — {urgency.label}
+                    </span>
                   </div>
-                </div>
-              ) : upcomingTasks.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${colorClasses.emerald.bg}`}>
-                    <CheckSquare className={`w-8 h-8 ${colorClasses.emerald.text}`} />
-                  </div>
-                  <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Tudo em dia!</p>
-                  <p className={`text-sm mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>Nenhuma tarefa pendente</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {upcomingTasks.map(task => {
-                    const urgency = getTaskUrgency(task);
-                    const urgencyColors = colorClasses[urgency.color];
-                    return (
-                      <div key={task.id} className={`flex items-center gap-4 p-4 rounded-lg border transition-all hover:shadow-sm ${
-                        isDark ? 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/50' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full ${urgencyColors.bg.replace('/10', '')}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{task.title}</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                            {task.due_date && format(new Date(task.due_date), "dd 'de' MMMM", { locale: ptBR })}
-                          </p>
-                        </div>
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${urgencyColors.bg} ${urgencyColors.text}`}>
-                          {urgency.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-
+                );
+              })
+            )}
+          </div>
         </div>
 
         {/* Recent Cases */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className={`rounded-xl border overflow-hidden ${isDark ? 'bg-neutral-900/80 border-neutral-800' : 'bg-white border-slate-200'}`}
-        >
-          <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorClasses.emerald.bg}`}>
-                <FolderOpen className={`w-4 h-4 ${colorClasses.emerald.text}`} />
-              </div>
-              <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Processos Recentes</h2>
+        <div className="dash-fu" style={{ background:"var(--app-surface)", border:"1px solid var(--app-border)" }}>
+          <div style={{ padding:"1rem 1.5rem", borderBottom:"1px solid var(--app-border)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
+              <FolderOpen style={{ width:16, height:16, color:"var(--app-primary)" }} />
+              <h2 className="dash-oswald" style={{ fontWeight:600, fontSize:".85rem", textTransform:"uppercase", letterSpacing:".1em", color:"var(--app-text)", margin:0 }}>Processos Recentes</h2>
             </div>
-            <Link to={createPageUrl("Cases")} className={`text-sm flex items-center gap-1 transition-colors ${isDark ? 'text-neutral-500 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
-              Ver todos <ArrowRight className="w-4 h-4" />
+            <Link to={createPageUrl("Cases")} className="dash-oswald" style={{ fontSize:".72rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:"var(--app-primary)", textDecoration:"none", display:"flex", alignItems:"center", gap:"0.3rem" }}>
+              Ver todos <ArrowRight style={{ width:12, height:12 }} />
             </Link>
           </div>
-          <div className="p-4">
+          <div style={{ padding:"0.5rem 0" }}>
             {loadingCases ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="flex items-center justify-center py-8 col-span-full">
-                  <LoadingSpinner size="default" text="Carregando processos..." />
-                </div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"2rem" }}>
+                <LoadingSpinner size="default" text="Carregando processos..." />
               </div>
             ) : recentCases.length === 0 ? (
-              <div className="text-center py-12">
-                <FolderOpen className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
-                <p className={isDark ? 'text-neutral-500' : 'text-slate-500'}>Nenhum processo cadastrado</p>
+              <div style={{ textAlign:"center", padding:"3rem 1rem" }}>
+                <FolderOpen style={{ width:32, height:32, color:"var(--app-muted)", margin:"0 auto 0.75rem" }} />
+                <p style={{ fontSize:".875rem", color:"var(--app-muted)" }}>Nenhum processo cadastrado</p>
                 <Link to={createPageUrl("Cases")}>
-                  <Button variant="outline" className="mt-4">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <button className="dash-oswald" style={{ marginTop:"1rem", padding:".6rem 1.4rem", background:"var(--app-primary)", color:"#fff", border:"none", cursor:"pointer", fontWeight:600, fontSize:".75rem", textTransform:"uppercase", letterSpacing:".08em" }}>
+                    <Plus style={{ width:13, height:13, display:"inline", marginRight:"0.3rem" }} />
                     Criar primeiro processo
-                  </Button>
+                  </button>
                 </Link>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {recentCases.map(caseItem => {
-                  const statusColors = {
-                    'in_progress': colorClasses.blue,
-                    'new': colorClasses.emerald,
-                    'waiting': colorClasses.yellow,
-                    'closed': colorClasses.gray
-                  };
-                  const colors = statusColors[caseItem.status] || colorClasses.gray;
-                  
-                  return (
-                    <Link key={caseItem.id} to={createPageUrl("Cases")}>
-                      <div className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
-                        isDark ? 'border-neutral-800 hover:border-neutral-700 bg-neutral-900/50' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
-                      }`}>
-                        <div className="flex items-start justify-between mb-2">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}>
-                            {caseItem.status === 'in_progress' ? 'Em andamento' : 
-                             caseItem.status === 'new' ? 'Novo' :
-                             caseItem.status === 'waiting' ? 'Aguardando' : 'Arquivado'}
-                          </span>
-                        </div>
-                        <h3 className={`font-medium text-sm line-clamp-2 mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {caseItem.title}
-                        </h3>
-                        <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                          {caseItem.client_name}
-                        </p>
+              recentCases.map(caseItem => {
+                const statusLabel = { in_progress:"Em andamento", new:"Novo", waiting:"Aguardando", closed:"Arquivado" }[caseItem.status] || caseItem.status;
+                const statusColor = { in_progress:"var(--app-primary)", new:"#16a34a", waiting:"#ca8a04", closed:"var(--app-muted)" }[caseItem.status] || "var(--app-muted)";
+                return (
+                  <Link key={caseItem.id} to={createPageUrl("Cases")} style={{ textDecoration:"none" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.85rem 1.5rem", borderBottom:"1px solid var(--app-border)", transition:"background .15s" }}
+                      onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
+                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                      <div style={{ width:6, height:6, background:statusColor, flexShrink:0 }} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--app-text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{caseItem.title}</p>
+                        <p style={{ fontSize:".75rem", color:"var(--app-muted)", margin:0, marginTop:"0.15rem" }}>{caseItem.client_name}</p>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                      <span className="dash-oswald" style={{ fontSize:".65rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:statusColor, flexShrink:0 }}>{statusLabel}</span>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
