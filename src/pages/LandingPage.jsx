@@ -115,14 +115,14 @@ export default function LandingPage() {
               <span className="lbl">Chapter 03</span>
               <div style={{ flex:1, height:1, background:"rgba(0,0,0,.15)" }} />
             </div>
-            <div style={{ background:"#0a0a0a", padding:"3rem", position:"relative" }}>
-              <p className="D" style={{ fontSize:"clamp(1.8rem,4vw,2.8rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1.15, color:"#fff", marginBottom:"2rem" }}>
-                "Economize 80% do tempo em tarefas repetitivas."
-              </p>
-              <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", marginBottom:"1.5rem" }}>
-                Advogados que usam o Juris relatam ganho médio de 15h semanais — devolvidas para estratégia e atendimento ao cliente.
-              </p>
-              <div style={{ height:3, background:"var(--gold)", width:"4rem" }} />
+            <div style={{ background:"var(--surface)", padding:"3rem", position:"relative", borderLeft:"3px solid var(--primary)" }}>
+                      <p className="D" style={{ fontSize:"clamp(1.8rem,4vw,2.8rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1.15, color:"#fff", marginBottom:"2rem" }}>
+                        "Economize 80% do tempo em tarefas repetitivas."
+                      </p>
+                      <p style={{ color:"var(--text-muted)", fontSize:".875rem", marginBottom:"1.5rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+                        Advogados que usam o Juris relatam ganho médio de 15h semanais — devolvidas para estratégia e atendimento ao cliente.
+                      </p>
+                      <div style={{ height:3, background:"var(--primary)", width:"4rem" }} />
             </div>
           </div>
         </div>
