@@ -150,13 +150,24 @@ Deno.serve(async (req) => {
     }
 
     // 8. Retornar resultado ao frontend
+    // Mapear status_detail para mensagens amigáveis
+    const friendlyErrors = {
+      "cc_rejected_bad_filled_card_number": "Número do cartão inválido.",
+      "cc_rejected_bad_filled_date":        "Data de validade inválida.",
+      "cc_rejected_bad_filled_security_code": "Código de segurança inválido.",
+      "cc_rejected_insufficient_amount":    "Saldo insuficiente no cartão.",
+      "cc_rejected_blacklist":              "Cartão não autorizado. Tente outro.",
+      "cc_rejected_high_risk":              "Transação recusada por segurança. Tente outro cartão.",
+      "cc_rejected_call_for_authorize":     "Entre em contato com o banco para autorizar a transação.",
+    };
+    const detail = mpData.status_detail || "";
+    const humanMsg = friendlyErrors[detail] || "Pagamento não aprovado. Verifique os dados ou tente outro cartão.";
+
     return Response.json({
-      status: isApproved ? "approved" : paymentStatus,
+      status: isApproved ? "approved" : "rejected",
       id: mpData.id,
-      status_detail: mpData.status_detail,
-      message: isApproved
-        ? "Pagamento aprovado com sucesso!"
-        : `Pagamento ${paymentStatus}: ${mpData.status_detail || "verifique os dados do cartão"}`,
+      status_detail: detail,
+      message: isApproved ? "Pagamento aprovado com sucesso!" : humanMsg,
     });
 
   } catch (error) {
