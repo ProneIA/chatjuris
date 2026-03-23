@@ -62,22 +62,22 @@ export default function ContactPublic() {
             {contacts.map((c, i) => {
               const Icon = c.icon;
               return (
-                <div key={c.num} className="fu" style={{ transitionDelay:`${i*100}ms`, background:"#fff", padding:"2.5rem", borderBottom:"3px solid transparent", transition:"border-color .3s, background .3s" }}
-                  onMouseEnter={e=>{ e.currentTarget.style.borderBottomColor="var(--gold)"; e.currentTarget.style.background="#fafafa"; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.borderBottomColor="transparent"; e.currentTarget.style.background="#fff"; }}>
+                <div key={c.num} className="fu" style={{ transitionDelay:`${i*100}ms`, background:"var(--surface)", padding:"2.5rem", border:"1px solid var(--border)", transition:"border-color .3s" }}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderColor="var(--primary)"; }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,.1)"; }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
-                    <div style={{ width:44, height:44, border:"1px solid #e5e5e5", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <Icon style={{ width:20, height:20, color:"#555" }} />
+                    <div style={{ width:44, height:44, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <Icon style={{ width:20, height:20, color:"var(--primary)" }} />
                     </div>
-                    <span className="D" style={{ fontSize:".65rem", color:"rgba(0,0,0,.2)", fontWeight:600, letterSpacing:".1em" }}>{c.num}</span>
+                    <span className="D" style={{ fontSize:".65rem", color:"rgba(255,255,255,.15)", fontWeight:600, letterSpacing:".1em" }}>{c.num}</span>
                   </div>
-                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color:"#0a0a0a", marginBottom:".3rem" }}>{c.title}</h3>
-                  <p style={{ fontSize:".8rem", color:"rgba(0,0,0,.4)", marginBottom:".75rem" }}>{c.sub}</p>
+                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color:"#fff", marginBottom:".3rem" }}>{c.title}</h3>
+                  <p style={{ fontSize:".8rem", color:"var(--text-muted)", marginBottom:".75rem", fontFamily:"'Helvetica Neue',Arial,sans-serif" }}>{c.sub}</p>
                   {c.href
-                    ? <a href={c.href} className="D" style={{ color:"#0a0a0a", fontWeight:600, fontSize:".95rem", textDecoration:"none", transition:"color .2s" }}
-                        onMouseEnter={e=>e.target.style.color="var(--gold)"}
-                        onMouseLeave={e=>e.target.style.color="#0a0a0a"}>{c.value}</a>
-                    : <p className="D" style={{ color:"#0a0a0a", fontWeight:600, fontSize:".95rem", margin:0 }}>{c.value}</p>
+                    ? <a href={c.href} className="D" style={{ color:"#fff", fontWeight:600, fontSize:".95rem", textDecoration:"none", transition:"color .3s" }}
+                        onMouseEnter={e=>e.target.style.color="var(--primary)"}
+                        onMouseLeave={e=>e.target.style.color="#fff"}>{c.value}</a>
+                    : <p className="D" style={{ color:"#fff", fontWeight:600, fontSize:".95rem", margin:0 }}>{c.value}</p>
                   }
                 </div>
               );
