@@ -161,7 +161,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f]' : 'bg-slate-50'}`}>
+      <div style={{ minHeight:"100vh", background:"var(--app-bg)" }}>
         <div className="max-w-7xl mx-auto p-6 md:p-8">
           <DashboardSkeleton isDark={isDark} />
         </div>
