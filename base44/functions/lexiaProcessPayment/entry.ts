@@ -69,14 +69,21 @@ Deno.serve(async (req) => {
         email: payer?.email || user.email,
         first_name: payer?.first_name || "",
         last_name: payer?.last_name || "",
+        // Inclui CPF se o Brick capturou identificação
+        ...(payer?.identification?.number && {
+          identification: {
+            type: payer.identification.type || "CPF",
+            number: payer.identification.number,
+          },
+        }),
       },
       metadata: {
         plan_id,
         user_id: user.id,
         user_email: user.email,
       },
-      // Para planos anuais: juros absorvidos pelo vendedor
-      ...(isAnnual && installments > 1 && {
+      // Para planos anuais: juros absorvidos pelo vendedor (free_payer)
+      ...(isAnnual && Number(installments) > 1 && {
         payment_method_options: {
           installments: {
             type: "free_payer",
