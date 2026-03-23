@@ -56,7 +56,7 @@ export default function LandingPage() {
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:0 }}>
             Direito<br /><span className="outline-w">Tradicional.</span>
           </h1>
-          <h2 className="D fu d1" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"var(--primary)", margin:"0 0 1.5rem" }}>
+          <h2 className="D fu d1" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"var(--gold)", margin:"0 0 1.5rem" }}>
             Soluções Modernas.
           </h2>
           <p className="fu d2" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", margin:"0 auto 2.5rem", lineHeight:1.7 }}>
@@ -79,7 +79,7 @@ export default function LandingPage() {
           <div style={{ position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
             <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=80&auto=format&fit=crop" alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-            <div style={{ position:"absolute", right:0, top:0, bottom:0, width:8, background:"var(--primary)" }} />
+            <div style={{ position:"absolute", right:0, top:0, bottom:0, width:8, background:"var(--gold)" }} />
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function LandingPage() {
               <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", marginBottom:"1.5rem" }}>
                 Advogados que usam o Juris relatam ganho médio de 15h semanais — devolvidas para estratégia e atendimento ao cliente.
               </p>
-              <div style={{ height:3, background:"var(--primary)", width:"4rem" }} />
+              <div style={{ height:3, background:"var(--gold)", width:"4rem" }} />
             </div>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function LandingPage() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"560px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"820px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Comece Agora</p>

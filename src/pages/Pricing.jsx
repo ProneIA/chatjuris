@@ -146,7 +146,7 @@ export default function Pricing({ theme = "light" }) {
           )}
 
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--primary)" }}>Simples.</span>
+            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--gold)" }}>Simples.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7, marginBottom:"2rem" }}>
             +80 advogados economizando <strong style={{ color:"#fff" }}>2 dias de trabalho por semana</strong> com o Juris.
@@ -155,7 +155,7 @@ export default function Pricing({ theme = "light" }) {
           <div className="fu d2" style={{ display:"flex", gap:"3rem", flexWrap:"wrap" }}>
             {[["80+","Advogados Ativos"],["1.200+","Docs Gerados"],["4.9/5","Avaliação"]].map(([n,l])=>(
               <div key={l}>
-                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--primary)" }}>{n}</div>
+                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--gold)" }}>{n}</div>
                 <div style={{ fontSize:".72rem", color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:".1em" }}>{l}</div>
               </div>
             ))}
@@ -254,7 +254,7 @@ export default function Pricing({ theme = "light" }) {
             {testimonials.map((t, i) => (
               <div key={i} className="fu" style={{ transitionDelay:`${i*100}ms`, padding:"3rem", background:"#121212" }}>
                 <div style={{ display:"flex", gap:"3px", marginBottom:"1.5rem" }}>
-                  {[...Array(5)].map((_,s)=><Star key={s} style={{ width:14, height:14, color:"var(--primary)", fill:"var(--primary)" }} />)}
+                  {[...Array(5)].map((_,s)=><Star key={s} style={{ width:14, height:14, color:"var(--gold)", fill:"var(--gold)" }} />)}
                 </div>
                 <p style={{ color:"rgba(255,255,255,.7)", fontSize:"1rem", lineHeight:1.7, fontStyle:"italic" }}>"{t.text}"</p>
               </div>
@@ -264,7 +264,7 @@ export default function Pricing({ theme = "light" }) {
               const Icon = b.icon;
               return (
                 <div key={b.title} className="fu" style={{ transitionDelay:`${(i+2)*100}ms`, padding:"3rem", background:"#121212", display:"flex", flexDirection:"column", justifyContent:"center" }}>
-                  <Icon style={{ width:28, height:28, color:"var(--primary)", marginBottom:"1rem" }} />
+                  <Icon style={{ width:28, height:28, color:"var(--gold)", marginBottom:"1rem" }} />
                   <p className="D" style={{ fontWeight:600, fontSize:".9rem", textTransform:"uppercase", letterSpacing:".05em", color:"#fff", marginBottom:".25rem" }}>{b.title}</p>
                   <p style={{ color:"rgba(255,255,255,.35)", fontSize:".8rem" }}>{b.sub}</p>
                 </div>
@@ -278,7 +278,7 @@ export default function Pricing({ theme = "light" }) {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"560px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"820px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Comece Agora</p>

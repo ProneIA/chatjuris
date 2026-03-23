@@ -51,7 +51,7 @@ export default function Funcionalidades() {
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Funcionalidades</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--primary)" }}>Num Só Lugar.</span>
+            Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--gold)" }}>Num Só Lugar.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"500px", lineHeight:1.7, marginBottom:"2rem" }}>
             Ferramentas poderosas de IA combinadas com gestão completa do escritório em uma única plataforma.
@@ -123,7 +123,7 @@ export default function Funcionalidades() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"480px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"700px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Experimente</p>
