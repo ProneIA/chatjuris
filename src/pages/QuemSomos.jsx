@@ -80,17 +80,17 @@ export default function QuemSomos() {
               <span className="lbl">Nossa História</span>
               <div style={{ flex:1, height:1, background:"rgba(0,0,0,.15)" }} />
             </div>
-            <div style={{ background:"#0a0a0a", padding:"3rem" }}>
+            <div style={{ background:"var(--surface)", padding:"3rem", borderLeft:"3px solid var(--primary)" }}>
               <p className="D" style={{ fontSize:"clamp(1.8rem,4vw,2.8rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1.15, color:"#fff", marginBottom:"2rem" }}>
                 "Nascida da vivência real na advocacia."
               </p>
-              <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1rem" }}>
+              <p style={{ color:"var(--text-muted)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
                 Como estudante de Direito e estagiário em escritórios, percebi que muitos profissionais perdiam tempo com tarefas operacionais quando deveriam estar focados em estratégia, clientes e crescimento.
               </p>
-              <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1.5rem" }}>
+              <p style={{ color:"var(--text-muted)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1.5rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
                 Dessa inquietação surgiu a JURIS: unindo tecnologia, IA e conhecimento jurídico para transformar a rotina do advogado brasileiro.
               </p>
-              <div style={{ height:3, background:"var(--gold)", width:"4rem" }} />
+              <div style={{ height:3, background:"var(--primary)", width:"4rem" }} />
             </div>
           </div>
         </div>
