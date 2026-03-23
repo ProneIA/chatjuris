@@ -224,8 +224,15 @@ export default function CheckoutModal({ plan, onClose }) {
             </div>
           )}
 
-          {/* STEP: brick (rendered while loading too, hidden until onReady) */}
-          <div id="mp-brick-container" style={{ display: step === "brick" ? "block" : "none" }} />
+          {/* STEP: brick — sempre no DOM durante loading/brick para o MP encontrar o elemento */}
+          <div
+            id="mp-brick-container"
+            style={{
+              display: (step === "loading" || step === "brick") ? "block" : "none",
+              visibility: step === "brick" ? "visible" : "hidden",
+              minHeight: step === "brick" ? "auto" : "1px",
+            }}
+          />
 
           {/* Security badge (brick visible) */}
           {step === "brick" && (
