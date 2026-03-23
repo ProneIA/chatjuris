@@ -312,18 +312,18 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </React.Suspense>
 
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
-          ::-webkit-scrollbar { width: 0; }
-          :root {
-            --app-bg: ${isDark ? '#000' : '#f5f5f5'};
-            --app-surface: ${isDark ? '#0f0f0f' : '#ffffff'};
-            --app-surface2: ${isDark ? '#1a1a1a' : '#f0f0f0'};
-            --app-border: ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'};
-            --app-text: ${isDark ? '#ffffff' : '#0a0a0a'};
-            --app-muted: ${isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'};
-            --app-primary: #C1232E;
-            --app-primary-dim: rgba(193,35,46,0.1);
-          }
+          ${isDark ? `
+            :root {
+              --app-bg: #0a0a0a; --app-surface: #111111; --app-surface2: #1a1a1a;
+              --app-border: rgba(255,255,255,0.08); --app-text: #ffffff;
+              --app-muted: rgba(255,255,255,0.4);
+            }
+          ` : `
+            :root {
+              --app-bg: #f4f4f6; --app-surface: #ffffff; --app-surface2: #f0f0f5;
+              --app-border: #e0e0ea; --app-text: #0a0a0a; --app-muted: #6b6b80;
+            }
+          `}
         `}</style>
 
         {/* Top Bar */}
