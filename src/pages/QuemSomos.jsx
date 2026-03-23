@@ -38,7 +38,7 @@ export default function QuemSomos() {
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Sobre Nós</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--gold)" }}>Futuro.</span>
+            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--primary)" }}>Futuro.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7 }}>
             Somos uma equipe apaixonada por tecnologia e direito, dedicada a criar ferramentas que simplificam o trabalho jurídico.
@@ -53,7 +53,7 @@ export default function QuemSomos() {
           <div style={{ position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
             <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80&auto=format&fit=crop" alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:8, background:"var(--gold)" }} />
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:8, background:"var(--primary)" }} />
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function QuemSomos() {
               <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1.5rem" }}>
                 Dessa inquietação surgiu a JURIS: unindo tecnologia, IA e conhecimento jurídico para transformar a rotina do advogado brasileiro.
               </p>
-              <div style={{ height:3, background:"var(--gold)", width:"4rem" }} />
+              <div style={{ height:3, background:"var(--primary)", width:"4rem" }} />
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function QuemSomos() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"480px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"700px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Comece Agora</p>
