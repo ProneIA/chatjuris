@@ -155,7 +155,7 @@ export default function Pricing({ theme = "light" }) {
           <div className="fu d2" style={{ display:"flex", gap:"3rem", flexWrap:"wrap" }}>
             {[["80+","Advogados Ativos"],["1.200+","Docs Gerados"],["4.9/5","Avaliação"]].map(([n,l])=>(
               <div key={l}>
-                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--gold)" }}>{n}</div>
+                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--primary)" }}>{n}</div>
                 <div style={{ fontSize:".72rem", color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:".1em" }}>{l}</div>
               </div>
             ))}
