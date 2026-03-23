@@ -47,7 +47,7 @@ export default function ContactPublic() {
       </section>
 
       {/* CONTACT GRID — pillar-style cards */}
-      <section style={{ padding:"7rem 2.5rem" }}>
+      <section style={{ padding:"7rem 2.5rem", background:"var(--bg)" }}>
         <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
           <div style={{ display:"flex", flexWrap:"wrap", gap:"2rem", alignItems:"flex-end", marginBottom:"4rem" }}>
             <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#0a0a0a", margin:0 }}>
