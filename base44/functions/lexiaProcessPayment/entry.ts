@@ -115,7 +115,8 @@ Deno.serve(async (req) => {
     }
 
     const paymentStatus = mpData.status;
-    const isApproved = paymentStatus === "approved";
+    // Tratar in_process/pending como sucesso temporário (ex: antifraude)
+    const isApproved = paymentStatus === "approved" || paymentStatus === "in_process" || paymentStatus === "pending";
 
     // 6. Registrar pagamento no banco (assíncrono — não bloqueia resposta)
     if (isApproved) {
