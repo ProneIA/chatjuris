@@ -124,7 +124,7 @@ export default function QuemSomos() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"480px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"700px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Comece Agora</p>
