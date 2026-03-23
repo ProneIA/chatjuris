@@ -123,15 +123,20 @@ const ANNUAL_PLANS = [
 
 /* ─── Checkout Modal ─────────────────────────────────────── */
 function CheckoutModal({ plan, onClose }) {
-  const [name, setName]     = useState("");
-  const [email, setEmail]   = useState("");
-  const [step, setStep]     = useState("form"); // form | loading | brick | success | error
-  const [errMsg, setErrMsg] = useState("");
-  const brickRef = useRef(null);
-  const containerRef = useRef(null);
+  const [name, setName]       = useState("");
+  const [email, setEmail]     = useState("");
+  const [nameErr, setNameErr] = useState("");
+  const [emailErr, setEmailErr] = useState("");
+  const [step, setStep]       = useState("form"); // form | loading | brick | success | error
+  const [errMsg, setErrMsg]   = useState("");
+  const brickRef    = useRef(null);
+  const mpKeyRef    = useRef(null); // cache da public key para retry
+  const currentEmailRef = useRef(email);
+
+  // Mantém ref atualizada com o email atual (para usar dentro dos callbacks do MP)
+  useEffect(() => { currentEmailRef.current = email; }, [email]);
 
   useEffect(() => {
-    // Pré-preenche dados do usuário logado
     base44.auth.me()
       .then(u => { if (u?.email) setEmail(u.email); if (u?.full_name) setName(u.full_name); })
       .catch(() => {});
@@ -151,7 +156,7 @@ function CheckoutModal({ plan, onClose }) {
       const s = document.createElement("script");
       s.src = "https://sdk.mercadopago.com/js/v2";
       s.onload = resolve;
-      s.onerror = reject;
+      s.onerror = () => reject(new Error("Falha ao carregar SDK do Mercado Pago"));
       document.head.appendChild(s);
     });
 
@@ -165,7 +170,7 @@ function CheckoutModal({ plan, onClose }) {
     brickRef.current = await builder.create("cardPayment", "lexia-brick-container", {
       initialization: {
         amount: plan.amount,
-        payer: { email },
+        payer: { email: currentEmailRef.current },
       },
       customization: {
         paymentMethods: {
@@ -179,13 +184,13 @@ function CheckoutModal({ plan, onClose }) {
           style: {
             theme: "dark",
             customVariables: {
-              baseColor: "#C8A84B",
-              buttonBackground: "#C8A84B",
+              baseColor: "#c9a84c",
+              buttonBackground: "#c9a84c",
               buttonTextColor: "#000000",
-              inputBackgroundColor: "#1a1d26",
-              inputFontColor: "#ffffff",
-              inputPlaceholderColor: "rgba(255,255,255,0.35)",
-              labelFontColor: "rgba(255,255,255,0.6)",
+              inputBackgroundColor: "#12151e",
+              inputFontColor: "#ede8d8",
+              inputPlaceholderColor: "rgba(237,232,216,0.3)",
+              labelFontColor: "rgba(237,232,216,0.55)",
               errorColor: "#f87171",
             },
           },
@@ -193,30 +198,37 @@ function CheckoutModal({ plan, onClose }) {
       },
       callbacks: {
         onReady: () => { setStep("brick"); },
-        onSubmit: async (formData) => {
+        onSubmit: async (cardData) => {
+          const nameParts = name.trim().split(" ");
           try {
             const res = await base44.functions.invoke("lexiaProcessPayment", {
-              token: formData.token,
-              installments: formData.installments,
-              payment_method_id: formData.payment_method_id,
-              issuer_id: formData.issuer_id,
+              token:              cardData.token,
+              installments:       cardData.installments,
+              payment_method_id:  cardData.payment_method_id,
+              issuer_id:          cardData.issuer_id,
               transaction_amount: plan.amount,
-              description: plan.name,
-              plan_id: plan.id,
+              description:        `Plano ${plan.name} - LexIA`,
+              plan_id:            plan.id,
               payer: {
-                email,
-                first_name: name.split(" ")[0] || name,
-                last_name: name.split(" ").slice(1).join(" ") || "",
+                email:      currentEmailRef.current,
+                first_name: nameParts[0] || "",
+                last_name:  nameParts.slice(1).join(" ") || "",
+                identification: cardData.payer?.identification
+                  ? { type: cardData.payer.identification.type || "CPF", number: cardData.payer.identification.number }
+                  : undefined,
               },
             });
+
+            const status = res?.data?.status;
             await destroyBrick();
-            if (res?.data?.status === "approved") {
+
+            if (status === "approved" || status === "in_process" || status === "pending") {
               setStep("success");
             } else {
               setErrMsg(res?.data?.message || "Pagamento não aprovado. Tente com outro cartão.");
               setStep("error");
             }
-          } catch (e) {
+          } catch (_) {
             await destroyBrick();
             setErrMsg("Erro de conexão. Verifique sua internet e tente novamente.");
             setStep("error");
@@ -224,30 +236,48 @@ function CheckoutModal({ plan, onClose }) {
         },
         onError: (e) => {
           console.error("MP Brick error:", e);
-          setErrMsg("Erro no checkout. Por favor, tente novamente.");
-          setStep("error");
+          // Não exibir erro técnico — apenas registrar
         },
       },
     });
   };
 
-  const handleProceed = async (e) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+  const validateForm = () => {
+    let ok = true;
+    if (!name.trim()) { setNameErr("Por favor, insira seu nome completo."); ok = false; } else setNameErr("");
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRx.test(email)) { setEmailErr("Insira um e-mail válido."); ok = false; } else setEmailErr("");
+    return ok;
+  };
+
+  const startCheckout = async () => {
     setStep("loading");
     try {
-      const res = await base44.functions.invoke("getMercadoPagoPublicKey", {});
-      const mpKey = res?.data?.publicKey;
-      if (!mpKey) throw new Error("Chave pública indisponível");
-      // Aguarda o DOM renderizar o container
-      requestAnimationFrame(() => requestAnimationFrame(() => initBrick(mpKey)));
-    } catch (e) {
-      setErrMsg("Não foi possível iniciar o checkout. Tente novamente.");
+      // Usa chave cacheada para retry (evita nova requisição ao backend)
+      if (!mpKeyRef.current) {
+        const res = await base44.functions.invoke("getMercadoPagoPublicKey", {});
+        mpKeyRef.current = res?.data?.publicKey;
+      }
+      if (!mpKeyRef.current) throw new Error("Chave pública indisponível");
+      // Double rAF garante que o container do brick está no DOM pintado
+      requestAnimationFrame(() => requestAnimationFrame(() => initBrick(mpKeyRef.current)));
+    } catch (_) {
+      setErrMsg("Não foi possível iniciar o checkout. Tente novamente em instantes.");
       setStep("error");
     }
   };
 
-  const handleRetry = () => { setErrMsg(""); setStep("form"); };
+  const handleProceed = (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    startCheckout();
+  };
+
+  // Retry: unmount + reinit do brick SEM fechar o modal
+  const handleRetry = () => {
+    setErrMsg("");
+    startCheckout();
+  };
 
   const fmtPrice = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
