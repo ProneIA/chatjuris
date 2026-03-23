@@ -61,7 +61,7 @@ export default function Funcionalidades() {
       </section>
 
       {/* FEATURES GRID */}
-      <section style={{ padding:"7rem 2.5rem" }}>
+      <section style={{ padding:"7rem 2.5rem", background:"var(--bg)" }}>
         <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", flexWrap:"wrap", gap:"2rem", marginBottom:"4rem" }}>
             <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#fff", margin:0 }}>
