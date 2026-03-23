@@ -56,7 +56,7 @@ export default function LandingPage() {
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:0 }}>
             Direito<br /><span className="outline-w">Tradicional.</span>
           </h1>
-          <h2 className="D fu d1" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"var(--gold)", margin:"0 0 1.5rem" }}>
+          <h2 className="D fu d1" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"var(--primary)", margin:"0 0 1.5rem" }}>
             Soluções Modernas.
           </h2>
           <p className="fu d2" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", margin:"0 auto 2.5rem", lineHeight:1.7 }}>
