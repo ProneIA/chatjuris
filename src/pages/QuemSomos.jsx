@@ -38,7 +38,7 @@ export default function QuemSomos() {
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Sobre Nós</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--gold)" }}>Futuro.</span>
+            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--primary)" }}>Futuro.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7 }}>
             Somos uma equipe apaixonada por tecnologia e direito, dedicada a criar ferramentas que simplificam o trabalho jurídico.
