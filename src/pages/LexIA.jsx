@@ -259,8 +259,8 @@ function CheckoutModal({ plan, onClose }) {
         mpKeyRef.current = res?.data?.publicKey;
       }
       if (!mpKeyRef.current) throw new Error("Chave pública indisponível");
-      // Double rAF garante que o container do brick está no DOM pintado
-      requestAnimationFrame(() => requestAnimationFrame(() => initBrick(mpKeyRef.current)));
+      // Aguarda o DOM renderizar o container antes de montar o Brick
+      setTimeout(() => initBrick(mpKeyRef.current), 150);
     } catch (_) {
       setErrMsg("Não foi possível iniciar o checkout. Tente novamente em instantes.");
       setStep("error");
