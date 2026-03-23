@@ -53,7 +53,7 @@ export default function ContactPublic() {
             <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#fff", margin:0 }}>
               Nossos<br />Canais.
             </h2>
-            <p className="fu d1" style={{ color:"rgba(0,0,0,.5)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem" }}>
+            <p className="fu d1" style={{ color:"var(--text-muted)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
               Escolha a forma que prefere para entrar em contato com nossa equipe.
             </p>
           </div>
