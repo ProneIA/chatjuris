@@ -51,7 +51,7 @@ export default function Funcionalidades() {
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Funcionalidades</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-          Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--primary)" }}>Num Só Lugar.</span>
+            Tudo Que<br /><span className="outline-w">Você Precisa</span><br /><span style={{ color:"var(--gold)" }}>Num Só Lugar.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"500px", lineHeight:1.7, marginBottom:"2rem" }}>
             Ferramentas poderosas de IA combinadas com gestão completa do escritório em uma única plataforma.
@@ -61,29 +61,29 @@ export default function Funcionalidades() {
       </section>
 
       {/* FEATURES GRID */}
-      <section style={{ padding:"7rem 2.5rem", background:"var(--bg)" }}>
+      <section style={{ padding:"7rem 2.5rem" }}>
         <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", flexWrap:"wrap", gap:"2rem", marginBottom:"4rem" }}>
-            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#fff", margin:0 }}>
+            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#0a0a0a", margin:0 }}>
               09 Ferramentas<br />Poderosas.
             </h2>
-            <p className="fu d1" style={{ color:"var(--text-muted)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+            <p className="fu d1" style={{ color:"rgba(0,0,0,.5)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem" }}>
               Cada funcionalidade foi pensada para resolver um problema real da rotina jurídica.
             </p>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(300px,1fr))", gap:"1px", background:"rgba(255,255,255,.05)" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(300px,1fr))", gap:"1px", background:"#e5e5e5" }}>
             {features.map((f, i) => {
               const Icon = f.icon;
               return (
-                <div key={f.num} className="fu" style={{ transitionDelay:`${(i%3)*100}ms`, background: f.dark ? "#000" : "var(--surface)", padding:"2.5rem", transition:"border-color .3s, background .3s", cursor:"default", border:"1px solid var(--border)" }}
-                  onMouseEnter={e=>{ e.currentTarget.style.borderColor="var(--primary)"; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.borderColor="rgba(255,255,255,.1)"; }}>
+                <div key={f.num} className="fu" style={{ transitionDelay:`${(i%3)*100}ms`, background: f.dark ? "#0a0a0a" : "#fff", padding:"2.5rem", transition:"background .3s", cursor:"default" }}
+                  onMouseEnter={e=>{ if(!f.dark) e.currentTarget.style.background="#fafafa"; }}
+                  onMouseLeave={e=>{ if(!f.dark) e.currentTarget.style.background="#fff"; }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem" }}>
-                    <Icon style={{ width:28, height:28, color: f.dark ? "var(--primary)" : "rgba(255,255,255,.6)" }} />
-                    <span className="D" style={{ fontSize:".65rem", color:"rgba(255,255,255,.15)", fontWeight:600, letterSpacing:".1em" }}>{f.num}</span>
+                    <Icon style={{ width:28, height:28, color: f.dark ? "var(--gold)" : "#555" }} />
+                    <span className="D" style={{ fontSize:".65rem", color: f.dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.2)", fontWeight:600, letterSpacing:".1em" }}>{f.num}</span>
                   </div>
-                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color:"#fff", marginBottom:".75rem" }}>{f.title}</h3>
-                  <p style={{ fontSize:".875rem", color:"var(--text-muted)", lineHeight:1.7, fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>{f.text}</p>
+                  <h3 className="D" style={{ fontSize:"1rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".05em", color: f.dark ? "#fff" : "#0a0a0a", marginBottom:".75rem" }}>{f.title}</h3>
+                  <p style={{ fontSize:".875rem", color: f.dark ? "rgba(255,255,255,.5)" : "rgba(0,0,0,.55)", lineHeight:1.7 }}>{f.text}</p>
                 </div>
               );
             })}
@@ -123,7 +123,7 @@ export default function Funcionalidades() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"480px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"700px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Experimente</p>

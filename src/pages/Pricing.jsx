@@ -146,7 +146,7 @@ export default function Pricing({ theme = "light" }) {
           )}
 
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--primary)" }}>Simples.</span>
+            Planos &amp;<br /><span className="outline-w">Preços</span><br /><span style={{ color:"var(--gold)" }}>Simples.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7, marginBottom:"2rem" }}>
             +80 advogados economizando <strong style={{ color:"#fff" }}>2 dias de trabalho por semana</strong> com o Juris.
@@ -155,7 +155,7 @@ export default function Pricing({ theme = "light" }) {
           <div className="fu d2" style={{ display:"flex", gap:"3rem", flexWrap:"wrap" }}>
             {[["80+","Advogados Ativos"],["1.200+","Docs Gerados"],["4.9/5","Avaliação"]].map(([n,l])=>(
               <div key={l}>
-                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--primary)" }}>{n}</div>
+                <div className="D" style={{ fontSize:"2rem", fontWeight:700, color:"var(--gold)" }}>{n}</div>
                 <div style={{ fontSize:".72rem", color:"rgba(255,255,255,.4)", textTransform:"uppercase", letterSpacing:".1em" }}>{l}</div>
               </div>
             ))}
@@ -167,10 +167,10 @@ export default function Pricing({ theme = "light" }) {
       <section style={{ padding:"7rem 2.5rem" }}>
         <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
           <div style={{ display:"flex", flexWrap:"wrap", gap:"2rem", alignItems:"flex-end", marginBottom:"4rem" }}>
-            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#fff", margin:0 }}>
+            <h2 className="D fu" style={{ fontSize:"clamp(3rem,6vw,5rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", color:"#0a0a0a", margin:0 }}>
               Escolha Seu<br />Plano.
             </h2>
-            <p className="fu d1" style={{ color:"var(--text-muted)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem", fontFamily:"'Helvetica Neue',Arial,sans-serif" }}>
+            <p className="fu d1" style={{ color:"rgba(0,0,0,.5)", maxWidth:"280px", lineHeight:1.7, fontSize:".95rem" }}>
               Sem taxas ocultas. Cancele quando quiser.
             </p>
           </div>

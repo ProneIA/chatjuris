@@ -31,14 +31,14 @@ export default function QuemSomos() {
       {/* HERO */}
       <section style={{ position:"relative", height:"100vh", minHeight:"600px", display:"flex", alignItems:"center", overflow:"hidden" }}>
         <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1920&q=80&auto=format&fit=crop" alt=""
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1) contrast(1.25)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.75)" }} />
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1) contrast(1.2)" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.72)" }} />
         <div style={{ position:"absolute", inset:0, background:"radial-gradient(circle, transparent 50%, rgba(0,0,0,.8) 150%)" }} />
 
         <div style={{ position:"relative", zIndex:2, padding:"0 2.5rem", maxWidth:"900px", marginLeft:"auto", marginRight:"auto" }}>
           <p className="lbl fi" style={{ marginBottom:"1.5rem" }}>✦ Sobre Nós</p>
           <h1 className="D fu" style={{ fontSize:"clamp(3.5rem,10vw,7rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.03em", lineHeight:1, color:"#fff", margin:"0 0 1.5rem" }}>
-            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--primary)" }}>Futuro.</span>
+            A Plataforma<br /><span className="outline-w">Jurídica do</span><br /><span style={{ color:"var(--gold)" }}>Futuro.</span>
           </h1>
           <p className="fu d1" style={{ color:"rgba(255,255,255,.75)", fontSize:"1.1rem", maxWidth:"520px", lineHeight:1.7 }}>
             Somos uma equipe apaixonada por tecnologia e direito, dedicada a criar ferramentas que simplificam o trabalho jurídico.
@@ -53,7 +53,7 @@ export default function QuemSomos() {
           <div style={{ position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
             <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80&auto=format&fit=crop" alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"var(--primary)" }} />
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:8, background:"var(--gold)" }} />
           </div>
         </div>
 
@@ -64,13 +64,13 @@ export default function QuemSomos() {
               <span className="lbl">Nossa Missão</span>
               <div style={{ flex:1, height:1, background:"rgba(0,0,0,.15)" }} />
             </div>
-            <h3 className="D" style={{ fontSize:"clamp(2.5rem,5vw,4rem)", fontWeight:600, letterSpacing:"-0.03em", textTransform:"uppercase", lineHeight:1.05, marginBottom:"1.5rem", color:"#fff" }}>
+            <h3 className="D" style={{ fontSize:"clamp(2.5rem,5vw,4rem)", fontWeight:600, letterSpacing:"-0.03em", textTransform:"uppercase", lineHeight:1.05, marginBottom:"1.5rem", color:"#0a0a0a" }}>
               Democratizar<br />a Tecnologia<br />Jurídica.
             </h3>
-            <p style={{ color:"var(--text-muted)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", marginBottom:"1rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+            <p style={{ color:"rgba(0,0,0,.65)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", marginBottom:"1rem" }}>
               Permitir que advogados de todos os portes aumentem sua produtividade e ofereçam serviços de maior qualidade aos seus clientes.
             </p>
-            <p style={{ color:"var(--text-muted)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+            <p style={{ color:"rgba(0,0,0,.65)", lineHeight:1.8, fontSize:"1rem", maxWidth:"480px" }}>
               Acreditamos que a inteligência artificial pode ser uma aliada poderosa na prática jurídica, automatizando tarefas repetitivas.
             </p>
           </div>
@@ -80,17 +80,17 @@ export default function QuemSomos() {
               <span className="lbl">Nossa História</span>
               <div style={{ flex:1, height:1, background:"rgba(0,0,0,.15)" }} />
             </div>
-            <div style={{ background:"var(--surface)", padding:"3rem", borderLeft:"3px solid var(--primary)" }}>
+            <div style={{ background:"#0a0a0a", padding:"3rem" }}>
               <p className="D" style={{ fontSize:"clamp(1.8rem,4vw,2.8rem)", fontWeight:600, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1.15, color:"#fff", marginBottom:"2rem" }}>
                 "Nascida da vivência real na advocacia."
               </p>
-              <p style={{ color:"var(--text-muted)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+              <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1rem" }}>
                 Como estudante de Direito e estagiário em escritórios, percebi que muitos profissionais perdiam tempo com tarefas operacionais quando deveriam estar focados em estratégia, clientes e crescimento.
               </p>
-              <p style={{ color:"var(--text-muted)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1.5rem", fontFamily:"'Helvetica Neue',Arial,sans-serif", fontWeight:500 }}>
+              <p style={{ color:"rgba(255,255,255,.5)", fontSize:".875rem", lineHeight:1.8, marginBottom:"1.5rem" }}>
                 Dessa inquietação surgiu a JURIS: unindo tecnologia, IA e conhecimento jurídico para transformar a rotina do advogado brasileiro.
               </p>
-              <div style={{ height:3, background:"var(--primary)", width:"4rem" }} />
+              <div style={{ height:3, background:"var(--gold)", width:"4rem" }} />
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function QuemSomos() {
       <section style={{ position:"relative", overflow:"hidden", minHeight:"480px", display:"flex", alignItems:"center", justifyContent:"center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-        <div style={{ position:"absolute", inset:0, background:"rgba(193,35,46,.85)", mixBlendMode:"multiply" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(200,168,75,.9)", mixBlendMode:"multiply" }} />
         <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.55)" }} />
         <div style={{ position:"relative", zIndex:2, textAlign:"center", padding:"5rem 2rem", maxWidth:"700px" }}>
           <p className="lbl fi" style={{ color:"rgba(255,255,255,.8)", marginBottom:"1.5rem" }}>✦ Comece Agora</p>
