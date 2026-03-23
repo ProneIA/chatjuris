@@ -362,36 +362,38 @@ function CheckoutModal({ plan, onClose }) {
 
           {/* FORM STEP */}
           {step === "form" && (
-            <form onSubmit={handleProceed}>
-              <div style={{ marginBottom: ".9rem" }}>
-                <label style={{ display: "block", fontFamily: "'DM Sans', sans-serif", fontSize: ".68rem", textTransform: "uppercase", letterSpacing: ".12em", color: "rgba(255,255,255,0.45)", marginBottom: ".4rem" }}>
+            <form onSubmit={handleProceed} noValidate>
+              <div style={{ marginBottom: ".85rem" }}>
+                <label style={{ display: "block", fontFamily: "'DM Sans', sans-serif", fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".12em", color: "rgba(237,232,216,0.45)", marginBottom: ".4rem" }}>
                   Nome completo
                 </label>
                 <input
-                  type="text" required value={name} onChange={e => setName(e.target.value)}
+                  type="text" value={name} onChange={e => { setName(e.target.value); setNameErr(""); }}
                   placeholder="Dr. João Silva"
-                  style={{ width: "100%", padding: ".8rem 1rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontFamily: "'DM Sans', sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box", borderRadius: 0, transition: "border-color .2s" }}
-                  onFocus={e => e.target.style.borderColor = "#C8A84B"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"}
+                  style={{ width: "100%", padding: ".8rem 1rem", background: "#12151e", border: `1px solid ${nameErr ? "#f87171" : "rgba(255,255,255,0.1)"}`, color: "#ede8d8", fontFamily: "'DM Sans', sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box", borderRadius: 0, transition: "border-color .2s" }}
+                  onFocus={e => e.target.style.borderColor = nameErr ? "#f87171" : "#c9a84c"}
+                  onBlur={e => e.target.style.borderColor = nameErr ? "#f87171" : "rgba(255,255,255,0.1)"}
                 />
+                {nameErr && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: ".68rem", color: "#f87171", margin: ".3rem 0 0" }}>{nameErr}</p>}
               </div>
               <div style={{ marginBottom: "1.4rem" }}>
-                <label style={{ display: "block", fontFamily: "'DM Sans', sans-serif", fontSize: ".68rem", textTransform: "uppercase", letterSpacing: ".12em", color: "rgba(255,255,255,0.45)", marginBottom: ".4rem" }}>
+                <label style={{ display: "block", fontFamily: "'DM Sans', sans-serif", fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".12em", color: "rgba(237,232,216,0.45)", marginBottom: ".4rem" }}>
                   E-mail
                 </label>
                 <input
-                  type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                  type="email" value={email} onChange={e => { setEmail(e.target.value); setEmailErr(""); }}
                   placeholder="joao@escritorio.com.br"
-                  style={{ width: "100%", padding: ".8rem 1rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontFamily: "'DM Sans', sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box", borderRadius: 0, transition: "border-color .2s" }}
-                  onFocus={e => e.target.style.borderColor = "#C8A84B"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"}
+                  style={{ width: "100%", padding: ".8rem 1rem", background: "#12151e", border: `1px solid ${emailErr ? "#f87171" : "rgba(255,255,255,0.1)"}`, color: "#ede8d8", fontFamily: "'DM Sans', sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box", borderRadius: 0, transition: "border-color .2s" }}
+                  onFocus={e => e.target.style.borderColor = emailErr ? "#f87171" : "#c9a84c"}
+                  onBlur={e => e.target.style.borderColor = emailErr ? "#f87171" : "rgba(255,255,255,0.1)"}
                 />
+                {emailErr && <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: ".68rem", color: "#f87171", margin: ".3rem 0 0" }}>{emailErr}</p>}
               </div>
               <button
                 type="submit"
-                style={{ width: "100%", padding: "1rem", background: "transparent", color: "#C8A84B", border: "1px solid #C8A84B", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: ".82rem", textTransform: "uppercase", letterSpacing: ".1em", transition: "all .2s", borderRadius: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#C8A84B"; e.currentTarget.style.color = "#000"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#C8A84B"; }}
+                style={{ width: "100%", padding: "1rem", background: "transparent", color: "#c9a84c", border: "1px solid #c9a84c", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: ".82rem", textTransform: "uppercase", letterSpacing: ".1em", transition: "all .2s", borderRadius: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#c9a84c"; e.currentTarget.style.color = "#000"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#c9a84c"; }}
               >
                 Continuar para pagamento →
               </button>
