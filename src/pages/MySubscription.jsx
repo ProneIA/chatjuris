@@ -409,8 +409,8 @@ export default function MySubscription({ theme = 'light' }) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <UpgradePlansSection 
-                  subscription={subscription} 
+                <UpgradePlansSection
+                  subscription={subscription}
                   theme={theme}
                 />
               </CardContent>
