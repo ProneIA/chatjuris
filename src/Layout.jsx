@@ -399,10 +399,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator style={{ background:"var(--app-border)" }} />
-                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer" style={{ color:"#C1232E", fontSize:".85rem" }}>
+                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer" style={{ color:"var(--primary)", fontSize:".85rem" }}>
                     <Shield className="w-4 h-4" /><span>Excluir Conta</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer" style={{ color:"#C1232E", fontSize:".85rem" }}>
+                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer" style={{ color:"var(--primary)", fontSize:".85rem" }}>
                     <LogOut className="w-4 h-4" /><span>Sair</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -494,7 +494,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   {!isStandalone && (
                     <button
                       onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
-                      style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.65rem 1.25rem", background:"#C1232E", color:"#fff", border:"none", cursor:"pointer", width:"100%", marginTop:"1rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".8rem", textTransform:"uppercase", letterSpacing:".06em" }}
+                      style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.65rem 1.25rem", background:"var(--primary)", color:"#fff", border:"none", cursor:"pointer", width:"100%", marginTop:"1rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".8rem", textTransform:"uppercase", letterSpacing:".06em" }}
                     >
                       <Download style={{ width:16, height:16 }} />
                       <span>Instalar Aplicativo</span>
