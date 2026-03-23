@@ -372,33 +372,33 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                     </div>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" style={{ width:220, background:"var(--app-surface)", border:"1px solid var(--app-border)", borderRadius:0 }}>
+                <DropdownMenuContent align="end" style={{ width:220, background:"var(--surface)", border:"1px solid var(--border)", borderRadius:0 }}>
                   <div className="px-3 py-2">
-                    <p style={{ fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".85rem", textTransform:"uppercase", color:"var(--app-text)" }}>{user?.full_name || 'Usuário'}</p>
-                    <p style={{ fontSize:".75rem", color:"var(--app-muted)" }}>{user?.email}</p>
+                    <p style={{ fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".85rem", textTransform:"uppercase", color:"var(--text)" }}>{user?.full_name || 'Usuário'}</p>
+                    <p style={{ fontSize:".75rem", color:"var(--text-muted)" }}>{user?.email}</p>
                   </div>
-                  <DropdownMenuSeparator style={{ background:"var(--app-border)" }} />
+                  <DropdownMenuSeparator style={{ background:"var(--border)" }} />
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Settings")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
+                    <Link to={createPageUrl("Settings")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Settings className="w-4 h-4" /><span>Preferências</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("MyData")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
+                    <Link to={createPageUrl("MyData")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Bookmark className="w-4 h-4" /><span>Meus Dados</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Contact")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
+                    <Link to={createPageUrl("Contact")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <MessageSquare className="w-4 h-4" /><span>Contato</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("PrivacyPolicy")} style={{ color:"var(--app-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
+                    <Link to={createPageUrl("PrivacyPolicy")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
                       <Bookmark className="w-4 h-4" /><span>Política de Privacidade</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator style={{ background:"var(--app-border)" }} />
+                  <DropdownMenuSeparator style={{ background:"var(--border)" }} />
                   <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer" style={{ color:"var(--primary)", fontSize:".85rem" }}>
                     <Shield className="w-4 h-4" /><span>Excluir Conta</span>
                   </DropdownMenuItem>
