@@ -1,345 +1,260 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, CreditCard, Shield, Lock } from "lucide-react";
-
-// ─── MP Public Key (substitua pela sua chave real) ───────────────────────────
-const MP_PUBLIC_KEY = "APP_USR-your-public-key-here";
+import { base44 } from "@/api/base44Client";
 
 /**
- * CheckoutModal — inicializa o Mercado Pago CardPayment Brick
- * dentro de um modal ao selecionar um plano.
+ * CheckoutModal — Mercado Pago CardPayment Brick (somente cartão de crédito)
  *
  * Props:
- *  plan     — objeto com { id, name, amount, installments, billingLabel }
- *  onClose  — callback para fechar o modal
+ *  plan     — { id, name, amount, installments, billingLabel }
+ *  onClose  — callback para fechar
  */
 export default function CheckoutModal({ plan, onClose }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [step, setStep] = useState("form"); // "form" | "brick" | "success" | "error"
+  const [name, setName]       = useState("");
+  const [email, setEmail]     = useState("");
+  const [step, setStep]       = useState("form"); // "form" | "loading" | "brick" | "success" | "error"
   const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
-  const brickControllerRef = useRef(null);
-  const brickMounted = useRef(false);
+  const brickRef = useRef(null);
 
-  // Destruir brick ao desmontar o modal
+  // Pré-preenche email do usuário logado
   useEffect(() => {
-    return () => {
-      destroyBrick();
-    };
+    base44.auth.me().then(u => { if (u?.email) setEmail(u.email); if (u?.full_name) setName(u.full_name); }).catch(() => {});
+    return () => { destroyBrick(); };
   }, []);
 
   const destroyBrick = async () => {
-    if (brickControllerRef.current) {
-      try { await brickControllerRef.current.unmount(); } catch (_) {}
-      brickControllerRef.current = null;
+    if (brickRef.current) {
+      try { await brickRef.current.unmount(); } catch (_) {}
+      brickRef.current = null;
     }
-    brickMounted.current = false;
   };
 
-  const initBrick = async () => {
-    // Carrega o SDK do MP se ainda não foi carregado
-    if (!window.MercadoPago) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://sdk.mercadopago.com/js/v2";
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
+  const loadMPScript = () =>
+    new Promise((resolve, reject) => {
+      if (window.MercadoPago) return resolve();
+      const s = document.createElement("script");
+      s.src = "https://sdk.mercadopago.com/js/v2";
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
 
+  const initBrick = async (mpPublicKey) => {
     await destroyBrick();
+    await loadMPScript();
 
-    const mp = new window.MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
-    const bricksBuilder = mp.bricks();
+    const mp = new window.MercadoPago(mpPublicKey, { locale: "pt-BR" });
+    const builder = mp.bricks();
 
-    // Configuração do CardPayment Brick
-    // Documentação: https://www.mercadopago.com.br/developers/pt/docs/checkout-bricks/card-payment-brick
-    brickControllerRef.current = await bricksBuilder.create(
-      "cardPayment",
-      "mp-brick-container",
-      {
-        initialization: {
-          amount: plan.amount,
-          // Para planos anuais, habilita parcelamento até 12x sem juros (free_payer)
-          payer: { email },
-        },
-        customization: {
-          paymentMethods: {
-            types: {
-              included: ["credit_card"],   // SOMENTE cartão de crédito
-              excluded: ["debit_card", "ticket", "bank_transfer", "wallet_purchase"],
-            },
-            // Planos mensais = 1x, planos anuais = até 12x sem juros
-            maxInstallments: plan.installments,
-            ...(plan.installments > 1 && {
-              // Juros absorvidos pelo vendedor (free_payer = true no backend)
-            }),
+    brickRef.current = await builder.create("cardPayment", "mp-brick-container", {
+      initialization: {
+        amount: plan.amount,
+        payer: { email },
+      },
+      customization: {
+        paymentMethods: {
+          types: {
+            included: ["credit_card"],
+            excluded: ["debit_card", "ticket", "bank_transfer", "wallet_purchase"],
           },
-          visual: {
-            style: {
-              theme: "default",
-              customVariables: {
-                baseColor: "#191970",
-                buttonBackground: "#191970",
-                buttonTextColor: "#ffffff",
-                fontFamily: "'Oswald', sans-serif",
-              },
+          maxInstallments: plan.installments,
+        },
+        visual: {
+          style: {
+            theme: "default",
+            customVariables: {
+              baseColor: "#191970",
+              buttonBackground: "#191970",
+              buttonTextColor: "#ffffff",
             },
           },
         },
-        callbacks: {
-          onReady: () => {
-            brickMounted.current = true;
-          },
-          onSubmit: async (cardFormData) => {
-            /**
-             * cardFormData contém:
-             * {
-             *   token: string,           — card token gerado pelo MP
-             *   issuer_id: string,
-             *   payment_method_id: string,
-             *   transaction_amount: number,
-             *   installments: number,
-             *   payer: { email: string }
-             * }
-             *
-             * Enviar ao backend em /api/process_payment:
-             * {
-             *   card_token: cardFormData.token,
-             *   installments: cardFormData.installments,
-             *   payment_method_id: cardFormData.payment_method_id,
-             *   issuer_id: cardFormData.issuer_id,
-             *   transaction_amount: plan.amount,
-             *   description: plan.name,
-             *   payer: { email, first_name: name.split(" ")[0], last_name: name.split(" ").slice(1).join(" ") },
-             *   plan_id: plan.id,
-             *   // Para anuais: free_payer: true (configurar no backend MP SDK)
-             * }
-             */
-            try {
-              const res = await fetch("/api/process_payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  card_token: cardFormData.token,
-                  installments: cardFormData.installments,
-                  payment_method_id: cardFormData.payment_method_id,
-                  issuer_id: cardFormData.issuer_id,
-                  transaction_amount: plan.amount,
-                  description: plan.name,
-                  payer: {
-                    email,
-                    first_name: name.split(" ")[0] || name,
-                    last_name: name.split(" ").slice(1).join(" ") || "",
-                  },
-                  plan_id: plan.id,
-                }),
-              });
-
-              const data = await res.json();
-
-              if (res.ok && data.status === "approved") {
-                await destroyBrick();
-                setStep("success");
-              } else {
-                setErrorMsg(data.message || "Pagamento não aprovado. Tente outro cartão.");
-                setStep("error");
-              }
-            } catch (err) {
-              setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
-              setStep("error");
+      },
+      callbacks: {
+        onReady: () => { setStep("brick"); },
+        onSubmit: async (formData) => {
+          /**
+           * Payload enviado a /api/process_payment:
+           * {
+           *   card_token:         formData.token,
+           *   installments:       formData.installments,
+           *   payment_method_id:  formData.payment_method_id,
+           *   issuer_id:          formData.issuer_id,
+           *   transaction_amount: plan.amount,
+           *   description:        plan.name,
+           *   plan_id:            plan.id,
+           *   payer: { email, first_name, last_name },
+           *   // anuais: configurar free_payer=true no backend MP SDK
+           * }
+           */
+          try {
+            const res = await fetch("/api/process_payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                card_token:         formData.token,
+                installments:       formData.installments,
+                payment_method_id:  formData.payment_method_id,
+                issuer_id:          formData.issuer_id,
+                transaction_amount: plan.amount,
+                description:        plan.name,
+                plan_id:            plan.id,
+                payer: {
+                  email,
+                  first_name: name.split(" ")[0] || name,
+                  last_name:  name.split(" ").slice(1).join(" ") || "",
+                },
+              }),
+            });
+            const data = await res.json();
+            await destroyBrick();
+            setStep(res.ok && data.status === "approved" ? "success" : "error");
+            if (!(res.ok && data.status === "approved")) {
+              setErrorMsg(data.message || "Pagamento não aprovado. Tente outro cartão.");
             }
-          },
-          onError: (error) => {
-            console.error("MP Brick error:", error);
-          },
+          } catch (_) {
+            await destroyBrick();
+            setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
+            setStep("error");
+          }
         },
-      }
-    );
+        onError: (err) => {
+          console.error("MP Brick error:", err);
+          setErrorMsg("Erro no checkout. Tente novamente.");
+          setStep("error");
+        },
+      },
+    });
   };
 
   const handleProceed = async (e) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
-    setLoading(true);
-    setStep("brick");
-    // Aguarda o React renderizar o container "mp-brick-container" antes de iniciar o brick
-    // requestAnimationFrame garante que o DOM já foi pintado
-    requestAnimationFrame(() => {
-      requestAnimationFrame(async () => {
-        await initBrick();
-        setLoading(false);
-      });
-    });
+    setStep("loading");
+    try {
+      // Busca a public key do backend (não expõe no frontend)
+      const res = await base44.functions.invoke("getMercadoPagoPublicKey", {});
+      const publicKey = res?.data?.publicKey;
+      if (!publicKey) throw new Error("Chave pública não disponível");
+      await initBrick(publicKey);
+    } catch (err) {
+      setErrorMsg("Não foi possível iniciar o checkout. Tente novamente.");
+      setStep("error");
+    }
   };
 
   const handleRetry = async () => {
     setErrorMsg("");
-    setLoading(true);
-    setStep("brick");
-    setTimeout(async () => {
-      await initBrick();
-      setLoading(false);
-    }, 100);
+    setStep("form");
+  };
+
+  const s = { // inline style helpers
+    label: { display: "block", fontFamily: "'Oswald', sans-serif", fontSize: ".63rem", textTransform: "uppercase", letterSpacing: ".14em", color: "rgba(255,255,255,.5)", marginBottom: ".4rem" },
+    input: { width: "100%", padding: ".75rem 1rem", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.14)", color: "#fff", fontFamily: "sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box", borderRadius: 0 },
   };
 
   return (
     <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,.72)", backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "1rem",
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,.75)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{
-        background: "#0d0d1a",
-        border: "1px solid rgba(200,168,75,.3)",
-        width: "100%", maxWidth: 520,
-        maxHeight: "90vh", overflowY: "auto",
-        position: "relative",
-      }}>
+      <div style={{ background: "#0d0d1a", border: "1px solid rgba(200,168,75,.3)", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+
         {/* Header */}
-        <div style={{
-          padding: "1.5rem 2rem",
-          borderBottom: "1px solid rgba(255,255,255,.08)",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
+        <div style={{ padding: "1.4rem 1.75rem", borderBottom: "1px solid rgba(255,255,255,.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".6rem", textTransform: "uppercase", letterSpacing: ".18em", color: "#C8A84B", margin: "0 0 .25rem" }}>
-              Assinar Agora
-            </p>
-            <h2 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.2rem", textTransform: "uppercase", color: "#fff", margin: 0 }}>
-              {plan.name}
-            </h2>
+            <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".58rem", textTransform: "uppercase", letterSpacing: ".18em", color: "#C8A84B", margin: "0 0 .2rem" }}>Assinar Agora</p>
+            <h2 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.15rem", textTransform: "uppercase", color: "#fff", margin: 0 }}>{plan.name}</h2>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,.4)", padding: ".25rem" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,.4)" }}>
             <X style={{ width: 20, height: 20 }} />
           </button>
         </div>
 
         {/* Resumo do plano */}
-        <div style={{
-          margin: "1.5rem 2rem",
-          background: "rgba(200,168,75,.07)",
-          border: "1px solid rgba(200,168,75,.2)",
-          padding: "1rem 1.25rem",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
+        <div style={{ margin: "1.25rem 1.75rem", background: "rgba(200,168,75,.07)", border: "1px solid rgba(200,168,75,.2)", padding: ".9rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <p style={{ color: "rgba(255,255,255,.5)", fontSize: ".75rem", margin: "0 0 .2rem", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>
-              {plan.billingLabel}
-            </p>
-            <p style={{ color: "#C8A84B", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.8rem", margin: 0 }}>
+            <p style={{ color: "rgba(255,255,255,.45)", fontSize: ".72rem", margin: "0 0 .15rem", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>{plan.billingLabel}</p>
+            <p style={{ color: "#C8A84B", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.6rem", margin: 0 }}>
               R$ {plan.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
             {plan.installments > 1 && (
-              <p style={{ color: "rgba(255,255,255,.4)", fontSize: ".72rem", margin: ".2rem 0 0", fontFamily: "'Oswald', sans-serif" }}>
-                em até {plan.installments}x sem juros
-              </p>
+              <p style={{ color: "rgba(255,255,255,.35)", fontSize: ".7rem", margin: ".15rem 0 0" }}>em até {plan.installments}x sem juros</p>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: ".4rem", color: "rgba(255,255,255,.3)", fontSize: ".7rem" }}>
-            <Lock style={{ width: 12, height: 12 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: ".35rem", color: "rgba(255,255,255,.25)", fontSize: ".68rem" }}>
+            <Lock style={{ width: 11, height: 11 }} />
             <span style={{ fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>Seguro</span>
           </div>
         </div>
 
-        <div style={{ padding: "0 2rem 2rem" }}>
+        <div style={{ padding: "0 1.75rem 1.75rem" }}>
 
-          {/* STEP 1 — Dados do cliente */}
-          {(step === "form") && (
+          {/* STEP: form */}
+          {step === "form" && (
             <form onSubmit={handleProceed}>
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontFamily: "'Oswald', sans-serif", fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".14em", color: "rgba(255,255,255,.5)", marginBottom: ".4rem" }}>
-                  Nome completo
-                </label>
-                <input
-                  type="text" required value={name} onChange={e => setName(e.target.value)}
-                  placeholder="Dr. João Silva"
-                  style={{ width: "100%", padding: ".75rem 1rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", fontFamily: "DM Sans, sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box" }}
-                  onFocus={e => e.target.style.borderColor = "#C8A84B"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,.12)"}
-                />
+              <div style={{ marginBottom: ".9rem" }}>
+                <label style={s.label}>Nome completo</label>
+                <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Dr. João Silva" style={s.input}
+                  onFocus={e => e.target.style.borderColor = "#C8A84B"} onBlur={e => e.target.style.borderColor = "rgba(255,255,255,.14)"} />
               </div>
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ display: "block", fontFamily: "'Oswald', sans-serif", fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".14em", color: "rgba(255,255,255,.5)", marginBottom: ".4rem" }}>
-                  E-mail
-                </label>
-                <input
-                  type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="joao@escritorio.com.br"
-                  style={{ width: "100%", padding: ".75rem 1rem", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.12)", color: "#fff", fontFamily: "DM Sans, sans-serif", fontSize: ".9rem", outline: "none", boxSizing: "border-box" }}
-                  onFocus={e => e.target.style.borderColor = "#C8A84B"}
-                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,.12)"}
-                />
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label style={s.label}>E-mail</label>
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="joao@escritorio.com.br" style={s.input}
+                  onFocus={e => e.target.style.borderColor = "#C8A84B"} onBlur={e => e.target.style.borderColor = "rgba(255,255,255,.14)"} />
               </div>
               <button type="submit"
-                style={{ width: "100%", padding: "1rem", background: "#191970", color: "#fff", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".85rem", textTransform: "uppercase", letterSpacing: ".1em", transition: "background .2s" }}
+                style={{ width: "100%", padding: ".95rem", background: "#191970", color: "#fff", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".82rem", textTransform: "uppercase", letterSpacing: ".1em", borderRadius: 0 }}
                 onMouseEnter={e => e.currentTarget.style.background = "#C8A84B"}
                 onMouseLeave={e => e.currentTarget.style.background = "#191970"}
               >
-                <CreditCard style={{ width: 15, height: 15, display: "inline", marginRight: ".5rem", verticalAlign: "middle" }} />
+                <CreditCard style={{ width: 14, height: 14, display: "inline", marginRight: ".45rem", verticalAlign: "middle" }} />
                 Continuar para pagamento →
               </button>
             </form>
           )}
 
-          {/* STEP 2 — Brick do MP */}
-          {step === "brick" && (
-            <div>
-              {loading && (
-                <div style={{ textAlign: "center", padding: "3rem 0", color: "rgba(255,255,255,.4)", fontFamily: "'Oswald', sans-serif", fontSize: ".8rem", textTransform: "uppercase", letterSpacing: ".1em" }}>
-                  Carregando checkout seguro...
-                </div>
-              )}
-              <div id="mp-brick-container" style={{ minHeight: loading ? 0 : 200 }} />
-              {!loading && (
-                <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: ".5rem", color: "rgba(255,255,255,.25)", fontSize: ".7rem" }}>
-                  <Shield style={{ width: 12, height: 12 }} />
-                  <span style={{ fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>
-                    Pagamento processado pelo Mercado Pago · SSL 256-bit
-                  </span>
-                </div>
-              )}
+          {/* STEP: loading */}
+          {step === "loading" && (
+            <div style={{ textAlign: "center", padding: "3rem 0" }}>
+              <div style={{ width: 36, height: 36, border: "3px solid rgba(200,168,75,.3)", borderTop: "3px solid #C8A84B", borderRadius: "50%", margin: "0 auto 1rem", animation: "spin 1s linear infinite" }} />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              <p style={{ color: "rgba(255,255,255,.4)", fontFamily: "'Oswald', sans-serif", fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".12em" }}>Carregando checkout seguro...</p>
             </div>
           )}
 
-          {/* STEP 3 — Sucesso */}
+          {/* STEP: brick (rendered while loading too, hidden until onReady) */}
+          <div id="mp-brick-container" style={{ display: step === "brick" ? "block" : "none" }} />
+
+          {/* Security badge (brick visible) */}
+          {step === "brick" && (
+            <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: ".45rem", color: "rgba(255,255,255,.22)", fontSize: ".68rem" }}>
+              <Shield style={{ width: 11, height: 11 }} />
+              <span style={{ fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>Pagamento processado pelo Mercado Pago · SSL 256-bit</span>
+            </div>
+          )}
+
+          {/* STEP: success */}
           {step === "success" && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <div style={{ width: 60, height: 60, background: "rgba(74,222,128,.1)", border: "2px solid #4ade80", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-                <span style={{ fontSize: "1.8rem" }}>✓</span>
-              </div>
-              <h3 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.3rem", textTransform: "uppercase", color: "#fff", marginBottom: ".75rem" }}>
-                Pagamento Aprovado!
-              </h3>
-              <p style={{ color: "rgba(255,255,255,.55)", fontSize: ".875rem", lineHeight: 1.6, marginBottom: "2rem" }}>
-                Bem-vindo ao Juris. Você receberá um e-mail de confirmação em breve com os dados de acesso.
+              <div style={{ width: 56, height: 56, background: "rgba(74,222,128,.1)", border: "2px solid #4ade80", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", fontSize: "1.6rem" }}>✓</div>
+              <h3 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.2rem", textTransform: "uppercase", color: "#fff", marginBottom: ".6rem" }}>Pagamento Aprovado!</h3>
+              <p style={{ color: "rgba(255,255,255,.5)", fontSize: ".85rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>
+                Bem-vindo ao Juris. Você receberá um e-mail de confirmação em breve.
               </p>
-              <button onClick={onClose}
-                style={{ padding: ".75rem 2rem", background: "#C8A84B", color: "#000", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".8rem", textTransform: "uppercase", letterSpacing: ".1em" }}>
+              <button onClick={onClose} style={{ padding: ".7rem 2rem", background: "#C8A84B", color: "#000", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", borderRadius: 0 }}>
                 Acessar plataforma →
               </button>
             </div>
           )}
 
-          {/* STEP 4 — Erro */}
+          {/* STEP: error */}
           {step === "error" && (
             <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <div style={{ width: 60, height: 60, background: "rgba(239,68,68,.1)", border: "2px solid #ef4444", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-                <span style={{ fontSize: "1.8rem" }}>✕</span>
-              </div>
-              <h3 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.1rem", textTransform: "uppercase", color: "#fff", marginBottom: ".75rem" }}>
-                Pagamento não aprovado
-              </h3>
-              <p style={{ color: "rgba(255,255,255,.55)", fontSize: ".875rem", lineHeight: 1.6, marginBottom: "2rem" }}>
-                {errorMsg}
-              </p>
-              <button onClick={handleRetry}
-                style={{ padding: ".75rem 2rem", background: "#191970", color: "#fff", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".8rem", textTransform: "uppercase", letterSpacing: ".1em" }}>
+              <div style={{ width: 56, height: 56, background: "rgba(239,68,68,.1)", border: "2px solid #ef4444", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem", fontSize: "1.6rem" }}>✕</div>
+              <h3 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.05rem", textTransform: "uppercase", color: "#fff", marginBottom: ".6rem" }}>Pagamento não aprovado</h3>
+              <p style={{ color: "rgba(255,255,255,.5)", fontSize: ".85rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>{errorMsg}</p>
+              <button onClick={handleRetry} style={{ padding: ".7rem 2rem", background: "#191970", color: "#fff", border: "none", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", borderRadius: 0 }}>
                 Tentar novamente
               </button>
             </div>
