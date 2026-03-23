@@ -53,7 +53,7 @@ export default function QuemSomos() {
           <div style={{ position:"sticky", top:0, height:"100vh", overflow:"hidden" }}>
             <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=80&auto=format&fit=crop" alt=""
               style={{ width:"100%", height:"100%", objectFit:"cover", filter:"grayscale(1)" }} />
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:8, background:"var(--gold)" }} />
+            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:"var(--primary)" }} />
           </div>
         </div>
 
