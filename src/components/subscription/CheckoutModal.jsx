@@ -73,46 +73,33 @@ export default function CheckoutModal({ plan, onClose }) {
       callbacks: {
         onReady: () => { setStep("brick"); },
         onSubmit: async (formData) => {
-          /**
-           * Payload enviado a /api/process_payment:
-           * {
-           *   card_token:         formData.token,
-           *   installments:       formData.installments,
-           *   payment_method_id:  formData.payment_method_id,
-           *   issuer_id:          formData.issuer_id,
-           *   transaction_amount: plan.amount,
-           *   description:        plan.name,
-           *   plan_id:            plan.id,
-           *   payer: { email, first_name, last_name },
-           *   // anuais: configurar free_payer=true no backend MP SDK
-           * }
-           */
           try {
-            const res = await fetch("/api/process_payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                card_token:         formData.token,
-                installments:       formData.installments,
-                payment_method_id:  formData.payment_method_id,
-                issuer_id:          formData.issuer_id,
-                transaction_amount: plan.amount,
-                description:        plan.name,
-                plan_id:            plan.id,
-                payer: {
-                  email,
-                  first_name: name.split(" ")[0] || name,
-                  last_name:  name.split(" ").slice(1).join(" ") || "",
-                },
-              }),
+            const res = await base44.functions.invoke("lexiaProcessPayment", {
+              token:              formData.token,
+              installments:       formData.installments,
+              payment_method_id:  formData.payment_method_id,
+              issuer_id:          formData.issuer_id,
+              transaction_amount: plan.amount,
+              description:        plan.name,
+              plan_id:            plan.id,
+              payer: {
+                email,
+                first_name: name.split(" ")[0] || name,
+                last_name:  name.split(" ").slice(1).join(" ") || "",
+                ...(formData.payer?.identification && {
+                  identification: formData.payer.identification,
+                }),
+              },
             });
-            const data = await res.json();
+            const data = res?.data;
             await destroyBrick();
-            setStep(res.ok && data.status === "approved" ? "success" : "error");
-            if (!(res.ok && data.status === "approved")) {
-              setErrorMsg(data.message || "Pagamento não aprovado. Tente outro cartão.");
+            if (data?.status === "approved") {
+              setStep("success");
+            } else {
+              setErrorMsg(data?.message || "Pagamento não aprovado. Verifique os dados ou tente outro cartão.");
+              setStep("error");
             }
-          } catch (_) {
+          } catch (err) {
             await destroyBrick();
             setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
             setStep("error");
