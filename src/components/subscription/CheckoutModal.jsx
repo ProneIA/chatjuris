@@ -5,23 +5,11 @@ import { X, Loader2, AlertCircle, CheckCircle2, Lock, CreditCard, Shield } from 
 /* ═══════════════════════════════════════════════════════════
    CheckoutModal — Mercado Pago Bricks (somente cartão de crédito)
    - Parcelamento apenas para planos anuais (adv_yearly, empresa_yearly)
-   - Planos mensais: apenas à vista
-   - Autenticação verificada antes de exibir
+   - Planos mensais: apenas à vista (maxInstallments: 1)
+   - O Brick do MP exibe o botão de pagamento nativo
    ═══════════════════════════════════════════════════════════ */
 
 const ANNUAL_PLAN_IDS = ["adv_yearly", "empresa_yearly"];
-
-function getInstallmentOptions(plan) {
-  if (ANNUAL_PLAN_IDS.includes(plan.id)) {
-    return Array.from({ length: 12 }, (_, i) => ({
-      value: i + 1,
-      label: i === 0
-        ? `1x de R$ ${plan.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (à vista)`
-        : `${i + 1}x de R$ ${(plan.amount / (i + 1)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} sem juros`,
-    }));
-  }
-  return [{ value: 1, label: `1x de R$ ${plan.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} (à vista)` }];
-}
 
 async function getMPDeviceId() {
   return new Promise((resolve) => {
@@ -44,7 +32,8 @@ async function getMPDeviceId() {
   });
 }
 
-export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-container" }) {
+export default function CheckoutModal({ plan, onClose }) {
+  const containerId = "mp-brick-container";
   const [status, setStatus] = useState("loading"); // loading | ready | processing | success | error
   const [errorMsg, setErrorMsg] = useState("");
   const [retryCount, setRetryCount] = useState(0);
@@ -53,12 +42,21 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
   const brickRef = useRef(null);
   const mountedRef = useRef(false);
   const deviceIdRef = useRef(null);
-  const processingRef = useRef(false); // evita double-submit
+  const processingRef = useRef(false);
 
   const isAnnual = ANNUAL_PLAN_IDS.includes(plan.id);
-  const installmentOptions = getInstallmentOptions(plan);
   const fmt = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
   const parcela = plan.amount / selectedInstallments;
+
+  // Opções de parcelamento para exibição no resumo (apenas anuais)
+  const installmentOptions = isAnnual
+    ? Array.from({ length: 12 }, (_, i) => ({
+        value: i + 1,
+        label: i === 0
+          ? `1x de R$ ${fmt(plan.amount)} (à vista)`
+          : `${i + 1}x de R$ ${fmt(plan.amount / (i + 1))} sem juros`,
+      }))
+    : [{ value: 1, label: `1x de R$ ${fmt(plan.amount)} (à vista)` }];
 
   const initBrick = async () => {
     try {
@@ -75,8 +73,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
       if (!publicKey) throw new Error("Chave pública não encontrada");
 
       // 3. Device ID (antifraude)
-      const deviceId = await getMPDeviceId();
-      deviceIdRef.current = deviceId;
+      deviceIdRef.current = await getMPDeviceId();
 
       if (!mountedRef.current) return;
 
@@ -86,9 +83,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
 
       // Tornar o container visível ANTES de montar o Brick
       setStatus("ready");
-
-      // Aguardar o DOM atualizar com o container visível
-      await new Promise(resolve => setTimeout(resolve, 400));
+      await new Promise(resolve => setTimeout(resolve, 350));
       if (!mountedRef.current) return;
 
       const container = document.getElementById(containerId);
@@ -100,7 +95,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
         brickRef.current = null;
       }
 
-      // 6. Montar Payment Brick — apenas cartão de crédito
+      // 6. Montar Payment Brick
       const brickController = await bricksBuilder.create("payment", containerId, {
         initialization: {
           amount: plan.amount,
@@ -117,24 +112,27 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
               customVariables: { baseColor: "#191970" },
             },
             hideFormTitle: true,
-            hidePaymentButton: isAnnual, // escondemos o botão se for anual (selecionamos parcelas antes)
           },
         },
         callbacks: {
-          onReady: () => {
-            // status já foi setado antes da montagem
-          },
-          onSubmit: async ({ selectedPaymentMethod, formData }) => {
+          onReady: () => {},
+          onSubmit: async ({ formData }) => {
             if (!mountedRef.current || processingRef.current) return;
             processingRef.current = true;
             setStatus("processing");
 
             try {
+              // Para anuais: usa o número de parcelas selecionado pelo usuário no resumo
+              // Para mensais: força 1x
+              const installmentsToSend = isAnnual
+                ? (formData.installments || selectedInstallments)
+                : 1;
+
               const response = await base44.functions.invoke("lexiaProcessPayment", {
                 token: formData.token,
-                installments: isAnnual ? selectedInstallments : 1,
+                installments: installmentsToSend,
                 payment_method_id: formData.payment_method_id,
-                issuer_id: formData.issuer_id,
+                issuer_id: formData.issuer_id || null,
                 transaction_amount: plan.amount,
                 description: plan.name,
                 plan_id: plan.id,
@@ -148,7 +146,6 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
               if (d?.status === "approved") {
                 setPaymentId(d?.id);
                 setStatus("success");
-                // Redirecionar após 4s
                 setTimeout(() => { window.location.href = "/Dashboard"; }, 4000);
               } else {
                 setErrorMsg(d?.message || "Pagamento não aprovado. Verifique os dados do cartão.");
@@ -167,6 +164,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
           },
           onError: (err) => {
             if (!mountedRef.current) return;
+            // Ignorar erros não-críticos
             if (err?.cause?.some?.(c => c?.code === "non_critical")) return;
             console.error("Brick error:", err);
             setErrorMsg("Erro ao inicializar o formulário de pagamento.");
@@ -260,28 +258,27 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
             {/* Parcelamento — só para anuais */}
             {isAnnual ? (
               <div>
-                <div style={{ display: "flex", gap: ".75rem", alignItems: "center", flexWrap: "wrap" }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: ".68rem", color: "#6b6b80", display: "block", marginBottom: ".25rem", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".08em" }}>
-                      Parcelamento (sem juros)
-                    </label>
-                    <select
-                      value={selectedInstallments}
-                      onChange={e => setSelectedInstallments(Number(e.target.value))}
-                      disabled={status === "processing"}
-                      style={{ width: "100%", padding: ".5rem .75rem", border: "1px solid #e0e0ea", background: "#fff", fontSize: ".82rem", fontFamily: "'Oswald', sans-serif", color: "#0a0a0a", cursor: "pointer", outline: "none" }}
-                    >
-                      {installmentOptions.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                <label style={{ fontSize: ".68rem", color: "#6b6b80", display: "block", marginBottom: ".25rem", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".08em" }}>
+                  Parcelamento (sem juros)
+                </label>
+                <select
+                  value={selectedInstallments}
+                  onChange={e => setSelectedInstallments(Number(e.target.value))}
+                  disabled={status === "processing"}
+                  style={{ width: "100%", padding: ".5rem .75rem", border: "1px solid #e0e0ea", background: "#fff", fontSize: ".82rem", fontFamily: "'Oswald', sans-serif", color: "#0a0a0a", cursor: "pointer", outline: "none" }}
+                >
+                  {installmentOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
                 {selectedInstallments > 1 && (
                   <p style={{ fontSize: ".72rem", color: "#191970", margin: ".4rem 0 0", fontWeight: 600 }}>
                     Total: R$ {fmt(plan.amount)} em {selectedInstallments}x de R$ {fmt(parcela)} sem juros
                   </p>
                 )}
+                <p style={{ fontSize: ".68rem", color: "#999", margin: ".3rem 0 0" }}>
+                  ⚠ Selecione o parcelamento acima antes de preencher o cartão.
+                </p>
               </div>
             ) : (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -369,22 +366,8 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
           {/* Container do Brick — sempre no DOM, oculto nos outros estados */}
           <div
             id={containerId}
-            style={{
-              display: (status === "ready") ? "block" : "none",
-            }}
+            style={{ display: (status === "ready") ? "block" : "none" }}
           />
-
-          {/* Para planos anuais com parcelamento: botão de confirmar externo ao Brick */}
-          {status === "ready" && isAnnual && (
-            <button
-              onClick={() => brickRef.current?.getFormData?.().then(data => {
-                if (data) brickRef.current?.submit?.();
-              }).catch(() => brickRef.current?.submit?.())}
-              style={{ marginTop: "1rem", width: "100%", background: "#191970", color: "#fff", border: "none", padding: "1rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".82rem", textTransform: "uppercase", letterSpacing: ".1em" }}
-            >
-              Confirmar Pagamento — {selectedInstallments}x de R$ {fmt(parcela)} →
-            </button>
-          )}
 
           {/* Badge de segurança */}
           {(status === "ready" || status === "loading") && (
