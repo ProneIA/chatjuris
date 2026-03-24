@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
       description,
       plan_id,
       payer,
+      device_id,
     } = body;
 
     // 3. Validações básicas
