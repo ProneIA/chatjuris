@@ -6,11 +6,47 @@ import { X, Loader2, AlertCircle, CheckCircle2, Lock } from "lucide-react";
    CheckoutModal — Mercado Pago Bricks (Payment Brick)
    Usado por: pages/Pricing e pages/LexIA
    ═══════════════════════════════════════════════════════════ */
+
+/** Injeta o script de device fingerprint do MP e retorna o device_id */
+async function getMPDeviceId(publicKey) {
+  return new Promise((resolve) => {
+    // Script já carregado — pegar device_id direto
+    if (window.MP_DEVICE_SESSION_ID) {
+      return resolve(window.MP_DEVICE_SESSION_ID);
+    }
+
+    // Injetar script de fingerprint se ainda não foi
+    const scriptId = "mp-device-fingerprint";
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = `https://www.mercadopago.com/v2/security.js`;
+      script.setAttribute("view", "checkout");
+      script.setAttribute("output", "deviceId");
+      document.head.appendChild(script);
+    }
+
+    // Aguardar até 5s pelo device_id
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (window.MP_DEVICE_SESSION_ID) {
+        clearInterval(interval);
+        resolve(window.MP_DEVICE_SESSION_ID);
+      } else if (attempts >= 50) {
+        clearInterval(interval);
+        resolve(null); // fallback: continua sem device_id
+      }
+    }, 100);
+  });
+}
+
 export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-container" }) {
   const [status, setStatus] = useState("loading"); // loading | ready | processing | success | error
   const [errorMsg, setErrorMsg] = useState("");
   const brickRef = useRef(null);
   const mountedRef = useRef(false);
+  const deviceIdRef = useRef(null);
 
   const fmt = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
