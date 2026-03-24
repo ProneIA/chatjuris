@@ -66,6 +66,9 @@ Deno.serve(async (req) => {
       issuer_id,
       transaction_amount: Number(transaction_amount),
       description: description || "Assinatura LexIA",
+      // Device ID obrigatório pelo MP para antifraude
+      ...(device_id && { additional_info: { ip_address: req.headers.get("x-forwarded-for") || "0.0.0.0" } }),
+      ...(device_id && { device_id }),
       payer: {
         email: payer?.email || user.email,
         first_name: payer?.first_name || "",
