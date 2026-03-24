@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CheckoutModal from "@/components/subscription/CheckoutModal";
+import CheckoutModal from "@/components/subscription/CheckoutModal.jsx";
 
 /* ═══════════════════════════════════════════════════════════
    LEXIA — Página de Planos com Checkout Mercado Pago Bricks
