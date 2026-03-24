@@ -109,12 +109,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
         customization: {
           paymentMethods: {
             creditCard: "all",
-            debitCard: "none",
-            ticket: "none",
-            bankTransfer: "none",
-            atm: "none",
-            onboarding_credits: "none",
-            wallet_purchase: "none",
+            maxInstallments: isAnnual ? 12 : 1,
           },
           visual: {
             style: {
