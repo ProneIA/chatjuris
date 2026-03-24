@@ -59,6 +59,9 @@ Deno.serve(async (req) => {
     const isAnnual = (plan_id || "").includes("yearly");
 
     // 4. Montar body do pagamento MP
+    const publicUrl = Deno.env.get("PUBLIC_URL") || "";
+    const notificationUrl = `${publicUrl}/api/functions/mercadoPagoWebhook`;
+
     const mpPayload = {
       token,
       installments: Number(installments) || 1,
@@ -66,6 +69,7 @@ Deno.serve(async (req) => {
       issuer_id,
       transaction_amount: Number(transaction_amount),
       description: description || "Assinatura LexIA",
+      notification_url: notificationUrl,
       // Device ID obrigatório pelo MP para antifraude
       ...(device_id && { additional_info: { ip_address: req.headers.get("x-forwarded-for") || "0.0.0.0" } }),
       ...(device_id && { device_id }),
