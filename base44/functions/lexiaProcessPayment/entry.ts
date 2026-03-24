@@ -14,14 +14,12 @@
  *     email:       string
  *     first_name:  string
  *     last_name:   string
+ *     identification: { type, number }  (opcional)
  *   }
+ *   device_id:           string  (opcional — antifraude)
  * }
- *
- * Para planos ANUAIS (installments > 1), inclui:
- *   payment_method_options.installments.type = "free_payer"
- *   (juros absorvidos pelo vendedor — configurar no MP dashboard)
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
@@ -57,6 +55,7 @@ Deno.serve(async (req) => {
     }
 
     const isAnnual = (plan_id || "").includes("yearly");
+    const numInstallments = Number(installments) || 1;
 
     // 4. Montar body do pagamento MP
     const publicUrl = Deno.env.get("PUBLIC_URL") || "";
@@ -64,20 +63,28 @@ Deno.serve(async (req) => {
 
     const mpPayload = {
       token,
-      installments: Number(installments) || 1,
+      installments: numInstallments,
       payment_method_id,
-      issuer_id,
       transaction_amount: Number(transaction_amount),
-      description: description || "Assinatura LexIA",
+      description: description || "Assinatura Juris",
       notification_url: notificationUrl,
-      // Device ID obrigatório pelo MP para antifraude
-      ...(device_id && { additional_info: { ip_address: req.headers.get("x-forwarded-for") || "0.0.0.0" } }),
+      // binary_mode DEVE ser false para permitir parcelamento
+      binary_mode: false,
+      // 3DS para maior segurança
+      three_d_secure_mode: "optional",
+      // Aparece na fatura do cartão
+      statement_descriptor: "JURIS PRO",
+      // Antifraude
       ...(device_id && { device_id }),
+      ...(device_id && {
+        additional_info: {
+          ip_address: req.headers.get("x-forwarded-for") || "0.0.0.0",
+        },
+      }),
       payer: {
         email: payer?.email || user.email,
         first_name: payer?.first_name || "",
         last_name: payer?.last_name || "",
-        // Inclui CPF se o Brick capturou identificação
         ...(payer?.identification?.number && {
           identification: {
             type: payer.identification.type || "CPF",
@@ -85,26 +92,15 @@ Deno.serve(async (req) => {
           },
         }),
       },
-      // PCI Compliance: não armazenar dados de cartão no MP
-      binary_mode: true,
-      // 3DS para maior segurança nas transações
-      three_d_secure_mode: "optional",
-      // Reduz contestações — aparece na fatura do cartão
-      statement_descriptor: "JURIS PRO",
       metadata: {
         plan_id,
         user_id: user.id,
         user_email: user.email,
       },
-      // Para planos anuais: juros absorvidos pelo vendedor (free_payer)
-      ...(isAnnual && Number(installments) > 1 && {
-        payment_method_options: {
-          installments: {
-            type: "free_payer",
-          },
-        },
-      }),
     };
+
+    // issuer_id é opcional — inclui só se vier preenchido
+    if (issuer_id) mpPayload.issuer_id = issuer_id;
 
     // 5. Chamar API do Mercado Pago
     const mpRes = await fetch("https://api.mercadopago.com/v1/payments", {
@@ -113,7 +109,6 @@ Deno.serve(async (req) => {
         "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "X-Idempotency-Key": `${user.id}-${plan_id}-${Date.now()}`,
-        // Device fingerprint obrigatório pelo MP (antifraude)
         ...(device_id && { "X-meli-session-id": device_id }),
       },
       body: JSON.stringify(mpPayload),
@@ -131,10 +126,10 @@ Deno.serve(async (req) => {
     }
 
     const paymentStatus = mpData.status;
-    // Tratar in_process/pending como sucesso temporário (ex: antifraude)
+    // Tratar in_process/pending como aprovado temporário (ex: antifraude)
     const isApproved = paymentStatus === "approved" || paymentStatus === "in_process" || paymentStatus === "pending";
 
-    // 6. Registrar pagamento no banco (assíncrono — não bloqueia resposta)
+    // 6. Registrar pagamento no banco
     if (isApproved) {
       try {
         await base44.asServiceRole.entities.Payment.create({
@@ -165,16 +160,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 8. Retornar resultado ao frontend
-    // Mapear status_detail para mensagens amigáveis
+    // 8. Mapear status_detail para mensagens amigáveis
     const friendlyErrors = {
-      "cc_rejected_bad_filled_card_number": "Número do cartão inválido.",
-      "cc_rejected_bad_filled_date":        "Data de validade inválida.",
+      "cc_rejected_bad_filled_card_number":   "Número do cartão inválido.",
+      "cc_rejected_bad_filled_date":          "Data de validade inválida.",
       "cc_rejected_bad_filled_security_code": "Código de segurança inválido.",
-      "cc_rejected_insufficient_amount":    "Saldo insuficiente no cartão.",
-      "cc_rejected_blacklist":              "Cartão não autorizado. Tente outro.",
-      "cc_rejected_high_risk":              "Transação recusada por segurança. Tente outro cartão.",
-      "cc_rejected_call_for_authorize":     "Entre em contato com o banco para autorizar a transação.",
+      "cc_rejected_insufficient_amount":      "Saldo insuficiente no cartão.",
+      "cc_rejected_blacklist":                "Cartão não autorizado. Tente outro.",
+      "cc_rejected_high_risk":                "Transação recusada por segurança. Tente outro cartão.",
+      "cc_rejected_call_for_authorize":       "Entre em contato com o banco para autorizar a transação.",
     };
     const detail = mpData.status_detail || "";
     const humanMsg = friendlyErrors[detail] || "Pagamento não aprovado. Verifique os dados ou tente outro cartão.";
