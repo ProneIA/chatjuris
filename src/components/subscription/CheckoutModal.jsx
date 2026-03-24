@@ -127,7 +127,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
         },
         callbacks: {
           onReady: () => {
-            if (mountedRef.current) setStatus("ready");
+            // status já foi setado antes da montagem
           },
           onSubmit: async ({ selectedPaymentMethod, formData }) => {
             if (!mountedRef.current || processingRef.current) return;
