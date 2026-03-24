@@ -103,6 +103,8 @@ Deno.serve(async (req) => {
         "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "X-Idempotency-Key": `${user.id}-${plan_id}-${Date.now()}`,
+        // Device fingerprint obrigatório pelo MP (antifraude)
+        ...(device_id && { "X-meli-session-id": device_id }),
       },
       body: JSON.stringify(mpPayload),
     });
