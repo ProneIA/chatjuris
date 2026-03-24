@@ -89,6 +89,8 @@ Deno.serve(async (req) => {
       binary_mode: true,
       // 3DS para maior segurança nas transações
       three_d_secure_mode: "optional",
+      // Reduz contestações — aparece na fatura do cartão
+      statement_descriptor: "JURIS PRO",
       metadata: {
         plan_id,
         user_id: user.id,
