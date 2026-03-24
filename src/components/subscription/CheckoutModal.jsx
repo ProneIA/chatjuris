@@ -61,7 +61,11 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
         const publicKey = res?.data?.public_key;
         if (!publicKey) throw new Error("Chave pública não encontrada");
 
-        // 2. Carregar SDK MP
+        // 2. Capturar device ID (antifraude obrigatório pelo MP)
+        const deviceId = await getMPDeviceId(publicKey);
+        deviceIdRef.current = deviceId;
+
+        // 3. Carregar SDK MP
         if (!window.MercadoPago) {
           await new Promise((resolve, reject) => {
             const script = document.createElement("script");
