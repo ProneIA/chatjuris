@@ -126,6 +126,7 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
                   amount: plan.amount,
                   installments: plan.installments || 1,
                   paymentData: formData,
+                  device_id: deviceIdRef.current || window.MP_DEVICE_SESSION_ID || null,
                 });
 
                 if (!mountedRef.current) return;
