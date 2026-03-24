@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import React, { useState } from "react";
+import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 /* ═══════════════════════════════════════════════════════════
    LEXIA — Página de Planos com Checkout Mercado Pago Bricks
