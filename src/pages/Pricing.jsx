@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
 import { SITE_CSS, SiteNav, SiteFooter } from "@/components/landing/PublicLayout";
-import CheckoutModal from "@/components/subscription/CheckoutModal";
+import CheckoutModal from "@/components/subscription/CheckoutModal.jsx";
 
 // ─── Planos ─────────────────────────────────────────────────────────────────
 const MONTHLY_PLANS = [
