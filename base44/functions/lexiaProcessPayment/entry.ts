@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Dados de pagamento incompletos' }, { status: 400 });
     }
 
-    const accessToken = Deno.env.get('MP_ACCESS_TOKEN') || Deno.env.get('MERCADOPAGO_ACCESS_TOKEN');
+    const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
     if (!accessToken) {
       return Response.json({ error: 'Credenciais do Mercado Pago não configuradas' }, { status: 500 });
     }

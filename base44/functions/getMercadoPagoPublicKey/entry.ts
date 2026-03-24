@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Chave pública não configurada' }, { status: 500 });
     }
 
-    return Response.json({ publicKey });
+    return Response.json({ public_key: publicKey });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
