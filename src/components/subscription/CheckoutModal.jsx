@@ -84,7 +84,11 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
       const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
       const bricksBuilder = mp.bricks();
 
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Tornar o container visível ANTES de montar o Brick
+      setStatus("ready");
+
+      // Aguardar o DOM atualizar com o container visível
+      await new Promise(resolve => setTimeout(resolve, 400));
       if (!mountedRef.current) return;
 
       const container = document.getElementById(containerId);
