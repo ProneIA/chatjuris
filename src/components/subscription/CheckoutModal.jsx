@@ -110,11 +110,14 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
               setStatus("processing");
               try {
                 const response = await base44.functions.invoke("lexiaProcessPayment", {
-                  planId: plan.id,
-                  planName: plan.name,
-                  amount: plan.amount,
-                  installments: plan.installments || 1,
-                  paymentData: formData,
+                  token: formData.token,
+                  installments: formData.installments || plan.installments || 1,
+                  payment_method_id: formData.payment_method_id,
+                  issuer_id: formData.issuer_id,
+                  transaction_amount: plan.amount,
+                  description: plan.name,
+                  plan_id: plan.id,
+                  payer: formData.payer,
                   device_id: deviceIdRef.current || window.MP_DEVICE_SESSION_ID || null,
                 });
 
