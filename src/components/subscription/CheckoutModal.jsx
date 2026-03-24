@@ -65,17 +65,6 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
         const deviceId = await getMPDeviceId(publicKey);
         deviceIdRef.current = deviceId;
 
-        // 3. Carregar SDK MP
-        if (!window.MercadoPago) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.onload = resolve;
-            script.onerror = () => reject(new Error("Falha ao carregar SDK do Mercado Pago"));
-            document.head.appendChild(script);
-          });
-        }
-
         if (!mountedRef.current) return;
 
         // 3. Inicializar MP e Bricks
