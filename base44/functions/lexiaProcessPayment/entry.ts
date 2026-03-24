@@ -85,6 +85,10 @@ Deno.serve(async (req) => {
           },
         }),
       },
+      // PCI Compliance: não armazenar dados de cartão no MP
+      binary_mode: true,
+      // 3DS para maior segurança nas transações
+      three_d_secure_mode: "optional",
       metadata: {
         plan_id,
         user_id: user.id,
