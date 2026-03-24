@@ -121,17 +121,11 @@ const ANNUAL_PLANS = [
   },
 ];
 
-/* ─── Checkout Modal ─────────────────────────────────────── */
-function CheckoutModal({ plan, onClose }) {
-  const [name, setName]       = useState("");
-  const [email, setEmail]     = useState("");
-  const [nameErr, setNameErr] = useState("");
-  const [emailErr, setEmailErr] = useState("");
-  const [step, setStep]       = useState("form"); // form | loading | brick | success | error
-  const [errMsg, setErrMsg]   = useState("");
-  const brickRef    = useRef(null);
-  const mpKeyRef    = useRef(null); // cache da public key para retry
-  const currentEmailRef = useRef(email);
+/* ─── Checkout Modal (now imported from CheckoutModal.jsx) ── */
+// O CheckoutModal foi movido para components/subscription/CheckoutModal.jsx
+// Este bloco é mantido vazio para não quebrar referências abaixo
+function _unused() {
+  const [name] = useState("");
 
   // Mantém ref atualizada com o email atual (para usar dentro dos callbacks do MP)
   useEffect(() => { currentEmailRef.current = email; }, [email]);
