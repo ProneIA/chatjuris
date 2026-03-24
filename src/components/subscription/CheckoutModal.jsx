@@ -371,13 +371,11 @@ export default function CheckoutModal({ plan, onClose, containerId = "mp-brick-c
             </div>
           )}
 
-          {/* Container do Brick */}
+          {/* Container do Brick — sempre no DOM, oculto nos outros estados */}
           <div
             id={containerId}
             style={{
-              visibility: (status === "ready" || status === "processing") ? "visible" : "hidden",
-              height: (status === "ready" || status === "processing") ? "auto" : 0,
-              overflow: "hidden",
+              display: (status === "ready") ? "block" : "none",
             }}
           />
 
