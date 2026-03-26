@@ -1,0 +1,112 @@
+{
+  "name": "Processo",
+  "type": "object",
+  "properties": {
+    "numeroProcesso": {
+      "type": "string",
+      "description": "N\u00famero do processo no formato CNJ"
+    },
+    "tribunal": {
+      "type": "string",
+      "description": "Nome do tribunal"
+    },
+    "tribunalUrl": {
+      "type": "string",
+      "description": "URL da API DataJud do tribunal"
+    },
+    "classeProcessual": {
+      "type": "string",
+      "description": "Classe processual"
+    },
+    "tipoAcao": {
+      "type": "string",
+      "description": "Tipo de a\u00e7\u00e3o"
+    },
+    "requerente": {
+      "type": "string",
+      "description": "Nome do requerente"
+    },
+    "requerido": {
+      "type": "string",
+      "description": "Nome do requerido"
+    },
+    "advogado": {
+      "type": "string",
+      "description": "Nome do advogado respons\u00e1vel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Ativo",
+        "Arquivado",
+        "Suspenso",
+        "Baixado"
+      ],
+      "default": "Ativo",
+      "description": "Status do processo"
+    },
+    "dataDistribuicao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de distribui\u00e7\u00e3o"
+    },
+    "valorCausa": {
+      "type": "number",
+      "description": "Valor da causa em R$"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais"
+    },
+    "orgaoJulgador": {
+      "type": "string",
+      "description": "\u00d3rg\u00e3o julgador"
+    },
+    "ultimoMovimento": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do \u00faltimo movimento"
+    },
+    "dataUltimoMovimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do \u00faltimo movimento"
+    },
+    "movimentos": {
+      "type": "array",
+      "description": "Lista de movimentos do processo",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dataHora": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "dadosApiRaw": {
+      "type": "string",
+      "description": "Retorno bruto da API (JSON string)"
+    }
+  },
+  "required": [
+    "numeroProcesso",
+    "tribunal"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

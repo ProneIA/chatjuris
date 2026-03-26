@@ -11,6 +11,12 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import LexIA from './pages/LexIA';
+import JusTrackDashboard from './pages/JusTrackDashboard';
+import JusTrackPesquisa from './pages/JusTrackPesquisa';
+import JusTrackProcessos from './pages/JusTrackProcessos';
+import JusTrackNovo from './pages/JusTrackNovo';
+import JusTrackDetalhes from './pages/JusTrackDetalhes';
+import JusTrackEditar from './pages/JusTrackEditar';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -65,6 +71,12 @@ const AuthenticatedApp = () => {
       <Route path="/LexIA" element={
         <LexIA />
       } />
+      <Route path="/JusTrackDashboard" element={<JusTrackDashboard />} />
+      <Route path="/JusTrackPesquisa" element={<JusTrackPesquisa />} />
+      <Route path="/JusTrackProcessos" element={<JusTrackProcessos />} />
+      <Route path="/JusTrackNovo" element={<JusTrackNovo />} />
+      <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
+      <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
       <Route path="/AffiliatesDashboard" element={
         <LayoutWrapper currentPageName="AffiliatesDashboard">
           <AffiliatesDashboard />
