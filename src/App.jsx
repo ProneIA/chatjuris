@@ -17,6 +17,7 @@ import JusTrackProcessos from './pages/JusTrackProcessos';
 import JusTrackNovo from './pages/JusTrackNovo';
 import JusTrackDetalhes from './pages/JusTrackDetalhes';
 import JusTrackEditar from './pages/JusTrackEditar';
+import JusTrackOAB from './pages/JusTrackOAB';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <LexIA />
       } />
       <Route path="/JusTrackDashboard" element={<JusTrackDashboard />} />
+      <Route path="/JusTrackOAB" element={<JusTrackOAB />} />
       <Route path="/JusTrackPesquisa" element={<JusTrackPesquisa />} />
       <Route path="/JusTrackProcessos" element={<JusTrackProcessos />} />
       <Route path="/JusTrackNovo" element={<JusTrackNovo />} />

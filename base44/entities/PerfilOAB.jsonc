@@ -1,0 +1,52 @@
+{
+  "name": "PerfilOAB",
+  "type": "object",
+  "properties": {
+    "numeroOAB": {
+      "type": "string",
+      "description": "N\u00famero da OAB"
+    },
+    "seccional": {
+      "type": "string",
+      "description": "Seccional (UF)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Advogado",
+        "Estagi\u00e1rio"
+      ],
+      "default": "Advogado"
+    },
+    "nomeAdvogado": {
+      "type": "string",
+      "description": "Nome do advogado"
+    },
+    "ultimaSincronizacao": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "totalProcessosEncontrados": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "numeroOAB",
+    "seccional"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
