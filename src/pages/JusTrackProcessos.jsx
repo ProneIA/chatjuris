@@ -2,10 +2,9 @@ import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Search, Plus, Trash2, Eye, Edit2, Filter } from "lucide-react";
+import { Search, Plus, Trash2, Eye, Edit2 } from "lucide-react";
 import JusTrackLayout from "@/components/justrack/JusTrackLayout";
 import StatusBadge from "@/components/justrack/StatusBadge";
-import { TRIBUNAIS } from "@/components/justrack/TribunalSelect";
 
 export default function JusTrackProcessos() {
   const queryClient = useQueryClient();

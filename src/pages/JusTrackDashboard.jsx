@@ -59,7 +59,7 @@ export default function JusTrackDashboard() {
                   <span style={{ fontSize: ".72rem", color: "#8892a4", fontFamily: "'IBM Plex Sans', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>{s.label}</span>
                   <Icon style={{ width: 16, height: 16, color: s.color }} />
                 </div>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "2rem", color: s.color, margin: 0, lineHeight: 1 }}>
+                <p style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "2rem", color: s.color, margin: 0, lineHeight: 1 }}>
                   {isLoading ? "—" : s.value}
                 </p>
               </div>
