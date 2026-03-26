@@ -18,6 +18,7 @@ import JusTrackNovo from './pages/JusTrackNovo';
 import JusTrackDetalhes from './pages/JusTrackDetalhes';
 import JusTrackEditar from './pages/JusTrackEditar';
 import JusTrackOAB from './pages/JusTrackOAB';
+import JusTrackConfiguracoes from './pages/JusTrackConfiguracoes';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/JusTrackNovo" element={<JusTrackNovo />} />
       <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
       <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
+      <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
       <Route path="/AffiliatesDashboard" element={
         <LayoutWrapper currentPageName="AffiliatesDashboard">
           <AffiliatesDashboard />

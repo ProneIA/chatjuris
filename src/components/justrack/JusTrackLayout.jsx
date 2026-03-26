@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Scale, LayoutDashboard, Search, FolderOpen, Plus, Menu, X, BadgeCheck, RefreshCw } from "lucide-react";
+import { Scale, LayoutDashboard, Search, FolderOpen, Plus, Menu, X, User, RefreshCw, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
   { label: "Dashboard", path: "/JusTrackDashboard", icon: LayoutDashboard },
   { label: "Pesquisar", path: "/JusTrackPesquisa", icon: Search },
-  { label: "Minha OAB", path: "/JusTrackOAB", icon: BadgeCheck },
+  { label: "Busca por Advogado", path: "/JusTrackOAB", icon: User },
   { label: "Processos", path: "/JusTrackProcessos", icon: FolderOpen },
   { label: "Cadastrar", path: "/JusTrackNovo", icon: Plus },
+  { label: "Configurações", path: "/JusTrackConfiguracoes", icon: Settings },
 ];
 
 function parseRelativeTime(dt) {
@@ -87,12 +88,12 @@ export default function JusTrackLayout({ children }) {
                 </div>
               </div>
               <Link to="/JusTrackOAB" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".35rem", padding: ".35rem", background: "rgba(201,168,76,.08)", border: "1px solid rgba(201,168,76,.2)", color: "#C9A84C", textDecoration: "none", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: ".65rem", letterSpacing: ".05em" }}>
-                <RefreshCw style={{ width: 10, height: 10 }} />SINCRONIZAR
+                <RefreshCw style={{ width: 10, height: 10 }} />BUSCAR
               </Link>
             </div>
           ) : (
             <Link to="/JusTrackOAB" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".4rem", padding: ".45rem", background: "rgba(201,168,76,.06)", border: "1px solid rgba(201,168,76,.15)", color: "#C9A84C", textDecoration: "none", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: ".65rem", letterSpacing: ".06em" }}>
-              <BadgeCheck style={{ width: 11, height: 11 }} />VINCULAR OAB
+              <User style={{ width: 11, height: 11 }} />BUSCAR ADVOGADO
             </Link>
           )}
           <p style={{ fontSize: ".55rem", color: "#2a3550", fontFamily: "'IBM Plex Sans', sans-serif", textAlign: "center", marginTop: ".5rem" }}>

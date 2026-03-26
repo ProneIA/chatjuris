@@ -29,10 +29,17 @@
     "totalProcessosEncontrados": {
       "type": "number",
       "default": 0
+    },
+    "juditApiKey": {
+      "type": "string",
+      "description": "API Key da Judit para busca por OAB"
+    },
+    "escavadorApiKey": {
+      "type": "string",
+      "description": "API Key do Escavador para monitoramento"
     }
   },
   "required": [
-    "numeroOAB",
     "seccional"
   ],
   "rls": {
