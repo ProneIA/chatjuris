@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Scale, Search, Plus, FileText, CheckCircle, Archive, Clock, TrendingUp } from "lucide-react";
+import { Scale, Search, Plus, FileText, CheckCircle, Archive, Clock } from "lucide-react";
 import JusTrackLayout from "@/components/justrack/JusTrackLayout";
 import StatusBadge from "@/components/justrack/StatusBadge";
+import TribunalDonutChart from "@/components/justrack/TribunalDonutChart";
 
 export default function JusTrackDashboard() {
   const { data: processos = [], isLoading } = useQuery({
@@ -64,6 +65,22 @@ export default function JusTrackDashboard() {
               </div>
             );
           })}
+        </div>
+
+        {/* Gráfico de rosca — distribuição por tribunal */}
+        <div style={{ background: "#161b27", border: "1px solid #1e2740" }}>
+          <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #1e2740" }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, fontSize: "1rem", color: "#e8eaf0", margin: 0 }}>
+              Distribuição por Tribunal
+            </h2>
+          </div>
+          <div style={{ padding: "1rem 1.5rem" }}>
+            {isLoading ? (
+              <div style={{ padding: "2rem", textAlign: "center", color: "#8892a4", fontFamily: "'IBM Plex Sans', sans-serif" }}>Carregando...</div>
+            ) : (
+              <TribunalDonutChart processos={processos} />
+            )}
+          </div>
         </div>
 
         {/* Últimos processos */}

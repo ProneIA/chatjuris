@@ -33,23 +33,32 @@ function parseProcesso(hit) {
 }
 
 export default function JusTrackPesquisa() {
+  const [tipoBusca, setTipoBusca] = useState("numero"); // "numero" | "parte"
   const [numero, setNumero] = useState("");
+  const [nomeParte, setNomeParte] = useState("");
   const [tribunalUrl, setTribunalUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resultados, setResultados] = useState([]); // múltiplos resultados para busca por parte
   const [resultado, setResultado] = useState(null);
   const [erro, setErro] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleSearch = async () => {
-    if (!numero.trim()) { setErro("Digite o número do processo."); return; }
+    if (tipoBusca === "numero" && !numero.trim()) { setErro("Digite o número do processo."); return; }
+    if (tipoBusca === "parte" && !nomeParte.trim()) { setErro("Digite o nome da parte."); return; }
     if (!tribunalUrl) { setErro("Selecione o tribunal."); return; }
-    setErro(""); setResultado(null); setSaved(false); setLoading(true);
+    setErro(""); setResultado(null); setResultados([]); setSaved(false); setLoading(true);
     try {
-      const res = await base44.functions.invoke("datajudSearch", { numeroProcesso: numero.replace(/\D/g, "").replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6"), tribunalUrl });
+      const payload = tipoBusca === "numero"
+        ? { numeroProcesso: numero.replace(/\D/g, "").replace(/(\d{7})(\d{2})(\d{4})(\d{1})(\d{2})(\d{4})/, "$1-$2.$3.$4.$5.$6"), tribunalUrl }
+        : { nomeParte: nomeParte.trim(), tribunalUrl };
+      const res = await base44.functions.invoke("datajudSearch", payload);
       const hits = res?.data?.hits || [];
       if (hits.length === 0) {
-        setErro("Nenhum processo encontrado para esse número e tribunal. Verifique os dados ou cadastre manualmente.");
+        setErro("Nenhum processo encontrado. Verifique os dados ou cadastre manualmente.");
+      } else if (tipoBusca === "parte") {
+        setResultados(hits.map(h => parseProcesso(h)));
       } else {
         setResultado(parseProcesso(hits[0]));
       }
@@ -116,26 +125,41 @@ export default function JusTrackPesquisa() {
         {/* Formulário */}
         <div style={{ background: "#161b27", border: "1px solid #1e2740", padding: "1.5rem" }}>
           <div className="space-y-4">
-            <div>
-              <label style={labelStyle}>Número do Processo (formato CNJ)</label>
-              <input
-                style={inputStyle}
-                placeholder="0000000-00.0000.0.00.0000"
-                value={numero}
-                onChange={e => setNumero(maskCNJ(e.target.value))}
-                onKeyDown={e => e.key === "Enter" && handleSearch()}
-                maxLength={25}
-              />
+            {/* Toggle tipo de busca */}
+            <div style={{ display: "flex", gap: 0, border: "1px solid #1e2740", width: "fit-content" }}>
+              {[["numero", "Por Número CNJ"], ["parte", "Por Nome da Parte"]].map(([val, label]) => (
+                <button key={val} onClick={() => { setTipoBusca(val); setErro(""); setResultado(null); setResultados([]); }}
+                  style={{ padding: ".45rem 1rem", background: tipoBusca === val ? "#C9A84C" : "transparent", border: "none", color: tipoBusca === val ? "#0d1117" : "#8892a4", cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: tipoBusca === val ? 700 : 400, fontSize: ".75rem", letterSpacing: ".04em" }}>
+                  {label}
+                </button>
+              ))}
             </div>
+
+            {tipoBusca === "numero" ? (
+              <div>
+                <label style={labelStyle}>Número do Processo (formato CNJ)</label>
+                <input style={inputStyle} placeholder="0000000-00.0000.0.00.0000" value={numero}
+                  onChange={e => setNumero(maskCNJ(e.target.value))}
+                  onKeyDown={e => e.key === "Enter" && handleSearch()} maxLength={25} />
+              </div>
+            ) : (
+              <div>
+                <label style={labelStyle}>Nome da Parte</label>
+                <input style={inputStyle} placeholder="Ex: João da Silva ou Empresa LTDA"
+                  value={nomeParte} onChange={e => setNomeParte(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSearch()} />
+                <p style={{ fontSize: ".68rem", color: "#4a5568", fontFamily: "'IBM Plex Sans', sans-serif", margin: ".3rem 0 0" }}>
+                  Busca no campo <code style={{ color: "#C9A84C" }}>partes.nome</code> via Elasticsearch
+                </p>
+              </div>
+            )}
+
             <div>
               <label style={labelStyle}>Tribunal</label>
               <TribunalSelect value={tribunalUrl} onChange={setTribunalUrl} style={{ background: "#161b27" }} />
             </div>
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              style={{ display: "flex", alignItems: "center", gap: ".5rem", padding: ".75rem 1.5rem", background: "#C9A84C", border: "none", color: "#0d1117", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: ".82rem", opacity: loading ? .7 : 1, letterSpacing: ".05em" }}
-            >
+            <button onClick={handleSearch} disabled={loading}
+              style={{ display: "flex", alignItems: "center", gap: ".5rem", padding: ".75rem 1.5rem", background: "#C9A84C", border: "none", color: "#0d1117", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: ".82rem", opacity: loading ? .7 : 1, letterSpacing: ".05em" }}>
               {loading ? <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} /> : <Search style={{ width: 16, height: 16 }} />}
               {loading ? "Pesquisando..." : "Pesquisar na API DataJud"}
             </button>
@@ -156,7 +180,37 @@ export default function JusTrackPesquisa() {
           </div>
         )}
 
-        {/* Resultado */}
+        {/* Múltiplos resultados (busca por parte) */}
+        {resultados.length > 0 && (
+          <div style={{ background: "#161b27", border: "1px solid #1e2740" }}>
+            <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #1e2740", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, fontSize: "1rem", color: "#C9A84C", margin: 0 }}>
+                {resultados.length} processo{resultados.length !== 1 ? "s" : ""} encontrado{resultados.length !== 1 ? "s" : ""}
+              </h3>
+            </div>
+            {resultados.map((r, i) => (
+              <div key={i} style={{ padding: "1rem 1.5rem", borderBottom: i < resultados.length - 1 ? "1px solid #1a2035" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: ".5rem" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#1a2035"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                <div>
+                  <p style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, color: "#C9A84C", fontSize: ".85rem", margin: "0 0 .15rem" }}>{r.numeroProcesso || "—"}</p>
+                  <p style={{ fontFamily: "'IBM Plex Sans', sans-serif", color: "#8892a4", fontSize: ".75rem", margin: 0 }}>
+                    {r.classeProcessual || ""}{r.classeProcessual && r.orgaoJulgador ? " · " : ""}{r.orgaoJulgador || ""}
+                  </p>
+                </div>
+                <button onClick={async () => {
+                  const tribunalNome = getTribunalNome(tribunalUrl);
+                  await base44.entities.Processo.create({ ...r, tribunal: tribunalNome, tribunalUrl, status: "Ativo" });
+                  alert("Processo salvo com sucesso!");
+                }} style={{ padding: ".4rem .9rem", background: "rgba(201,168,76,.12)", border: "1px solid rgba(201,168,76,.3)", color: "#C9A84C", cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: ".72rem" }}>
+                  <Save style={{ width: 12, height: 12, display: "inline", marginRight: 4 }} />Salvar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Resultado único (busca por número) */}
         {resultado && (
           <div style={{ background: "#161b27", border: "1px solid #1e2740" }}>
             <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #1e2740", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

@@ -12,10 +12,21 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autenticado' }, { status: 401 });
 
-    const { numeroProcesso, tribunalUrl } = await req.json();
+    const { numeroProcesso, nomeParte, tribunalUrl } = await req.json();
 
-    if (!numeroProcesso || !tribunalUrl) {
-      return Response.json({ error: 'Parâmetros obrigatórios: numeroProcesso, tribunalUrl' }, { status: 400 });
+    if (!tribunalUrl) {
+      return Response.json({ error: 'Parâmetro obrigatório: tribunalUrl' }, { status: 400 });
+    }
+    if (!numeroProcesso && !nomeParte) {
+      return Response.json({ error: 'Informe numeroProcesso ou nomeParte' }, { status: 400 });
+    }
+
+    // Monta a query ES conforme o tipo de busca
+    let esQuery;
+    if (nomeParte) {
+      esQuery = { query: { match: { "partes.nome": nomeParte } }, size: 10 };
+    } else {
+      esQuery = { query: { match: { numeroProcesso } } };
     }
 
     const mpRes = await fetch(tribunalUrl, {
@@ -24,9 +35,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
         "Authorization": DATAJUD_API_KEY,
       },
-      body: JSON.stringify({
-        query: { match: { numeroProcesso } }
-      }),
+      body: JSON.stringify(esQuery),
     });
 
     if (!mpRes.ok) {
