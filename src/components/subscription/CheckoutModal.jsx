@@ -6,7 +6,8 @@ import { X, Loader2, AlertCircle, CheckCircle2, Lock, CreditCard, Shield } from 
    CheckoutModal — Mercado Pago Bricks (somente cartão de crédito)
    - Parcelamento apenas para planos anuais (adv_yearly, empresa_yearly)
    - Planos mensais: apenas à vista (maxInstallments: 1)
-   - O Brick do MP exibe o botão de pagamento nativo
+   - CORREÇÃO: dropdown externo removido; parcelamento gerenciado
+     100% pelo Brick nativo do MP para evitar dessincronização.
    ═══════════════════════════════════════════════════════════ */
 
 const ANNUAL_PLAN_IDS = ["adv_yearly", "empresa_yearly"];
@@ -37,7 +38,6 @@ export default function CheckoutModal({ plan, onClose }) {
   const [status, setStatus] = useState("loading"); // loading | ready | processing | success | error
   const [errorMsg, setErrorMsg] = useState("");
   const [retryCount, setRetryCount] = useState(0);
-  const [selectedInstallments, setSelectedInstallments] = useState(1);
   const [paymentId, setPaymentId] = useState(null);
   const brickRef = useRef(null);
   const mountedRef = useRef(false);
@@ -46,17 +46,6 @@ export default function CheckoutModal({ plan, onClose }) {
 
   const isAnnual = ANNUAL_PLAN_IDS.includes(plan.id);
   const fmt = (v) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-  const parcela = plan.amount / selectedInstallments;
-
-  // Opções de parcelamento para exibição no resumo (apenas anuais)
-  const installmentOptions = isAnnual
-    ? Array.from({ length: 12 }, (_, i) => ({
-        value: i + 1,
-        label: i === 0
-          ? `1x de R$ ${fmt(plan.amount)} (à vista)`
-          : `${i + 1}x de R$ ${fmt(plan.amount / (i + 1))} sem juros`,
-      }))
-    : [{ value: 1, label: `1x de R$ ${fmt(plan.amount)} (à vista)` }];
 
   const initBrick = async () => {
     try {
@@ -81,7 +70,6 @@ export default function CheckoutModal({ plan, onClose }) {
       const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
       const bricksBuilder = mp.bricks();
 
-      // Tornar o container visível ANTES de montar o Brick
       setStatus("ready");
       await new Promise(resolve => setTimeout(resolve, 350));
       if (!mountedRef.current) return;
@@ -96,6 +84,9 @@ export default function CheckoutModal({ plan, onClose }) {
       }
 
       // 6. Montar Payment Brick
+      // CORREÇÃO: o parcelamento é controlado exclusivamente pelo Brick.
+      // formData.installments retornado pelo onSubmit é a fonte de verdade.
+      // Não há dropdown externo que possa gerar dessincronização.
       const brickController = await bricksBuilder.create("payment", containerId, {
         initialization: {
           amount: plan.amount,
@@ -104,7 +95,10 @@ export default function CheckoutModal({ plan, onClose }) {
         customization: {
           paymentMethods: {
             creditCard: "all",
+            // Anuais: até 12x sem juros. Mensais: somente à vista.
             maxInstallments: isAnnual ? 12 : 1,
+            // Garante que o Brick exibe "sem juros" para todas as parcelas anuais
+            ...(isAnnual && { installments: 12 }),
           },
           visual: {
             style: {
@@ -122,10 +116,11 @@ export default function CheckoutModal({ plan, onClose }) {
             setStatus("processing");
 
             try {
-              // Para anuais: usa o número de parcelas selecionado pelo usuário no resumo
-              // Para mensais: força 1x
+              // CORREÇÃO: usa SOMENTE formData.installments (valor vindo do Brick),
+              // que é sempre o que o cliente realmente selecionou no formulário.
+              // Para mensais, força 1x como garantia adicional.
               const installmentsToSend = isAnnual
-                ? (formData.installments || selectedInstallments)
+                ? (Number(formData.installments) || 1)
                 : 1;
 
               const response = await base44.functions.invoke("lexiaProcessPayment", {
@@ -164,7 +159,6 @@ export default function CheckoutModal({ plan, onClose }) {
           },
           onError: (err) => {
             if (!mountedRef.current) return;
-            // Ignorar erros não-críticos
             if (err?.cause?.some?.(c => c?.code === "non_critical")) return;
             console.error("Brick error:", err);
             setErrorMsg("Erro ao inicializar o formulário de pagamento.");
@@ -255,38 +249,19 @@ export default function CheckoutModal({ plan, onClose }) {
               </div>
             </div>
 
-            {/* Parcelamento — só para anuais */}
-            {isAnnual ? (
-              <div>
-                <label style={{ fontSize: ".68rem", color: "#6b6b80", display: "block", marginBottom: ".25rem", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".08em" }}>
-                  Parcelamento (sem juros)
-                </label>
-                <select
-                  value={selectedInstallments}
-                  onChange={e => setSelectedInstallments(Number(e.target.value))}
-                  disabled={status === "processing"}
-                  style={{ width: "100%", padding: ".5rem .75rem", border: "1px solid #e0e0ea", background: "#fff", fontSize: ".82rem", fontFamily: "'Oswald', sans-serif", color: "#0a0a0a", cursor: "pointer", outline: "none" }}
-                >
-                  {installmentOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-                {selectedInstallments > 1 && (
-                  <p style={{ fontSize: ".72rem", color: "#191970", margin: ".4rem 0 0", fontWeight: 600 }}>
-                    Total: R$ {fmt(plan.amount)} em {selectedInstallments}x de R$ {fmt(parcela)} sem juros
-                  </p>
-                )}
-                <p style={{ fontSize: ".68rem", color: "#999", margin: ".3rem 0 0" }}>
-                  ⚠ Selecione o parcelamento acima antes de preencher o cartão.
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: ".82rem", color: "#0a0a0a", fontWeight: 600 }}>{plan.name}</span>
-                <span style={{ fontSize: ".82rem", color: "#0a0a0a", fontWeight: 700, fontFamily: "'Oswald', sans-serif" }}>
-                  R$ {fmt(plan.amount)} à vista
-                </span>
-              </div>
+            {/* CORREÇÃO: removido o dropdown customizado de parcelamento.
+                O Brick do MP gerencia o parcelamento internamente.
+                Exibimos apenas uma informação estática clara para o usuário. */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: ".82rem", color: "#0a0a0a", fontWeight: 600 }}>{plan.name}</span>
+              <span style={{ fontSize: ".82rem", color: "#0a0a0a", fontWeight: 700, fontFamily: "'Oswald', sans-serif" }}>
+                R$ {fmt(plan.amount)}{isAnnual ? " /ano" : " à vista"}
+              </span>
+            </div>
+            {isAnnual && (
+              <p style={{ fontSize: ".72rem", color: "#191970", margin: ".4rem 0 0", fontWeight: 600 }}>
+                Parcelamento em até 12x sem juros — selecione no formulário abaixo.
+              </p>
             )}
           </div>
         )}
