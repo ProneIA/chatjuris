@@ -1,0 +1,58 @@
+{
+  "name": "OfficeConfig",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "office_name": {
+      "type": "string",
+      "description": "Nome do escrit\u00f3rio"
+    },
+    "lawyer_name": {
+      "type": "string",
+      "description": "Nome do advogado"
+    },
+    "practice_areas": {
+      "type": "string",
+      "description": "\u00c1reas de atua\u00e7\u00e3o"
+    },
+    "fee_table": {
+      "type": "string",
+      "description": "Tabela de honor\u00e1rios em texto livre"
+    },
+    "working_hours": {
+      "type": "string",
+      "description": "Hor\u00e1rio de funcionamento, ex: Seg-Sex 9h-18h"
+    },
+    "meeting_duration": {
+      "type": "number",
+      "default": 60,
+      "description": "Dura\u00e7\u00e3o padr\u00e3o de reuni\u00f5es em minutos"
+    },
+    "welcome_message": {
+      "type": "string",
+      "description": "Mensagem de boas-vindas"
+    }
+  },
+  "required": [
+    "user_id",
+    "office_name",
+    "lawyer_name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
