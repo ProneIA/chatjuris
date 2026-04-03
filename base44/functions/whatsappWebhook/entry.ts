@@ -3,25 +3,28 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const body = await req.json();
+    console.log("whatsappWebhook payload:", JSON.stringify(body).slice(0, 500));
 
-    // 1. Extrair dados do webhook
-    const instance = body?.instance;
+    // 1. Extrair dados do webhook da Evolution API
+    // O instance pode vir como string ou objeto
+    const instanceRaw = body?.instance;
+    const instance = typeof instanceRaw === "object" ? instanceRaw?.instanceName : instanceRaw;
+
     const data = body?.data;
     const remoteJid = data?.key?.remoteJid;
     const fromMe = data?.key?.fromMe;
     const text = data?.message?.conversation || data?.message?.extendedTextMessage?.text;
 
-    // Ignorar se não houver texto ou for mensagem própria
+    // Ignorar se não houver texto, for mensagem própria, ou não tiver instância
     if (!text || fromMe || !instance || !remoteJid) {
       return Response.json({ success: true });
     }
 
     const contactPhone = remoteJid.replace("@s.whatsapp.net", "").replace("@g.us", "");
 
-    // Usar service role pois não há autenticação de usuário nesse endpoint
     const base44 = createClientFromRequest(req);
 
-    // 2. Identificar o advogado via WhatsappSession
+    // 2. Identificar o advogado via WhatsappSession (instance = user_id)
     const sessions = await base44.asServiceRole.entities.WhatsappSession.filter({
       user_id: instance,
       status: "connected",
@@ -29,10 +32,11 @@ Deno.serve(async (req) => {
     });
 
     if (!sessions || sessions.length === 0) {
+      console.log("Nenhuma sessão ativa para instância:", instance);
       return Response.json({ success: true });
     }
 
-    // 3. Carregar contexto do escritório
+    // 3. Carregar contexto do escritório e histórico em paralelo
     const [officeConfigs, recentMessages] = await Promise.all([
       base44.asServiceRole.entities.OfficeConfig.filter({ user_id: instance }),
       base44.asServiceRole.entities.WhatsappMessage.filter(
@@ -53,8 +57,8 @@ Deno.serve(async (req) => {
       sent_at: new Date().toISOString(),
     });
 
-    // 5. Montar system prompt e histórico
-    const systemPrompt = `Você é o assistente virtual do escritório ${office.office_name || "do advogado"} do advogado ${office.lawyer_name || ""}.
+    // 5. Montar system prompt
+    const systemPrompt = `Você é o assistente virtual do escritório "${office.office_name || "de advocacia"}", do advogado ${office.lawyer_name || ""}.
 Áreas de atuação: ${office.practice_areas || "não informado"}
 Honorários: ${office.fee_table || "não informado"}
 Horário de atendimento: ${office.working_hours || "não informado"}
@@ -62,36 +66,29 @@ Duração padrão de reuniões: ${office.meeting_duration || 60} minutos
 
 Suas funções:
 - Responder dúvidas sobre valores e áreas de atuação do escritório
-- Agendar reuniões com o advogado
+- Auxiliar no agendamento de reuniões
 - Ser cordial e profissional
 
 IMPORTANTE: Você representa APENAS este escritório. Nunca mencione outros escritórios ou advogados.`;
 
-    // Montar histórico (mensagens mais antigas primeiro)
+    // Montar histórico (mais antigas primeiro)
     const history = recentMessages
       .reverse()
-      .map(m => ({
-        role: m.direction === "inbound" ? "user" : "assistant",
-        content: m.content,
-      }));
-
-    // Adicionar nova mensagem do usuário
-    history.push({ role: "user", content: text });
-
-    // Formatar prompt completo com histórico
-    const historyText = history
-      .map(m => `${m.role === "user" ? "Cliente" : "Assistente"}: ${m.content}`)
+      .map(m => `${m.direction === "inbound" ? "Cliente" : "Assistente"}: ${m.content}`)
       .join("\n");
 
-    const fullPrompt = `${systemPrompt}\n\nHistórico da conversa:\n${historyText}\n\nResponda apenas como o Assistente, sem prefixo:`;
+    const fullPrompt = `${systemPrompt}\n\nHistórico da conversa:\n${history}\n\nCliente: ${text}\n\nAssistente:`;
 
-    const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
+    // 6. Gerar resposta via LLM
+    const agentReply = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: fullPrompt,
     });
 
-    const agentReply = typeof llmResult === "string" ? llmResult : llmResult?.response || llmResult?.text || "Desculpe, não consegui processar sua mensagem.";
+    const replyText = typeof agentReply === "string"
+      ? agentReply
+      : agentReply?.response || agentReply?.text || "Desculpe, não consegui processar sua mensagem.";
 
-    // 6. Enviar resposta via Evolution API
+    // 7. Enviar resposta via Evolution API
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
@@ -103,16 +100,16 @@ IMPORTANTE: Você representa APENAS este escritório. Nunca mencione outros escr
       },
       body: JSON.stringify({
         number: contactPhone,
-        text: agentReply,
+        text: replyText,
       }),
     });
 
-    // 7. Salvar resposta enviada
+    // 8. Salvar resposta enviada
     await base44.asServiceRole.entities.WhatsappMessage.create({
       user_id: instance,
       contact_phone: contactPhone,
       direction: "outbound",
-      content: agentReply,
+      content: replyText,
       sent_at: new Date().toISOString(),
     });
 
