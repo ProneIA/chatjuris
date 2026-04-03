@@ -39,6 +39,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 4. Configurar webhook na Evolution API
+    await base44.functions.invoke('setupEvolutionWebhook', { user_id: user.id });
+
     // QR code pode vir em connectData.base64 ou connectData.qrcode.base64
     const qrBase64 = connectData?.base64 || connectData?.qrcode?.base64 || null;
 
