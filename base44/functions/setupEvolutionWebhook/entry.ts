@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
     const PUBLIC_URL = Deno.env.get("PUBLIC_URL");
 
-    const webhookUrl = `${PUBLIC_URL}/webhook/whatsapp`;
+    const webhookUrl = "https://chatjuris.com/webhook/whatsapp";
 
     const res = await fetch(`${EVOLUTION_API_URL}/webhook/set/${user_id}`, {
       method: "POST",
