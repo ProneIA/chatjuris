@@ -1,0 +1,39 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+    const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+
+    // Buscar todas as instâncias
+    const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+      headers: { "apikey": EVOLUTION_API_KEY },
+    });
+    const instances = await res.json();
+
+    // Encontrar a instância do usuário
+    const instance = Array.isArray(instances)
+      ? instances.find(i => i.instance?.instanceName === user.id || i.instanceName === user.id)
+      : null;
+
+    const state = instance?.instance?.state || instance?.state || null;
+    const isConnected = state === "open";
+
+    // Atualizar WhatsappSession
+    const sessions = await base44.entities.WhatsappSession.filter({ user_id: user.id });
+    if (sessions.length > 0) {
+      const updateData = isConnected
+        ? { status: "connected", connected_at: new Date().toISOString() }
+        : { status: "disconnected" };
+      await base44.entities.WhatsappSession.update(sessions[0].id, updateData);
+    }
+
+    return Response.json({ status: isConnected ? "connected" : "disconnected", state });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
