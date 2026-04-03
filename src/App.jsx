@@ -21,6 +21,7 @@ import JusTrackOAB from './pages/JusTrackOAB';
 import JusTrackConfiguracoes from './pages/JusTrackConfiguracoes';
 import WhatsAppConnect from './pages/WhatsAppConnect';
 import AgentSettings from './pages/AgentSettings';
+import WhatsAppConversations from './pages/WhatsAppConversations';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
       <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
       <Route path="/WhatsAppConnect" element={<LayoutWrapper currentPageName="WhatsAppConnect"><WhatsAppConnect /></LayoutWrapper>} />
       <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><AgentSettings /></LayoutWrapper>} />
+      <Route path="/conversations" element={<LayoutWrapper currentPageName="WhatsAppConversations"><WhatsAppConversations /></LayoutWrapper>} />
       <Route path="/AffiliatesDashboard" element={
         <LayoutWrapper currentPageName="AffiliatesDashboard">
           <AffiliatesDashboard />
