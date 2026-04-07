@@ -30,9 +30,9 @@ export default function WhatsAppConversations() {
 
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current.scrollIntoView({ behavior: "auto" });
     }
-  }, [selectedContact, messages]);
+  }, [selectedContact]);
 
   // Agrupar mensagens por contato
   const contacts = React.useMemo(() => {
