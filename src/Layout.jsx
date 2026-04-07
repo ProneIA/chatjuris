@@ -60,6 +60,7 @@ const navigationItems = [
   { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare },
+  { title: "Conversas WhatsApp", url: "/conversations", icon: MessageSquare },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearch"), icon: Scale },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
