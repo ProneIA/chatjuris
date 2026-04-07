@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { MessageSquare, CheckCircle2, PauseCircle, Search, ArrowLeft } from "lucide-react";
+import { MessageSquare, CheckCircle2, PauseCircle, Search, ArrowLeft, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -97,12 +97,17 @@ export default function WhatsAppConversations() {
               <div style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.4rem", color: "var(--primary)", lineHeight: 1 }}>{todayReplies}</div>
               <div style={{ fontSize: ".65rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".08em" }}>Respostas hoje</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.35rem 0.75rem", background: agentActive ? "rgba(22,163,74,0.08)" : "var(--surface-2)", border: `1px solid ${agentActive ? "rgba(22,163,74,0.3)" : "var(--border)"}` }}>
+            <Link
+              to="/AgentSettings"
+              style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.35rem 0.75rem", background: agentActive ? "rgba(22,163,74,0.08)" : "var(--surface-2)", border: `1px solid ${agentActive ? "rgba(22,163,74,0.3)" : "var(--border)"}`, textDecoration: "none" }}
+              title="Configurar agente"
+            >
               {agentActive
                 ? <><CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#16a34a" }} /><span style={{ fontSize: ".7rem", color: "#16a34a", fontFamily: "'Oswald', sans-serif", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em" }}>Agente ativo</span></>
                 : <><PauseCircle className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} /><span style={{ fontSize: ".7rem", color: "var(--text-muted)", fontFamily: "'Oswald', sans-serif", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em" }}>Agente pausado</span></>
               }
-            </div>
+              <Settings className="w-3 h-3" style={{ color: "var(--text-muted)", marginLeft: "0.2rem" }} />
+            </Link>
           </div>
         </div>
       </div>

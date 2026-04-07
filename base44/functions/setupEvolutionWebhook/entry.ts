@@ -6,14 +6,17 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { user_id } = await req.json();
-    if (!user_id) return Response.json({ error: 'user_id required' }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const user_id = body?.user_id || user.id;
 
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-    const PUBLIC_URL = Deno.env.get("PUBLIC_URL");
+    const APP_ID = Deno.env.get("BASE44_APP_ID");
 
-    const webhookUrl = "https://chatjuris.com/webhook/whatsapp";
+    // URL correta das functions Base44
+    const webhookUrl = `https://app--chatjuris.base44.app/api/apps/${APP_ID}/functions/whatsappWebhook`;
+
+    console.log("Configurando webhook para instância:", user_id, "URL:", webhookUrl);
 
     const res = await fetch(`${EVOLUTION_API_URL}/webhook/set/${user_id}`, {
       method: "POST",
@@ -30,8 +33,10 @@ Deno.serve(async (req) => {
     });
 
     const data = await res.json();
-    return Response.json({ success: true, data });
+    console.log("Webhook configurado:", JSON.stringify(data));
+    return Response.json({ success: true, webhook_url: webhookUrl, data });
   } catch (error) {
+    console.error("setupEvolutionWebhook error:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

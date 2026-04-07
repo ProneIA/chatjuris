@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, Smartphone } from "lucide-react";
+import { Loader2, CheckCircle2, Smartphone, Settings } from "lucide-react";
 
 export default function WhatsAppConnect() {
   const [qrCode, setQrCode] = useState(null);
@@ -34,7 +35,12 @@ export default function WhatsAppConnect() {
     setError(null);
     try {
       const res = await base44.functions.invoke("checkWhatsappStatus", {});
-      setStatus(res.data?.status || "disconnected");
+      const st = res.data?.status || "disconnected";
+      setStatus(st);
+      // Se conectou, configura o webhook automaticamente
+      if (st === "connected") {
+        await base44.functions.invoke("setupEvolutionWebhook", {}).catch(() => {});
+      }
     } catch (e) {
       setError(e.message || "Erro ao verificar status.");
     } finally {
@@ -100,11 +106,19 @@ export default function WhatsAppConnect() {
 
           {/* Status conectado */}
           {status === "connected" && (
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-4 w-full">
               <CheckCircle2 className="w-12 h-12" style={{ color: "#16a34a" }} />
-              <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: "1rem", color: "#16a34a", textTransform: "uppercase", letterSpacing: ".05em" }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: "1rem", color: "#16a34a", textTransform: "uppercase", letterSpacing: ".05em", textAlign: "center" }}>
                 WhatsApp conectado com sucesso!
               </p>
+              <Link
+                to="/AgentSettings"
+                className="btn-primary w-full justify-center"
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", justifyContent: "center" }}
+              >
+                <Settings className="w-4 h-4" />
+                Configurar Agente →
+              </Link>
             </div>
           )}
 
