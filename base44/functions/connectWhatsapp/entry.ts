@@ -11,7 +11,8 @@ Deno.serve(async (req) => {
     const instanceName = user.id;
 
     // 1. Criar instância (ignora erro se já existir)
-    await fetch(`${EVOLUTION_API_URL}/instance/create`, {
+    const createUrl = `${EVOLUTION_API_URL}/instance/create`;
+    const createRes = await fetch(createUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,12 +20,25 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({ instanceName, token: instanceName, qrcode: true }),
     });
+    const createData = await createRes.json().catch(() => ({}));
+    console.log("[connectWhatsapp] create instance:", createUrl, "status:", createRes.status, "body:", JSON.stringify(createData));
 
     // 2. Buscar QR Code
-    const connectRes = await fetch(`${EVOLUTION_API_URL}/instance/connect/${instanceName}`, {
+    const connectUrl = `${EVOLUTION_API_URL}/instance/connect/${instanceName}`;
+    const connectRes = await fetch(connectUrl, {
       headers: { "apikey": EVOLUTION_API_KEY },
     });
-    const connectData = await connectRes.json();
+    const connectData = await connectRes.json().catch(() => ({}));
+    console.log("[connectWhatsapp] connect instance:", connectUrl, "status:", connectRes.status, "body:", JSON.stringify(connectData));
+
+    if (!connectRes.ok) {
+      return Response.json({
+        error: "Falha ao conectar instância na Evolution API",
+        url_chamada: connectUrl,
+        http_status: connectRes.status,
+        resposta_api: connectData,
+      }, { status: 502 });
+    }
 
     // 3. Salvar/atualizar WhatsappSession
     const sessions = await base44.entities.WhatsappSession.filter({ user_id: user.id });
