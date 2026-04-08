@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
         "apikey": EVOLUTION_API_KEY,
       },
-      body: JSON.stringify({ instanceName, token: instanceName, qrcode: true }),
+      body: JSON.stringify({ instanceName, integration: "WHATSAPP-BAILEYS", qrcode: true }),
     });
     const createData = await createRes.json().catch(() => ({}));
     console.log("[connectWhatsapp] create instance:", createUrl, "status:", createRes.status, "body:", JSON.stringify(createData));
