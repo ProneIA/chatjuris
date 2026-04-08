@@ -14,13 +14,14 @@ Deno.serve(async (req) => {
       headers: { "apikey": EVOLUTION_API_KEY },
     });
     const instances = await res.json();
+    console.log("[checkWhatsappStatus] fetchInstances response:", JSON.stringify(instances));
 
-    // Encontrar a instância do usuário
+    // Encontrar a instância do usuário pela estrutura v2.3.7: item.instance.instanceName
     const instance = Array.isArray(instances)
-      ? instances.find(i => i.instance?.instanceName === user.id || i.instanceName === user.id)
+      ? instances.find(i => i.instance?.instanceName === user.id)
       : null;
 
-    const state = instance?.instance?.state || instance?.state || null;
+    const state = instance?.instance?.state || null;
     const isConnected = state === "open";
 
     // Atualizar WhatsappSession
