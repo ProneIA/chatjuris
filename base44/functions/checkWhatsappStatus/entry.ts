@@ -1,13 +1,31 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
-  const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
-  const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
-    headers: { "apikey": EVOLUTION_API_KEY },
-  });
-  const data = await res.json();
-  console.log("RAW Evolution API response:", JSON.stringify(data));
-  return Response.json(data);
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+    const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+
+    const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+      headers: { "apikey": EVOLUTION_API_KEY },
+    });
+    const data = await res.json();
+
+    const isConnected = data?.connectionStatus === "open";
+
+    const sessions = await base44.entities.WhatsappSession.filter({ user_id: user.id });
+    if (sessions.length > 0) {
+      const updateData = isConnected
+        ? { status: "connected", connected_at: new Date().toISOString() }
+        : { status: "disconnected" };
+      await base44.entities.WhatsappSession.update(sessions[0].id, updateData);
+    }
+
+    return Response.json({ status: isConnected ? "connected" : "disconnected" });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
 });
