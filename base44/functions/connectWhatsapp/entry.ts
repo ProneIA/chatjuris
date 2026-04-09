@@ -10,6 +10,12 @@ Deno.serve(async (req) => {
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
     const instanceName = user.id;
 
+    // 0. Tentar deletar instância existente (ignora erro)
+    await fetch(`${EVOLUTION_API_URL}/instance/delete/${instanceName}`, {
+      method: "DELETE",
+      headers: { "apikey": EVOLUTION_API_KEY },
+    }).catch(() => {});
+
     // 1. Criar instância (ignora erro se já existir)
     const createUrl = `${EVOLUTION_API_URL}/instance/create`;
     const createRes = await fetch(createUrl, {
