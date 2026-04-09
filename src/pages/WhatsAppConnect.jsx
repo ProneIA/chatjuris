@@ -10,6 +10,7 @@ export default function WhatsAppConnect() {
   const [loadingConnect, setLoadingConnect] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
   const [error, setError] = useState(null);
+  const [debugJson, setDebugJson] = useState(null);
 
   const handleConnect = async () => {
     setLoadingConnect(true);
@@ -33,8 +34,10 @@ export default function WhatsAppConnect() {
   const handleCheckStatus = async () => {
     setLoadingCheck(true);
     setError(null);
+    setDebugJson(null);
     try {
       const res = await base44.functions.invoke("checkWhatsappStatus", {});
+      setDebugJson(JSON.stringify(res.data, null, 2));
       const st = res.data?.status || "disconnected";
       setStatus(st);
       // Se conectou, configura o webhook automaticamente
@@ -91,8 +94,12 @@ export default function WhatsAppConnect() {
                 style={{ minHeight: 44 }}
               >
                 {loadingCheck ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {loadingCheck ? "Verificando..." : "Já escaneei o QR Code"}
+              {loadingCheck ? "Verificando..." : "Já escaneei o QR Code"}
               </Button>
+
+              {debugJson && (
+                <pre style={{ width: "100%", background: "#111", color: "#0f0", fontSize: ".72rem", padding: "1rem", overflowX: "auto", border: "1px solid var(--border)", textAlign: "left" }}>{debugJson}</pre>
+              )}
 
               <button
                 onClick={handleConnect}
