@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, FileText, FolderOpen, Eye, ExternalLink } from "lucide-react";
+import { Briefcase, FileText, FolderOpen, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -111,8 +111,8 @@ export default function ClientRelatedData({ clientId, theme = 'light' }) {
             {documents.slice(0, 5).map((doc) => (
               <Card
                 key={doc.id}
-                className={`transition-all ${doc.file_url ? 'cursor-pointer hover:shadow-md' : ''} ${isDark ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-500' : 'hover:border-blue-300'}`}
-                onClick={() => doc.file_url && window.open(doc.file_url, '_blank')}
+                className={`cursor-pointer transition-all hover:shadow-md ${isDark ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-500' : 'hover:border-blue-300'}`}
+                onClick={() => navigate(createPageUrl('DocumentsEnhanced') + '?docId=' + doc.id)}
               >
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">

@@ -79,6 +79,20 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Auto-open document by docId URL param (e.g. from ClientRelatedData)
+  useEffect(() => {
+    if (!documents.length) return;
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get('docId');
+    if (docId) {
+      const doc = documents.find(d => d.id === docId);
+      if (doc) {
+        setSelectedDoc(doc);
+        setShowDetails(true);
+      }
+    }
+  }, [documents]);
+
   const { data: documents = [] } = useQuery({
     queryKey: ['legal-documents', user?.email],
     queryFn: async () => {
