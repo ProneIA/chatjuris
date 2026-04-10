@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, FileText, FolderOpen } from "lucide-react";
+import { Briefcase, FileText, FolderOpen, Eye, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -109,10 +109,14 @@ export default function ClientRelatedData({ clientId, theme = 'light' }) {
         ) : (
           <div className="space-y-2">
             {documents.slice(0, 5).map((doc) => (
-              <Card key={doc.id} className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+              <Card
+                key={doc.id}
+                className={`transition-all ${doc.file_url ? 'cursor-pointer hover:shadow-md' : ''} ${isDark ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-500' : 'hover:border-blue-300'}`}
+                onClick={() => doc.file_url && window.open(doc.file_url, '_blank')}
+              >
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       isDark ? 'bg-neutral-700' : 'bg-blue-50'
                     }`}>
                       <FileText className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -127,6 +131,12 @@ export default function ClientRelatedData({ clientId, theme = 'light' }) {
                         </Badge>
                       )}
                     </div>
+                    {doc.file_url && (
+                      <Eye className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-neutral-400' : 'text-slate-400'}`} />
+                    )}
+                    {!doc.file_url && (
+                      <span className={`text-xs flex-shrink-0 ${isDark ? 'text-neutral-600' : 'text-slate-300'}`}>sem arquivo</span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
