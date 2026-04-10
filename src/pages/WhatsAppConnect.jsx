@@ -9,22 +9,10 @@ export default function WhatsAppConnect() {
   const [status, setStatus] = useState(null);
   const [loadingConnect, setLoadingConnect] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
-  const [error, setError] = useState(null);
   const [loadingWebhook, setLoadingWebhook] = useState(false);
-  const [webhookResult, setWebhookResult] = useState(null);
   const [loadingReset, setLoadingReset] = useState(false);
-
-  const handleReset = async () => {
-    if (!window.confirm("Tem certeza que deseja resetar a conexão WhatsApp?")) return;
-    setLoadingReset(true);
-    try {
-      await base44.functions.invoke("resetWhatsappConnection", {});
-      window.location.reload();
-    } catch (e) {
-      setError(e.message || "Erro ao resetar conexão.");
-      setLoadingReset(false);
-    }
-  };
+  const [webhookResult, setWebhookResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleConnect = async () => {
     setLoadingConnect(true);
@@ -45,19 +33,6 @@ export default function WhatsAppConnect() {
     }
   };
 
-  const handleConfigureWebhook = async () => {
-    setLoadingWebhook(true);
-    setWebhookResult(null);
-    try {
-      const res = await base44.functions.invoke("configureWebhook", {});
-      setWebhookResult(res.data);
-    } catch (e) {
-      setWebhookResult({ error: e.message });
-    } finally {
-      setLoadingWebhook(false);
-    }
-  };
-
   const handleCheckStatus = async () => {
     setLoadingCheck(true);
     setError(null);
@@ -75,9 +50,35 @@ export default function WhatsAppConnect() {
     }
   };
 
+  const handleConfigureWebhook = async () => {
+    setLoadingWebhook(true);
+    setWebhookResult(null);
+    try {
+      const res = await base44.functions.invoke("configureWebhook", {});
+      setWebhookResult(res.data);
+    } catch (e) {
+      setWebhookResult({ error: e.message });
+    } finally {
+      setLoadingWebhook(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!window.confirm("Tem certeza que deseja resetar a conexão WhatsApp?")) return;
+    setLoadingReset(true);
+    try {
+      await base44.functions.invoke("resetWhatsappConnection", {});
+      window.location.reload();
+    } catch (e) {
+      setError(e.message || "Erro ao resetar conexão.");
+      setLoadingReset(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "var(--bg)" }}>
       <div className="w-full max-w-md" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+
         {/* Header */}
         <div style={{ borderBottom: "1px solid var(--border)", padding: "1.25rem 1.5rem" }} className="flex items-center gap-3">
           <Smartphone className="w-5 h-5" style={{ color: "var(--primary)" }} />
@@ -87,6 +88,7 @@ export default function WhatsAppConnect() {
         </div>
 
         <div className="p-6 flex flex-col items-center gap-6">
+
           {/* Botão conectar */}
           {!qrCode && status !== "connected" && (
             <Button
@@ -95,7 +97,7 @@ export default function WhatsAppConnect() {
               className="btn-primary w-full justify-center"
               style={{ minHeight: 44 }}
             >
-              {loadingConnect ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {loadingConnect && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {loadingConnect ? "Gerando QR Code..." : "Conectar WhatsApp"}
             </Button>
           )}
@@ -117,10 +119,9 @@ export default function WhatsAppConnect() {
                 className="btn-ghost w-full justify-center"
                 style={{ minHeight: 44 }}
               >
-                {loadingCheck ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              {loadingCheck ? "Verificando..." : "Já escaneei o QR Code"}
+                {loadingCheck && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                {loadingCheck ? "Verificando..." : "Já escaneei o QR Code"}
               </Button>
-
               <button
                 onClick={handleConnect}
                 disabled={loadingConnect}
@@ -140,7 +141,7 @@ export default function WhatsAppConnect() {
               </p>
               <Link
                 to="/AgentSettings"
-                className="btn-primary w-full justify-center"
+                className="btn-primary w-full"
                 style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", justifyContent: "center" }}
               >
                 <Settings className="w-4 h-4" />
@@ -149,11 +150,16 @@ export default function WhatsAppConnect() {
             </div>
           )}
 
-          {/* Status desconectado (após checar) */}
+          {/* Status desconectado */}
           {status === "disconnected" && (
             <p style={{ fontSize: ".82rem", color: "#dc2626", textAlign: "center" }}>
               WhatsApp ainda não conectado. Escaneie o QR Code e tente novamente.
             </p>
+          )}
+
+          {/* Erro */}
+          {error && (
+            <p style={{ fontSize: ".82rem", color: "#dc2626", textAlign: "center" }}>{error}</p>
           )}
 
           {/* Resetar conexão */}
@@ -162,9 +168,9 @@ export default function WhatsAppConnect() {
               onClick={handleReset}
               disabled={loadingReset}
               className="w-full justify-center"
-              style={{ minHeight: 44, background: "transparent", border: "1px solid #dc2626", color: "#dc2626", fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em", cursor: "pointer" }}
+              style={{ minHeight: 44, background: "transparent", border: "1px solid #dc2626", color: "#dc2626", fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em" }}
             >
-              {loadingReset ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {loadingReset && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {loadingReset ? "Resetando..." : "Resetar Conexão"}
             </Button>
           </div>
@@ -177,20 +183,16 @@ export default function WhatsAppConnect() {
               className="btn-ghost w-full justify-center"
               style={{ minHeight: 44 }}
             >
-              {loadingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {loadingWebhook && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {loadingWebhook ? "Configurando..." : "Configurar Webhook"}
             </Button>
             {webhookResult && (
-              <pre style={{ marginTop: "0.75rem", fontSize: ".72rem", color: "var(--text-muted)", background: "var(--surface-2, #f4f4f6)", border: "1px solid var(--border)", padding: "0.75rem", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+              <pre style={{ marginTop: "0.75rem", fontSize: ".72rem", color: "var(--text-muted)", background: "#f4f4f6", border: "1px solid var(--border)", padding: "0.75rem", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
                 {JSON.stringify(webhookResult, null, 2)}
               </pre>
             )}
           </div>
 
-          {/* Erro */}
-          {error && (
-            <p style={{ fontSize: ".82rem", color: "#dc2626", textAlign: "center" }}>{error}</p>
-          )}
         </div>
       </div>
     </div>
