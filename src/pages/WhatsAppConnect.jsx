@@ -10,6 +10,8 @@ export default function WhatsAppConnect() {
   const [loadingConnect, setLoadingConnect] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingWebhook, setLoadingWebhook] = useState(false);
+  const [webhookResult, setWebhookResult] = useState(null);
 
   const handleConnect = async () => {
     setLoadingConnect(true);
@@ -27,6 +29,19 @@ export default function WhatsAppConnect() {
       setError(e.message || "Erro ao conectar.");
     } finally {
       setLoadingConnect(false);
+    }
+  };
+
+  const handleConfigureWebhook = async () => {
+    setLoadingWebhook(true);
+    setWebhookResult(null);
+    try {
+      const res = await base44.functions.invoke("configureWebhook", {});
+      setWebhookResult(res.data);
+    } catch (e) {
+      setWebhookResult({ error: e.message });
+    } finally {
+      setLoadingWebhook(false);
     }
   };
 
@@ -127,6 +142,24 @@ export default function WhatsAppConnect() {
               WhatsApp ainda não conectado. Escaneie o QR Code e tente novamente.
             </p>
           )}
+
+          {/* Configurar Webhook */}
+          <div className="w-full" style={{ borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
+            <Button
+              onClick={handleConfigureWebhook}
+              disabled={loadingWebhook}
+              className="btn-ghost w-full justify-center"
+              style={{ minHeight: 44 }}
+            >
+              {loadingWebhook ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {loadingWebhook ? "Configurando..." : "Configurar Webhook"}
+            </Button>
+            {webhookResult && (
+              <pre style={{ marginTop: "0.75rem", fontSize: ".72rem", color: "var(--text-muted)", background: "var(--surface-2, #f4f4f6)", border: "1px solid var(--border)", padding: "0.75rem", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+                {JSON.stringify(webhookResult, null, 2)}
+              </pre>
+            )}
+          </div>
 
           {/* Erro */}
           {error && (
