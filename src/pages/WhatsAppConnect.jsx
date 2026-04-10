@@ -12,6 +12,19 @@ export default function WhatsAppConnect() {
   const [error, setError] = useState(null);
   const [loadingWebhook, setLoadingWebhook] = useState(false);
   const [webhookResult, setWebhookResult] = useState(null);
+  const [loadingReset, setLoadingReset] = useState(false);
+
+  const handleReset = async () => {
+    if (!window.confirm("Tem certeza que deseja resetar a conexão WhatsApp?")) return;
+    setLoadingReset(true);
+    try {
+      await base44.functions.invoke("resetWhatsappConnection", {});
+      window.location.reload();
+    } catch (e) {
+      setError(e.message || "Erro ao resetar conexão.");
+      setLoadingReset(false);
+    }
+  };
 
   const handleConnect = async () => {
     setLoadingConnect(true);
@@ -142,6 +155,19 @@ export default function WhatsAppConnect() {
               WhatsApp ainda não conectado. Escaneie o QR Code e tente novamente.
             </p>
           )}
+
+          {/* Resetar conexão */}
+          <div className="w-full" style={{ borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
+            <Button
+              onClick={handleReset}
+              disabled={loadingReset}
+              className="w-full justify-center"
+              style={{ minHeight: 44, background: "transparent", border: "1px solid #dc2626", color: "#dc2626", fontFamily: "'Oswald', sans-serif", fontWeight: 600, fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em", cursor: "pointer" }}
+            >
+              {loadingReset ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {loadingReset ? "Resetando..." : "Resetar Conexão"}
+            </Button>
+          </div>
 
           {/* Configurar Webhook */}
           <div className="w-full" style={{ borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
