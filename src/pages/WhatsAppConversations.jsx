@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { MessageSquare, CheckCircle2, PauseCircle, Search, ArrowLeft, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -76,6 +77,18 @@ export default function WhatsAppConversations() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-6 h-6 border-2 border-slate-200 border-t-slate-700 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text)' }}>Acesso Restrito</h2>
+          <p style={{ color: 'var(--text-muted)' }}>Esta funcionalidade está disponível apenas para administradores.</p>
+        </div>
       </div>
     );
   }

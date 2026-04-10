@@ -93,6 +93,18 @@ Gere uma mensagem aleatória que um advogado poderia enviar a um cliente.`,
     );
   }
 
+  if (user?.role !== 'admin') {
+    return (
+      <div className={`flex items-center justify-center min-h-[60vh] ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Acesso Restrito</h2>
+          <p className={isDark ? 'text-neutral-400' : 'text-gray-500'}>Esta funcionalidade está disponível apenas para administradores.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
       <div className="max-w-4xl mx-auto space-y-6">
