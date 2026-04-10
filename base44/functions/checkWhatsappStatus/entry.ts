@@ -9,12 +9,12 @@ Deno.serve(async (req) => {
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
-    const res = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+    const res = await fetch(`${EVOLUTION_API_URL}/instance/connectionState/${user.id}`, {
       headers: { "apikey": EVOLUTION_API_KEY },
     });
     const data = await res.json();
 
-    const isConnected = data?.connectionStatus === "open";
+    const isConnected = data?.instance?.state === "open";
 
     const sessions = await base44.entities.WhatsappSession.filter({ user_id: user.id });
     if (sessions.length > 0) {
