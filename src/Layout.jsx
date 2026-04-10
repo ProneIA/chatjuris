@@ -59,8 +59,8 @@ const navigationItems = [
   { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
   { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
-  { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare },
-  { title: "Conversas WhatsApp", url: "/conversations", icon: MessageSquare },
+  { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare, adminOnly: true },
+  { title: "Conversas WhatsApp", url: "/conversations", icon: MessageSquare, adminOnly: true },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearch"), icon: Scale },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
@@ -276,7 +276,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     }, [deferredPrompt]);
 
     const visibleNavItems = React.useMemo(() =>
-      user?.role === 'admin' ? [...navigationItems, ...adminItems] : navigationItems,
+      user?.role === 'admin'
+        ? [...navigationItems, ...adminItems]
+        : navigationItems.filter(i => !i.adminOnly),
       [user?.role]
     );
 
