@@ -19,7 +19,10 @@ export default function ClientRelatedData({ clientId, theme = 'light' }) {
 
   const { data: documents = [] } = useQuery({
     queryKey: ['client-documents', clientId],
-    queryFn: () => base44.entities.LegalDocument.filter({ client_id: clientId }, '-created_date'),
+    queryFn: async () => {
+      const all = await base44.entities.LegalDocument.list('-created_date', 200);
+      return all.filter(doc => Array.isArray(doc.client_ids) && doc.client_ids.includes(clientId));
+    },
     enabled: !!clientId
   });
 
