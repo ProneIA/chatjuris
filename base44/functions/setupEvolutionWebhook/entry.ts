@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const APP_ID = Deno.env.get("BASE44_APP_ID");
 
     // URL correta das functions Base44
-    const webhookUrl = `https://app--chatjuris.base44.app/api/apps/${APP_ID}/functions/whatsappWebhook`;
+    const webhookUrl = "https://base44.app/api/apps/690e408daf48e0f633c6cf3a/functions/whatsappWebhook";
 
     console.log("Configurando webhook para instância:", user_id, "URL:", webhookUrl);
 
