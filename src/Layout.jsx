@@ -61,6 +61,7 @@ const navigationItems = [
   { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
   { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare, adminOnly: true },
   { title: "Conversas WhatsApp", url: "/conversations", icon: MessageSquare, adminOnly: true },
+  { title: "Configurar WhatsApp", url: createPageUrl("WhatsAppConnect"), icon: MessageSquare, adminOnly: true },
   { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearch"), icon: Scale },
   { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
   { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
