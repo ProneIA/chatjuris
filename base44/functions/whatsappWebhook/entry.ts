@@ -1,6 +1,9 @@
-import { createClient } from 'npm:@base44/sdk@0.8.25';
+import { createClient } from 'npm:@base44/sdk@0.8.23';
 
-const base44 = createClient({ appId: "690e408daf48e0f633c6cf3a" });
+const base44 = createClient({ 
+  appId: "690e408daf48e0f633c6cf3a",
+  asServiceRole: true
+});
 
 Deno.serve(async (req) => {
   try {
@@ -18,7 +21,7 @@ Deno.serve(async (req) => {
     }
 
     // Buscar sessão ativa com agente habilitado
-    const sessions = await base44.asServiceRole.entities.WhatsappSession.filter({
+    const sessions = await base44.entities.WhatsappSession.filter({
       user_id: instance,
       status: "connected",
       agent_enabled: true,
@@ -30,11 +33,11 @@ Deno.serve(async (req) => {
     }
 
     // Buscar configurações do escritório
-    const officeConfigs = await base44.asServiceRole.entities.OfficeConfig.filter({ user_id: instance });
+    const officeConfigs = await base44.entities.OfficeConfig.filter({ user_id: instance });
     const office = officeConfigs?.[0] || {};
 
     // Buscar histórico de mensagens (últimas 10)
-    const history = await base44.asServiceRole.entities.WhatsappMessage.filter(
+    const history = await base44.entities.WhatsappMessage.filter(
       { user_id: instance, contact_phone: remoteJid },
       '-sent_at',
       10
@@ -42,7 +45,7 @@ Deno.serve(async (req) => {
 
     // Salvar mensagem recebida
     const today = new Date().toISOString().split('T')[0];
-    await base44.asServiceRole.entities.WhatsappMessage.create({
+    await base44.entities.WhatsappMessage.create({
       user_id: instance,
       contact_phone: remoteJid,
       direction: "inbound",
@@ -66,16 +69,16 @@ ${office.welcome_message ? `Mensagem padrão: ${office.welcome_message}` : ''}
 Seja sempre educado, profissional e empático. Responda de forma clara e objetiva. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.
 
 Histórico da conversa:
-${historyText}`;
+${historyText}
+
+Cliente: ${text}`;
 
     // Chamar LLM
-    const llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: text,
-      response_json_schema: null,
+    const replyText = await base44.integrations.Core.InvokeLLM({
+      prompt: systemPrompt,
     });
 
-    // InvokeLLM retorna string quando sem schema
-    const replyText = typeof llmResponse === 'string' ? llmResponse : (llmResponse?.response || llmResponse?.text || String(llmResponse));
+    const reply = typeof replyText === 'string' ? replyText : (replyText?.response || replyText?.text || String(replyText));
 
     // Enviar resposta via Evolution API
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
@@ -89,22 +92,22 @@ ${historyText}`;
       },
       body: JSON.stringify({
         number: remoteJid,
-        text: replyText,
+        text: reply,
       }),
     });
 
     // Salvar resposta do agente
-    await base44.asServiceRole.entities.WhatsappMessage.create({
+    await base44.entities.WhatsappMessage.create({
       user_id: instance,
       contact_phone: remoteJid,
       direction: "outbound",
-      content: replyText,
+      content: reply,
       sent_at: today,
     });
 
     return Response.json({ success: true });
   } catch (error) {
     console.error("Erro no webhook:", error.message);
-    return Response.json({ success: true }); // sempre retorna 200 para o webhook
+    return Response.json({ success: true });
   }
 });
