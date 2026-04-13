@@ -20,6 +20,10 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    // Debug: listar TODAS as sessões no banco
+    const todasSessoes = await base44.entities.WhatsappSession.list();
+    console.log("TODAS AS SESSOES:", JSON.stringify(todasSessoes));
+
     // Buscar todas as sessões ativas com agente habilitado
     const sessions = await base44.entities.WhatsappSession.filter({
       status: "connected",
