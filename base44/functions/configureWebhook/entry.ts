@@ -18,11 +18,14 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         webhook: {
           enabled: true,
-          url: "https://chatjuris.com/api/whatsappWebhook",
+          url: "https://juris-ia-33c6cf3a.base44.app/api/functions/whatsappWebhook",
           webhookByEvents: false,
           webhookBase64: false,
           events: ["MESSAGES_UPSERT"],
-          headers: { "x-skip-auth": "true" },
+          headers: {
+            "Content-Type": "application/json",
+            "api_key": "bb43747f8296403facf59b429ab4ebfb",
+          },
         },
       }),
     });
