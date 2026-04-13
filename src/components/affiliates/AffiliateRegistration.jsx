@@ -22,14 +22,6 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     notes: ''
   });
 
-  if (!isOwner) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-gray-600">Acesso restrito ao administrador do sistema.</p>
-      </div>
-    );
-  }
-
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const response = await base44.functions.invoke('createAffiliate', data);
@@ -45,7 +37,14 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     }
   });
 
-  // Auto-gerar código a partir do nome se não preenchido
+  if (!isOwner) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Acesso restrito ao administrador do sistema.</p>
+      </div>
+    );
+  }
+
   const handleNameChange = (name) => {
     const autoCode = name.toLowerCase()
       .normalize('NFD')
@@ -162,7 +161,6 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
             />
           </div>
 
-          {/* Preview */}
           {form.affiliate_code && (
             <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm">
               <p className="font-medium text-blue-900 mb-1">Preview do Link de Afiliado:</p>

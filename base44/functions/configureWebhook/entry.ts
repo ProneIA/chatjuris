@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         webhook: {
           enabled: true,
-          url: "https://base44.app/api/apps/690e408daf48e0f633c6cf3a/functions/whatsappWebhook",
+          url: "https://chatjuris.com/api/whatsappWebhook",
           webhookByEvents: false,
           webhookBase64: false,
           events: ["MESSAGES_UPSERT"],
