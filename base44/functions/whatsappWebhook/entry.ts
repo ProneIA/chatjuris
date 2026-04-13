@@ -2,7 +2,7 @@ import { createClient } from 'npm:@base44/sdk@0.8.23';
 
 const base44 = createClient({ 
   appId: "690e408daf48e0f633c6cf3a",
-  asServiceRole: true
+  token: "bb43747f8296403facf59b429ab4ebfb"
 });
 
 Deno.serve(async (req) => {
@@ -16,29 +16,34 @@ Deno.serve(async (req) => {
     const text = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text;
 
     // Ignorar mensagens enviadas pelo próprio bot ou sem texto
-    if (fromMe || !text || !remoteJid || !instance) {
+    if (fromMe || !text || !remoteJid) {
       return Response.json({ success: true });
     }
 
-    // Buscar sessão ativa com agente habilitado
+    // Buscar todas as sessões ativas com agente habilitado
     const sessions = await base44.entities.WhatsappSession.filter({
-      user_id: instance,
       status: "connected",
       agent_enabled: true,
     });
 
     if (!sessions || sessions.length === 0) {
-      console.log("Nenhuma sessão ativa com agente habilitado para instance:", instance);
+      console.log("Nenhuma sessão ativa com agente habilitado");
       return Response.json({ success: true });
     }
 
+    // Usar a primeira sessão encontrada (ou filtrar por instance se disponível)
+    const session = sessions.find(s => s.user_id === instance) || sessions[0];
+    const userId = session.user_id;
+
+    console.log("Sessão encontrada para user_id:", userId);
+
     // Buscar configurações do escritório
-    const officeConfigs = await base44.entities.OfficeConfig.filter({ user_id: instance });
+    const officeConfigs = await base44.entities.OfficeConfig.filter({ user_id: userId });
     const office = officeConfigs?.[0] || {};
 
     // Buscar histórico de mensagens (últimas 10)
     const history = await base44.entities.WhatsappMessage.filter(
-      { user_id: instance, contact_phone: remoteJid },
+      { user_id: userId, contact_phone: remoteJid },
       '-sent_at',
       10
     );
@@ -46,7 +51,7 @@ Deno.serve(async (req) => {
     // Salvar mensagem recebida
     const today = new Date().toISOString().split('T')[0];
     await base44.entities.WhatsappMessage.create({
-      user_id: instance,
+      user_id: userId,
       contact_phone: remoteJid,
       direction: "inbound",
       content: text,
@@ -74,17 +79,17 @@ ${historyText}
 Cliente: ${text}`;
 
     // Chamar LLM
-    const replyText = await base44.integrations.Core.InvokeLLM({
+    const llmResult = await base44.integrations.Core.InvokeLLM({
       prompt: systemPrompt,
     });
 
-    const reply = typeof replyText === 'string' ? replyText : (replyText?.response || replyText?.text || String(replyText));
+    const reply = typeof llmResult === 'string' ? llmResult : (llmResult?.response || llmResult?.text || String(llmResult));
 
     // Enviar resposta via Evolution API
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
-    await fetch(`${EVOLUTION_API_URL}/message/sendText/${instance}`, {
+    const sendResponse = await fetch(`${EVOLUTION_API_URL}/message/sendText/${instance}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,9 +101,11 @@ Cliente: ${text}`;
       }),
     });
 
+    console.log("Mensagem enviada, status:", sendResponse.status);
+
     // Salvar resposta do agente
     await base44.entities.WhatsappMessage.create({
-      user_id: instance,
+      user_id: userId,
       contact_phone: remoteJid,
       direction: "outbound",
       content: reply,
