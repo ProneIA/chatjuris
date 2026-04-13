@@ -18,14 +18,22 @@ async function b44Post(entity, data) {
   return res.json();
 }
 
-async function invokeLLM(prompt) {
-  const res = await fetch("https://base44.app/api/apps/690e408daf48e0f633c6cf3a/integrations/Core/InvokeLLM", {
+async function invokeLLM(systemPrompt, historico, textoMensagem) {
+  const res = await fetch("https://base44.app/api/apps/690e408daf48e0f633c6cf3a/integrations/invoke_llm", {
     method: "POST",
     headers: HEADERS,
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...historico,
+        { role: "user", content: textoMensagem }
+      ],
+      model: "gpt-4o-mini"
+    })
   });
   const data = await res.json();
-  return data?.response || data?.text || (typeof data === "string" ? data : JSON.stringify(data));
+  console.log("LLM raw response:", JSON.stringify(data));
+  return data.choices?.[0]?.message?.content || data.content || data.response || "Não foi possível processar sua mensagem.";
 }
 
 Deno.serve(async (req) => {
@@ -78,9 +86,6 @@ Deno.serve(async (req) => {
 
     // Montar histórico para o LLM
     const historyItems = Array.isArray(history) ? history.slice(-10).reverse() : [];
-    const historyText = historyItems
-      .map(m => `${m.direction === 'inbound' ? 'Cliente' : 'Assistente'}: ${m.content}`)
-      .join('\n');
 
     const systemPrompt = `Você é um assistente jurídico virtual do escritório ${office.office_name || 'de advocacia'}, responsável pelo atendimento inicial via WhatsApp.
 Advogado responsável: ${office.lawyer_name || 'o advogado'}.
@@ -89,15 +94,15 @@ Horário de atendimento: ${office.working_hours || 'dias úteis, horário comerc
 Tabela de honorários: ${office.fee_table || 'consultar com o escritório'}.
 ${office.welcome_message ? `Mensagem padrão: ${office.welcome_message}` : ''}
 
-Seja sempre educado, profissional e empático. Responda de forma clara e objetiva. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.
+Seja sempre educado, profissional e empático. Responda de forma clara e objetiva. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.`;
 
-Histórico da conversa:
-${historyText}
-
-Cliente: ${text}`;
+    const historicoLLM = historyItems.map(m => ({
+      role: m.direction === 'inbound' ? 'user' : 'assistant',
+      content: m.content
+    }));
 
     // Chamar LLM
-    const reply = await invokeLLM(systemPrompt);
+    const reply = await invokeLLM(systemPrompt, historicoLLM, text);
     console.log("Resposta LLM:", reply);
 
     // Enviar resposta via Evolution API
