@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
           webhookByEvents: false,
           webhookBase64: false,
           events: ["MESSAGES_UPSERT"],
+          headers: { "x-skip-auth": "true" },
         },
       }),
     });

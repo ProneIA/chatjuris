@@ -10,14 +10,6 @@ import { UserPlus, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AffiliateRegistration({ theme = 'light', isOwner = false }) {
-  if (!isOwner) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-gray-600">Acesso restrito ao administrador do sistema.</p>
-      </div>
-    );
-  }
-
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
@@ -29,6 +21,14 @@ export default function AffiliateRegistration({ theme = 'light', isOwner = false
     affiliate_code: '',
     notes: ''
   });
+
+  if (!isOwner) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Acesso restrito ao administrador do sistema.</p>
+      </div>
+    );
+  }
 
   const createMutation = useMutation({
     mutationFn: async (data) => {

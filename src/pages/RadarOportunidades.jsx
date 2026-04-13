@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ export default function RadarOportunidades({ theme }) {
   const [selectedArea, setSelectedArea] = useState('all');
   const [generatingStrategy, setGeneratingStrategy] = useState(false);
   const [atualizandoDados, setAtualizandoDados] = useState(false);
+  const queryClient = useQueryClient();
 
   const isDark = theme === 'dark';
 
