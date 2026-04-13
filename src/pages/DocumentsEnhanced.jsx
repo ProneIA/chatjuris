@@ -62,6 +62,7 @@ const tagColors = {
 export default function DocumentsEnhanced({ theme = 'light' }) {
   const isDark = theme === 'dark';
   const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [viewMode, setViewMode] = useState("list");
@@ -76,10 +77,10 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {}).finally(() => setUserLoading(false));
   }, []);
 
-  const { data: documents = [] } = useQuery({
+  const { data: documents = [], isLoading: docsLoading } = useQuery({
     queryKey: ['legal-documents', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
@@ -293,6 +294,40 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   });
 
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
+
+  if (userLoading || docsLoading) {
+    return (
+      <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <div className={`h-7 w-40 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
+              <div className={`h-4 w-56 rounded animate-pulse mt-2 ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            {[1,2,3,4].map(i => (
+              <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <div className={`h-10 w-10 rounded-lg animate-pulse mb-2 ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`} />
+                <div className={`h-6 w-12 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
+              </div>
+            ))}
+          </div>
+          <div className={`rounded-xl border divide-y ${isDark ? 'bg-neutral-900 border-neutral-800 divide-neutral-800' : 'bg-white border-gray-200 divide-gray-100'}`}>
+            {[1,2,3,4,5].map(i => (
+              <div key={i} className="p-4 flex items-center gap-3">
+                <div className={`h-5 w-5 rounded animate-pulse ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`} />
+                <div className="flex-1">
+                  <div className={`h-4 w-2/3 rounded animate-pulse mb-1 ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`} />
+                  <div className={`h-3 w-1/3 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
