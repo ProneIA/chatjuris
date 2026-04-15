@@ -42,15 +42,7 @@ ${office.welcome_message ? `Mensagem padrão: ${office.welcome_message}` : ''}
 
 Seja sempre educado, profissional e empático. Responda de forma clara e objetiva. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.`;
 
-    // Chamar InvokeLLM
-    const llmResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: content,
-      response_json_schema: null,
-    });
-
-    // InvokeLLM sem schema retorna string diretamente
-    // Mas precisamos passar system prompt e histórico — usar via messages implícitas no prompt
-    // Vamos montar o prompt completo incluindo contexto
+    // Montar prompt completo com system prompt + histórico + mensagem atual
     const promptCompleto = `${systemPrompt}\n\n--- Histórico da conversa ---\n${historicoLLM.map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`).join('\n')}\n\nCliente: ${content}\n\nAssistente:`;
 
     const resposta = await base44.asServiceRole.integrations.Core.InvokeLLM({
