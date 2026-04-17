@@ -17,7 +17,13 @@ Deno.serve(async (req) => {
 
     // Buscar configurações do escritório
     const configs = await base44.asServiceRole.entities.OfficeConfig.filter({ user_id });
-    const office = configs?.[0] || {};
+    const office = configs?.[0] || null;
+
+    if (office) {
+      console.log("OfficeConfig encontrado:", JSON.stringify(office));
+    } else {
+      console.log(`OfficeConfig não encontrado para user_id: ${user_id}`);
+    }
 
     // Buscar histórico recente de mensagens (últimas 10)
     const history = await base44.asServiceRole.entities.WhatsappMessage.filter({
@@ -33,14 +39,13 @@ Deno.serve(async (req) => {
     }));
 
     // Montar system prompt
-    const systemPrompt = `Você é um assistente jurídico virtual do escritório ${office.office_name || 'de advocacia'}, responsável pelo atendimento inicial via WhatsApp.
-Advogado responsável: ${office.lawyer_name || 'o advogado'}.
-Áreas de atuação: ${office.practice_areas || 'direito geral'}.
-Horário de atendimento: ${office.working_hours || 'dias úteis, horário comercial'}.
-Tabela de honorários: ${office.fee_table || 'consultar com o escritório'}.
-${office.welcome_message ? `Mensagem padrão: ${office.welcome_message}` : ''}
+    const systemPrompt = `Você é o assistente virtual do escritório ${office?.office_name || 'de advocacia'}.
+Advogado responsável: ${office?.lawyer_name || 'o advogado'}
+Áreas de atuação: ${office?.practice_areas || 'direito geral'}
+Honorários: ${office?.fee_table || 'consultar com o escritório'}
+Horário de atendimento: ${office?.working_hours || 'dias úteis, horário comercial'}
 
-Seja sempre educado, profissional e empático. Responda de forma clara e objetiva. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.`;
+Responda de forma curta e direta. Máximo 3 linhas por mensagem. Use linguagem informal e amigável, como uma conversa de WhatsApp. Nunca use markdown, asteriscos, bullets ou formatação — apenas texto simples. Se precisar passar muita informação, quebre em mensagens curtas. Não dê conselhos jurídicos detalhados — apenas oriente o cliente e ofereça agendamento de consulta.`;
 
     // Montar prompt completo com system prompt + histórico + mensagem atual
     const promptCompleto = `${systemPrompt}\n\n--- Histórico da conversa ---\n${historicoLLM.map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`).join('\n')}\n\nCliente: ${content}\n\nAssistente:`;
