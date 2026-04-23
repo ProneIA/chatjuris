@@ -52,6 +52,7 @@ Responda de forma curta e direta. Máximo 3 linhas por mensagem. Use linguagem i
 
     const resposta = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: promptCompleto,
+      model: "claude_sonnet_4_6",
     });
 
     console.log("Resposta LLM:", resposta);

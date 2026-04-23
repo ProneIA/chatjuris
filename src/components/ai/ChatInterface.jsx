@@ -73,7 +73,8 @@ export default function ChatInterface({ conversation, onUpdate, subscription, us
 
           const response = await base44.integrations.Core.InvokeLLM({
             prompt: `${systemInstructions}\n\n**CONSULTA:** ${messages[0].content}\n\n**RESPOSTA:**`,
-            add_context_from_internet: true
+            add_context_from_internet: false,
+            model: "claude_sonnet_4_6"
           });
           
           const assistantResponse = {
@@ -199,7 +200,8 @@ CONTEXTUALIZE as ferramentas nos momentos adequados (ex: mencionou cálculo → 
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `${systemInstructions}\n\n**HISTÓRICO:**\n${conversationContext}\n\n**RESPOSTA (direta e técnica):**`,
-        add_context_from_internet: true
+        add_context_from_internet: false,
+        model: "claude_sonnet_4_6"
       });
       
       const assistantResponse = {

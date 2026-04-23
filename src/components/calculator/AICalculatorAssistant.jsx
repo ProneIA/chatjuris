@@ -389,18 +389,10 @@ Todo cálculo deve conter aviso de que os valores são ESTIMATIVOS, dependem de 
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `${getContextPrompt()}
-
-${principiosObrigatorios}
-
-Responda de forma clara, objetiva e fundamentada juridicamente.
-Use markdown para formatar a resposta.
-Cite artigos de lei, súmulas e jurisprudências quando relevante.
-Se necessário, apresente exemplos de cálculo passo a passo.
-IMPORTANTE: Ao calcular indenizações, siga RIGOROSAMENTE as regras acima, separando cada espécie de dano e justificando juridicamente cada valor.
-${contextData}
-
+...
 Pergunta do advogado: ${userMessage.content}`,
-        add_context_from_internet: true
+        add_context_from_internet: false,
+        model: "claude_sonnet_4_6"
       });
 
       const assistantMessage = {
