@@ -21,28 +21,28 @@ Deno.serve(async (req) => {
 
 REGRAS:
 - Gere a peça COMPLETA, nunca resumida
-- Cite artigos de lei com número: "art. 18, §1º, da Lei n.º 8.078/1990"
+- Cite artigos de lei com número: "art. 18, paragrafo 1, da Lei n. 8.078/1990"
 - Inclua pelo menos 2 julgados de STF/STJ/TST com ementa sintética
 - Use linguagem jurídica técnica e formal
 - Escreva valores monetários por extenso
-- Ao final, inclua SEMPRE o bloco de metadados abaixo
+- Ao final, inclua SEMPRE o bloco de metadados
 
 ESTRUTURA OBRIGATÓRIA:
-[CABEÇALHO] - Juízo/órgão destinatário, comarca e estado
-[QUALIFICAÇÃO DAS PARTES] - Nome, qualificação, endereço
-[CORPO] - DOS FATOS | DO DIREITO | DOS PEDIDOS | VALOR DA CAUSA | PROVAS
-[FECHAMENTO] - Local, data e espaço para assinatura
+CABECALHO - Juizo/orgao destinatario, comarca e estado
+QUALIFICACAO DAS PARTES - Nome, qualificacao, endereco
+CORPO - DOS FATOS | DO DIREITO | DOS PEDIDOS | VALOR DA CAUSA | PROVAS
+FECHAMENTO - Local, data e espaco para assinatura
 
-AO FINAL DA PEÇA, inclua EXATAMENTE este bloco:
+AO FINAL DA PECA, inclua EXATAMENTE:
 ---DOCX_METADATA---
-TIPO: [tipo da peça em maiúsculas]
+TIPO: [tipo da peca em maiusculas]
 AUTOR: [nome do requerente]
 REU: [nome do requerido]
 COMARCA: [comarca e estado]
 DATA: [data por extenso]
 ---FIM_METADATA---
 
-${historicoFormatado ? `Histórico anterior:\n${historicoFormatado}\n\n` : ''}Usuário: ${mensagem}`;
+${historicoFormatado ? `Historico anterior:\n${historicoFormatado}\n\n` : ''}Usuario: ${mensagem}`;
 
     const resultado = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt: prompt,
