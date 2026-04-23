@@ -13,21 +13,21 @@ ESTRUTURA DA PEÇA:
 [CABEÇALHO] - Juízo/órgão destinatário, comarca e estado
 [QUALIFICAÇÃO DAS PARTES] - Nome, qualificação, endereço (use ___ para campos não informados)
 [CORPO] adaptado ao tipo:
-  PETIÇÃO INICIAL: I – DOS FATOS | II – DO DIREITO | III – DOS PEDIDOS | IV – VALOR DA CAUSA | V – PROVAS
-  CONTESTAÇÃO: I – PRELIMINARES | II – NO MÉRITO | III – DOS PEDIDOS
-  RECURSO: I – TEMPESTIVIDADE | II – DOS FATOS | III – DO DIREITO | IV – DO PEDIDO
+  PETIÇÃO INICIAL: I - DOS FATOS | II - DO DIREITO | III - DOS PEDIDOS | IV - VALOR DA CAUSA | V - PROVAS
+  CONTESTAÇÃO: I - PRELIMINARES | II - NO MÉRITO | III - DOS PEDIDOS
+  RECURSO: I - TEMPESTIVIDADE | II - DOS FATOS | III - DO DIREITO | IV - DO PEDIDO
   CONTRATOS: CLÁUSULAS numeradas completas
 [FECHAMENTO] - Local, data e espaço para assinatura
 
 REGRAS OBRIGATÓRIAS:
-- Nunca abrevie ou resuma — entregue COMPLETO
-- Sempre cite artigos com número da lei (ex: art. 18, §1º, da Lei n.º 8.078/1990)
+- Nunca abrevie ou resuma - entregue COMPLETO
+- Sempre cite artigos com número da lei (ex: art. 18, paragrafo 1, da Lei n. 8.078/1990)
 - Inclua pelo menos 2 julgados de STF/STJ/TST com ementa sintética
-- Valores monetários por extenso: R$ 2.500,00 (dois mil e quinhentos reais)
+- Valores monetários por extenso
 - Linguagem jurídica técnica, formal e coesa
 - Tratamento protocolar adequado ao destinatário
 
-FORMATO ESPECIAL — OBRIGATÓRIO AO FINAL:
+FORMATO ESPECIAL - OBRIGATÓRIO AO FINAL:
 Após a peça, inclua SEMPRE este bloco exato:
 
 ---DOCX_METADATA---
@@ -52,13 +52,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { mensagem, historicoChat } = await req.json();
+    const body = await req.json();
+    const mensagem = body.mensagem;
+    const historicoChat = body.historicoChat || [];
 
     if (!mensagem) {
       return Response.json({ error: 'mensagem é obrigatória' }, { status: 400 });
     }
 
-    const historicoFormatado = (historicoChat || [])
+    const historicoFormatado = historicoChat
       .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
       .join('\n\n');
 
@@ -76,14 +78,14 @@ Deno.serve(async (req) => {
     const metadataMatch = textoCompleto.match(/---DOCX_METADATA---([\s\S]*?)---FIM_METADATA---/);
 
     const textoPeca = textoCompleto
-      .replace(/---DOCX_METADATA---[\s\S]*?---FIM_METADATA---/, "")
+      .replace(/---DOCX_METADATA---[\s\S]*?---FIM_METADATA---/, '')
       .trim();
 
     let meta = null;
     if (metadataMatch) {
       meta = {};
-      for (const linha of metadataMatch[1].trim().split("\n")) {
-        const idx = linha.indexOf(":");
+      for (const linha of metadataMatch[1].trim().split('\n')) {
+        const idx = linha.indexOf(':');
         if (idx > -1) {
           meta[linha.slice(0, idx).trim()] = linha.slice(idx + 1).trim();
         }
