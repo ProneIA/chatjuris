@@ -1,9 +1,8 @@
-const BASE44_URL = "https://base44.app/api/apps/690e408daf48e0f633c6cf3a/entities";
-const API_KEY = "bb43747f8296403facf59b429ab4ebfb";
-const HEADERS = { "api_key": API_KEY, "Content-Type": "application/json" };
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
     const body = await req.json();
     console.log("Webhook recebido:", JSON.stringify(body));
 
@@ -17,21 +16,16 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    // Salvar mensagem inbound — a Automação cuida do resto
+    // Salvar mensagem inbound usando o SDK (service role)
     const today = new Date().toISOString().split('T')[0];
-    const saveRes = await fetch(`${BASE44_URL}/WhatsappMessage`, {
-      method: "POST",
-      headers: HEADERS,
-      body: JSON.stringify({
-        user_id: instance,
-        contact_phone: remoteJid,
-        direction: "inbound",
-        content: text,
-        sent_at: today,
-      }),
+    const saved = await base44.asServiceRole.entities.WhatsappMessage.create({
+      user_id: instance,
+      contact_phone: remoteJid,
+      direction: "inbound",
+      content: text,
+      sent_at: today,
     });
 
-    const saved = await saveRes.json();
     console.log("Mensagem salva:", JSON.stringify(saved));
 
     return Response.json({ success: true });

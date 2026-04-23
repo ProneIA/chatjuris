@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
           events: ["MESSAGES_UPSERT"],
           headers: {
             "Content-Type": "application/json",
-            "api_key": "bb43747f8296403facf59b429ab4ebfb",
+            "api_key": Deno.env.get("WHATSAPP_WEBHOOK_API_KEY"),
           },
         },
       }),

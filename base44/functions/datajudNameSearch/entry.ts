@@ -3,7 +3,7 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-const DATAJUD_API_KEY = "APIKey cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==";
+const DATAJUD_API_KEY = Deno.env.get("DATAJUD_API_KEY");
 
 const TRIBUNAIS = [
   { nome: "TST",   url: "https://api-publica.datajud.cnj.jus.br/api_publica_tst/_search" },
