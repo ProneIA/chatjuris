@@ -81,8 +81,6 @@ import FinancialDashboard from './pages/FinancialDashboard';
 import Funcionalidades from './pages/Funcionalidades';
 import GestaoHub from './pages/GestaoHub';
 import Home from './pages/Home';
-import LGPDAudit from './pages/LGPDAudit';
-import LGPDCompliance from './pages/LGPDCompliance';
 import LandingPage from './pages/LandingPage';
 import LegalCalculator from './pages/LegalCalculator';
 import LegalResearch from './pages/LegalResearch';
@@ -142,8 +140,6 @@ export const PAGES = {
     "Funcionalidades": Funcionalidades,
     "GestaoHub": GestaoHub,
     "Home": Home,
-    "LGPDAudit": LGPDAudit,
-    "LGPDCompliance": LGPDCompliance,
     "LandingPage": LandingPage,
     "LegalCalculator": LegalCalculator,
     "LegalResearch": LegalResearch,

@@ -10,6 +10,9 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AffiliatesDashboard from './pages/AffiliatesDashboard';
+import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import LGPDAudit from './pages/LGPDAudit';
+import LGPDCompliance from './pages/LGPDCompliance';
 import LexIA from './pages/LexIA';
 import JusTrackDashboard from './pages/JusTrackDashboard';
 import JusTrackPesquisa from './pages/JusTrackPesquisa';
@@ -74,6 +77,16 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/LGPDAudit" element={
+        <LayoutWrapper currentPageName="LGPDAudit">
+          <ProtectedAdminRoute><LGPDAudit /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/LGPDCompliance" element={
+        <LayoutWrapper currentPageName="LGPDCompliance">
+          <ProtectedAdminRoute><LGPDCompliance /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
       <Route path="/LexIA" element={
         <LexIA />
       } />
