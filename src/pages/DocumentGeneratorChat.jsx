@@ -1,601 +1,416 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { FileText, Send, Loader2, Copy, Save, Sparkles, MessageSquare, Plus, Eye } from "lucide-react";
-import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import DocumentPreviewModal from "@/components/ai/DocumentPreviewModal";
 
-const legalAreas = [
-  { id: 'civil', name: 'Direito Civil', emoji: '📜' },
-  { id: 'penal', name: 'Direito Penal', emoji: '⚖️' },
-  { id: 'trabalhista', name: 'Direito Trabalhista', emoji: '👔' },
-  { id: 'tributario', name: 'Direito Tributário', emoji: '💰' },
-  { id: 'empresarial', name: 'Direito Empresarial', emoji: '🏢' },
-  { id: 'consumidor', name: 'Direito do Consumidor', emoji: '🛒' },
-  { id: 'familia', name: 'Direito de Família', emoji: '👨‍👩‍👧‍👦' },
-  { id: 'previdenciario', name: 'Direito Previdenciário', emoji: '🏥' },
-  { id: 'constitucional', name: 'Direito Constitucional', emoji: '🏛️' },
-  { id: 'administrativo', name: 'Direito Administrativo', emoji: '🏛️' },
-  { id: 'ambiental', name: 'Direito Ambiental', emoji: '🌳' },
-  { id: 'eleitoral', name: 'Direito Eleitoral', emoji: '🗳️' },
-  { id: 'internacional', name: 'Direito Internacional', emoji: '🌍' },
-  { id: 'processual_civil', name: 'Processo Civil', emoji: '📋' },
-  { id: 'processual_penal', name: 'Processo Penal', emoji: '⚖️' },
-  { id: 'imobiliario', name: 'Direito Imobiliário', emoji: '🏠' },
-  { id: 'digital', name: 'Direito Digital', emoji: '💻' },
-  { id: 'bancario', name: 'Direito Bancário', emoji: '🏦' },
+const SUGESTOES = [
+  "Petição inicial no JEC — compra com defeito, loja recusou troca. Cliente: João Silva. Réu: TechMaster Ltda, Teresina/PI. Valor: R$ 2.500,00",
+  "Contestação trabalhista — ex-funcionário cobra horas extras indevidas. Empresa nega. Vara do Trabalho de Fortaleza/CE",
+  "Contrato de honorários advocatícios — R$ 3.000/mês, 12 meses, cliente Empresa X, advogado Dr. Silva OAB/PI 12345",
+  "Recurso de apelação — sentença negou dano moral em acidente de trânsito. Autor foi atingido por trás em semáforo",
+  "Habeas corpus — cliente preso preventivamente há 90 dias sem julgamento marcado. Crime: estelionato",
 ];
 
-const documentTypes = [
-  { id: 'peticao_inicial', name: 'Petição Inicial', emoji: '📄', description: '6 campos' },
-  { id: 'contrato', name: 'Contrato', emoji: '📝', description: '7 campos' },
-  { id: 'procuracao', name: 'Procuração', emoji: '✍️', description: '5 campos' },
-  { id: 'recurso', name: 'Recurso/Apelação', emoji: '🔄', description: '6 campos' },
-  { id: 'parecer', name: 'Parecer Jurídico', emoji: '💼', description: '5 campos' },
-  { id: 'contestacao', name: 'Contestação', emoji: '🛡️', description: '6 campos' },
-];
+const TIPOS_BADGE = {
+  "PETIÇÃO": { bg: "#EEF2FF", color: "#4338CA" },
+  "CONTESTAÇÃO": { bg: "#FFF7ED", color: "#C2410C" },
+  "RECURSO": { bg: "#F0FDF4", color: "#166534" },
+  "CONTRATO": { bg: "#FDF4FF", color: "#7E22CE" },
+  "HABEAS": { bg: "#FFF1F2", color: "#BE123C" },
+};
 
-export default function DocumentGeneratorChat({ theme = 'light' }) {
-  const isDark = theme === 'dark';
-  const [user, setUser] = useState(null);
-  const [selectedLegalArea, setSelectedLegalArea] = useState(null);
-  const [selectedDocType, setSelectedDocType] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [currentDocument, setCurrentDocument] = useState("");
-  const [documentTitle, setDocumentTitle] = useState("");
-  const [currentConversationId, setCurrentConversationId] = useState(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const messagesEndRef = useRef(null);
-  const queryClient = useQueryClient();
+function detectarTipo(texto) {
+  const upper = texto.toUpperCase();
+  for (const tipo of Object.keys(TIPOS_BADGE)) {
+    if (upper.includes(tipo)) return tipo;
+  }
+  return null;
+}
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+function TipoBadge({ texto }) {
+  const tipo = detectarTipo(texto);
+  if (!tipo) return null;
+  const s = TIPOS_BADGE[tipo];
+  return (
+    <span style={{
+      background: s.bg, color: s.color,
+      fontSize: 10, fontWeight: 700, padding: "2px 8px",
+      borderRadius: 4, letterSpacing: "0.06em", textTransform: "uppercase"
+    }}>
+      {tipo}
+    </span>
+  );
+}
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+function baixarDocx(docxBase64, nomeArquivo) {
+  const bytes = atob(docxBase64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  const blob = new Blob([arr], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nomeArquivo || "peca_juridica.docx";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-  const { data: subscription } = useQuery({
-    queryKey: ["subscription", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      return subs[0] || null;
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: conversations = [] } = useQuery({
-    queryKey: ["doc-conversations", user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      const convs = await base44.entities.Conversation.filter(
-        { 
-          created_by: user.email,
-          mode: "legal_document_generator"
-        },
-        '-updated_date',
-        5
-      );
-      return convs;
-    },
-    enabled: !!user?.email,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (data) => base44.entities.LegalDocument.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-      toast.success("Documento salvo!");
-    },
-  });
-
-  const saveConversationMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      if (id) {
-        return base44.entities.Conversation.update(id, data);
-      } else {
-        return base44.entities.Conversation.create(data);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["doc-conversations"] });
-    },
-  });
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    if (subscription?.plan === "free") {
-      const used = subscription.daily_actions_used || 0;
-      const limit = subscription.daily_actions_limit || 5;
-      if (used >= limit) {
-        toast.error("Limite diário atingido! Faça upgrade para o Pro.");
-        return;
-      }
-    }
-
-    const userMessage = { role: "user", content: input };
-    const currentMessages = [...messages, userMessage];
-    setMessages(currentMessages);
-    setInput("");
-    setIsGenerating(true);
-
-    try {
-      console.log('📨 DEBUG - Enviando mensagem. Total de mensagens:', currentMessages.length);
-      console.log('📜 DEBUG - Documento atual existe:', !!currentDocument);
-      
-      const conversationHistory = currentMessages
-        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
-        .join('\n\n');
-
-      console.log('💬 DEBUG - Histórico completo sendo enviado:', conversationHistory.substring(0, 200) + '...');
-
-      const areaContext = selectedLegalArea ? `\nÁREA DO DIREITO: ${selectedLegalArea}` : '';
-      const docTypeContext = selectedDocType ? `\nTIPO DE DOCUMENTO: ${selectedDocType}` : '';
-
-      const contextInstruction = currentDocument
-        ? `DOCUMENTO ATUAL EM EDIÇÃO:\n\n${currentDocument}\n\nATUALIZE ESTE DOCUMENTO com as informações fornecidas pelo usuário. IMPORTANTE: Mantenha o contexto de todas as mensagens anteriores. NÃO crie um documento novo, apenas modifique o existente com base no histórico completo da conversa.`
-        : 'Gere um novo documento jurídico completo baseado no contexto da conversa.';
-
-      const prompt = `Você é um advogado brasileiro experiente especializado em redação de peças jurídicas.${areaContext}${docTypeContext}
-
-${contextInstruction}
-
-HISTÓRICO COMPLETO DA CONVERSA:
-${conversationHistory}
-
-DIRETRIZES:
-1. Use linguagem jurídica formal e técnica
-2. Siga estrutura padrão para o tipo de documento
-3. Inclua fundamentação legal completa
-4. Use formatação clara (Markdown)
-5. CONSIDERE TODO O HISTÓRICO DA CONVERSA ao responder
-6. Se informação estiver faltando, indique com [COMPLETAR]
-${currentDocument ? '7. MANTENHA o formato e estrutura do documento atual, apenas atualizando conforme o histórico completo da conversa' : ''}
-
-Responda ao último pedido do usuário ${currentDocument ? 'atualizando o documento considerando TODO o contexto anterior' : 'gerando o documento com base em todas as informações fornecidas'}.`;
-
-      const res = await base44.functions.invoke('gerarPecaJuridica', {
-        mensagem: input,
-        historicoChat: messages,
-        area: selectedLegalArea || '',
-        tipo: selectedDocType || '',
-      });
-
-      const response = res.data?.resposta || '';
-      console.log('✅ DEBUG - Resposta recebida da IA:', response.substring(0, 100));
-
-      const assistantMessage = { role: "assistant", content: response };
-      const updatedMessages = [...currentMessages, assistantMessage];
-      setMessages(updatedMessages);
-      setCurrentDocument(response);
-      
-      // Abre o modal de preview automaticamente quando documento é gerado
-      if (res.data?.temDocumento) {
-        setShowPreviewModal(true);
-      }
-
-      if (!documentTitle) {
-        const newTitle = `Documento - ${new Date().toLocaleDateString('pt-BR')}`;
-        setDocumentTitle(newTitle);
-      }
-
-      // Salvar conversa automaticamente
-      const conversationData = {
-        title: documentTitle || `${selectedDocType || 'Documento'} - ${new Date().toLocaleDateString('pt-BR')}`,
-        mode: "legal_document_generator",
-        messages: updatedMessages,
-        last_message_at: new Date().toISOString(),
-        metadata: {
-          legal_area: selectedLegalArea,
-          doc_type: selectedDocType,
-          current_document: response,
-          document_title: documentTitle
-        }
-      };
-
-      if (currentConversationId) {
-        console.log('💾 DEBUG - Atualizando conversa existente:', currentConversationId);
-        await saveConversationMutation.mutateAsync({ id: currentConversationId, data: conversationData });
-      } else {
-        console.log('💾 DEBUG - Criando nova conversa');
-        const newConv = await saveConversationMutation.mutateAsync({ id: null, data: conversationData });
-        setCurrentConversationId(newConv.id);
-        console.log('✅ DEBUG - Nova conversa criada com ID:', newConv.id);
-      }
-
-      if (subscription?.plan === "free") {
-        await base44.entities.Subscription.update(subscription.id, {
-          daily_actions_used: (subscription.daily_actions_used || 0) + 1,
-        });
-        queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      }
-    } catch (error) {
-      console.error('❌ DEBUG - Erro ao enviar mensagem:', error);
-      toast.error("Erro ao gerar resposta. Tente novamente.");
-    }
-
-    setIsGenerating(false);
-  };
-
-  const handleSave = async () => {
-    if (!currentDocument) return;
-
-    await saveMutation.mutateAsync({
-      title: documentTitle || `Documento - ${new Date().toLocaleDateString("pt-BR")}`,
-      type: "outros",
-      content: currentDocument,
-      status: "draft",
-      notes: "Gerado por IA via Chat",
-    });
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(currentDocument);
-    toast.success("Documento copiado!");
-  };
-
-  const handleDownloadDocx = async () => {
-    setShowPreviewModal(true);
-  };
-
-  const loadConversation = (conv) => {
-    setMessages(conv.messages || []);
-    setCurrentDocument(conv.metadata?.current_document || "");
-    setDocumentTitle(conv.metadata?.document_title || conv.title);
-    setSelectedLegalArea(conv.metadata?.legal_area || null);
-    setSelectedDocType(conv.metadata?.doc_type || null);
-    setCurrentConversationId(conv.id);
-    setShowHistory(false);
-    toast.success("Conversa carregada!");
-  };
-
-  const startNewConversation = () => {
-    setMessages([]);
-    setCurrentDocument("");
-    setDocumentTitle("");
-    setSelectedLegalArea(null);
-    setSelectedDocType(null);
-    setCurrentConversationId(null);
-    setShowHistory(false);
-    toast.success("Nova conversa iniciada!");
-  };
+function MensagemAssistente({ msg }) {
+  const [expandido, setExpandido] = useState(false);
+  const linhas = (msg.resposta || msg.content || "").split("\n").filter(Boolean);
+  const temMais = linhas.length > 8;
+  const conteudo = msg.resposta || msg.content || "";
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 h-screen flex flex-col">
-        {/* Header - Sticky */}
-        <div className={`mb-3 sticky top-0 z-10 pb-3 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Gerador de Peças - Chat
-                </h1>
-                <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                  Converse com a IA para criar e editar documentos jurídicos
-                </p>
-              </div>
+    <div style={{ display: "flex", gap: 10, justifyContent: "flex-start", marginBottom: 16 }}>
+      <div style={{
+        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+        background: "linear-gradient(135deg, #1E293B 0%, #334155 100%)",
+        display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F8FAFC" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>Assistente Jurídico</span>
+          <TipoBadge texto={conteudo} />
+        </div>
+        <div style={{
+          background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 12,
+          padding: "14px 16px", fontSize: 14, color: "#1E293B",
+          fontFamily: "'Lora', Georgia, serif", lineHeight: 1.7,
+          whiteSpace: "pre-wrap", wordBreak: "break-word"
+        }}>
+          {expandido || !temMais ? conteudo : linhas.slice(0, 8).join("\n") + "..."}
+          {temMais && !expandido && (
+            <div>
+              <button onClick={() => setExpandido(true)} style={{
+                marginTop: 10, fontSize: 12, color: "#4F46E5",
+                background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600
+              }}>
+                Ver peça completa ↓
+              </button>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowHistory(!showHistory)}
-                className={isDark ? 'border-neutral-700 text-white' : ''}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Histórico
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={startNewConversation}
-                className={isDark ? 'border-neutral-700 text-white' : ''}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nova
-              </Button>
+          )}
+        </div>
+        {msg.temDocumento && msg.docx && (
+          <button onClick={() => baixarDocx(msg.docx, msg.nomeArquivo)} style={{
+            marginTop: 8, display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "7px 14px", background: "#1E293B", color: "#F8FAFC",
+            border: "none", borderRadius: 8, fontSize: 12, fontWeight: 600,
+            cursor: "pointer", letterSpacing: "0.03em"
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Baixar {msg.nomeArquivo || "peca_juridica.docx"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MensagemUsuario({ texto }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+      <div style={{
+        maxWidth: "75%", background: "#1E293B", color: "#F8FAFC",
+        borderRadius: 12, padding: "10px 14px",
+        fontSize: 14, fontFamily: "'Lora', Georgia, serif", lineHeight: 1.6
+      }}>
+        {texto}
+      </div>
+    </div>
+  );
+}
+
+function MensagemCarregando() {
+  return (
+    <div style={{ display: "flex", gap: 10, justifyContent: "flex-start", marginBottom: 16 }}>
+      <div style={{
+        width: 32, height: 32, borderRadius: 8, background: "#1E293B",
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F8FAFC" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: 7, height: 7, borderRadius: "50%", background: "#CBD5E1",
+              animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`
+            }} />
+          ))}
+        </div>
+        <span style={{ fontSize: 11, color: "#94A3B8" }}>Gerando peça jurídica...</span>
+      </div>
+    </div>
+  );
+}
+
+export default function DocumentGeneratorChat({ theme = "light" }) {
+  const [mensagens, setMensagens] = useState([]);
+  const [input, setInput] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [historico, setHistorico] = useState([]);
+  const endRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [mensagens, carregando]);
+
+  function ajustarAltura() {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  }
+
+  async function enviar() {
+    const texto = input.trim();
+    if (!texto || carregando) return;
+    const novasMensagens = [...mensagens, { tipo: "usuario", texto }];
+    setMensagens(novasMensagens);
+    setInput("");
+    setCarregando(true);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+
+    const novoHistorico = [...historico, { role: "user", content: texto }];
+
+    try {
+      const resultado = await base44.functions.invoke('pecaJuridica', {
+        mensagem: texto,
+        historicoChat: historico,
+      });
+
+      const data = resultado.data || resultado;
+      const respostaAssistente = {
+        tipo: "assistente",
+        resposta: data.resposta || "",
+        docx: data.docx || null,
+        nomeArquivo: data.nomeArquivo || "peca_juridica.docx",
+        temDocumento: data.temDocumento || false,
+      };
+
+      setMensagens([...novasMensagens, respostaAssistente]);
+      setHistorico([...novoHistorico, { role: "assistant", content: data.resposta || "" }]);
+    } catch (err) {
+      setMensagens([...novasMensagens, {
+        tipo: "assistente",
+        resposta: "Ocorreu um erro ao gerar a peça. Tente novamente.",
+        temDocumento: false,
+      }]);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  function usarSugestao(texto) {
+    setInput(texto);
+    textareaRef.current?.focus();
+  }
+
+  function novaConversa() {
+    setMensagens([]);
+    setHistorico([]);
+    setInput("");
+  }
+
+  const vazio = mensagens.length === 0;
+
+  return (
+    <>
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+          40% { transform: translateY(-5px); opacity: 1; }
+        }
+        .chat-textarea { resize: none; overflow: hidden; }
+        .chat-textarea:focus { outline: none; }
+        .sugestao-btn:hover { background: #F8FAFC !important; border-color: #CBD5E1 !important; }
+      `}</style>
+
+      <div style={{
+        display: "flex", flexDirection: "column", height: "100vh",
+        background: "#F8FAFC", fontFamily: "system-ui, sans-serif"
+      }}>
+        {/* Header */}
+        <div style={{
+          background: "#FFFFFF", borderBottom: "1px solid #E2E8F0",
+          padding: "14px 24px", display: "flex", alignItems: "center",
+          justifyContent: "space-between", flexShrink: 0
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "linear-gradient(135deg, #1E293B 0%, #334155 100%)",
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F8FAFC" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#0F172A", lineHeight: 1.2 }}>
+                Gerador de Peças Jurídicas
+              </div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 1 }}>
+                Claude Sonnet · Direito Brasileiro
+              </div>
             </div>
           </div>
+          {mensagens.length > 0 && (
+            <button onClick={novaConversa} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "7px 14px", background: "transparent",
+              border: "1px solid #E2E8F0", borderRadius: 8,
+              fontSize: 13, color: "#64748B", cursor: "pointer", fontWeight: 500
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nova conversa
+            </button>
+          )}
         </div>
 
-        {/* History Sidebar */}
-        {showHistory && (
-          <div className={`mb-3 p-3 rounded-xl border max-h-[35vh] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-            <div className="flex items-center justify-between mb-3 sticky top-0 pb-2 ${isDark ? 'bg-neutral-900' : 'bg-white'}">
-              <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Últimas 5 Conversas
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowHistory(false)}
-                className="h-7 w-7 p-0"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {conversations.length === 0 ? (
-                <p className={`text-sm text-center py-4 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                  Nenhuma conversa salva ainda
-                </p>
-              ) : (
-                conversations.map(conv => (
-                  <button
-                    key={conv.id}
-                    onClick={() => loadConversation(conv)}
-                    className={`w-full text-left p-2.5 rounded-lg transition-all ${
-                      currentConversationId === conv.id
-                        ? isDark ? 'bg-purple-900/30 border border-purple-700' : 'bg-purple-50 border border-purple-200'
-                        : isDark ? 'bg-neutral-800 hover:bg-neutral-700' : 'bg-gray-50 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-medium text-xs truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {conv.title}
-                        </p>
-                        <p className={`text-[10px] mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                          {conv.messages?.length || 0} mensagens • {new Date(conv.last_message_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                      {currentConversationId === conv.id && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1 shrink-0" />
-                      )}
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
+        {/* Messages area */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 8px" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
 
-        {/* Chat Area */}
-        <div className={`flex-1 rounded-xl border overflow-hidden flex flex-col ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.length === 0 && !selectedLegalArea && (
-                <div className="text-center py-8 px-4">
-                  <Sparkles className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Escolha a área do direito
+            {vazio && (
+              <div>
+                {/* Welcome */}
+                <div style={{ textAlign: "center", marginBottom: 32, paddingTop: 16 }}>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: 16, margin: "0 auto 16px",
+                    background: "linear-gradient(135deg, #1E293B 0%, #475569 100%)",
+                    display: "flex", alignItems: "center", justifyContent: "center"
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F8FAFC" strokeWidth="1.8">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                  </div>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>
+                    Descreva o caso
+                  </h2>
+                  <p style={{ fontSize: 14, color: "#64748B", maxWidth: 440, margin: "0 auto", lineHeight: 1.6 }}>
+                    Escreva as informações do caso de forma direta — o assistente identifica o tipo de peça,
+                    elabora o documento completo e gera o arquivo .docx para download.
                   </p>
-                  <p className={`text-sm mb-6 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Selecione a área jurídica para começar
-                  </p>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-                    {legalAreas.map((area) => (
-                      <button
-                        key={area.id}
-                        onClick={() => setSelectedLegalArea(area.name)}
-                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 ${
-                          isDark 
-                            ? 'border-neutral-700 bg-neutral-800 hover:border-purple-500' 
-                            : 'border-gray-200 bg-white hover:border-purple-500'
-                        }`}
-                      >
-                        <div className="text-3xl mb-2">{area.emoji}</div>
-                        <div className={`text-xs font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                          {area.name}
-                        </div>
+                </div>
+
+                {/* Sugestões */}
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>
+                    Exemplos — clique para usar
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {SUGESTOES.map((s, i) => (
+                      <button key={i} className="sugestao-btn" onClick={() => usarSugestao(s)} style={{
+                        textAlign: "left", background: "#FFFFFF",
+                        border: "1px solid #E2E8F0", borderRadius: 10,
+                        padding: "11px 14px", fontSize: 13.5, color: "#334155",
+                        cursor: "pointer", fontFamily: "'Lora', Georgia, serif",
+                        lineHeight: 1.5, display: "flex", alignItems: "center",
+                        justifyContent: "space-between", gap: 8, transition: "all 0.15s"
+                      }}>
+                        <span>{s}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" style={{ flexShrink: 0 }}>
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
-
-              {messages.length === 0 && selectedLegalArea && !selectedDocType && (
-                <div className="text-center py-8 px-4">
-                  <div className="mb-6">
-                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                      <span className="font-medium">{selectedLegalArea}</span>
-                      <button onClick={() => setSelectedLegalArea(null)} className="hover:opacity-70">✕</button>
-                    </span>
-                  </div>
-                  
-                  <FileText className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Escolha o tipo de documento
-                  </p>
-                  <p className={`text-sm mb-6 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Que tipo de documento você precisa criar?
-                  </p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-w-3xl mx-auto">
-                    {documentTypes.map((doc) => (
-                      <button
-                        key={doc.id}
-                        onClick={() => setSelectedDocType(doc.name)}
-                        className={`p-4 rounded-xl border-2 transition-all hover:scale-105 text-left ${
-                          isDark 
-                            ? 'border-neutral-700 bg-neutral-800 hover:border-indigo-500' 
-                            : 'border-gray-200 bg-white hover:border-indigo-500'
-                        }`}
-                      >
-                        <div className="text-3xl mb-2">{doc.emoji}</div>
-                        <div className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {doc.name}
-                        </div>
-                        <div className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                          {doc.description}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {messages.length === 0 && selectedLegalArea && selectedDocType && (
-                <div className="text-center py-12">
-                  <div className="mb-4 flex items-center justify-center gap-2 flex-wrap">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
-                      {selectedLegalArea}
-                      <button onClick={() => { setSelectedLegalArea(null); setSelectedDocType(null); }} className="hover:opacity-70">✕</button>
-                    </span>
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
-                      {selectedDocType}
-                      <button onClick={() => setSelectedDocType(null)} className="hover:opacity-70">✕</button>
-                    </span>
-                  </div>
-                  <Sparkles className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Pronto para começar!
-                  </p>
-                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Descreva o que você precisa. Ex: "Crie uma {selectedDocType.toLowerCase()} sobre [assunto]"
-                  </p>
-                </div>
-              )}
-
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0">
-                      <FileText className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      msg.role === 'user'
-                        ? isDark ? 'bg-neutral-800 text-white' : 'bg-gray-900 text-white'
-                        : isDark ? 'bg-neutral-800 border border-neutral-700' : 'bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    {msg.role === 'assistant' ? (
-                      <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p className="text-sm">{msg.content}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {isGenerating && (
-                <div className="flex gap-3 justify-start">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center">
-                    <Loader2 className="w-4 h-4 text-white animate-spin" />
-                  </div>
-                  <div className={`rounded-lg p-3 ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                      Gerando resposta...
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Input Area */}
-          <div className={`border-t p-4 ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-            {currentDocument && currentDocument.trim().length > 0 && (
-              <div className={`mb-3 p-3 rounded-lg ${isDark ? 'bg-green-900/20 border border-green-700' : 'bg-green-50 border border-green-200'}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className={`text-xs font-medium ${isDark ? 'text-green-300' : 'text-green-700'}`}>
-                    Documento Pronto - Baixe ou Salve
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Input
-                    value={documentTitle}
-                    onChange={(e) => setDocumentTitle(e.target.value)}
-                    placeholder="Título do documento"
-                    className={`flex-1 min-w-[200px] ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white'}`}
-                  />
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleCopy}
-                    className={isDark ? 'border-neutral-700 hover:bg-neutral-800' : ''}
-                  >
-                    <Copy className="w-4 h-4 mr-1" />
-                    Copiar
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => setShowPreviewModal(true)}
-                    className="bg-blue-700 hover:bg-blue-800 text-white"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Ver / DOCX
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => {
-                      console.log('💾 DEBUG - Salvando documento');
-                      handleSave();
-                    }}
-                    disabled={saveMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {saveMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-1" />
-                        Salvar
-                      </>
-                    )}
-                  </Button>
                 </div>
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Textarea
+            {mensagens.map((msg, i) => (
+              <div key={i}>
+                {msg.tipo === "usuario"
+                  ? <MensagemUsuario texto={msg.texto} />
+                  : <MensagemAssistente msg={msg} />
+                }
+              </div>
+            ))}
+
+            {carregando && <MensagemCarregando />}
+            <div ref={endRef} />
+          </div>
+        </div>
+
+        {/* Input */}
+        <div style={{
+          background: "#FFFFFF", borderTop: "1px solid #E2E8F0",
+          padding: "16px 24px", flexShrink: 0
+        }}>
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            <div style={{
+              display: "flex", gap: 10, alignItems: "flex-end",
+              background: "#F8FAFC", border: "1px solid #E2E8F0",
+              borderRadius: 14, padding: "10px 12px"
+            }}>
+              <textarea
+                ref={textareaRef}
+                className="chat-textarea"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => { setInput(e.target.value); ajustarAltura(); }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
                 }}
-                placeholder={currentDocument ? "Digite o que deseja alterar no documento..." : "Digite o que você precisa. Ex: 'Crie uma petição inicial'"}
-                className="min-h-[60px] resize-none"
+                placeholder="Descreva o caso livremente — partes, fatos, pedidos, comarca... (Enter para enviar)"
+                rows={1}
+                style={{
+                  flex: 1, background: "transparent", border: "none",
+                  fontSize: 14, color: "#0F172A",
+                  fontFamily: "'Lora', Georgia, serif",
+                  lineHeight: 1.6, maxHeight: 160, overflow: "auto"
+                }}
               />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isGenerating}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600"
+              <button
+                onClick={enviar}
+                disabled={!input.trim() || carregando}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                  background: input.trim() && !carregando ? "#1E293B" : "#E2E8F0",
+                  border: "none", display: "flex", alignItems: "center",
+                  justifyContent: "center",
+                  cursor: input.trim() && !carregando ? "pointer" : "not-allowed",
+                  transition: "background 0.15s"
+                }}
               >
-                <Send className="w-4 h-4" />
-              </Button>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke={input.trim() && !carregando ? "#F8FAFC" : "#94A3B8"} strokeWidth="2.2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
             </div>
+            <p style={{ fontSize: 11, color: "#94A3B8", textAlign: "center", marginTop: 8 }}>
+              Shift + Enter para nova linha · O .docx é gerado automaticamente ao final de cada peça
+            </p>
           </div>
         </div>
       </div>
-
-      <DocumentPreviewModal
-        open={showPreviewModal}
-        onClose={() => setShowPreviewModal(false)}
-        title={documentTitle || "Peça Jurídica"}
-        content={currentDocument}
-      />
-    </div>
+    </>
   );
 }
