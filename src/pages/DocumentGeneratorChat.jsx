@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { FileText, Send, Loader2, Copy, Download, Save, Sparkles, MessageSquare, FileDown, Plus } from "lucide-react";
+import { FileText, Send, Loader2, Copy, Save, Sparkles, MessageSquare, Plus, Eye } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { jsPDF } from "jspdf";
+import DocumentPreviewModal from "@/components/ai/DocumentPreviewModal";
 
 const legalAreas = [
   { id: 'civil', name: 'Direito Civil', emoji: '📜' },
@@ -52,6 +52,7 @@ export default function DocumentGeneratorChat({ theme = 'light' }) {
   const [documentTitle, setDocumentTitle] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -164,17 +165,25 @@ ${currentDocument ? '7. MANTENHA o formato e estrutura do documento atual, apena
 
 Responda ao último pedido do usuário ${currentDocument ? 'atualizando o documento considerando TODO o contexto anterior' : 'gerando o documento com base em todas as informações fornecidas'}.`;
 
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        add_context_from_internet: true,
+      const res = await base44.functions.invoke('gerarPecaJuridica', {
+        mensagem: input,
+        historicoChat: messages,
+        area: selectedLegalArea || '',
+        tipo: selectedDocType || '',
       });
 
+      const response = res.data?.resposta || '';
       console.log('✅ DEBUG - Resposta recebida da IA:', response.substring(0, 100));
 
       const assistantMessage = { role: "assistant", content: response };
       const updatedMessages = [...currentMessages, assistantMessage];
       setMessages(updatedMessages);
       setCurrentDocument(response);
+      
+      // Abre o modal de preview automaticamente quando documento é gerado
+      if (res.data?.temDocumento) {
+        setShowPreviewModal(true);
+      }
 
       if (!documentTitle) {
         const newTitle = `Documento - ${new Date().toLocaleDateString('pt-BR')}`;
@@ -236,57 +245,8 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
     toast.success("Documento copiado!");
   };
 
-  const handleDownloadTxt = () => {
-    const blob = new Blob([currentDocument], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${documentTitle || "documento"}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Arquivo TXT baixado!");
-  };
-
-  const handleDownloadPdf = () => {
-    try {
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      const maxWidth = pageWidth - 2 * margin;
-      
-      // Remove Markdown formatting for plain text
-      const plainText = currentDocument
-        .replace(/#{1,6}\s/g, '')
-        .replace(/\*\*(.+?)\*\*/g, '$1')
-        .replace(/\*(.+?)\*/g, '$1')
-        .replace(/\[(.+?)\]\(.+?\)/g, '$1');
-      
-      // Title
-      doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      doc.text(documentTitle || 'Documento Jurídico', margin, margin);
-      
-      // Content
-      doc.setFontSize(11);
-      doc.setFont(undefined, 'normal');
-      let yPos = margin + 10;
-      
-      const lines = doc.splitTextToSize(plainText, maxWidth);
-      lines.forEach(line => {
-        if (yPos > 280) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.text(line, margin, yPos);
-        yPos += 6;
-      });
-      
-      doc.save(`${documentTitle || 'documento'}.pdf`);
-      toast.success("PDF baixado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast.error("Erro ao gerar PDF. Tente novamente.");
-    }
+  const handleDownloadDocx = async () => {
+    setShowPreviewModal(true);
   };
 
   const loadConversation = (conv) => {
@@ -569,38 +529,19 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => {
-                      console.log('🔍 DEBUG - Copiando documento');
-                      handleCopy();
-                    }}
+                    onClick={handleCopy}
                     className={isDark ? 'border-neutral-700 hover:bg-neutral-800' : ''}
                   >
                     <Copy className="w-4 h-4 mr-1" />
                     Copiar
                   </Button>
                   <Button 
-                    variant="outline" 
                     size="sm" 
-                    onClick={() => {
-                      console.log('📄 DEBUG - Baixando TXT');
-                      handleDownloadTxt();
-                    }}
-                    className={isDark ? 'border-neutral-700 hover:bg-neutral-800' : ''}
+                    onClick={() => setShowPreviewModal(true)}
+                    className="bg-blue-700 hover:bg-blue-800 text-white"
                   >
-                    <FileDown className="w-4 h-4 mr-1" />
-                    TXT
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => {
-                      console.log('📕 DEBUG - Baixando PDF');
-                      handleDownloadPdf();
-                    }}
-                    className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    PDF
+                    <Eye className="w-4 h-4 mr-1" />
+                    Ver / DOCX
                   </Button>
                   <Button 
                     size="sm" 
@@ -648,6 +589,13 @@ Responda ao último pedido do usuário ${currentDocument ? 'atualizando o docume
           </div>
         </div>
       </div>
+
+      <DocumentPreviewModal
+        open={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        title={documentTitle || "Peça Jurídica"}
+        content={currentDocument}
+      />
     </div>
   );
 }
