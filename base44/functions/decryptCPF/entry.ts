@@ -4,7 +4,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function getAESKey() {
-  const appId = Deno.env.get("BASE44_APP_ID") ?? "juris-lgpd-fallback-2026";
+  const appId = Deno.env.get("LGPD_ENCRYPTION_KEY") ?? Deno.env.get("BASE44_APP_ID");
   const enc = new TextEncoder();
   const raw = await crypto.subtle.importKey("raw", enc.encode(appId), { name: "HKDF" }, false, ["deriveKey"]);
   return crypto.subtle.deriveKey(

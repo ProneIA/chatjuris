@@ -5,7 +5,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function deriveKey() {
-  const appId = Deno.env.get("BASE44_APP_ID") || "juris-default-key";
+  const appId = Deno.env.get("LGPD_ENCRYPTION_KEY") ?? Deno.env.get("BASE44_APP_ID");
   const salt = "juris-lgpd-cpf-encryption-v1";
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
