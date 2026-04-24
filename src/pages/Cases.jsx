@@ -166,14 +166,14 @@ export default function Cases({ theme = 'light' }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-5 sm:mb-8 gap-3">
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Processos
             </h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+            <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
               {cases.length} processo(s) encontrado(s)
             </p>
           </div>
@@ -183,10 +183,11 @@ export default function Cases({ theme = 'light' }) {
               resetForm();
               setShowForm(true);
             }}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 shrink-0"
+            style={{ minHeight: 44 }}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Processo
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Novo Processo</span>
           </Button>
         </div>
 
@@ -221,7 +222,7 @@ export default function Cases({ theme = 'light' }) {
           </div>
         ) : (
           <PullToRefresh onRefresh={refetch} isDark={isDark}>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredCases.map((caseItem) => (
                 <CaseCard
                   key={caseItem.id}
@@ -235,7 +236,7 @@ export default function Cases({ theme = 'light' }) {
         )}
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
             <DialogHeader>
               <DialogTitle>{editingCase ? "Editar Processo" : "Novo Processo"}</DialogTitle>
             </DialogHeader>
@@ -246,13 +247,14 @@ export default function Cases({ theme = 'light' }) {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Ex: Ação de indenização"
+                  style={{ fontSize: 16, minHeight: 44 }}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>Cliente *</Label>
                 <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger style={{ minHeight: 44 }}>
                     <SelectValue placeholder="Selecione o cliente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,11 +267,11 @@ export default function Cases({ theme = 'light' }) {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Área *</Label>
                   <Select value={formData.area} onValueChange={(value) => setFormData({ ...formData, area: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger style={{ minHeight: 44 }}>
                       <SelectValue placeholder="Selecione a área" />
                     </SelectTrigger>
                     <SelectContent>
@@ -292,15 +294,16 @@ export default function Cases({ theme = 'light' }) {
                     value={formData.case_number}
                     onChange={(e) => setFormData({ ...formData, case_number: e.target.value })}
                     placeholder="0000000-00.0000.0.00.0000"
+                    style={{ fontSize: 16, minHeight: 44 }}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Status</Label>
                   <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger style={{ minHeight: 44 }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -316,7 +319,7 @@ export default function Cases({ theme = 'light' }) {
                 <div className="space-y-2">
                   <Label>Prioridade</Label>
                   <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger style={{ minHeight: 44 }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -335,6 +338,7 @@ export default function Cases({ theme = 'light' }) {
                   value={formData.court}
                   onChange={(e) => setFormData({ ...formData, court: e.target.value })}
                   placeholder="Ex: 1ª Vara Cível de São Paulo"
+                  style={{ fontSize: 16, minHeight: 44 }}
                 />
               </div>
 
@@ -344,16 +348,18 @@ export default function Cases({ theme = 'light' }) {
                   value={formData.opposing_party}
                   onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })}
                   placeholder="Nome da parte contrária"
+                  style={{ fontSize: 16, minHeight: 44 }}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data de Início</Label>
                   <Input
                     type="date"
                     value={formData.start_date}
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    style={{ fontSize: 16, minHeight: 44 }}
                   />
                 </div>
 
@@ -363,6 +369,7 @@ export default function Cases({ theme = 'light' }) {
                     type="date"
                     value={formData.deadline}
                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                    style={{ fontSize: 16, minHeight: 44 }}
                   />
                 </div>
               </div>
@@ -374,6 +381,7 @@ export default function Cases({ theme = 'light' }) {
                   value={formData.value}
                   onChange={(e) => setFormData({ ...formData, value: e.target.value })}
                   placeholder="0.00"
+                  style={{ fontSize: 16, minHeight: 44 }}
                 />
               </div>
 
@@ -384,14 +392,15 @@ export default function Cases({ theme = 'light' }) {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Detalhes do processo..."
                   rows={4}
+                  style={{ fontSize: 16 }}
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" onClick={() => setShowForm(false)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setShowForm(false)} style={{ minHeight: 44 }}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave} disabled={saveMutation.isPending}>
+                <Button onClick={handleSave} disabled={saveMutation.isPending} style={{ minHeight: 44 }}>
                   {saveMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />

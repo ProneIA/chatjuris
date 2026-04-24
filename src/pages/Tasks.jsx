@@ -181,24 +181,25 @@ export default function Tasks({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={`min-h-screen p-4 sm:p-6 ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <BackNavigation to={createPageUrl("Dashboard")} theme={theme} />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Gestão de Tarefas
+            <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Tarefas
             </h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+            <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'} hidden sm:block`}>
               Gerencie tarefas, prazos e responsabilidades
             </p>
           </div>
           <Button 
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 shrink-0"
+            style={{ minHeight: 44 }}
           >
-            {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-            {showForm ? "Cancelar" : "Nova Tarefa"}
+            {showForm ? <X className="w-4 h-4 sm:mr-2" /> : <Plus className="w-4 h-4 sm:mr-2" />}
+            <span className="hidden sm:inline">{showForm ? "Cancelar" : "Nova Tarefa"}</span>
           </Button>
         </div>
 
@@ -215,6 +216,7 @@ export default function Tasks({ theme = 'light' }) {
                 value={newTask.title}
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
+                style={{ fontSize: 16, minHeight: 44 }}
               />
             </div>
 
@@ -225,10 +227,11 @@ export default function Tasks({ theme = 'light' }) {
                 value={newTask.description}
                 onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                 className={`h-20 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+                style={{ fontSize: 16 }}
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className={isDark ? 'text-neutral-300' : ''}>Data de Vencimento *</Label>
                 <Input
@@ -380,7 +383,7 @@ export default function Tasks({ theme = 'light' }) {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
           <CardContent className="pt-6">
             <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>Pendentes</p>
@@ -409,63 +412,24 @@ export default function Tasks({ theme = 'light' }) {
 
       {/* Filtros e Busca */}
       <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-              <Input
-                placeholder="Buscar tarefas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
-              />
-            </div>
-
-            <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className={`w-40 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}>
-                <SelectValue placeholder="Prioridade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="urgent">Urgente</SelectItem>
-                <SelectItem value="high">Alta</SelectItem>
-                <SelectItem value="medium">Média</SelectItem>
-                <SelectItem value="low">Baixa</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className={`w-40 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="pending">Pendentes</SelectItem>
-                <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="completed">Concluídas</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterAssigned} onValueChange={setFilterAssigned}>
-              <SelectTrigger className={`w-40 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}>
-                <SelectValue placeholder="Responsável" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {user?.email && (
-                  <SelectItem value={user.email}>Minhas tarefas</SelectItem>
-                )}
-                {allTeamMembers.filter(m => m !== user?.email).map(member => (
-                  <SelectItem key={member} value={member}>{member}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-3">
             <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
+                <Input
+                  placeholder="Buscar tarefas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+                  style={{ fontSize: 16, minHeight: 44 }}
+                />
+              </div>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('list')}
+                style={{ minHeight: 44, minWidth: 44 }}
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -473,9 +437,52 @@ export default function Tasks({ theme = 'light' }) {
                 variant={viewMode === 'calendar' ? 'default' : 'outline'}
                 size="icon"
                 onClick={() => setViewMode('calendar')}
+                style={{ minHeight: 44, minWidth: 44 }}
               >
                 <CalendarDays className="w-4 h-4" />
               </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Select value={filterPriority} onValueChange={setFilterPriority}>
+                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas prioridades</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="low">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos status</SelectItem>
+                  <SelectItem value="pending">Pendentes</SelectItem>
+                  <SelectItem value="in_progress">Em Andamento</SelectItem>
+                  <SelectItem value="completed">Concluídas</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterAssigned} onValueChange={setFilterAssigned}>
+                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {user?.email && (
+                    <SelectItem value={user.email}>Minhas tarefas</SelectItem>
+                  )}
+                  {allTeamMembers.filter(m => m !== user?.email).map(member => (
+                    <SelectItem key={member} value={member}>{member}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -518,8 +525,8 @@ export default function Tasks({ theme = 'light' }) {
                        urgency === 'today' ? 'border-l-4 border-l-orange-500' :
                        urgency === 'tomorrow' ? 'border-l-4 border-l-yellow-500' : ''}`}
                     >
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4">
+                      <CardContent className="p-4 sm:p-5">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3 flex-1">
                             <input
                               type="checkbox"
@@ -531,6 +538,7 @@ export default function Tasks({ theme = 'light' }) {
                                 });
                               }}
                               className="mt-1 w-5 h-5 rounded"
+                              style={{ minWidth: 20, minHeight: 20 }}
                             />
                             <div className="flex-1 min-w-0">
                               <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'} ${task.status === 'completed' ? 'line-through opacity-60' : ''}`}>

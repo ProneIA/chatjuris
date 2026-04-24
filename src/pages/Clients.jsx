@@ -93,11 +93,11 @@ export default function Clients({ theme = 'light' }) {
       <div className="flex-1 flex overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-        <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center justify-between mb-6">
+        <div className={`border-b px-4 sm:px-6 py-4 sm:py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+          <div className="flex items-center justify-between mb-4 sm:mb-6 gap-3">
             <div>
-              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Clientes</h1>
-              <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie seus clientes</p>
+              <h1 className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Clientes</h1>
+              <p className={`mt-1 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie seus clientes</p>
             </div>
             <Button
               onClick={() => {
@@ -105,32 +105,33 @@ export default function Clients({ theme = 'light' }) {
                 setEditingClient(null);
                 setSelectedClient(null);
               }}
-              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
+              className={isDark ? 'bg-white text-black hover:bg-gray-100 shrink-0' : 'bg-gray-900 text-white hover:bg-gray-800 shrink-0'}
+              style={{ minHeight: 44 }}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Cliente
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Cliente</span>
             </Button>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total Ativos</p>
-              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeClients}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <p className={`text-xs sm:text-sm mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Ativos</p>
+              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeClients}</p>
             </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                <UserIcon className="w-4 h-4" />
-                <p className="text-sm">Pessoas Físicas</p>
+            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <div className={`flex items-center gap-1 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                <p className="text-xs sm:text-sm truncate">Físicas</p>
               </div>
-              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{individualClients}</p>
+              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{individualClients}</p>
             </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <div className={`flex items-center gap-2 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                <Building2 className="w-4 h-4" />
-                <p className="text-sm">Pessoas Jurídicas</p>
+            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+              <div className={`flex items-center gap-1 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                <Building2 className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                <p className="text-xs sm:text-sm truncate">Jurídicas</p>
               </div>
-              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{companyClients}</p>
+              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{companyClients}</p>
             </div>
           </div>
 
@@ -146,7 +147,7 @@ export default function Clients({ theme = 'light' }) {
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div className={`flex-1 overflow-y-auto p-3 sm:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
           {showForm ? (
             <ClientForm
               client={editingClient}

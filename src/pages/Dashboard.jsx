@@ -172,11 +172,11 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
   return (
     <div style={{ minHeight:"100vh", background:"var(--bg)", fontFamily:"system-ui,sans-serif" }}>
       
-      <div className="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
         {/* Header com saudação */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 dash-fu">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 dash-fu">
           <div>
-            <h1 className="dash-oswald" style={{ fontSize:"clamp(1.8rem,4vw,2.5rem)", fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1, color:"var(--text)", margin:0 }}>
+            <h1 className="dash-oswald" style={{ fontSize:"clamp(1.4rem,5vw,2.5rem)", fontWeight:700, textTransform:"uppercase", letterSpacing:"-0.02em", lineHeight:1, color:"var(--text)", margin:0 }}>
               {getGreeting()}, <span style={{ color:"var(--primary)" }}>{user?.full_name?.split(' ')[0] || 'Advogado'}</span>
             </h1>
             <p style={{ marginTop:"0.4rem", fontSize:".72rem", textTransform:"uppercase", letterSpacing:".16em", color:"var(--text-muted)" }}>
@@ -185,7 +185,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
           </div>
           <div className="flex items-center gap-2">
             <Link to={createPageUrl("AIAssistant")}>
-              <button className="dash-oswald" style={{ display:"inline-flex", alignItems:"center", gap:".5rem", padding:".7rem 1.6rem", background:"var(--primary)", color:"#fff", border:"none", cursor:"pointer", fontWeight:700, fontSize:".78rem", textTransform:"uppercase", letterSpacing:".1em" }}>
+              <button className="dash-oswald" style={{ display:"inline-flex", alignItems:"center", gap:".5rem", padding:".7rem 1.4rem", background:"var(--primary)", color:"#fff", border:"none", cursor:"pointer", fontWeight:700, fontSize:".78rem", textTransform:"uppercase", letterSpacing:".1em", minHeight:44 }}>
                 <Sparkles style={{ width:15, height:15 }} />
                 Assistente IA
               </button>
@@ -196,7 +196,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
 
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background:"var(--app-border)" }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px" style={{ background:"var(--app-border)", overflowX:"auto" }}>
           {quickActions.map((action, i) => {
             const Icon = action.icon;
             return (
@@ -223,7 +223,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background:"var(--app-border)" }}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px" style={{ background:"var(--app-border)" }}>
           {statCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -246,7 +246,7 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
                     <Skeleton style={{ height:40, width:60, background:"var(--surface-2)" }} />
                   ) : (
                     <div style={{ display:"flex", alignItems:"baseline", gap:"0.4rem" }}>
-                      <span className="dash-oswald" style={{ fontSize:"2.5rem", fontWeight:700, lineHeight:1, color:"var(--text)" }}>{stat.value}</span>
+                      <span className="dash-oswald" style={{ fontSize:"clamp(1.8rem,5vw,2.5rem)", fontWeight:700, lineHeight:1, color:"var(--text)" }}>{stat.value}</span>
                       {stat.total !== undefined && (
                         <span style={{ fontSize:".875rem", color:"var(--text-muted)" }}>/ {stat.total}</span>
                       )}
@@ -286,16 +286,16 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
                 const urgency = getTaskUrgency(task);
                 const urgencyColor = { red:"#ef4444", orange:"#f97316", yellow:"#eab308", blue:"var(--primary)", gray:"var(--app-muted)" }[urgency.color] || "var(--app-muted)";
                 return (
-                  <div key={task.id} style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.85rem 1.5rem", borderBottom:"1px solid var(--border)", transition:"background .15s" }}
-                    onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
-                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                    <div style={{ width:6, height:6, background:urgencyColor, flexShrink:0 }} />
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{task.title}</p>
-                    </div>
-                    <span className="dash-oswald" style={{ fontSize:".7rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".08em", color:urgencyColor, flexShrink:0 }}>
-                      {task.due_date && format(new Date(task.due_date), "dd/MM")} — {urgency.label}
-                    </span>
+                  <div key={task.id} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1rem", borderBottom:"1px solid var(--border)", transition:"background .15s", minHeight:44 }}
+                   onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
+                   onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                   <div style={{ width:6, height:6, background:urgencyColor, flexShrink:0 }} />
+                   <div style={{ flex:1, minWidth:0 }}>
+                     <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{task.title}</p>
+                   </div>
+                   <span className="dash-oswald" style={{ fontSize:".7rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".08em", color:urgencyColor, flexShrink:0, whiteSpace:"nowrap" }}>
+                     {task.due_date && format(new Date(task.due_date), "dd/MM")} — {urgency.label}
+                   </span>
                   </div>
                 );
               })
@@ -336,15 +336,15 @@ const Dashboard = React.memo(function Dashboard({ theme = 'light' }) {
                 const statusColor = { in_progress:"var(--primary)", new:"#16a34a", waiting:"#ca8a04", closed:"var(--app-muted)" }[caseItem.status] || "var(--app-muted)";
                 return (
                   <Link key={caseItem.id} to={createPageUrl("Cases")} style={{ textDecoration:"none" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:"1rem", padding:"0.85rem 1.5rem", borderBottom:"1px solid var(--border)", transition:"background .15s" }}
-                      onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
-                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                      <div style={{ width:6, height:6, background:statusColor, flexShrink:0 }} />
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{caseItem.title}</p>
-                        <p style={{ fontSize:".75rem", color:"var(--text-muted)", margin:0, marginTop:"0.15rem" }}>{caseItem.client_name}</p>
-                      </div>
-                      <span className="dash-oswald" style={{ fontSize:".65rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:statusColor, flexShrink:0 }}>{statusLabel}</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1rem", borderBottom:"1px solid var(--border)", transition:"background .15s", minHeight:44 }}
+                     onMouseEnter={e=>e.currentTarget.style.background="var(--app-surface2)"}
+                     onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                     <div style={{ width:6, height:6, background:statusColor, flexShrink:0 }} />
+                     <div style={{ flex:1, minWidth:0 }}>
+                       <p style={{ fontWeight:500, fontSize:".875rem", color:"var(--text)", margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{caseItem.title}</p>
+                       <p style={{ fontSize:".75rem", color:"var(--text-muted)", margin:0, marginTop:"0.15rem" }}>{caseItem.client_name}</p>
+                     </div>
+                     <span className="dash-oswald" style={{ fontSize:".65rem", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:statusColor, flexShrink:0, whiteSpace:"nowrap" }}>{statusLabel}</span>
                     </div>
                   </Link>
                 );

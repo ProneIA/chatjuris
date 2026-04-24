@@ -130,6 +130,42 @@
 /* Scrollbar — hidden globally */
 ::-webkit-scrollbar { width: 0; height: 0; }
 
+/* ═══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE UTILITIES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Prevent iOS zoom on input focus — font-size >= 16px */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+  
+  /* Touch targets */
+  button, [role="button"], a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent overflow on mobile */
+  .max-w-7xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Cards de stat no mobile — texto menor */
+  .stat-card-value {
+    font-size: clamp(1.5rem, 8vw, 2.5rem) !important;
+  }
+  
+  /* Tables horizontal scroll */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 /* Selection */
 ::selection { background: var(--primary); color: #fff; }
 
