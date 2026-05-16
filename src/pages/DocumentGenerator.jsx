@@ -326,6 +326,7 @@ export default function DocumentGenerator() {
     const resultado = await base44.integrations.Core.InvokeLLM({
       prompt,
       add_context_from_internet: false,
+      model: "claude_sonnet_4_6",
     });
     setDocumentoGerado(resultado);
     setLoading(false);
