@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Copy, Download, FileText, ArrowLeft, Loader2, Scale, Gavel, Briefcase, Building2, ShoppingCart, Heart, Shield, Globe, Landmark, Leaf, Vote, Flag, BookOpen, Home, Cpu, Banknote, ChevronRight } from "lucide-react";
+import { Check, Copy, Download, FileText, ArrowLeft, Loader2, Scale, Gavel, Briefcase, Building2, ShoppingCart, Heart, Shield, Globe, Landmark, Leaf, Vote, BookOpen, Home, Cpu, Banknote, ChevronRight } from "lucide-react";
+import ExportacaoPeca from "@/components/documents/ExportacaoPeca";
 
 // ─── DADOS ────────────────────────────────────────────────────────────────────
 
@@ -296,8 +297,20 @@ export default function DocumentGenerator() {
   const [loading, setLoading] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
-  const areaLabel = areaSelecionada ? AREAS_JURIDICAS.find(a => a.id === areaSelecionada)?.label : "";
+  const areaObj = areaSelecionada ? AREAS_JURIDICAS.find(a => a.id === areaSelecionada) : null;
+  const areaLabel = areaObj?.label || "";
   const tipoLabel = tipoSelecionado?.label || "";
+
+  function gerarNomeArquivo() {
+    const tipo = tipoLabel.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const area = areaLabel.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const data = new Date().toLocaleDateString("pt-BR").replace(/\//g, "-");
+    return `${tipo}-${area}-${data}`;
+  }
 
   function selecionarArea(id) {
     setAreaSelecionada(id);
@@ -530,15 +543,8 @@ export default function DocumentGenerator() {
               </span>
             </div>
 
-            {/* Botões de ação */}
+            {/* Ações do header */}
             <div className="flex flex-wrap gap-2 p-4" style={{ borderBottom: "1px solid var(--border)" }}>
-              <button onClick={copiarDocumento} className="btn-primary" style={{ fontSize: ".75rem" }}>
-                {copiado ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {copiado ? "Copiado!" : "Copiar"}
-              </button>
-              <button onClick={baixarDocumento} className="btn-ghost" style={{ fontSize: ".75rem" }}>
-                <Download className="w-4 h-4" /> Baixar (.txt)
-              </button>
               <button onClick={novoDocumento} className="btn-ghost" style={{ fontSize: ".75rem" }}>
                 <FileText className="w-4 h-4" /> Novo Documento
               </button>
@@ -550,6 +556,14 @@ export default function DocumentGenerator() {
                 {documentoGerado}
               </pre>
             </ScrollArea>
+
+            {/* Exportação */}
+            <ExportacaoPeca
+              textoDocumento={documentoGerado}
+              tipoDocumento={tipoLabel}
+              areaJuridica={areaLabel}
+              nomeArquivo={gerarNomeArquivo()}
+            />
           </div>
         )}
       </div>
