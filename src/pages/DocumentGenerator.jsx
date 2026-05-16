@@ -1,713 +1,556 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Save, Loader2, ArrowLeft, FileText, ChevronRight, Check, Scale, Briefcase, Users, FileSignature, Download } from "lucide-react";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import ReactMarkdown from "react-markdown";
-import { motion, AnimatePresence } from "framer-motion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Check, Copy, Download, FileText, ArrowLeft, Loader2, Scale, Gavel, Briefcase, Building2, ShoppingCart, Heart, Shield, Globe, Landmark, Leaf, Vote, Flag, BookOpen, Home, Cpu, Banknote, ChevronRight } from "lucide-react";
 
-const legalAreas = [
-  { id: 'civil', name: 'Direito Civil', emoji: '📜' },
-  { id: 'penal', name: 'Direito Penal', emoji: '⚖️' },
-  { id: 'trabalhista', name: 'Direito Trabalhista', emoji: '👔' },
-  { id: 'tributario', name: 'Direito Tributário', emoji: '💰' },
-  { id: 'empresarial', name: 'Direito Empresarial', emoji: '🏢' },
-  { id: 'consumidor', name: 'Direito do Consumidor', emoji: '🛒' },
-  { id: 'familia', name: 'Direito de Família', emoji: '👨‍👩‍👧‍👦' },
-  { id: 'previdenciario', name: 'Direito Previdenciário', emoji: '🏥' },
-  { id: 'constitucional', name: 'Direito Constitucional', emoji: '🏛️' },
-  { id: 'administrativo', name: 'Direito Administrativo', emoji: '🏛️' },
-  { id: 'ambiental', name: 'Direito Ambiental', emoji: '🌳' },
-  { id: 'eleitoral', name: 'Direito Eleitoral', emoji: '🗳️' },
-  { id: 'internacional', name: 'Direito Internacional', emoji: '🌍' },
-  { id: 'processual_civil', name: 'Processo Civil', emoji: '📋' },
-  { id: 'processual_penal', name: 'Processo Penal', emoji: '⚖️' },
-  { id: 'imobiliario', name: 'Direito Imobiliário', emoji: '🏠' },
-  { id: 'digital', name: 'Direito Digital', emoji: '💻' },
-  { id: 'bancario', name: 'Direito Bancário', emoji: '🏦' },
+// ─── DADOS ────────────────────────────────────────────────────────────────────
+
+const AREAS_JURIDICAS = [
+  { id: "civil", label: "Direito Civil", icon: Scale },
+  { id: "penal", label: "Direito Penal", icon: Gavel },
+  { id: "trabalhista", label: "Direito Trabalhista", icon: Briefcase },
+  { id: "tributario", label: "Direito Tributário", icon: Building2 },
+  { id: "empresarial", label: "Direito Empresarial", icon: Briefcase },
+  { id: "consumidor", label: "Direito do Consumidor", icon: ShoppingCart },
+  { id: "familia", label: "Direito de Família", icon: Heart },
+  { id: "previdenciario", label: "Direito Previdenciário", icon: Shield },
+  { id: "constitucional", label: "Direito Constitucional", icon: BookOpen },
+  { id: "administrativo", label: "Direito Administrativo", icon: Landmark },
+  { id: "ambiental", label: "Direito Ambiental", icon: Leaf },
+  { id: "eleitoral", label: "Direito Eleitoral", icon: Vote },
+  { id: "internacional", label: "Direito Internacional", icon: Globe },
+  { id: "processoCivil", label: "Processo Civil", icon: Scale },
+  { id: "processoPenal", label: "Processo Penal", icon: Gavel },
+  { id: "imobiliario", label: "Direito Imobiliário", icon: Home },
+  { id: "digital", label: "Direito Digital", icon: Cpu },
+  { id: "bancario", label: "Direito Bancário", icon: Banknote },
 ];
 
-const documentTemplates = [
-  {
-    id: "peticao",
-    name: "Petição Inicial",
-    icon: Scale,
-    color: "blue",
-    fields: [
-      { name: "tribunal", label: "Tribunal/Vara", type: "text", placeholder: "Ex: 1ª Vara Cível de São Paulo" },
-      { name: "autor", label: "Nome do Autor", type: "text", placeholder: "Nome completo" },
-      { name: "reu", label: "Nome do Réu", type: "text", placeholder: "Nome completo" },
-      { name: "valor", label: "Valor da Causa", type: "text", placeholder: "R$ 50.000,00" },
-      { name: "fatos", label: "Resumo dos Fatos", type: "textarea", placeholder: "Descreva os fatos relevantes..." },
-      { name: "pedidos", label: "Pedidos", type: "textarea", placeholder: "Liste os pedidos principais..." }
-    ]
-  },
-  {
-    id: "contrato",
-    name: "Contrato",
-    icon: FileSignature,
-    color: "green",
-    fields: [
-      { name: "tipo_contrato", label: "Tipo de Contrato", type: "select", options: ["Aluguel", "Prestação de Serviços", "Compra e Venda", "Parceria"] },
-      { name: "parte1", label: "Primeira Parte (Contratante)", type: "text", placeholder: "Nome e qualificação" },
-      { name: "parte2", label: "Segunda Parte (Contratado)", type: "text", placeholder: "Nome e qualificação" },
-      { name: "objeto", label: "Objeto do Contrato", type: "textarea", placeholder: "Descreva o que está sendo contratado..." },
-      { name: "valor", label: "Valor/Remuneração", type: "text", placeholder: "R$ 5.000,00 mensais" },
-      { name: "prazo", label: "Prazo de Vigência", type: "text", placeholder: "12 meses" },
-      { name: "clausulas", label: "Cláusulas Especiais", type: "textarea", placeholder: "Cláusulas adicionais..." }
-    ]
-  },
-  {
-    id: "procuracao",
-    name: "Procuração",
-    icon: Users,
-    color: "purple",
-    fields: [
-      { name: "outorgante", label: "Outorgante (quem dá poderes)", type: "text", placeholder: "Nome completo, CPF, endereço" },
-      { name: "outorgado", label: "Outorgado (advogado)", type: "text", placeholder: "Nome, OAB" },
-      { name: "poderes", label: "Poderes Concedidos", type: "select", options: ["Gerais com cláusula ad judicia", "Específicos para processo", "Poderes especiais"] },
-      { name: "processo", label: "Processo (se aplicável)", type: "text", placeholder: "Número do processo" },
-      { name: "poderes_extras", label: "Poderes Adicionais", type: "textarea", placeholder: "Poderes específicos..." }
-    ]
-  },
-  {
-    id: "recurso",
-    name: "Recurso/Apelação",
-    icon: Briefcase,
-    color: "orange",
-    fields: [
-      { name: "tipo_recurso", label: "Tipo de Recurso", type: "select", options: ["Apelação", "Agravo de Instrumento", "Embargos de Declaração", "Recurso Especial"] },
-      { name: "processo", label: "Número do Processo", type: "text", placeholder: "0000000-00.0000.0.00.0000" },
-      { name: "recorrente", label: "Recorrente", type: "text", placeholder: "Nome completo" },
-      { name: "recorrido", label: "Recorrido", type: "text", placeholder: "Nome completo" },
-      { name: "decisao", label: "Síntese da Decisão Recorrida", type: "textarea", placeholder: "Resuma a decisão que está sendo recorrida..." },
-      { name: "fundamentos", label: "Fundamentos do Recurso", type: "textarea", placeholder: "Argumentos jurídicos..." }
-    ]
-  }
-];
+const TIPOS_DOCUMENTO = {
+  civil: [
+    { id: "peticao_inicial", label: "Petição Inicial", campos: ["tribunal","autor","reu","valor_causa","fatos","pedidos"] },
+    { id: "contestacao", label: "Contestação", campos: ["tribunal","processo","reu","fatos_defesa","argumentos","pedidos"] },
+    { id: "contrato", label: "Contrato Civil", campos: ["contratante","contratado","objeto","valor","prazo","condicoes"] },
+    { id: "recurso", label: "Recurso/Apelação", campos: ["tribunal","processo","recorrente","recorrido","razoes","pedidos"] },
+    { id: "parecer", label: "Parecer Jurídico", campos: ["consulente","materia","fatos","questao_juridica"] },
+    { id: "notificacao", label: "Notificação Extrajudicial", campos: ["notificante","notificado","motivo","prazo","exigencia"] },
+  ],
+  penal: [
+    { id: "denuncia", label: "Denúncia", campos: ["juizo","acusado","vitima","fatos","tipificacao","pedidos"] },
+    { id: "defesa_preliminar", label: "Defesa Preliminar", campos: ["juizo","processo","acusado","fatos_defesa","argumentos"] },
+    { id: "alegacoes_finais", label: "Alegações Finais", campos: ["juizo","processo","acusado","fatos","teses_defesa","pedidos"] },
+    { id: "habeas_corpus", label: "Habeas Corpus", campos: ["tribunal","paciente","autoridade_coatora","fundamentos","pedidos"] },
+    { id: "recurso_penal", label: "Recurso em Sentido Estrito", campos: ["tribunal","processo","recorrente","decisao_recorrida","razoes"] },
+  ],
+  trabalhista: [
+    { id: "reclamacao_trabalhista", label: "Reclamação Trabalhista", campos: ["vara","reclamante","reclamado","data_admissao","data_demissao","verbas","fatos","pedidos"] },
+    { id: "contestacao_trabalhista", label: "Contestação Trabalhista", campos: ["vara","processo","reclamado","fatos_defesa","argumentos","pedidos"] },
+    { id: "recurso_ordinario", label: "Recurso Ordinário", campos: ["trt","processo","recorrente","decisao","razoes","pedidos"] },
+    { id: "acordo_trabalhista", label: "Acordo Extrajudicial", campos: ["trabalhador","empregador","verbas","valor_acordo","condicoes"] },
+  ],
+  tributario: [
+    { id: "impugnacao_auto", label: "Impugnação de Auto de Infração", campos: ["contribuinte","auto_infracao","fatos","fundamentos_juridicos","pedidos"] },
+    { id: "mandado_seguranca_tributario", label: "Mandado de Segurança Tributário", campos: ["tribunal","impetrante","autoridade","direito_liquido","pedidos"] },
+    { id: "consulta_tributaria", label: "Consulta Tributária", campos: ["consulente","tributo","fatos","duvida_juridica"] },
+    { id: "recurso_administrativo", label: "Recurso Administrativo Fiscal", campos: ["orgao","contribuinte","processo","decisao","razoes","pedidos"] },
+  ],
+  empresarial: [
+    { id: "contrato_social", label: "Contrato Social", campos: ["socios","razao_social","objeto_social","capital_social","sede","administracao"] },
+    { id: "contrato_prestacao", label: "Contrato de Prestação de Serviços", campos: ["contratante","contratado","objeto","valor","prazo","obrigacoes"] },
+    { id: "NDA", label: "Acordo de Confidencialidade (NDA)", campos: ["parte_a","parte_b","objeto","prazo","penalidades"] },
+    { id: "distrato", label: "Distrato Societário", campos: ["socios","empresa","motivo","liquidacao","partilha"] },
+  ],
+  consumidor: [
+    { id: "peticao_consumidor", label: "Petição Inicial (CDC)", campos: ["juizado","consumidor","fornecedor","produto_servico","fatos","dano","pedidos"] },
+    { id: "notificacao_consumidor", label: "Notificação ao Fornecedor", campos: ["consumidor","fornecedor","produto","problema","exigencia","prazo"] },
+    { id: "recurso_jec", label: "Recurso (JEC)", campos: ["turma_recursal","processo","recorrente","decisao","razoes","pedidos"] },
+  ],
+  familia: [
+    { id: "divorcio", label: "Petição de Divórcio", campos: ["vara","requerente","requerido","data_casamento","bens","filhos","pedidos"] },
+    { id: "guarda", label: "Ação de Guarda", campos: ["vara","requerente","requerido","crianca","situacao_atual","fatos","pedidos"] },
+    { id: "alimentos", label: "Ação de Alimentos", campos: ["vara","alimentando","alimentante","necessidade","capacidade","pedidos"] },
+    { id: "inventario", label: "Petição de Inventário", campos: ["juizo","falecido","data_obito","herdeiros","bens","pedidos"] },
+  ],
+  previdenciario: [
+    { id: "aposentadoria", label: "Ação de Aposentadoria", campos: ["juizo","autor","reu_inss","tempo_contribuicao","fatos","pedidos"] },
+    { id: "beneficio_negado", label: "Ação de Concessão de Benefício", campos: ["juizo","autor","beneficio_pleiteado","motivo_negativa","fatos","pedidos"] },
+    { id: "revisao_beneficio", label: "Ação de Revisão de Benefício", campos: ["juizo","autor","beneficio","calculo_correto","diferenca","pedidos"] },
+  ],
+  constitucional: [
+    { id: "mandado_seguranca", label: "Mandado de Segurança", campos: ["tribunal","impetrante","autoridade_coatora","ato_impugnado","direito_liquido","pedidos"] },
+    { id: "acao_popular", label: "Ação Popular", campos: ["juizo","autor_popular","reu","ato_lesivo","fundamentos","pedidos"] },
+    { id: "acao_civil_publica", label: "Ação Civil Pública", campos: ["juizo","legitimado_ativo","reu","dano_coletivo","fundamentos","pedidos"] },
+  ],
+  administrativo: [
+    { id: "mandado_seguranca_adm", label: "MS Administrativo", campos: ["tribunal","impetrante","autoridade","ato_impugnado","fundamentos","pedidos"] },
+    { id: "recurso_administrativo_adm", label: "Recurso Administrativo", campos: ["orgao","recorrente","processo","decisao","razoes","pedidos"] },
+    { id: "impugnacao_edital", label: "Impugnação de Edital (Licitação)", campos: ["orgao","impugnante","edital","clausulas_ilegais","fundamentos","pedidos"] },
+  ],
+  ambiental: [
+    { id: "acp_ambiental", label: "Ação Civil Pública Ambiental", campos: ["juizo","legitimado","reu","dano_ambiental","fundamentos","pedidos"] },
+    { id: "defesa_auto_ambiental", label: "Defesa de Auto de Infração Ambiental", campos: ["orgao","autuado","auto","fatos","fundamentos","pedidos"] },
+  ],
+  eleitoral: [
+    { id: "representacao_eleitoral", label: "Representação Eleitoral", campos: ["tse_tre","representante","representado","conduta","fundamentos","pedidos"] },
+    { id: "recurso_eleitoral", label: "Recurso Eleitoral", campos: ["tribunal","processo","recorrente","decisao","razoes","pedidos"] },
+  ],
+  internacional: [
+    { id: "contrato_internacional", label: "Contrato Internacional", campos: ["parte_a_pais","parte_b_pais","objeto","lei_aplicavel","foro","condicoes"] },
+    { id: "carta_rogatoria", label: "Carta Rogatória", campos: ["juizo_rogante","juizo_rogado","processo","diligencia","fundamentos"] },
+  ],
+  processoCivil: [
+    { id: "peticao_inicial_cpc", label: "Petição Inicial (CPC/2015)", campos: ["juizo","autor","reu","valor_causa","fatos","fundamentos","pedidos"] },
+    { id: "contestacao_cpc", label: "Contestação (CPC/2015)", campos: ["juizo","processo","reu","preliminares","merito","pedidos"] },
+    { id: "agravo_instrumento", label: "Agravo de Instrumento", campos: ["tribunal","processo","agravante","agravado","decisao","razoes","pedidos"] },
+    { id: "embargos_declaracao", label: "Embargos de Declaração", campos: ["juizo","processo","embargante","decisao","omissao_contradição","pedidos"] },
+  ],
+  processoPenal: [
+    { id: "hc", label: "Habeas Corpus", campos: ["tribunal","paciente","autoridade_coatora","constrangimento","fundamentos","pedidos"] },
+    { id: "rese", label: "Recurso em Sentido Estrito", campos: ["tribunal","processo","recorrente","decisao_impugnada","razoes","pedidos"] },
+    { id: "apelacao_penal", label: "Apelação Criminal", campos: ["tribunal","processo","apelante","decisao","razoes","pedidos"] },
+  ],
+  imobiliario: [
+    { id: "acao_despejo", label: "Ação de Despejo", campos: ["juizo","locador","locatario","imovel","motivo","fatos","pedidos"] },
+    { id: "acao_posse", label: "Ação Possessória", campos: ["juizo","autor","reu","imovel","tipo_turbacao","fatos","pedidos"] },
+    { id: "usucapiao", label: "Ação de Usucapião", campos: ["juizo","autor","imovel","tempo_posse","caracteristicas_posse","pedidos"] },
+  ],
+  digital: [
+    { id: "peticao_digital", label: "Petição LGPD/Marco Civil", campos: ["juizo","autor","reu","violacao","dados_afetados","fatos","pedidos"] },
+    { id: "notificacao_lgpd", label: "Notificação LGPD", campos: ["controlador","titular","dado_violado","exigencia","prazo"] },
+  ],
+  bancario: [
+    { id: "acao_bancaria", label: "Ação contra Instituição Financeira", campos: ["juizo","autor","banco","produto_financeiro","abusividade","fatos","pedidos"] },
+    { id: "revisional", label: "Ação Revisional de Contrato Bancário", campos: ["juizo","autor","banco","contrato","clausulas_abusivas","pedidos"] },
+  ],
+};
 
-export default function DocumentGenerator({ theme = 'light' }) {
-  const isDark = theme === 'dark';
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  
-  // Controle de etapas
-  const [step, setStep] = useState(1); // 1: Escolher área, 2: Escolher tipo, 3: Preencher dados, 4: Gerar e revisar, 5: Salvar
-  const [selectedLegalArea, setSelectedLegalArea] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [generatedContent, setGeneratedContent] = useState("");
-  const [documentTitle, setDocumentTitle] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState("");
+const CAMPOS_TEXTAREA = new Set([
+  "fatos","pedidos","fundamentos","fatos_defesa","argumentos","teses_defesa","razoes",
+  "condicoes","questao_juridica","merito","preliminares","duvida_juridica","direito_liquido",
+  "ato_lesivo","dano_coletivo","clausulas_ilegais","clausulas_abusivas","abusividade",
+  "constrangimento","omissao_contradição","caracteristicas_posse","dados_afetados","obrigacoes",
+  "penalidades","socios","herdeiros","filhos","verbas","objeto_social","necessidade","capacidade",
+  "tipificacao","dano","problema","fundamentos_juridicos","dano_ambiental","conduta",
+]);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+const CAMPO_LABELS = {
+  tribunal:"Tribunal/Vara", juizo:"Juízo Competente", vara:"Vara do Trabalho", trt:"Tribunal Regional do Trabalho",
+  autor:"Nome do Autor", reu:"Nome do Réu", reclamante:"Nome do Reclamante", reclamado:"Nome do Reclamado",
+  paciente:"Nome do Paciente", impetrante:"Nome do Impetrante", valor_causa:"Valor da Causa",
+  fatos:"Narração dos Fatos", pedidos:"Pedidos", objeto:"Objeto do Contrato/Ação",
+  contratante:"Contratante", contratado:"Contratado", valor:"Valor", prazo:"Prazo",
+  condicoes:"Condições Gerais", processo:"Número do Processo", autoridade_coatora:"Autoridade Coatora",
+  ato_impugnado:"Ato Impugnado", direito_liquido:"Direito Líquido e Certo Violado",
+  acusado:"Nome do Acusado", vitima:"Nome da Vítima", tipificacao:"Tipificação Penal",
+  razoes:"Razões Recursais", recorrente:"Recorrente", recorrido:"Recorrido", decisao:"Decisão Recorrida",
+  data_admissao:"Data de Admissão", data_demissao:"Data de Demissão/Dispensa", verbas:"Verbas Trabalhistas Devidas",
+  fundamentos:"Fundamentos Jurídicos", fundamentos_juridicos:"Fundamentos Jurídicos",
+  argumentos:"Argumentos de Defesa", teses_defesa:"Teses de Defesa", fatos_defesa:"Fatos Narrados pela Defesa",
+  preliminares:"Preliminares (se houver)", merito:"Mérito — Argumentos", consulente:"Consulente",
+  materia:"Matéria a ser Analisada", questao_juridica:"Questão Jurídica", notificante:"Notificante",
+  notificado:"Notificado", motivo:"Motivo da Notificação", exigencia:"Exigência",
+  auto_infracao:"Número do Auto de Infração", tributo:"Tributo em Questão", orgao:"Órgão/Repartição",
+  socios:"Sócios (nome, CPF, quota %)", razao_social:"Razão Social", objeto_social:"Objeto Social",
+  capital_social:"Capital Social", sede:"Endereço da Sede", administracao:"Forma de Administração",
+  parte_a:"Parte A", parte_b:"Parte B", penalidades:"Penalidades por Violação",
+  produto_servico:"Produto ou Serviço", produto:"Produto", problema:"Problema/Vício", dano:"Dano Sofrido",
+  requerente:"Requerente", requerido:"Requerido", data_casamento:"Data do Casamento",
+  bens:"Bens a Partilhar", filhos:"Filhos (nomes e idades)", crianca:"Nome da Criança",
+  situacao_atual:"Situação Atual da Guarda", alimentando:"Alimentando", alimentante:"Alimentante",
+  necessidade:"Necessidade do Alimentando", capacidade:"Capacidade do Alimentante",
+  falecido:"Nome do Falecido", data_obito:"Data do Óbito", herdeiros:"Herdeiros",
+  tempo_contribuicao:"Tempo de Contribuição", beneficio_pleiteado:"Benefício Pleiteado",
+  motivo_negativa:"Motivo da Negativa do INSS", reu_inss:"Réu (INSS/RGPS)",
+  beneficio:"Benefício a Revisar", calculo_correto:"Cálculo Correto Pretendido", diferenca:"Diferença a Receber",
+  ato_lesivo:"Ato Lesivo ao Patrimônio Público", dano_coletivo:"Dano ao Interesse Coletivo",
+  clausulas_ilegais:"Cláusulas/Itens Ilegais do Edital", edital:"Número do Edital", impugnante:"Impugnante",
+  dano_ambiental:"Descrição do Dano Ambiental", auto:"Número do Auto de Infração",
+  tse_tre:"TSE/TRE Competente", representante:"Representante", representado:"Representado",
+  conduta:"Conduta Ilícita Eleitoral", parte_a_pais:"Parte A (nome e país)", parte_b_pais:"Parte B (nome e país)",
+  lei_aplicavel:"Lei Aplicável", foro:"Foro de Eleição", juizo_rogante:"Juízo Rogante",
+  juizo_rogado:"Juízo Rogado", diligencia:"Diligência Solicitada", agravante:"Agravante", agravado:"Agravado",
+  omissao_contradição:"Omissão/Contradição/Obscuridade", embargante:"Embargante",
+  constrangimento:"Constrangimento Ilegal", apelante:"Apelante", locador:"Locador", locatario:"Locatário",
+  imovel:"Identificação do Imóvel", tipo_turbacao:"Tipo de Turbação/Esbulho", tempo_posse:"Tempo de Posse",
+  caracteristicas_posse:"Características da Posse", violacao:"Violação (LGPD/Marco Civil)",
+  dados_afetados:"Dados Pessoais Afetados", banco:"Instituição Financeira", produto_financeiro:"Produto Financeiro",
+  abusividade:"Abusividade Identificada", contrato:"Número/Tipo do Contrato",
+  clausulas_abusivas:"Cláusulas Abusivas", legitimado:"Legitimado Ativo", legitimado_ativo:"Legitimado Ativo",
+  autor_popular:"Autor Popular (Cidadão)", trabalhador:"Trabalhador", empregador:"Empregador",
+  valor_acordo:"Valor Total do Acordo", obrigacoes:"Obrigações das Partes", turma_recursal:"Turma Recursal",
+  juizado:"Juizado Especial", consumidor:"Nome do Consumidor", fornecedor:"Nome do Fornecedor",
+  autuado:"Autuado", dado_violado:"Dado Pessoal Violado", controlador:"Controlador (empresa)",
+  titular:"Titular dos Dados", autoridade:"Autoridade Coatora", contribuinte:"Contribuinte",
+  decisao_recorrida:"Decisão Recorrida", decisao_impugnada:"Decisão Impugnada",
+  empresa:"Nome da Empresa", motivo:"Motivo", liquidacao:"Forma de Liquidação", partilha:"Partilha de Bens",
+};
 
-  // Buscar clientes e casos para vincular
-  const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list(),
-    enabled: !!user
-  });
+// Campos opcionais (não bloqueiam o botão Gerar)
+const CAMPOS_OPCIONAIS = new Set(["preliminares"]);
 
-  const { data: cases = [] } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => base44.entities.Case.list(),
-    enabled: !!user
-  });
+// ─── PROMPT ENGINE ─────────────────────────────────────────────────────────────
 
-  // Geração com IA
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      const template = documentTemplates.find(t => t.id === selectedTemplate);
-      
-      // Construir prompt estruturado
-      let prompt = `Você é um advogado sênior experiente especializado em ${selectedLegalArea}. Crie um documento jurídico profissional do tipo: ${template.name}.\n\n`;
-      prompt += "DADOS FORNECIDOS:\n";
-      
-      template.fields.forEach(field => {
-        if (formData[field.name]) {
-          prompt += `${field.label}: ${formData[field.name]}\n`;
-        }
-      });
-      
-      prompt += "\n INSTRUÇÕES:\n";
-      prompt += "- Use linguagem jurídica formal e técnica\n";
-      prompt += "- Estruture com cabeçalho, identificação das partes, fundamentação e conclusão\n";
-      prompt += "- Inclua base legal quando relevante\n";
-      prompt += "- Use formatação Markdown clara\n";
-      prompt += "- Seja completo e profissional\n";
+function buildPrompt(areaLabel, tipoLabel, dadosDoFormulario) {
+  const dadosFormatados = Object.entries(dadosDoFormulario)
+    .filter(([, v]) => v && v.trim())
+    .map(([k, v]) => `• ${CAMPO_LABELS[k] || k}: ${v}`)
+    .join("\n");
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        add_context_from_internet: false
-      });
-      
-      return result;
-    },
-    onSuccess: (content) => {
-      setGeneratedContent(content);
-      if (!documentTitle) {
-        const template = documentTemplates.find(t => t.id === selectedTemplate);
-        setDocumentTitle(`${template.name} - ${new Date().toLocaleDateString()}`);
-      }
-      setStep(4);
-      toast.success("Documento gerado com sucesso!");
-    },
-    onError: (e) => toast.error("Erro ao gerar: " + e.message)
-  });
+  return `Você é um advogado brasileiro sênior com 20 anos de experiência em ${areaLabel}, redator técnico-jurídico de alto nível. Sua missão é redigir uma ${tipoLabel} completa, tecnicamente impecável e pronta para uso em juízo ou em negociação.
 
-  // Salvamento
-  const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      const doc = await base44.entities.LegalDocument.create({
-        title: documentTitle.trim(),
-        content: generatedContent,
-        type: selectedTemplate,
-        status: "draft",
-        notes: `Gerado via IA em ${new Date().toLocaleString()}`,
-        client_ids: data.client_ids || [],
-        case_ids: data.case_ids || []
-      });
-      return doc;
-    },
-    onSuccess: () => {
-      toast.success("Documento salvo com sucesso!");
-      navigate(createPageUrl('Documents'));
-    },
-    onError: (e) => toast.error("Erro ao salvar: " + e.message)
-  });
+═══════════════════════════════════════════════════
+DADOS FORNECIDOS PELO USUÁRIO:
+${dadosFormatados}
+═══════════════════════════════════════════════════
 
-  // Download em PDF
-  const handleDownloadPDF = async () => {
-    try {
-      toast.info("Preparando PDF...");
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      
-      // Título
-      doc.setFontSize(16);
-      doc.text(documentTitle, margin, margin);
-      
-      // Conteúdo
-      doc.setFontSize(10);
-      const lines = doc.splitTextToSize(generatedContent, maxWidth);
-      let y = margin + 10;
-      
-      lines.forEach((line) => {
-        if (y > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-        doc.text(line, margin, y);
-        y += 6;
-      });
-      
-      doc.save(`${documentTitle}.pdf`);
-      toast.success("PDF baixado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao gerar PDF: " + error.message);
-    }
-  };
+INSTRUÇÕES OBRIGATÓRIAS DE QUALIDADE:
 
-  // Download em Word (DOCX)
-  const handleDownloadWord = () => {
-    try {
-      const blob = new Blob([generatedContent], { type: 'application/msword' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${documentTitle}.doc`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("Documento Word baixado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao gerar Word: " + error.message);
-    }
-  };
+1. ESTRUTURA FORMAL COMPLETA
+   - Cabeçalho com endereçamento correto ao juízo/autoridade
+   - Qualificação completa das partes (preencha com dados fornecidos)
+   - Corpo do documento com seções numeradas e bem delineadas
+   - Pedidos ou disposições finais organizados em alíneas
+   - Fechamento com local, data e espaço para assinatura do advogado
+   - Ao final: "Termos em que pede deferimento." (para peças processuais)
 
-  const handleAreaSelect = (areaName) => {
-    setSelectedLegalArea(areaName);
+2. FUNDAMENTAÇÃO JURÍDICA PROFUNDA
+   - Cite artigos de lei específicos e atualizados (Código Civil, CPC/2015, CLT, CDC, CP, CPP, CF/88 etc., conforme a área)
+   - Mencione súmulas do STJ, STF e tribunais superiores aplicáveis
+   - Cite doutrina de referência quando enriquecer o argumento
+   - Use jurisprudência consolidada para reforçar os pedidos
+
+3. LINGUAGEM TÉCNICO-JURÍDICA BRASILEIRA
+   - Redação formal, objetiva e fluente
+   - Use termos técnicos corretos da área jurídica
+   - Parágrafo introdutório que situa o leitor no contexto da ação
+   - Transição lógica entre seções
+
+4. DOS FATOS (para peças processuais)
+   - Narre os fatos em ordem cronológica e lógica
+   - Destaque os elementos que configuram o direito pleiteado
+   - Conecte os fatos à fundamentação jurídica
+
+5. DO DIREITO / FUNDAMENTAÇÃO (para peças processuais)
+   - Desenvolva os argumentos jurídicos com profundidade
+   - Estruture teses em ordem de prioridade (principal → subsidiária)
+   - Para contestações: enfrente cada pedido do autor separadamente
+
+6. DOS PEDIDOS (para peças processuais)
+   - Liste todos os pedidos em alíneas (a, b, c...)
+   - Inclua pedido de tutela provisória/antecipada se cabível
+   - Inclua condenação em custas e honorários advocatícios
+   - Requer-se produção de provas (testemunhal, documental, pericial)
+
+7. PARA CONTRATOS E DOCUMENTOS EXTRAJUDICIAIS
+   - Cláusulas numeradas e completas
+   - Disposições sobre rescisão, multa e foro de eleição
+   - Espaço para testemunhas (2 testemunhas)
+
+8. COMPLETUDE: Entregue o documento COMPLETO, sem resumir, sem usar "[...]" ou "continua". O documento deve estar 100% pronto para uso.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AGORA REDIJA A ${tipoLabel.toUpperCase()} COMPLETA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+}
+
+// ─── STEPPER ──────────────────────────────────────────────────────────────────
+
+function Stepper({ step }) {
+  const steps = ["Área Jurídica", "Tipo de Documento", "Preencher Dados", "Documento Gerado"];
+  return (
+    <div className="flex items-center justify-center gap-0 mb-8 flex-wrap gap-y-2">
+      {steps.map((label, i) => {
+        const idx = i + 1;
+        const done = step > idx;
+        const active = step === idx;
+        return (
+          <React.Fragment key={idx}>
+            <div className="flex flex-col items-center gap-1">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
+                ${done ? "bg-indigo-600 text-white" : active ? "bg-indigo-600 text-white ring-4 ring-indigo-200" : "bg-gray-200 text-gray-500"}`}>
+                {done ? <Check className="w-4 h-4" /> : idx}
+              </div>
+              <span className={`text-xs font-medium hidden sm:block ${active ? "text-indigo-600" : done ? "text-indigo-400" : "text-gray-400"}`}>{label}</span>
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`h-0.5 w-8 sm:w-12 mx-1 mb-4 transition-all ${step > idx ? "bg-indigo-500" : "bg-gray-200"}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── PÁGINA PRINCIPAL ─────────────────────────────────────────────────────────
+
+export default function DocumentGenerator() {
+  const [step, setStep] = useState(1);
+  const [areaSelecionada, setAreaSelecionada] = useState(null);
+  const [tipoSelecionado, setTipoSelecionado] = useState(null);
+  const [campos, setCampos] = useState({});
+  const [documentoGerado, setDocumentoGerado] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+
+  const areaLabel = areaSelecionada ? AREAS_JURIDICAS.find(a => a.id === areaSelecionada)?.label : "";
+  const tipoLabel = tipoSelecionado?.label || "";
+
+  function selecionarArea(id) {
+    setAreaSelecionada(id);
+    setTipoSelecionado(null);
+    setCampos({});
     setStep(2);
-  };
+  }
 
-  const handleTemplateSelect = (templateId) => {
-    setSelectedTemplate(templateId);
-    setFormData({});
-    setSelectedClientId("");
+  function selecionarTipo(tipo) {
+    setTipoSelecionado(tipo);
+    setCampos({});
     setStep(3);
-  };
+  }
 
-  const handleNext = () => {
-    const template = documentTemplates.find(t => t.id === selectedTemplate);
-    const requiredFields = template.fields.filter(f => !f.optional);
-    const missingFields = requiredFields.filter(f => !formData[f.name]);
-    
-    if (missingFields.length > 0) {
-      toast.error(`Preencha os campos obrigatórios: ${missingFields.map(f => f.label).join(', ')}`);
-      return;
-    }
-    
-    generateMutation.mutate();
-  };
+  function handleCampo(campo, valor) {
+    setCampos(prev => ({ ...prev, [campo]: valor }));
+  }
 
-  const steps = [
-    { number: 1, label: "Área Jurídica" },
-    { number: 2, label: "Tipo Documento" },
-    { number: 3, label: "Preencher Dados" },
-    { number: 4, label: "Revisar" },
-    { number: 5, label: "Salvar" }
-  ];
+  const camposObrigatorios = tipoSelecionado?.campos.filter(c => !CAMPOS_OPCIONAIS.has(c)) || [];
+  const formularioValido = camposObrigatorios.every(c => campos[c] && campos[c].trim());
+
+  async function gerarDocumento() {
+    setLoading(true);
+    setDocumentoGerado("");
+    const prompt = buildPrompt(areaLabel, tipoLabel, campos);
+    const resultado = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      add_context_from_internet: false,
+    });
+    setDocumentoGerado(resultado);
+    setLoading(false);
+    setStep(4);
+  }
+
+  function copiarDocumento() {
+    navigator.clipboard.writeText(documentoGerado);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  function baixarDocumento() {
+    const blob = new Blob([documentoGerado], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${tipoLabel.replace(/\s+/g, "_")}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function novoDocumento() {
+    setStep(1);
+    setAreaSelecionada(null);
+    setTipoSelecionado(null);
+    setCampos({});
+    setDocumentoGerado("");
+  }
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
+
         {/* Header */}
-        <div className="mb-6">
-          <h1 className={`text-2xl md:text-3xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            <Sparkles className="text-purple-600" /> Gerador de Documentos IA
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <div style={{ width: 8, height: 8, background: "var(--primary)" }} />
+            <span style={{ fontFamily: "'Oswald',sans-serif", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "var(--text-muted)" }}>Gerador de Peças</span>
+          </div>
+          <h1 style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "1.8rem", textTransform: "uppercase", letterSpacing: "-0.01em", color: "var(--text)" }}>
+            Máquina de Peças Jurídicas
           </h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-            Crie documentos jurídicos profissionais em etapas simples
+          <p style={{ color: "var(--text-muted)", fontSize: ".9rem", marginTop: ".5rem" }}>
+            Redação profissional com fundamentação jurídica completa — nível advogado sênior
           </p>
         </div>
 
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            {steps.map((s, idx) => (
-              <div key={s.number} className="flex items-center flex-1">
-                <div className="flex flex-col items-center relative flex-1">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                    step >= s.number 
-                      ? 'bg-purple-600 text-white' 
-                      : isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-200 text-gray-400'
-                  }`}>
-                    {step > s.number ? <Check className="w-5 h-5" /> : s.number}
-                  </div>
-                  <span className={`text-xs mt-2 font-medium ${
-                    step >= s.number 
-                      ? isDark ? 'text-white' : 'text-gray-900'
-                      : isDark ? 'text-neutral-500' : 'text-gray-400'
-                  }`}>
-                    {s.label}
-                  </span>
-                </div>
-                {idx < steps.length - 1 && (
-                  <div className={`h-1 flex-1 mx-2 rounded transition-all ${
-                    step > s.number 
-                      ? 'bg-purple-600' 
-                      : isDark ? 'bg-neutral-800' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
+        <Stepper step={step} />
+
+        {/* ── STEP 1: ÁREAS ── */}
+        {step === 1 && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="section-header">
+              <h2 className="section-title">Selecione a Área Jurídica</h2>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-px" style={{ borderTop: "1px solid var(--border)" }}>
+              {AREAS_JURIDICAS.map(area => {
+                const Icon = area.icon;
+                return (
+                  <button
+                    key={area.id}
+                    onClick={() => selecionarArea(area.id)}
+                    className="flex flex-col items-center gap-2 p-4 transition-all hover:bg-indigo-50 group"
+                    style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
+                  >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all group-hover:bg-indigo-100" style={{ background: "var(--surface-2)" }}>
+                      <Icon className="w-5 h-5 group-hover:text-indigo-600 transition-colors" style={{ color: "var(--text-muted)" }} />
+                    </div>
+                    <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-muted)", textAlign: "center", lineHeight: 1.3 }} className="group-hover:text-indigo-600 transition-colors">
+                      {area.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Content */}
-        <AnimatePresence mode="wait">
-          {/* STEP 1: Escolher área jurídica */}
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <CardTitle className={isDark ? 'text-white' : ''}>Escolha a área jurídica</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {legalAreas.map((area) => (
-                      <motion.div
-                        key={area.id}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Card 
-                          className={`cursor-pointer transition-all border-2 hover:border-purple-500 ${
-                            isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white hover:shadow-lg'
-                          }`}
-                          onClick={() => handleAreaSelect(area.name)}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <div className="text-3xl mb-2">{area.emoji}</div>
-                            <p className={`text-xs font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {area.name}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
+        {/* ── STEP 2: TIPOS ── */}
+        {step === 2 && areaSelecionada && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="section-header">
+              <h2 className="section-title">Tipo de Documento</h2>
+              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+                {areaLabel}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-px" style={{ borderTop: "1px solid var(--border)" }}>
+              {(TIPOS_DOCUMENTO[areaSelecionada] || []).map(tipo => (
+                <button
+                  key={tipo.id}
+                  onClick={() => selecionarTipo(tipo)}
+                  className="flex items-center gap-4 p-5 text-left transition-all hover:bg-indigo-50 group"
+                  style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
+                >
+                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0" style={{ background: "var(--primary-light)" }}>
+                    <FileText className="w-5 h-5" style={{ color: "var(--primary)" }} />
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
+                  <div className="flex-1 min-w-0">
+                    <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".85rem", textTransform: "uppercase", letterSpacing: ".04em", color: "var(--text)" }} className="group-hover:text-indigo-600 transition-colors">
+                      {tipo.label}
+                    </p>
+                    <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: "2px" }}>{tipo.campos.length} campos</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
+                </button>
+              ))}
+            </div>
+            <div className="p-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <button onClick={() => setStep(1)} className="btn-ghost" style={{ fontSize: ".75rem" }}>
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+            </div>
+          </div>
+        )}
 
-          {/* STEP 2: Escolher tipo de documento */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className={isDark ? 'text-white' : ''}>Escolha o tipo de documento</CardTitle>
-                    <Badge className="bg-purple-600">{selectedLegalArea}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {documentTemplates.map((template) => {
-                      const Icon = template.icon;
-                      const colors = {
-                        blue: 'bg-blue-500/10 text-blue-500 border-blue-500/20 hover:border-blue-500',
-                        green: 'bg-green-500/10 text-green-500 border-green-500/20 hover:border-green-500',
-                        purple: 'bg-purple-500/10 text-purple-500 border-purple-500/20 hover:border-purple-500',
-                        orange: 'bg-orange-500/10 text-orange-500 border-orange-500/20 hover:border-orange-500'
-                      };
-                      
-                      return (
-                        <motion.div
-                          key={template.id}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Card 
-                            className={`cursor-pointer transition-all border-2 ${colors[template.color]} ${
-                              isDark ? 'bg-neutral-800' : 'hover:shadow-lg'
-                            }`}
-                            onClick={() => handleTemplateSelect(template.id)}
-                          >
-                            <CardContent className="p-6">
-                              <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[template.color]}`}>
-                                  <Icon className="w-6 h-6" />
-                                </div>
-                                <div className="flex-1">
-                                  <h3 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {template.name}
-                                  </h3>
-                                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                                    {template.fields.length} campos
-                                  </p>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-gray-400" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* STEP 3: Preencher dados */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className={isDark ? 'text-white' : ''}>
-                      Preencha os dados do documento
-                    </CardTitle>
-                    <Badge>{documentTemplates.find(t => t.id === selectedTemplate)?.name}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Seleção de cliente para pré-preencher dados */}
-                  {clients.length > 0 && (
-                    <div className={`p-4 rounded-lg border-2 border-dashed ${isDark ? 'border-purple-700 bg-purple-900/20' : 'border-purple-300 bg-purple-50'}`}>
-                      <label className={`text-sm font-semibold mb-2 block ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                        🔗 Pré-preencher com dados do cliente (opcional)
-                      </label>
-                      <select
-                        value={selectedClientId}
-                        onChange={(e) => {
-                          const clientId = e.target.value;
-                          setSelectedClientId(clientId);
-                          if (clientId) {
-                            const client = clients.find(c => c.id === clientId);
-                            if (client) {
-                              const qualificacao = [
-                                client.name,
-                                client.cpf_cnpj ? `CPF/CNPJ: ${client.cpf_cnpj}` : '',
-                                client.address || '',
-                              ].filter(Boolean).join(', ');
-                              // Preenche campos relevantes conforme o template
-                              const updates = {};
-                              const template = documentTemplates.find(t => t.id === selectedTemplate);
-                              template?.fields.forEach(f => {
-                                if (['autor', 'outorgante', 'recorrente'].includes(f.name)) updates[f.name] = qualificacao;
-                                if (['parte1'].includes(f.name)) updates[f.name] = qualificacao;
-                              });
-                              setFormData(prev => ({ ...prev, ...updates }));
-                            }
-                          }
-                        }}
-                        className={`w-full px-3 py-2 rounded-lg border ${
-                          isDark
-                            ? 'bg-neutral-800 border-neutral-700 text-white'
-                            : 'bg-white border-gray-200'
-                        }`}
-                      >
-                        <option value="">Selecione um cliente para pré-preencher...</option>
-                        {clients.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}{c.cpf_cnpj ? ` — ${c.cpf_cnpj}` : ''}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {documentTemplates.find(t => t.id === selectedTemplate)?.fields.map((field) => (
-                    <div key={field.name} className="space-y-2">
-                      <label className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                        {field.label} {!field.optional && <span className="text-red-500">*</span>}
-                      </label>
-                      {field.type === 'text' && (
-                        <Input
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({...formData, [field.name]: e.target.value})}
-                          placeholder={field.placeholder}
-                        />
-                      )}
-                      {field.type === 'textarea' && (
-                        <Textarea
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({...formData, [field.name]: e.target.value})}
-                          placeholder={field.placeholder}
-                          rows={4}
-                        />
-                      )}
-                      {field.type === 'select' && (
-                        <select
-                          value={formData[field.name] || ''}
-                          onChange={(e) => setFormData({...formData, [field.name]: e.target.value})}
-                          className={`w-full px-3 py-2 rounded-lg border ${
-                            isDark 
-                              ? 'bg-neutral-800 border-neutral-700 text-white' 
-                              : 'bg-white border-gray-200'
-                          }`}
-                        >
-                          <option value="">Selecione...</option>
-                          {field.options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  ))}
-                  
-                  <div className="flex gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
-                      Voltar
-                    </Button>
-                    <Button 
-                      onClick={handleNext} 
-                      disabled={generateMutation.isPending}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                    >
-                      {generateMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          Gerar Documento
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* STEP 4: Revisar documento gerado */}
-          {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-4"
-            >
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <CardTitle className={isDark ? 'text-white' : ''}>Documento Gerado</CardTitle>
-                  <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Você pode editar o documento abaixo antes de salvar
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Textarea
-                    value={generatedContent}
-                    onChange={(e) => setGeneratedContent(e.target.value)}
-                    className={`min-h-[500px] font-mono text-sm ${
-                      isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'
-                    }`}
-                    placeholder="O conteúdo do documento aparecerá aqui..."
-                  />
-                  
-                  <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setStep(3)}>
-                      Refazer
-                    </Button>
-                    <Button 
-                      onClick={() => setStep(5)}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      Continuar para Salvar
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* STEP 5: Salvar */}
-          {step === 5 && (
-            <motion.div
-              key="step5"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-                <CardHeader>
-                  <CardTitle className={isDark ? 'text-white' : ''}>Finalizar e Salvar</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                      Título do Documento *
+        {/* ── STEP 3: FORMULÁRIO ── */}
+        {step === 3 && tipoSelecionado && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="section-header">
+              <h2 className="section-title">{tipoLabel}</h2>
+              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+                {areaLabel}
+              </span>
+            </div>
+            <div className="p-6 space-y-5">
+              {tipoSelecionado.campos.map(campo => {
+                const label = CAMPO_LABELS[campo] || campo;
+                const isTextarea = CAMPOS_TEXTAREA.has(campo);
+                const isOpcional = CAMPOS_OPCIONAIS.has(campo);
+                return (
+                  <div key={campo}>
+                    <label style={{ display: "block", fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".72rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-muted)", marginBottom: "6px" }}>
+                      {label}
+                      {isOpcional && <span style={{ fontWeight: 400, marginLeft: 6, textTransform: "none", letterSpacing: 0, fontSize: ".7rem" }}>(opcional)</span>}
                     </label>
-                    <Input
-                      value={documentTitle}
-                      onChange={(e) => setDocumentTitle(e.target.value)}
-                      placeholder="Ex: Petição Inicial - Cliente XYZ"
-                    />
+                    {isTextarea ? (
+                      <Textarea
+                        placeholder={`Descreva ${label.toLowerCase()}...`}
+                        value={campos[campo] || ""}
+                        onChange={e => handleCampo(campo, e.target.value)}
+                        className="w-full resize-y"
+                        style={{ minHeight: 100, borderRadius: 0 }}
+                      />
+                    ) : (
+                      <Input
+                        placeholder={label}
+                        value={campos[campo] || ""}
+                        onChange={e => handleCampo(campo, e.target.value)}
+                        className="w-full"
+                        style={{ borderRadius: 0 }}
+                      />
+                    )}
                   </div>
+                );
+              })}
+            </div>
+            <div className="p-4 flex items-center justify-between gap-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <button onClick={() => setStep(2)} className="btn-ghost" style={{ fontSize: ".75rem" }}>
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+              <button
+                onClick={gerarDocumento}
+                disabled={!formularioValido || loading}
+                className="btn-primary"
+                style={{ opacity: (!formularioValido || loading) ? 0.5 : 1 }}
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scale className="w-4 h-4" />}
+                {loading ? "Gerando..." : "Gerar com IA"}
+              </button>
+            </div>
+          </div>
+        )}
 
-                  <div className="space-y-2">
-                    <label className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                      Vincular ao Cliente (opcional)
-                    </label>
-                    <select
-                      onChange={(e) => setFormData({...formData, client_ids: e.target.value ? [e.target.value] : []})}
-                      className={`w-full px-3 py-2 rounded-lg border ${
-                        isDark 
-                          ? 'bg-neutral-800 border-neutral-700 text-white' 
-                          : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <option value="">Nenhum cliente</option>
-                      {clients.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
+        {/* ── LOADING ── */}
+        {loading && (
+          <div className="mt-6 p-8 flex flex-col items-center gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <Loader2 className="w-10 h-10 animate-spin" style={{ color: "var(--primary)" }} />
+            <div className="text-center">
+              <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".9rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text)" }}>
+                Redigindo sua peça...
+              </p>
+              <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginTop: 4 }}>
+                A IA está redigindo com fundamentação jurídica completa
+              </p>
+            </div>
+          </div>
+        )}
 
-                  <div className="space-y-2">
-                    <label className={`text-sm font-medium ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                      Vincular ao Processo (opcional)
-                    </label>
-                    <select
-                      onChange={(e) => setFormData({...formData, case_ids: e.target.value ? [e.target.value] : []})}
-                      className={`w-full px-3 py-2 rounded-lg border ${
-                        isDark 
-                          ? 'bg-neutral-800 border-neutral-700 text-white' 
-                          : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <option value="">Nenhum processo</option>
-                      {cases.map(c => (
-                        <option key={c.id} value={c.id}>{c.title}</option>
-                      ))}
-                    </select>
-                  </div>
+        {/* ── STEP 4: RESULTADO ── */}
+        {step === 4 && documentoGerado && !loading && (
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="section-header">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-600" />
+                <h2 className="section-title">{tipoLabel} — Gerado</h2>
+              </div>
+              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+                {areaLabel}
+              </span>
+            </div>
 
-                  <div className="space-y-3 pt-4 border-t">
-                    <div className="flex gap-3">
-                      <Button 
-                        variant="outline"
-                        onClick={handleDownloadPDF}
-                        className="flex-1"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar PDF
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        onClick={handleDownloadWord}
-                        className="flex-1"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar Word
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <Button variant="outline" onClick={() => setStep(4)}>
-                        Voltar
-                      </Button>
-                      <Button 
-                        onClick={() => saveMutation.mutate(formData)}
-                        disabled={saveMutation.isPending || !documentTitle.trim()}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                      >
-                        {saveMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Salvando...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 mr-2" />
-                            Salvar Documento
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {/* Botões de ação */}
+            <div className="flex flex-wrap gap-2 p-4" style={{ borderBottom: "1px solid var(--border)" }}>
+              <button onClick={copiarDocumento} className="btn-primary" style={{ fontSize: ".75rem" }}>
+                {copiado ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copiado ? "Copiado!" : "Copiar"}
+              </button>
+              <button onClick={baixarDocumento} className="btn-ghost" style={{ fontSize: ".75rem" }}>
+                <Download className="w-4 h-4" /> Baixar (.txt)
+              </button>
+              <button onClick={novoDocumento} className="btn-ghost" style={{ fontSize: ".75rem" }}>
+                <FileText className="w-4 h-4" /> Novo Documento
+              </button>
+            </div>
+
+            {/* Documento */}
+            <ScrollArea className="h-[600px]">
+              <pre className="p-6 text-sm leading-relaxed whitespace-pre-wrap font-mono" style={{ color: "var(--text)", background: "var(--surface)" }}>
+                {documentoGerado}
+              </pre>
+            </ScrollArea>
+          </div>
+        )}
       </div>
     </div>
   );
