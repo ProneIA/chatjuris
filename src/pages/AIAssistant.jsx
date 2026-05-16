@@ -1,283 +1,308 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquarePlus, History } from "lucide-react";
-import SophisticatedLoader from "@/components/common/SophisticatedLoader";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Scale, Send, ChevronRight } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
-import ChatInterface from "../components/ai/ChatInterface";
-import WelcomeScreen from "../components/ai/WelcomeScreen";
-import ConversationHistoryDialog from "../components/ai/ConversationHistoryDialog";
+const SYSTEM_PROMPT = `Você é Lex, um especialista em Direito Brasileiro com profundo conhecimento em todas as áreas jurídicas. Você utiliza a Estratégia LEXIA para estruturar suas respostas:
 
-const shouldResetDaily = (subscription) => {
-  if (!subscription || !subscription.last_reset_date) return true;
-  const today = new Date().toISOString().split('T')[0];
-  return subscription.last_reset_date !== today;
-};
+L - Localizar: Identificar a área do direito e legislação aplicável
+E - Examinar: Analisar o problema juridicamente com rigor
+X - Explicar: Apresentar de forma clara e acessível, sem jargões desnecessários
+I - Informar precedentes: Citar jurisprudência relevante (STF, STJ, TST, etc.)
+A - Aconselhar: Orientar sobre os próximos passos práticos
 
-export default function AIAssistant({ theme = 'light' }) {
-  const isDark = theme === 'dark';
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [user, setUser] = useState(null);
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-  const [tempMessages, setTempMessages] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
+Regras:
+- Sempre indique a legislação aplicável (artigos, leis, códigos)
+- Cite jurisprudência atualizada quando relevante
+- Use linguagem clara, acessível, mas tecnicamente precisa
+- Sempre finalize lembrando que a orientação é informativa e que um advogado deve ser consultado para o caso concreto
+- Responda sempre em português brasileiro`;
+
+const AREAS = [
+  "Civil", "Penal", "Trabalhista", "Consumidor",
+  "Tributário", "Administrativo", "Família", "Constitucional", "Previdenciário"
+];
+
+const SUGESTOES = [
+  "O que é usucapião?",
+  "Direitos do consumidor no e-commerce",
+  "Como funciona a rescisão indireta?",
+  "Prazo para reclamar defeito em produto",
+  "O que é habeas corpus?",
+  "Pensão alimentícia: como calcular?",
+];
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-end gap-2 mb-4">
+      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#185FA5" }}>
+        <Scale className="w-4 h-4 text-white" />
+      </div>
+      <div className="px-4 py-3 rounded-2xl rounded-bl-sm" style={{ background: "#F0F2F5" }}>
+        <div className="flex gap-1 items-center h-5">
+          {[0, 1, 2].map(i => (
+            <span
+              key={i}
+              className="w-2 h-2 rounded-full inline-block"
+              style={{
+                background: "#185FA5",
+                animation: "lex-bounce 1.2s infinite",
+                animationDelay: `${i * 0.2}s`,
+                opacity: 0.7
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MessageBubble({ msg }) {
+  const isUser = msg.role === "user";
+  const time = msg.timestamp
+    ? new Date(msg.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "";
+
+  if (isUser) {
+    return (
+      <div className="flex justify-end mb-4">
+        <div className="max-w-[80%] flex flex-col items-end gap-1">
+          <div
+            className="px-4 py-3 rounded-2xl rounded-br-sm text-white text-sm leading-relaxed"
+            style={{ background: "#185FA5" }}
+          >
+            {msg.content}
+          </div>
+          {time && <span className="text-xs" style={{ color: "#9CA3AF" }}>{time}</span>}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-end gap-2 mb-4">
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ background: "#185FA5" }}
+      >
+        <Scale className="w-4 h-4 text-white" />
+      </div>
+      <div className="max-w-[80%] flex flex-col gap-1">
+        <div
+          className="px-4 py-3 rounded-2xl rounded-bl-sm text-sm leading-relaxed"
+          style={{ background: "#F0F2F5", color: "#1F2937" }}
+        >
+          <ReactMarkdown
+            className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            components={{
+              p: ({ children }) => <p className="my-1">{children}</p>,
+              ul: ({ children }) => <ul className="my-1 ml-4 list-disc">{children}</ul>,
+              ol: ({ children }) => <ol className="my-1 ml-4 list-decimal">{children}</ol>,
+              li: ({ children }) => <li className="my-0.5">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+              h1: ({ children }) => <h1 className="text-base font-bold my-2">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-sm font-bold my-1.5">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-sm font-semibold my-1">{children}</h3>,
+            }}
+          >
+            {msg.content}
+          </ReactMarkdown>
+        </div>
+        {time && <span className="text-xs ml-1" style={{ color: "#9CA3AF" }}>{time}</span>}
+      </div>
+    </div>
+  );
+}
+
+export default function AIAssistant({ theme = "light" }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-    
-    // Verificar se vem do Radar (modo marketing jurídico)
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
-    
-    if (mode === 'marketing_juridico') {
-      // Iniciar automaticamente com prompt de marketing jurídico
-      const marketingMessage = `Preciso de ajuda para criar estratégias de marketing jurídico. Quero que você me ajude a:
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
-1. Criar postagens para redes sociais sobre temas jurídicos
-2. Gerar imagens ilustrativas para posts
-3. Desenvolver estratégias de conteúdo educativo
-4. Criar textos informativos sobre direitos do consumidor
+  const handleSend = async (text) => {
+    const content = (text || input).trim();
+    if (!content || isTyping) return;
 
-Baseado nos dados do radar, identifiquei oportunidades em Direito do Consumidor. Como posso me posicionar de forma ética e informativa?`;
-      
-      setTimeout(() => {
-        handleSendMessageFromWelcome(marketingMessage);
-      }, 500);
+    const userMsg = { role: "user", content, timestamp: new Date().toISOString() };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+    setInput("");
+    setIsTyping(true);
+
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
     }
-  }, []);
-
-  useEffect(() => {
-    const handleOpenHistory = () => {
-      setShowHistoryDialog(true);
-    };
-    
-    window.addEventListener('openAIHistory', handleOpenHistory);
-    return () => window.removeEventListener('openAIHistory', handleOpenHistory);
-  }, []);
-
-  useEffect(() => {
-    const handleBeforeUnload = async () => {
-      if (tempMessages.length > 0 && !selectedConversation) {
-        await base44.entities.Conversation.create({
-          title: tempMessages[0]?.content?.slice(0, 50) || "Nova conversa",
-          mode: "assistant",
-          messages: tempMessages,
-          last_message_at: new Date().toISOString()
-        });
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [tempMessages, selectedConversation]);
-
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Conversation.filter(
-        { created_by: user.email },
-        '-last_message_at',
-        50
-      );
-    },
-    enabled: !!user?.email
-  });
-
-  const { data: subscription } = useQuery({
-    queryKey: ['ai-subscription', user?.id],
-    queryFn: () => base44.entities.Subscription.filter({ user_id: user.id }).then(subs => subs[0] || null),
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
-  });
-
-  // Reset diário como side-effect separado (não dentro do queryFn)
-  React.useEffect(() => {
-    if (subscription?.id && shouldResetDaily(subscription)) {
-      base44.entities.Subscription.update(subscription.id, {
-        daily_actions_used: 0,
-        last_reset_date: new Date().toISOString().split('T')[0]
-      });
-    }
-  }, [subscription?.id]);
-
-  const createConversationMutation = useMutation({
-    mutationFn: (data) => base44.entities.Conversation.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    },
-  });
-
-  const updateConversationMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Conversation.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-    },
-  });
-
-  const deleteConversationMutation = useMutation({
-    mutationFn: (id) => base44.entities.Conversation.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      setSelectedConversation(null);
-    },
-  });
-
-  const handleNewConversation = async () => {
-    if (tempMessages.length > 0) {
-      await createConversationMutation.mutateAsync({
-        title: tempMessages[0]?.content?.slice(0, 50) || "Nova conversa",
-        mode: "assistant",
-        messages: tempMessages,
-        last_message_at: new Date().toISOString()
-      });
-    }
-
-    setSelectedConversation(null);
-    setTempMessages([]);
-  };
-
-  const handleSendMessageFromWelcome = async (messageContent) => {
-    const userMessage = {
-      role: "user",
-      content: messageContent,
-      timestamp: new Date().toISOString()
-    };
-
-    setTempMessages(prev => [...prev, userMessage]);
-    setIsProcessing(true);
 
     try {
-      const allMessages = [...tempMessages, userMessage];
-      
-      const hasDocument = messageContent.includes('[DOCUMENTO ANEXADO:');
-      const fileUrl = hasDocument ? messageContent.match(/URL do arquivo: (.*?)\n/)?.[1] : null;
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const isMarketingMode = urlParams.get('mode') === 'marketing_juridico';
-      
-      const systemInstructions = hasDocument 
-        ? `Você é LEXIA, um especialista em análise de documentos jurídicos brasileiros.
-MISSÃO: Analisar documentos legais de forma completa e profissional.
-FORMATO: Use Markdown com títulos, listas e destaques para organizar a análise.
-INCLUA: Resumo executivo, pontos importantes, riscos identificados, cláusulas relevantes e sugestões de melhoria.
-Responda sempre em português brasileiro.`
-        : isMarketingMode
-        ? `Você é um especialista em marketing jurídico e criação de conteúdo educativo para advogados.
-
-SUAS FUNÇÕES:
-1. Criar postagens para redes sociais sobre temas jurídicos
-2. Sugerir conteúdos educativos informativos
-3. Desenvolver estratégias de posicionamento profissional
-4. Gerar ideias de posts, carrosséis, vídeos curtos
-5. Criar textos sobre direitos do consumidor, trabalhista, etc
-
-REGRAS ÉTICAS OBRIGATÓRIAS:
-- NUNCA sugerir captação direta de clientes
-- NUNCA mencionar casos ou pessoas específicas
-- Focar em conteúdo educativo e informativo
-- Manter conformidade com Código de Ética da OAB
-- Sugerir apenas estratégias de posicionamento profissional
-
-FORMATO DE SAÍDA:
-- Use emojis para tornar mais atraente
-- Estruture em títulos, subtítulos, bullets
-- Sugira imagens quando relevante (descreva a imagem)
-- Seja criativo e profissional ao mesmo tempo
-
-Responda sempre em português brasileiro.`
-        : `Você é JURIS, um assistente jurídico inteligente e especializado em direito brasileiro.
-Você ajuda advogados com análise de casos, pesquisa de jurisprudência, redação de petições e orientações sobre prazos.
-Seja preciso, profissional e cite fontes quando relevante. Responda sempre em português brasileiro.`;
-
-      const conversationContext = allMessages
-        .map(m => `${m.role === 'user' ? 'Usuário' : 'Assistente'}: ${m.content}`)
-        .join('\n\n');
+      const history = updatedMessages
+        .map(m => `${m.role === "user" ? "Usuário" : "Lex"}: ${m.content}`)
+        .join("\n\n");
 
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `${systemInstructions}\n\nHistórico da conversa:\n${conversationContext}\n\nResponda à última mensagem do usuário de forma profissional e precisa.`,
-        add_context_from_internet: false,
-        file_urls: fileUrl ? [fileUrl] : undefined
+        prompt: `${SYSTEM_PROMPT}\n\nHistórico da conversa:\n${history}\n\nResponda à última mensagem do Usuário.`,
+        model: "gpt_5_mini",
       });
 
-      const assistantResponse = {
-        role: "assistant",
-        content: response,
-        timestamp: new Date().toISOString()
-      };
-
-      setTempMessages(prev => [...prev, assistantResponse]);
-    } catch (error) {
-      console.error("Erro:", error);
-      alert("Erro ao gerar resposta. Tente novamente.");
-      setTempMessages(prev => prev.slice(0, -1));
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: response, timestamp: new Date().toISOString() }
+      ]);
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
+          timestamp: new Date().toISOString()
+        }
+      ]);
+    } finally {
+      setIsTyping(false);
     }
-
-    setIsProcessing(false);
   };
 
-  const handleRenameConversation = (conversationId, newTitle) => {
-    updateConversationMutation.mutate({
-      id: conversationId,
-      data: { title: newTitle }
-    });
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  const handleDeleteConversation = (conversationId) => {
-    deleteConversationMutation.mutate(conversationId);
+  const handleTextareaChange = (e) => {
+    setInput(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
   };
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      {/* Chat Area - Centralizado e menor */}
-      <div className="flex-1 flex items-center justify-center overflow-hidden px-4 py-4">
-        <div className="w-full max-w-4xl h-full flex flex-col">
-          <AnimatePresence mode="wait">
-            {selectedConversation ? (
-              <ChatInterface
-                conversation={selectedConversation}
-                onUpdate={() => queryClient.invalidateQueries({ queryKey: ['conversations'] })}
-                subscription={subscription}
-                userName={user?.full_name}
-              />
-            ) : (
-              <WelcomeScreen 
-                onSendMessage={handleSendMessageFromWelcome} 
-                userName={user?.full_name}
-                messages={tempMessages}
-                isProcessing={isProcessing}
-                onOpenHistory={() => setShowHistoryDialog(true)}
-                uploadedFile={uploadedFile}
-                onFileUpload={setUploadedFile}
-              />
-            )}
-          </AnimatePresence>
+    <div className="flex flex-col h-screen" style={{ background: "#F8F9FA" }}>
+      <style>{`
+        @keyframes lex-bounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+          40% { transform: translateY(-6px); opacity: 1; }
+        }
+      `}</style>
+
+      {/* Header */}
+      <header className="flex-shrink-0 border-b px-4 md:px-6 py-4" style={{ background: "#fff", borderColor: "#E5E7EB" }}>
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#185FA5" }}>
+            <Scale className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="font-bold text-base" style={{ color: "#111827" }}>
+                Lex — Especialista em Direito Brasileiro
+              </h1>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#22C55E" }} title="Online" />
+            </div>
+            <p className="text-xs" style={{ color: "#6B7280" }}>Todas as áreas · Legislação atualizada</p>
+          </div>
+        </div>
+      </header>
+
+      {/* Pills de área */}
+      <div className="flex-shrink-0 px-4 md:px-6 py-3 border-b overflow-x-auto" style={{ background: "#fff", borderColor: "#E5E7EB" }}>
+        <div className="max-w-3xl mx-auto flex gap-2 flex-nowrap">
+          {AREAS.map(area => (
+            <button
+              key={area}
+              onClick={() => setInput(prev => prev ? `${prev} ${area}` : area)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50"
+              style={{ borderColor: "#D1D5DB", color: "#374151", background: "#F9FAFB" }}
+            >
+              {area}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Dialog de Histórico */}
-      {typeof window !== 'undefined' && (
-        <ConversationHistoryDialog
-          open={showHistoryDialog}
-          onClose={() => setShowHistoryDialog(false)}
-          conversations={conversations}
-          selectedConversation={selectedConversation}
-          onSelectConversation={(conv) => {
-            setSelectedConversation(conv);
-            setShowHistoryDialog(false);
-          }}
-          onRenameConversation={handleRenameConversation}
-          onDeleteConversation={handleDeleteConversation}
-        />
-      )}
+      {/* Mensagens */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6">
+        <div className="max-w-3xl mx-auto">
+
+          {/* Estado vazio — sugestões */}
+          {messages.length === 0 && !isTyping && (
+            <div className="flex flex-col items-center gap-6 pt-8 pb-4">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "#185FA5" }}>
+                  <Scale className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-xl font-bold mb-1" style={{ color: "#111827" }}>Olá, sou o Lex</h2>
+                <p className="text-sm" style={{ color: "#6B7280" }}>Como posso ajudar com sua dúvida jurídica hoje?</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
+                {SUGESTOES.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => handleSend(s)}
+                    className="flex items-center gap-2 text-left px-4 py-3 rounded-xl border text-sm transition-colors hover:border-blue-400 hover:bg-blue-50"
+                    style={{ background: "#fff", borderColor: "#E5E7EB", color: "#374151" }}
+                  >
+                    <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "#185FA5" }} />
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Histórico de mensagens */}
+          {messages.map((msg, i) => (
+            <MessageBubble key={i} msg={msg} />
+          ))}
+
+          {/* Indicador de digitando */}
+          {isTyping && <TypingIndicator />}
+
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Input */}
+      <div className="flex-shrink-0 border-t px-4 md:px-6 py-4" style={{ background: "#fff", borderColor: "#E5E7EB" }}>
+        <div className="max-w-3xl mx-auto">
+          <div
+            className="flex items-end gap-2 rounded-2xl border px-4 py-3 transition-colors focus-within:border-blue-400"
+            style={{ borderColor: "#D1D5DB", background: "#F9FAFB" }}
+          >
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Digite sua dúvida jurídica..."
+              rows={1}
+              disabled={isTyping}
+              className="flex-1 resize-none bg-transparent text-sm outline-none leading-relaxed"
+              style={{ color: "#111827", maxHeight: "160px", overflowY: "auto" }}
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={!input.trim() || isTyping}
+              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-opacity"
+              style={{
+                background: !input.trim() || isTyping ? "#9CA3AF" : "#185FA5",
+                cursor: !input.trim() || isTyping ? "not-allowed" : "pointer"
+              }}
+            >
+              <Send className="w-4 h-4 text-white" />
+            </button>
+          </div>
+
+          {/* Rodapé */}
+          <p className="text-center text-xs mt-3" style={{ color: "#9CA3AF" }}>
+            As respostas têm caráter informativo e educacional. Para seu caso específico, consulte um advogado.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
