@@ -102,80 +102,40 @@ export default function FormularioDados({ area, onResultado, onVoltar }) {
     setErro(null);
     setLoading(true);
 
+    const hoje = new Date().toISOString().split('T')[0];
+    const hora = new Date().toLocaleTimeString('pt-BR');
+    const numeroCalculo = Math.floor(Math.random() * 900000) + 100000;
+
     try {
-      const prompt = `Realize o cálculo jurídico completo para a seguinte situação:
+      const prompt = `${SYSTEM_PROMPT}
 
 ÁREA DO DIREITO: ${area.label}
-DATA DO CÁLCULO: ${new Date().toISOString().split('T')[0]}
-HORA: ${new Date().toLocaleTimeString('pt-BR')}
-
-PARÂMETROS ECONÔMICOS VIGENTES:
-${JSON.stringify(PARAMETROS, null, 2)}
+DATA DO CÁLCULO: ${hoje} | HORA: ${hora}
 
 DADOS FORNECIDOS PELO USUÁRIO:
 ${JSON.stringify(dados, null, 2)}
 
-Retorne APENAS um JSON válido neste formato exato (sem texto antes ou depois):
-{
-  "areaDireito": "${area.label}",
-  "dataCalculo": "${new Date().toISOString().split('T')[0]}",
-  "horaCalculo": "${new Date().toLocaleTimeString('pt-BR')}",
-  "identificacao": {
-    "parteAutora": "",
-    "cpfAutora": "",
-    "parteRe": "",
-    "cpfRe": "",
-    "advogado": ""
-  },
-  "periodoBase": {
-    "dataInicio": "",
-    "dataFim": "",
-    "diasTotais": 0,
-    "mesesTotais": 0
-  },
-  "verbas": [
-    {
-      "nome": "Nome da Verba",
-      "base": 0,
-      "formula": "Descrição da fórmula aplicada",
-      "valor": 0,
-      "fundamentoLegal": "Art. X da Lei Y"
-    }
-  ],
-  "correcaoMonetaria": {
-    "indice": "IPCA",
-    "percentualTotal": 0,
-    "valorOriginal": 0,
-    "valorCorrigido": 0
-  },
-  "juros": {
-    "tipo": "SELIC",
-    "percentualAoMes": 0,
-    "meses": 0,
-    "valorJuros": 0
-  },
-  "honorarios": {
-    "percentual": 10,
-    "base": 0,
-    "valor": 0,
-    "fundamentoLegal": "Art. 85 CPC"
-  },
-  "resumo": {
-    "subtotalVerbas": 0,
-    "correcaoMonetaria": 0,
-    "juros": 0,
-    "honorarios": 0,
-    "totalGeral": 0
-  },
-  "parametrosUsados": {
-    "salarioMinimo": 1412.00,
-    "selic": "1,07% a.m.",
-    "inpc": "0,45% a.m.",
-    "ipca": "0,48% a.m."
-  },
-  "observacoesLegais": "Observações importantes sobre o cálculo",
-  "ressalvas": "Ressalvas e limitações do cálculo automatizado"
-}`;
+REGRAS CRÍTICAS:
+1. Use os dados fornecidos para calcular valores REAIS — nunca retorne zeros sem justificativa
+2. Se salário não informado, use R$ 1.412,00 (salário mínimo vigente) e mencione nas observações
+3. Calcule o período entre as datas fornecidas (dataAdmissao/dataDemissao, dataInicio/dataFim, etc.)
+4. Todos os campos numéricos devem conter valores calculados com 2 casas decimais
+5. O campo totalGeral deve ser a soma real de todas as verbas + encargos
+6. Preencha identificacao com os dados das partes fornecidos pelo usuário
+
+Retorne um JSON com esta estrutura preenchida com valores REAIS calculados:
+- areaDireito: nome da área
+- dataCalculo: "${hoje}"
+- horaCalculo: "${hora}"
+- identificacao: objeto com parteAutora, cpfAutora, parteRe, cpfRe, advogado (use os dados fornecidos)
+- periodoBase: objeto com dataInicio, dataFim (strings), diasTotais e mesesTotais (números inteiros reais)
+- verbas: array de objetos com nome (string), base (número), formula (string descrevendo o cálculo), valor (número REAL calculado), fundamentoLegal (string)
+- correcaoMonetaria: objeto com indice, percentualTotal (número), valorOriginal (número), valorCorrigido (número)
+- juros: objeto com tipo, percentualAoMes (número), meses (número inteiro), valorJuros (número)
+- honorarios: objeto com percentual (número), base (número), valor (número calculado), fundamentoLegal
+- resumo: objeto com subtotalVerbas, correcaoMonetaria, juros, honorarios e totalGeral — todos números REAIS somados
+- observacoesLegais: string explicando os critérios usados
+- ressalvas: string com limitações importantes`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
@@ -193,14 +153,25 @@ Retorne APENAS um JSON válido neste formato exato (sem texto antes ou depois):
             juros: { type: "object" },
             honorarios: { type: "object" },
             resumo: { type: "object" },
-            parametrosUsados: { type: "object" },
             observacoesLegais: { type: "string" },
             ressalvas: { type: "string" }
           }
         }
       });
 
-      onResultado(response);
+      if (!response || !response.resumo) {
+        throw new Error("Resultado incompleto retornado pela IA. Tente novamente.");
+      }
+
+      // Garantir data/hora mesmo se IA não retornar
+      const resultadoFinal = {
+        ...response,
+        dataCalculo: response.dataCalculo || hoje,
+        horaCalculo: response.horaCalculo || hora,
+        numeroCalculo,
+      };
+
+      onResultado(resultadoFinal);
     } catch (err) {
       setErro("Erro ao processar o cálculo. Verifique os dados e tente novamente. " + (err?.message || ""));
     } finally {

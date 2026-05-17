@@ -3,8 +3,9 @@ import { Printer, Download, RefreshCw } from "lucide-react";
 import jsPDF from "jspdf";
 
 const fmt = (v) => {
-  if (v === null || v === undefined) return "—";
-  return Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const num = parseFloat(v);
+  if (isNaN(num)) return "R$ 0,00";
+  return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 };
 
 const fmtPct = (v) => v ? `${Number(v).toFixed(2)}%` : "—";
@@ -15,7 +16,7 @@ export default function ResultadoCalculo({ resultado, area, onNovoCalculo }) {
   if (!resultado) return null;
 
   const r = resultado;
-  const calcNum = Date.now().toString().slice(-6);
+  const calcNum = r.numeroCalculo || Date.now().toString().slice(-6);
 
   const handleImprimir = () => {
     window.print();
@@ -236,7 +237,7 @@ export default function ResultadoCalculo({ resultado, area, onNovoCalculo }) {
             {r.areaDireito || area.label}
           </h2>
           <p style={{ fontSize: "0.8rem", color: "#666", margin: "0.5rem 0 0" }}>
-            Data: <strong>{r.dataCalculo}</strong> · Hora: <strong>{r.horaCalculo}</strong> · N° <strong>{calcNum}</strong>
+            Data: <strong>{r.dataCalculo ? new Date(r.dataCalculo + "T12:00:00").toLocaleDateString("pt-BR") : new Date().toLocaleDateString("pt-BR")}</strong> · Hora: <strong>{r.horaCalculo || new Date().toLocaleTimeString("pt-BR")}</strong> · N° <strong>{calcNum}</strong>
           </p>
         </div>
 
