@@ -186,7 +186,7 @@ const CAMPO_LABELS = {
   autuado:"Autuado", dado_violado:"Dado Pessoal Violado", controlador:"Controlador (empresa)",
   titular:"Titular dos Dados", autoridade:"Autoridade Coatora", contribuinte:"Contribuinte",
   decisao_recorrida:"Decisão Recorrida", decisao_impugnada:"Decisão Impugnada",
-  empresa:"Nome da Empresa", motivo:"Motivo", liquidacao:"Forma de Liquidação", partilha:"Partilha de Bens",
+  empresa:"Nome da Empresa", liquidacao:"Forma de Liquidação", partilha:"Partilha de Bens",
 };
 
 // Campos opcionais (não bloqueiam o botão Gerar)

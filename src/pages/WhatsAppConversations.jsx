@@ -167,8 +167,6 @@ export default function WhatsAppConversations() {
                     gap: "0.75rem",
                     width: "100%",
                     padding: "0.85rem 1rem",
-                    borderBottom: "1px solid var(--border)",
-                    borderLeft: selectedContact === c.phone ? "3px solid var(--primary)" : "3px solid transparent",
                     background: selectedContact === c.phone ? "var(--primary-light)" : "transparent",
                     cursor: "pointer",
                     textAlign: "left",
