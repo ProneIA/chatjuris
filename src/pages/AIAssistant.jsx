@@ -147,7 +147,7 @@ export default function AIAssistant({ theme = "light" }) {
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `${SYSTEM_PROMPT}\n\nHistórico da conversa:\n${history}\n\nResponda à última mensagem do Usuário.`,
-        model: "gpt_5_mini",
+        model: "gemini_3_flash",
       });
 
       setMessages(prev => [
