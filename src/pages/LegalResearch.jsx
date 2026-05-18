@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   BookOpen,
-  Sparkles,
   Star,
   Copy,
   Trash2,
@@ -18,15 +17,16 @@ import {
   ExternalLink,
   Scale,
   Gavel,
-  FileText,
-  Filter,
   BookMarked,
-  ChevronRight
+  ChevronRight,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "@/components/common/useDebounce";
+import { searchJurisprudence, generateLocalSummary } from "@/utils/searchService";
 
 // Dados completos de tribunais com URLs oficiais
 const tribunaisCompleto = [
@@ -162,6 +162,8 @@ export default function LegalResearch({ theme = 'light' }) {
   const [context, setContext] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
+  const [searchErrors, setSearchErrors] = useState(null);
+  const [savedSet, setSavedSet] = useState(new Set());
   const [selectedSaved, setSelectedSaved] = useState(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
@@ -222,104 +224,20 @@ export default function LegalResearch({ theme = 'light' }) {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
     setIsSearching(true);
     setCurrentResult(null);
+    setSearchErrors(null);
 
     try {
-      const selectedTribunalData = tribunaisCompleto.find(t => t.value === selectedTribunal);
-      const tribunalInfo = selectedTribunal !== "all" && selectedTribunalData?.url
-        ? `\n\nFONTE OFICIAL PRIORITÁRIA: ${selectedTribunalData.label} - ${selectedTribunalData.url}`
-        : '';
+      const courtParam = selectedTribunal === "all" ? "todos" : selectedTribunal;
+      const areaParam = selectedArea?.toLowerCase() || "geral";
 
-      let prompt = "";
-
-      if (searchType === "jurisprudence") {
-        const yearFilterText = yearFilter !== "all" 
-          ? `\nPERÍODO: Buscar APENAS decisões de ${yearFilter.includes('-') ? yearFilter.replace('-', ' a ') : yearFilter}`
-          : '';
-
-        prompt = `Você é um especialista em pesquisa jurisprudencial brasileira.
-
-TAREFA: Pesquisar jurisprudências sobre: "${searchQuery}"
-${selectedArea ? `\nÁREA DO DIREITO: ${selectedArea}` : ''}
-${selectedTribunal !== "all" ? `\nTRIBUNAL ESPECÍFICO: ${selectedTribunalData?.label}` : ''}
-${yearFilterText}
-${context ? `\n\nCONTEXTO ADICIONAL: ${context}` : ''}
-${tribunalInfo}
-
-INSTRUÇÕES:
-1. Busque EXCLUSIVAMENTE em fontes oficiais:
-   - STF: https://portal.stf.jus.br/jurisprudencia/
-   - STJ: https://www.stj.jus.br
-   - TST: https://jurisprudencia.tst.jus.br/
-   - TRFs, TJs: sites oficiais de cada tribunal
-
-2. FORMATO OBRIGATÓRIO - Para cada jurisprudência, use este padrão:
-
----
-**Tribunal:** [Nome do Tribunal]
-**Número do processo/acórdão:** [Número]
-**Data da decisão:** [DD/MM/AAAA]
-**Ementa resumida:** [Resumo claro e objetivo]
-**Relevância para a busca:** [Explicação da relevância]
-**Link oficial:** [URL]
----
-
-3. Encontre 5-8 jurisprudências relevantes
-4. Separe CADA jurisprudência com o separador "---"
-5. Ao final, adicione uma análise consolidada
-
-IMPORTANTE: 
-- Cite APENAS decisões reais com números de processos verificáveis
-- ${yearFilter !== "all" ? `RESPEITE O FILTRO DE ANO - busque apenas decisões de ${yearFilter.includes('-') ? yearFilter.replace('-', ' a ') : yearFilter}` : ''}
-- Use o formato de caixas separadas para facilitar a leitura`;
-
-      } else if (searchType === "law") {
-        prompt = `Você é um especialista em legislação brasileira.
-
-TAREFA: Pesquisar LEIS sobre: "${searchQuery}"
-${selectedArea ? `\nÁREA: ${selectedArea}` : ''}
-${context ? `\n\nCONTEXTO: ${context}` : ''}
-
-INSTRUÇÕES:
-1. Consulte fontes oficiais (Planalto.gov.br, legislação federal/estadual)
-2. Para cada lei:
-   - Nome completo e número
-   - Artigos relevantes
-   - Resumo do conteúdo
-   - Link oficial
-   - Aplicabilidade ao tema
-
-3. Ordene por relevância
-4. Análise sobre aplicação prática
-5. Use Markdown formatado`;
-
-      } else if (searchType === "doctrine") {
-        prompt = `Você é um especialista em doutrina jurídica brasileira.
-
-TAREFA: Pesquisar DOUTRINA sobre: "${searchQuery}"
-${selectedArea ? `\nÁREA: ${selectedArea}` : ''}
-${context ? `\n\nCONTEXTO: ${context}` : ''}
-
-INSTRUÇÕES:
-1. Busque artigos, livros e teses de doutrinadores renomados
-2. Para cada referência:
-   - Autor(es)
-   - Título da obra/artigo
-   - Ano
-   - Resumo da tese
-   - Citação relevante
-   - Fonte
-
-3. Priorize fontes atualizadas
-4. Síntese das correntes doutrinárias
-5. Use Markdown formatado`;
-      }
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        add_context_from_internet: true,
+      const data = await searchJurisprudence({
+        query: searchQuery,
+        court: courtParam,
+        area: areaParam,
+        page: 1,
+        pageSize: 10,
       });
 
       setCurrentResult({
@@ -327,38 +245,71 @@ INSTRUÇÕES:
         type: searchType,
         area: selectedArea,
         tribunal: selectedTribunal !== "all" ? selectedTribunal : null,
-        content: response,
-        timestamp: new Date().toISOString()
+        results: data.results,
+        summary: data.summary,
+        sources: data.sources_queried,
+        timestamp: new Date().toISOString(),
       });
+
+      if (data.errors) setSearchErrors(data.errors);
 
     } catch (error) {
       console.error("Erro na pesquisa:", error);
-      toast.error("Erro ao realizar pesquisa");
+      toast.error("Erro ao realizar pesquisa: " + error.message);
     }
 
     setIsSearching(false);
   };
 
-  const handleSave = () => {
-    if (!currentResult) return;
-
-    const titlePrefix = 
-      searchType === "jurisprudence" ? "Jurisprudência" :
-      searchType === "law" ? "Legislação" : "Doutrina";
-
-    const selectedTribunalData = tribunaisCompleto.find(t => t.value === selectedTribunal);
-
-    saveMutation.mutate({
-      title: `${titlePrefix}: ${currentResult.query}`,
-      court: currentResult.tribunal || "outros",
-      summary: currentResult.content.substring(0, 500),
-      full_text: currentResult.content,
-      tags: [currentResult.query, searchType, selectedArea].filter(Boolean),
-      source_url: selectedTribunalData?.url || "Pesquisa com IA",
-      relevance_score: 85,
-      is_favorite: false
-    });
+  const handleSaveResult = async (result) => {
+    try {
+      await base44.entities.Jurisprudence.create({
+        title: result.title,
+        court: result.court,
+        case_number: result.case_number,
+        decision_date: result.decision_date,
+        summary: result.summary,
+        full_text: result.full_text,
+        tags: result.tags,
+        source_url: result.source_url,
+        relevance_score: result.relevance_score,
+        is_favorite: false,
+      });
+      setSavedSet(prev => new Set([...prev, result.case_number || result.title]));
+      queryClient.invalidateQueries({ queryKey: ['jurisprudences'] });
+      toast.success("Salvo na biblioteca!");
+    } catch (e) {
+      toast.error("Erro ao salvar: " + e.message);
+    }
   };
+
+  const handleSaveAll = async () => {
+    if (!currentResult?.results?.length) return;
+    for (const r of currentResult.results) {
+      await handleSaveResult(r);
+    }
+    // Também salva a pesquisa no LegalResearch
+    try {
+      await base44.entities.LegalResearch.create({
+        title: `Pesquisa: ${currentResult.query}`,
+        query: currentResult.query,
+        research_type: "jurisprudence",
+        area: currentResult.area?.toLowerCase() || "geral",
+        results_summary: currentResult.summary,
+        sources: currentResult.results.map(r => ({
+          title: r.title, type: "acordao", court: r.court,
+          date: r.decision_date, citation: r.case_number,
+          summary: r.summary?.slice(0, 300), url: r.source_url,
+          relevance_score: r.relevance_score,
+        })),
+        tags: [...new Set(currentResult.results.flatMap(r => r.tags || []))].slice(0, 10),
+        is_favorite: false,
+      });
+    } catch {}
+    toast.success("Todos os resultados salvos!");
+  };
+
+
 
   const filteredResearches = savedResearches.filter(r => {
     const matchesSearch = r.title?.toLowerCase().includes(debouncedFilter.toLowerCase());
@@ -384,7 +335,7 @@ INSTRUÇÕES:
                 Pesquisa Jurídica
               </h1>
               <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                Jurisprudência, legislação e doutrina com IA - {tribunaisCompleto.length} tribunais disponíveis
+                Busca direta nas APIs oficiais dos tribunais — sem IA · {tribunaisCompleto.length} tribunais disponíveis
               </p>
             </div>
           </div>
@@ -600,15 +551,18 @@ INSTRUÇÕES:
                       {isSearching ? (
                         <>
                           <Loader2 className="w-5 h-5 animate-spin" />
-                          Pesquisando...
+                          Buscando nas bases oficiais...
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-5 h-5" />
-                          Pesquisar com IA
+                          <Search className="w-5 h-5" />
+                          Pesquisar nos Tribunais
                         </>
                       )}
                     </Button>
+                    <p className={`text-xs text-center ${isDark ? "text-neutral-500" : "text-gray-400"}`}>
+                      Busca direta nas APIs oficiais — sem IA · sem tokens · dados reais
+                    </p>
                   </div>
                 </div>
 
@@ -619,68 +573,112 @@ INSTRUÇÕES:
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
+                      className="space-y-4"
                     >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex gap-2">
-                          <Badge>{researchTypes.find(t => t.id === currentResult.type)?.label}</Badge>
-                          {currentResult.area && <Badge variant="outline">{currentResult.area}</Badge>}
+                      {/* Erros / avisos */}
+                      {searchErrors && (
+                        <div className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${isDark ? "bg-yellow-900/20 border-yellow-800 text-yellow-300" : "bg-yellow-50 border-yellow-200 text-yellow-800"}`}>
+                          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <strong>Avisos:</strong> {searchErrors.join(" · ")}
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              navigator.clipboard.writeText(currentResult.content);
-                              toast.success("Copiado!");
-                            }}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copiar
-                          </Button>
-                          <Button size="sm" onClick={handleSave}>
-                            <Save className="w-4 h-4 mr-2" />
-                            Salvar
-                          </Button>
+                      )}
+
+                      {/* Resumo */}
+                      {currentResult.summary && (
+                        <div className={`p-4 rounded-lg border-l-4 border-blue-700 text-sm ${isDark ? "bg-blue-900/20 text-blue-200" : "bg-blue-50 text-gray-700"}`}>
+                          <div className="font-semibold text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2 text-xs">
+                            📋 Resumo da Pesquisa
+                            <span className="font-normal text-gray-400">(gerado localmente — sem IA)</span>
+                          </div>
+                          {currentResult.summary}
                         </div>
+                      )}
+
+                      {/* Cabeçalho resultados */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
+                            {currentResult.results?.length || 0} resultado(s)
+                          </span>
+                          {currentResult.sources?.map(s => (
+                            <Badge key={s} variant="outline" className="text-xs">{s}</Badge>
+                          ))}
+                        </div>
+                        <Button size="sm" onClick={handleSaveAll} disabled={!currentResult.results?.length}>
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar todos
+                        </Button>
                       </div>
 
-                      <div className="space-y-4">
-                        {currentResult.content.split('---').filter(Boolean).map((section, idx) => {
-                          const trimmed = section.trim();
-                          if (!trimmed) return null;
-                          
-                          return (
-                            <motion.div
-                              key={idx}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: idx * 0.1 }}
-                              className={`p-6 rounded-xl border ${
-                                isDark 
-                                  ? 'bg-neutral-800 border-neutral-700' 
-                                  : 'bg-gray-50 border-gray-200'
-                              }`}
-                            >
-                              <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
-                                <ReactMarkdown
-                                  components={{
-                                    a: ({ href, children }) => (
-                                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
-                                        {children}
-                                        <ExternalLink className="w-3 h-3" />
-                                      </a>
-                                    ),
-                                    hr: () => null,
-                                  }}
-                                >
-                                  {trimmed}
-                                </ReactMarkdown>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
+                      {/* Cards de resultados */}
+                      {currentResult.results?.length > 0 ? (
+                        <div className="space-y-3">
+                          {currentResult.results.map((r, i) => {
+                            const key = r.case_number || r.title;
+                            const isSaved = savedSet.has(key);
+                            return (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className={`p-4 rounded-xl border transition-shadow hover:shadow-md ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-gray-200"}`}
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <h4 className={`text-sm font-semibold leading-snug ${isDark ? "text-white" : "text-gray-800"}`}>{r.title}</h4>
+                                  <div className="flex gap-1.5 flex-shrink-0">
+                                    <Badge className="text-xs">{r.court}</Badge>
+                                    {r.relevance_score >= 70 && (
+                                      <Badge variant="outline" className="text-xs text-green-700 border-green-300">Alta rel.</Badge>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className={`flex flex-wrap gap-3 text-xs mb-2 ${isDark ? "text-neutral-400" : "text-gray-500"}`}>
+                                  {r.case_number && <span>Processo: {r.case_number}</span>}
+                                  {r.decision_date && <span>Julgado: {r.decision_date.split("-").reverse().join("/")}</span>}
+                                  <span>Score: {r.relevance_score}/100</span>
+                                </div>
+
+                                {r.summary && (
+                                  <p className={`text-xs leading-relaxed mb-3 line-clamp-3 ${isDark ? "text-neutral-400" : "text-gray-600"}`}>{r.summary}</p>
+                                )}
+
+                                {r.tags?.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mb-3">
+                                    {r.tags.map(tag => (
+                                      <span key={tag} className={`text-xs px-2 py-0.5 rounded ${isDark ? "bg-neutral-800 text-neutral-400" : "bg-gray-100 text-gray-500"}`}>{tag}</span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <div className={`flex gap-3 pt-2 border-t ${isDark ? "border-neutral-700" : "border-gray-100"}`}>
+                                  {r.source_url && (
+                                    <a href={r.source_url} target="_blank" rel="noreferrer"
+                                      className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                      <ExternalLink className="w-3 h-3" />
+                                      Ver no tribunal
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => handleSaveResult(r)}
+                                    disabled={isSaved}
+                                    className={`text-xs flex items-center gap-1 ${isSaved ? "text-green-600" : "text-blue-600 hover:underline"}`}
+                                  >
+                                    {isSaved ? <><CheckCircle2 className="w-3 h-3" /> Salvo</> : <><Save className="w-3 h-3" /> Salvar</>}
+                                  </button>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className={`text-center py-10 text-sm ${isDark ? "text-neutral-500" : "text-gray-400"}`}>
+                          Nenhum resultado retornado pelas APIs. Tente outros termos ou tribunal.
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
