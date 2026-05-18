@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+const GoogleMigrationModal = React.lazy(() => import("@/components/auth/GoogleMigrationModal"));
 import { createPageUrl } from "@/utils";
 import { 
   Scale, 
@@ -151,6 +152,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const [trialDaysLeft, setTrialDaysLeft] = React.useState(7);
     const [hasAccess, setHasAccess] = React.useState(true);
     const [accessChecked, setAccessChecked] = React.useState(false);
+    const [showGoogleMigration, setShowGoogleMigration] = React.useState(false);
 
     React.useEffect(() => {
       base44.auth.me()
@@ -171,6 +173,11 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                     localStorage.setItem(trialWelcomeKey, 'true');
                   }
                 }
+              }
+
+              // Verificar migração Google → senha
+              if (!u.has_password) {
+                setShowGoogleMigration(true);
               }
 
               // Verificar consentimentos LGPD
@@ -548,6 +555,13 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             </motion.div>
           </AnimatePresence>
         </main>
+
+        {/* Google Migration Modal */}
+        {showGoogleMigration && !publicPages.includes(currentPageName) && (
+          <React.Suspense fallback={null}>
+            <GoogleMigrationModal onDismiss={() => setShowGoogleMigration(false)} />
+          </React.Suspense>
+        )}
 
         {/* Consent Modal */}
         {hasCheckedConsent && !consentAccepted && (

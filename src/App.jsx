@@ -27,6 +27,7 @@ import AgentSettings from './pages/AgentSettings';
 import WhatsAppConversations from './pages/WhatsAppConversations';
 import WebhookTest from './pages/WebhookTest';
 import CalculadoraJuridica from './pages/CalculadoraJuridica';
+import CriarSenha from './pages/CriarSenha';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
       <Route path="/conversations" element={<LayoutWrapper currentPageName="WhatsAppConversations"><WhatsAppConversations /></LayoutWrapper>} />
       <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><WebhookTest /></LayoutWrapper>} />
       <Route path="/CalculadoraJuridica" element={<CalculadoraJuridica />} />
+      <Route path="/criar-senha" element={<CriarSenha />} />
       <Route path="/AffiliatesDashboard" element={
         <LayoutWrapper currentPageName="AffiliatesDashboard">
           <AffiliatesDashboard />
