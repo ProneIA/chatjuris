@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 function validatePassword(password) {
   const errors = [];
@@ -81,8 +82,12 @@ export default function CriarSenha() {
             <div style={{
               width: 64, height: 64, background: "#D1FAE5", borderRadius: "50%",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "2rem", margin: "0 auto 1.5rem"
-            }}>✅</div>
+              margin: "0 auto 1.5rem"
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0D0F1A", marginBottom: "0.75rem" }}>
               Senha criada com sucesso!
             </h2>
@@ -153,7 +158,7 @@ export default function CriarSenha() {
                       position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
                       background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", color: "#9CA3AF"
                     }}>
-                    {showPass ? "🙈" : "👁️"}
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 {errors.length > 0 && (
