@@ -3,28 +3,20 @@ import { Link, useLocation } from "react-router-dom";
 const GoogleMigrationModal = React.lazy(() => import("@/components/auth/GoogleMigrationModal"));
 import { createPageUrl } from "@/utils";
 import { 
-  Scale, 
-  LayoutDashboard, 
-  Sparkles,
-  BookOpen,
   LogOut,
-  MessageSquare,
   Menu,
   X,
   Settings,
-  Crown,
   Moon,
   Sun,
-  FolderOpen,
-  Users2,
   Download,
-  DollarSign,
   Bookmark,
   ArrowLeft,
   History as HistoryIcon,
-  Activity,
-  Shield
+  Shield,
+  MessageSquare,
 } from "lucide-react";
+import SidebarNav from "@/components/layout/SidebarNav";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 const KeyboardShortcuts = React.lazy(() => import("@/components/common/KeyboardShortcuts"));
@@ -54,32 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navigationItems = [
-  { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
-  { title: "Radar", url: createPageUrl("RadarOportunidades"), icon: Activity },
-  { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
-  { title: "Modelos de Peças", url: createPageUrl("Templates"), icon: BookOpen },
-  { title: "Assistente IA", url: createPageUrl("AIAssistant"), icon: Sparkles },
-  { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare, adminOnly: true },
-  { title: "Conversas WhatsApp", url: "/conversations", icon: MessageSquare, adminOnly: true },
-  { title: "Configurar WhatsApp", url: createPageUrl("WhatsAppConnect"), icon: MessageSquare, adminOnly: true },
-  { title: "Pesquisa Jurídica", url: createPageUrl("LegalResearch"), icon: Scale },
-  { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
-  { title: "Tarefas", url: createPageUrl("Tasks"), icon: BookOpen },
-  { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
-  { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
-  { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: Users2 },
-  { title: "Minha Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
-  { title: "Auditoria LGPD", url: createPageUrl("LGPDAudit"), icon: Shield, adminOnly: true },
-  { title: "Conformidade LGPD", url: createPageUrl("LGPDCompliance"), icon: Shield, adminOnly: true },
-];
 
-const adminItems = [
-  { title: "Admin Panel", url: createPageUrl("AdminPanel"), icon: Shield },
-  { title: "Admin Master", url: createPageUrl("AdminMaster"), icon: Shield },
-  { title: "Auditoria do Sistema", url: createPageUrl("SystemAudit"), icon: Shield },
-  { title: "Banco de Dados", url: createPageUrl("AdminDatabase"), icon: Shield },
-];
 
 // Cache busting — força reload quando há nova versão
 const APP_VERSION = "2026-02-20-1";
@@ -283,13 +250,6 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
       }
     }, [deferredPrompt]);
 
-    const visibleNavItems = React.useMemo(() =>
-      user?.role === 'admin'
-        ? [...navigationItems, ...adminItems]
-        : navigationItems.filter(i => !i.adminOnly),
-      [user?.role]
-    );
-
     // Public pages - no layout
     if (publicPages.includes(currentPageName)) {
       return <>{children}</>;
@@ -434,26 +394,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               </div>
             </Link>
             <div style={{ height:1, background:"var(--border)", margin:"0 0 0.5rem" }} />
-            <nav>
-              {visibleNavItems.map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <Link
-                    key={item.title}
-                    to={item.url}
-                    className="app-nav-item"
-                    style={{
-                      background: isActive ? "var(--primary)" : "transparent",
-                      color: isActive ? "#fff" : "var(--text-muted)",
-                      borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
-                    }}
-                  >
-                    <item.icon style={{ width:16, height:16, flexShrink:0, color: isActive ? "#fff" : "var(--text-muted)" }} />
-                    <span>{item.title}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <SidebarNav user={user} isMobile={false} />
           </div>
         </aside>
 
@@ -472,37 +413,19 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 style={{ background:"var(--surface)", borderRight:"1px solid var(--border)" }}
                 className="lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 overflow-y-auto"
               >
-                <nav className="py-2">
-                  {visibleNavItems.map((item) => {
-                    const isActive = location.pathname === item.url;
-                    return (
-                      <Link
-                        key={item.title}
-                        to={item.url}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="app-nav-item"
-                        style={{
-                          background: isActive ? "var(--primary)" : "transparent",
-                          color: isActive ? "#fff" : "var(--text-muted)",
-                          borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
-                        }}
-                      >
-                        <item.icon style={{ width:16, height:16, color: isActive ? "#fff" : "var(--text-muted)" }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    );
-                  })}
-                  {!isStandalone && (
+                <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
+                {!isStandalone && (
+                  <div style={{ padding: "0.5rem 1rem" }}>
                     <button
                       onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
                       className="btn-primary"
-                      style={{ width:"100%", marginTop:"1rem", justifyContent:"flex-start", padding:"0.65rem 1.25rem" }}
+                      style={{ width:"100%", justifyContent:"flex-start", padding:"0.65rem 1.25rem" }}
                     >
                       <Download style={{ width:16, height:16 }} />
                       <span>Instalar Aplicativo</span>
                     </button>
-                  )}
-                </nav>
+                  </div>
+                )}
               </motion.div>
             </>
           )}
