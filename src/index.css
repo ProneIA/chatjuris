@@ -9,9 +9,9 @@
    ═══════════════════════════════════════════════════════════ */
 :root {
   /* Brand */
-  --primary:        #4F6EF7;
-  --primary-hover:  #3B56E0;
-  --primary-light:  rgba(79, 110, 247, 0.08);
+  --primary:        #C9A84C;
+  --primary-hover:  #B8942A;
+  --primary-light:  rgba(201, 168, 76, 0.08);
 
   /* Surfaces */
   --bg:             #F9FAFB;
@@ -51,7 +51,7 @@
   --destructive:          0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --input:                0 0% 89.8%;
-  --ring:                 237 63% 42%;
+  --ring:                 43 74% 42%;
   --radius:               0rem;
 
   /* Chart */
@@ -64,12 +64,12 @@
   /* Sidebar */
   --sidebar-background:           0 0% 100%;
   --sidebar-foreground:           240 5.3% 26.1%;
-  --sidebar-primary:              237 63% 42%;
+  --sidebar-primary:              43 74% 42%;
   --sidebar-primary-foreground:   0 0% 98%;
   --sidebar-accent:               240 5% 96%;
   --sidebar-accent-foreground:    240 5.9% 10%;
   --sidebar-border:               220 13% 91%;
-  --sidebar-ring:                 237 63% 42%;
+  --sidebar-ring:                 43 74% 42%;
 }
 
 /* Dark mode — keep sidebar dark when toggled */
@@ -90,20 +90,20 @@
   --destructive-foreground: 0 0% 98%;
   --border:               0 0% 14.9%;
   --input:                0 0% 14.9%;
-  --ring:                 237 63% 60%;
-  --chart-1: 220 70% 50%;
+  --ring:                 43 74% 60%;
+  --chart-1: 43 74% 50%;
   --chart-2: 160 60% 45%;
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
   --sidebar-background:   240 5.9% 10%;
   --sidebar-foreground:   240 4.8% 95.9%;
-  --sidebar-primary:      237 63% 60%;
+  --sidebar-primary:      43 74% 60%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent:       240 3.7% 15.9%;
   --sidebar-accent-foreground: 240 4.8% 95.9%;
   --sidebar-border:       240 3.7% 15.9%;
-  --sidebar-ring:         237 63% 60%;
+  --sidebar-ring:         43 74% 60%;
 
   --app-bg:         #0a0a0a;
   --app-surface:    #111111;
@@ -266,9 +266,9 @@ body {
   font-size: 0.875rem;
   text-decoration: none;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(79,110,247,.3);
+  box-shadow: 0 2px 8px rgba(201,168,76,.3);
 }
-.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,110,247,.4); }
+.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,.4); }
 
 .btn-ghost {
   display: inline-flex;
