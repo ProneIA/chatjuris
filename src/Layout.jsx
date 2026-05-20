@@ -270,17 +270,17 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
         <style>{`
           :root {
-            --app-bg: #F9FAFB; --app-surface: #FFFFFF; --app-surface2: #F3F4F6;
-            --app-border: rgba(201,168,76,0.15); --app-text: #0D0F1A; --app-muted: #6B7280;
+            --app-bg: #FFFFFF; --app-surface: #FFFFFF; --app-surface2: #F5F5F5;
+            --app-border: #E5E5E5; --app-text: #1A1A1A; --app-muted: #6B6B6B;
           }
         `}</style>
 
         {/* Top Bar */}
-        <header style={{ background:"#FFFFFF", borderBottom:"1px solid rgba(201,168,76,0.15)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
+        <header style={{ background:"#FFFFFF", borderBottom:"1px solid #E0E0E0" }} className="fixed top-0 left-0 right-0 h-14 z-50">
           <div className="h-full px-4 flex items-center justify-between">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ background:"none", border:"none", cursor:"pointer", color:"#0D0F1A", padding:"0.5rem" }}
+              style={{ background:"none", border:"none", cursor:"pointer", color:"#333333", padding:"0.5rem" }}
               className="lg:hidden"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -359,7 +359,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </header>
 
         {/* Sidebar - Desktop */}
-        <aside style={{ background:"var(--surface)", borderRight:"1px solid var(--border)" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
+        <aside style={{ background:"#FFFFFF", borderRight:"1px solid #E0E0E0" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
           <div className="py-4">
             <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
               <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--text)" }}>Juris</span>
@@ -386,7 +386,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <motion.div
                 initial={{ x: -280, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -280, opacity: 0 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                style={{ background:"var(--surface)", borderRight:"1px solid var(--border)" }}
+                style={{ background:"#FFFFFF", borderRight:"1px solid #E0E0E0" }}
                 className="lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 overflow-y-auto"
               >
                 <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
@@ -415,9 +415,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         )}
 
         {/* Main Content */}
-        <main style={{ background:"var(--bg)" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        <main style={{ background:"#FFFFFF" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
           {showBackButton && (
-            <div style={{ background:"var(--surface)", borderBottom:"1px solid var(--border)" }}>
+            <div style={{ background:"#FAFAFA", borderBottom:"1px solid #E0E0E0" }}>
               <div className="px-6 py-3 flex items-center justify-between">
                 <Link 
                   to={createPageUrl("Dashboard")}
@@ -448,7 +448,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -18, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeInOut" }}
-              style={{ minHeight:"calc(100vh - 3.5rem)", background:"var(--bg)" }}
+              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#FFFFFF" }}
             >
               {children}
             </motion.div>
