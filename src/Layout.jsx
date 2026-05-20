@@ -104,12 +104,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const [isIOS, setIsIOS] = React.useState(false);
     const [isStandalone, setIsStandalone] = React.useState(false);
     const [showInstallModal, setShowInstallModal] = React.useState(false);
-    const [theme, setTheme] = React.useState(() => {
-      if (typeof window !== 'undefined') {
-        return localStorage.getItem('juris-theme') || 'light';
-      }
-      return 'light';
-    });
+
 
     const [showDeleteAccountDialog, setShowDeleteAccountDialog] = React.useState(false);
     const [showConsentModal, setShowConsentModal] = React.useState(false);
@@ -120,6 +115,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const [hasAccess, setHasAccess] = React.useState(true);
     const [accessChecked, setAccessChecked] = React.useState(false);
     const [showGoogleMigration, setShowGoogleMigration] = React.useState(false);
+    const isDark = false; // Always light mode
 
     React.useEffect(() => {
       base44.auth.me()
@@ -220,16 +216,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
       return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
     }, []);
 
-    React.useEffect(() => {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('juris-theme', theme);
-    }, [theme]);
 
-    const toggleTheme = React.useCallback(() => {
-      setTheme(t => t === 'light' ? 'dark' : 'light');
-    }, []);
-
-    const isDark = theme === 'dark';
 
     const handleLogout = React.useCallback(() => {
       base44.auth.logout("/LandingPage");
@@ -267,7 +254,6 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         <React.Suspense fallback={null}><KeyboardShortcuts /></React.Suspense>
         <React.Suspense fallback={null}>
           <InstallAppBanner 
-            theme={theme} 
             deferredPrompt={deferredPrompt}
             isIOS={isIOS}
             isStandalone={isStandalone}
@@ -283,26 +269,18 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </React.Suspense>
 
         <style>{`
-          ${isDark ? `
-            :root {
-              --app-bg: #0a0a0a; --app-surface: #111111; --app-surface2: #1a1a1a;
-              --app-border: rgba(255,255,255,0.08); --app-text: #ffffff;
-              --app-muted: rgba(255,255,255,0.4);
-            }
-          ` : `
-            :root {
-              --app-bg: #f4f4f6; --app-surface: #ffffff; --app-surface2: #f0f0f5;
-              --app-border: #e0e0ea; --app-text: #0a0a0a; --app-muted: #6b6b80;
-            }
-          `}
+          :root {
+            --app-bg: #F9FAFB; --app-surface: #FFFFFF; --app-surface2: #F3F4F6;
+            --app-border: rgba(201,168,76,0.15); --app-text: #0D0F1A; --app-muted: #6B7280;
+          }
         `}</style>
 
         {/* Top Bar */}
-        <header style={{ background:"var(--surface)", borderBottom:"1px solid var(--border)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
+        <header style={{ background:"#FFFFFF", borderBottom:"1px solid rgba(201,168,76,0.15)" }} className="fixed top-0 left-0 right-0 h-14 z-50">
           <div className="h-full px-4 flex items-center justify-between">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ background:"none", border:"none", cursor:"pointer", color:"var(--app-text)", padding:"0.5rem" }}
+              style={{ background:"none", border:"none", cursor:"pointer", color:"#0D0F1A", padding:"0.5rem" }}
               className="lg:hidden"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -312,7 +290,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               to={createPageUrl("Dashboard")} 
               className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.3rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--app-text)" }}>Juris</span>
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png" alt="ChatJuris" style={{ height:24, objectFit:"contain" }} />
             </Link>
 
             <div className="flex items-center gap-2">
@@ -323,9 +301,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 </Button>
               )}
 
-              <button onClick={toggleTheme} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--app-muted)", display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36 }}>
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+
 
               {user && (
                 <React.Suspense fallback={<div className="w-9 h-9" />}>
@@ -434,7 +410,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* Bottom Navigation - Mobile */}
         {user && !publicPages.includes(currentPageName) && (
           <div className="lg:hidden">
-            <BottomNavigation isDark={isDark} user={user} onLogout={handleLogout} />
+            <BottomNavigation user={user} onLogout={handleLogout} />
           </div>
         )}
 
@@ -474,7 +450,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               transition={{ duration: 0.18, ease: "easeInOut" }}
               style={{ minHeight:"calc(100vh - 3.5rem)", background:"var(--bg)" }}
             >
-              {React.cloneElement(children, { theme })}
+              {children}
             </motion.div>
           </AnimatePresence>
         </main>
