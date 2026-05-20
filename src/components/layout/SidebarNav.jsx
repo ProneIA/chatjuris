@@ -4,13 +4,13 @@ import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard, Activity, CheckSquare,
   FolderOpen, Users, Globe, FileText, Files,
-  DollarSign, CreditCard,
+  DollarSign,
   Sparkles, Zap, Calculator, Newspaper, BookOpen, Scale,
   MessageSquare, MessageCircle, Settings,
   Users2, UserCheck,
   Lock, Shield, Database, BarChart3, ClipboardList, Bot,
   ChevronDown,
-  Crown,
+  Crown, Star,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,10 +44,20 @@ const NAV_GROUPS = [
     label: "Financeiro",
     icon: DollarSign,
     defaultOpen: false,
+    directLink: true,
+    url: createPageUrl("FinancialDashboard"),
     items: [
       { title: "Visão Geral", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
-      { title: "Cobranças", url: createPageUrl("MySubscription"), icon: CreditCard },
     ],
+  },
+  {
+    id: "assinatura",
+    label: "Minha Assinatura",
+    icon: Star,
+    defaultOpen: false,
+    directLink: true,
+    url: createPageUrl("MySubscription"),
+    items: [],
   },
   {
     id: "ferramentas",
@@ -123,6 +133,37 @@ function NavBadge({ label }) {
     }}>
       {label}
     </span>
+  );
+}
+
+// ─── Link direto (sem submenu) ─────────────────────────────────────────────
+function NavDirectLink({ group, location, onNavigate, subscriptionExpired }) {
+  const isActive = location.pathname === group.url || location.pathname.startsWith(group.url + "/");
+  return (
+    <Link
+      to={group.url}
+      onClick={onNavigate}
+      style={{
+        display: "flex", alignItems: "center", gap: "0.6rem",
+        padding: "0.55rem 1.1rem",
+        textDecoration: "none",
+        background: isActive ? "var(--primary)" : "transparent",
+        color: isActive ? "#fff" : "var(--text-muted)",
+        borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
+        fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        transition: "background 0.15s, color 0.15s",
+        marginBottom: 2,
+      }}
+      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "var(--primary-light)"; e.currentTarget.style.color = "var(--primary)"; }}}
+      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}}
+    >
+      <group.icon style={{ width: 15, height: 15, flexShrink: 0, color: isActive ? "#fff" : "var(--text-muted)" }} />
+      <span style={{ flex: 1 }}>{group.label}</span>
+      {group.id === "assinatura" && subscriptionExpired && (
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} title="Assinatura expirada" />
+      )}
+    </Link>
   );
 }
 
@@ -236,7 +277,7 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
 }
 
 // ─── Componente principal ──────────────────────────────────────────────────
-export default function SidebarNav({ user, onNavigate, isMobile = false }) {
+export default function SidebarNav({ user, onNavigate, isMobile = false, subscriptionExpired = false }) {
   const location = useLocation();
   const isAdmin = user?.role === "admin";
 
@@ -245,14 +286,9 @@ export default function SidebarNav({ user, onNavigate, isMobile = false }) {
   return (
     <nav style={{ paddingTop: "0.5rem", paddingBottom: "1rem" }}>
       {groups.map(group => (
-        <NavGroup
-          key={group.id}
-          group={group}
-          isAdmin={isAdmin}
-          location={location}
-          onNavigate={onNavigate}
-          isMobile={isMobile}
-        />
+        group.directLink
+          ? <NavDirectLink key={group.id} group={group} location={location} onNavigate={onNavigate} subscriptionExpired={subscriptionExpired} />
+          : <NavGroup key={group.id} group={group} isAdmin={isAdmin} location={location} onNavigate={onNavigate} isMobile={isMobile} />
       ))}
 
       {/* Grupo Admin — só para admins */}
