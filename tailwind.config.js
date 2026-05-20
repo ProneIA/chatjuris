@@ -5,7 +5,8 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			inter: ['Inter', '-apple-system', 'sans-serif'],
+  			'plex': ['IBM Plex Sans', '-apple-system', 'sans-serif'],
+  			'outfit': ['Outfit', '-apple-system', 'sans-serif'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

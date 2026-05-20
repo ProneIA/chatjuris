@@ -269,7 +269,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </React.Suspense>
 
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
           :root {
             --bg: #f7f5f2; --surface: #ffffff; --surface-2: #f0ece6;
             --border: #ece9e3; --text: #1a1a1a; --text-muted: #aaa;
@@ -364,7 +364,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         <aside style={{ background:"#ffffff", borderRight:"1px solid #ece9e3" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
           <div className="py-4">
             <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
-              <span style={{ fontFamily:"'Cormorant Garamond', Georgia, serif", fontWeight:700, fontSize:"22px", color:"#1a1a1a" }}>JURIS</span>
+              <span style={{ fontFamily:"'IBM Plex Sans', system-ui, sans-serif", fontWeight:700, fontSize:"20px", color:"#1a1a1a", letterSpacing:"-0.5px" }}>JURIS</span>
             </Link>
             <div style={{ height:1, background:"#ece9e3", margin:"0 0 0.5rem" }} />
             <SidebarNav user={user} isMobile={false} />

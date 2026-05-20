@@ -29,7 +29,7 @@ const BORDER = "#ece9e3";
 const TEXT = "#1a1a1a";
 const MUTED = "#aaa";
 
-const cormorant = "'Cormorant Garamond', Georgia, serif";
+const plexBold = "'IBM Plex Sans', system-ui, sans-serif";
 const outfit = "'Outfit', system-ui, sans-serif";
 
 // ── Google Fonts injection ───────────────────────────────────────
@@ -38,7 +38,7 @@ if (typeof document !== "undefined" && !document.getElementById("juris-fonts")) 
   link.id = "juris-fonts";
   link.rel = "stylesheet";
   link.href =
-    "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap";
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap";
   document.head.appendChild(link);
 }
 
@@ -123,7 +123,7 @@ const Dashboard = React.memo(function Dashboard() {
       {/* ── Header ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32 }}>
         <div>
-          <h1 style={{ fontFamily: cormorant, fontSize: 34, fontWeight: 700, color: TEXT, margin: 0, lineHeight: 1.1 }}>
+          <h1 style={{ fontFamily: plexBold, fontSize: 32, fontWeight: 700, color: TEXT, margin: 0, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
             {getGreeting()},{" "}
             <span style={{ color: GOLD }}>{user?.full_name?.split(" ")[0] || "Advogado"}</span>
           </h1>
@@ -241,7 +241,7 @@ const Dashboard = React.memo(function Dashboard() {
                   </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                  <span style={{ fontFamily: cormorant, fontSize: 40, fontWeight: 700, lineHeight: 1, color: TEXT }}>
+                  <span style={{ fontFamily: plexBold, fontSize: 38, fontWeight: 700, lineHeight: 1, color: TEXT, letterSpacing: "-0.5px" }}>
                     {stat.value}
                   </span>
                   {stat.extra !== undefined && (
