@@ -51,15 +51,6 @@ const NAV_GROUPS = [
     ],
   },
   {
-    id: "assinatura",
-    label: "Minha Assinatura",
-    icon: Star,
-    defaultOpen: false,
-    directLink: true,
-    url: createPageUrl("MySubscription"),
-    items: [],
-  },
-  {
     id: "ferramentas",
     label: "Ferramentas",
     icon: Zap,
@@ -94,6 +85,15 @@ const NAV_GROUPS = [
       { title: "Membros da Equipe", url: createPageUrl("Teams"), icon: Users2 },
       { title: "Afiliados", url: createPageUrl("AffiliatesDashboard"), icon: UserCheck, adminOnly: true },
     ],
+  },
+  {
+    id: "assinatura",
+    label: "Minha Assinatura",
+    icon: Star,
+    defaultOpen: false,
+    directLink: true,
+    url: createPageUrl("MySubscription"),
+    items: [],
   },
 ];
 
