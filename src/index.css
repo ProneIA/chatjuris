@@ -9,9 +9,9 @@
    ═══════════════════════════════════════════════════════════ */
 :root {
   /* Brand */
-  --primary:        #C9A84C;
-  --primary-hover:  #B8942A;
-  --primary-light:  rgba(201, 168, 76, 0.08);
+  --primary:        #b8922a;
+  --primary-hover:  #9e7b22;
+  --primary-light:  rgba(184, 146, 42, 0.08);
 
   /* Surfaces */
   --bg:             #F9FAFB;

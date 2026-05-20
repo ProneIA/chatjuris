@@ -249,7 +249,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
 
     return (
-      <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <div style={{ minHeight: "100vh", background: "#f7f5f2", fontFamily: "'Outfit', system-ui, sans-serif" }}>
         <React.Suspense fallback={null}><PWAHead /></React.Suspense>
         <React.Suspense fallback={null}><KeyboardShortcuts /></React.Suspense>
         <React.Suspense fallback={null}>
@@ -269,14 +269,16 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </React.Suspense>
 
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap');
           :root {
-            --app-bg: #FFFFFF; --app-surface: #FFFFFF; --app-surface2: #F5F5F5;
-            --app-border: #E5E5E5; --app-text: #1A1A1A; --app-muted: #6B6B6B;
+            --bg: #f7f5f2; --surface: #ffffff; --surface-2: #f0ece6;
+            --border: #ece9e3; --text: #1a1a1a; --text-muted: #aaa;
+            --primary: #b8922a; --primary-hover: #9e7b22; --primary-light: rgba(184,146,42,0.08);
           }
         `}</style>
 
         {/* Top Bar */}
-        <header style={{ background:"#FFFFFF", borderBottom:"1px solid #E0E0E0" }} className="fixed top-0 left-0 right-0 h-14 z-50">
+        <header style={{ background:"#ffffff", borderBottom:"1px solid #ece9e3" }} className="fixed top-0 left-0 right-0 h-14 z-50">
           <div className="h-full px-4 flex items-center justify-between">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -359,17 +361,12 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </header>
 
         {/* Sidebar - Desktop */}
-        <aside style={{ background:"#FFFFFF", borderRight:"1px solid #E0E0E0" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
+        <aside style={{ background:"#ffffff", borderRight:"1px solid #ece9e3" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
           <div className="py-4">
-            <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", gap:"0.75rem", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
-              <span style={{ fontFamily:"'Oswald',sans-serif", fontWeight:700, fontSize:"1.4rem", textTransform:"uppercase", letterSpacing:"-0.02em", color:"var(--text)" }}>Juris</span>
-              <div style={{ display:"flex", gap:3 }}>
-                {[0,1,2].map((i)=>(
-                  <div key={i} style={{ width:5, height:5, background: i < 2 ? "var(--primary)" : "var(--border)" }} />
-                ))}
-              </div>
+            <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
+              <span style={{ fontFamily:"'Cormorant Garamond', Georgia, serif", fontWeight:700, fontSize:"22px", color:"#1a1a1a" }}>JURIS</span>
             </Link>
-            <div style={{ height:1, background:"var(--border)", margin:"0 0 0.5rem" }} />
+            <div style={{ height:1, background:"#ece9e3", margin:"0 0 0.5rem" }} />
             <SidebarNav user={user} isMobile={false} />
           </div>
         </aside>
@@ -415,7 +412,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         )}
 
         {/* Main Content */}
-        <main style={{ background:"#FFFFFF" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        <main style={{ background:"#f7f5f2" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
           {showBackButton && (
             <div style={{ background:"#FAFAFA", borderBottom:"1px solid #E0E0E0" }}>
               <div className="px-6 py-3 flex items-center justify-between">
@@ -448,7 +445,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -18, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeInOut" }}
-              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#FFFFFF" }}
+              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#f7f5f2" }}
             >
               {children}
             </motion.div>

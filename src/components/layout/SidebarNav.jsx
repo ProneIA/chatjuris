@@ -218,20 +218,20 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
       >
         <group.icon style={{
           width: 15, height: 15, flexShrink: 0,
-          color: isAdminGroup ? "#ef4444" : "var(--text-muted)",
+          color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
         }} />
         <span style={{
           flex: 1, textAlign: "left",
           fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: isAdminGroup ? "#ef4444" : "var(--text-muted)",
-          fontFamily: "'Inter', sans-serif",
+          color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
+          fontFamily: "'Outfit', system-ui, sans-serif",
         }}>
           {group.label}
         </span>
         {isAdminGroup && <NavBadge label="RESTRITO" />}
         <ChevronDown style={{
-          width: 13, height: 13, color: isAdminGroup ? "#ef4444" : "var(--text-muted)",
+          width: 13, height: 13, color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
           transform: open ? "rotate(180deg)" : "rotate(0deg)",
           transition: "transform 0.2s ease",
           flexShrink: 0,
