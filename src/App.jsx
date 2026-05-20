@@ -9,11 +9,17 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import AffiliatesDashboard from './pages/AffiliatesDashboard';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import LGPDAudit from './pages/LGPDAudit';
 import LGPDCompliance from './pages/LGPDCompliance';
 import LexIA from './pages/LexIA';
+import AdminPanel from './pages/AdminPanel';
+import AdminMaster from './pages/AdminMaster';
+import AdminDatabase from './pages/AdminDatabase';
+import AdminSubscriptions from './pages/AdminSubscriptions';
+import SystemAudit from './pages/SystemAudit';
+import AffiliatesDashboard from './pages/AffiliatesDashboard';
+import WhatsAppBot from './pages/WhatsAppBot';
 import JusTrackDashboard from './pages/JusTrackDashboard';
 import JusTrackPesquisa from './pages/JusTrackPesquisa';
 import JusTrackProcessos from './pages/JusTrackProcessos';
@@ -79,6 +85,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* ── ROTAS RESTRITAS A ADMIN ── */}
       <Route path="/LGPDAudit" element={
         <LayoutWrapper currentPageName="LGPDAudit">
           <ProtectedAdminRoute><LGPDAudit /></ProtectedAdminRoute>
@@ -87,6 +94,51 @@ const AuthenticatedApp = () => {
       <Route path="/LGPDCompliance" element={
         <LayoutWrapper currentPageName="LGPDCompliance">
           <ProtectedAdminRoute><LGPDCompliance /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/AdminPanel" element={
+        <LayoutWrapper currentPageName="AdminPanel">
+          <ProtectedAdminRoute><AdminPanel /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/AdminMaster" element={
+        <LayoutWrapper currentPageName="AdminMaster">
+          <ProtectedAdminRoute><AdminMaster /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/AdminDatabase" element={
+        <LayoutWrapper currentPageName="AdminDatabase">
+          <ProtectedAdminRoute><AdminDatabase /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/AdminSubscriptions" element={
+        <LayoutWrapper currentPageName="AdminSubscriptions">
+          <ProtectedAdminRoute><AdminSubscriptions /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/SystemAudit" element={
+        <LayoutWrapper currentPageName="SystemAudit">
+          <ProtectedAdminRoute><SystemAudit /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/AffiliatesDashboard" element={
+        <LayoutWrapper currentPageName="AffiliatesDashboard">
+          <ProtectedAdminRoute><AffiliatesDashboard /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/WhatsAppBot" element={
+        <LayoutWrapper currentPageName="WhatsAppBot">
+          <ProtectedAdminRoute><WhatsAppBot /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/WhatsAppConnect" element={
+        <LayoutWrapper currentPageName="WhatsAppConnect">
+          <ProtectedAdminRoute><WhatsAppConnect /></ProtectedAdminRoute>
+        </LayoutWrapper>
+      } />
+      <Route path="/conversations" element={
+        <LayoutWrapper currentPageName="WhatsAppConversations">
+          <ProtectedAdminRoute><WhatsAppConversations /></ProtectedAdminRoute>
         </LayoutWrapper>
       } />
       <Route path="/LexIA" element={
@@ -100,17 +152,10 @@ const AuthenticatedApp = () => {
       <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
       <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
       <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
-      <Route path="/WhatsAppConnect" element={<LayoutWrapper currentPageName="WhatsAppConnect"><WhatsAppConnect /></LayoutWrapper>} />
-      <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><AgentSettings /></LayoutWrapper>} />
-      <Route path="/conversations" element={<LayoutWrapper currentPageName="WhatsAppConversations"><WhatsAppConversations /></LayoutWrapper>} />
-      <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><WebhookTest /></LayoutWrapper>} />
+      <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><ProtectedAdminRoute><AgentSettings /></ProtectedAdminRoute></LayoutWrapper>} />
+      <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><ProtectedAdminRoute><WebhookTest /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="/CalculadoraJuridica" element={<CalculadoraJuridica />} />
       <Route path="/criar-senha" element={<CriarSenha />} />
-      <Route path="/AffiliatesDashboard" element={
-        <LayoutWrapper currentPageName="AffiliatesDashboard">
-          <AffiliatesDashboard />
-        </LayoutWrapper>
-      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

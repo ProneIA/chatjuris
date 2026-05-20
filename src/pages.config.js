@@ -50,11 +50,7 @@
 import AIAssistant from './pages/AIAssistant';
 import AboutUs from './pages/AboutUs';
 import AccessDenied from './pages/AccessDenied';
-import AdminDatabase from './pages/AdminDatabase';
-import AdminMaster from './pages/AdminMaster';
-import AdminPanel from './pages/AdminPanel';
-import AdminSubscriptions from './pages/AdminSubscriptions';
-import AffiliatesDashboard from './pages/AffiliatesDashboard';
+
 import Analytics from './pages/Analytics';
 import Calendar from './pages/Calendar';
 import CaseDetails from './pages/CaseDetails';
@@ -95,13 +91,13 @@ import QuemSomos from './pages/QuemSomos';
 import RadarOportunidades from './pages/RadarOportunidades';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
-import SystemAudit from './pages/SystemAudit';
+
 import Tasks from './pages/Tasks';
 import TeamDetail from './pages/TeamDetail';
 import Teams from './pages/Teams';
 import Templates from './pages/Templates';
 import TermsOfService from './pages/TermsOfService';
-import WhatsAppBot from './pages/WhatsAppBot';
+
 import __Layout from './Layout.jsx';
 
 
@@ -109,11 +105,6 @@ export const PAGES = {
     "AIAssistant": AIAssistant,
     "AboutUs": AboutUs,
     "AccessDenied": AccessDenied,
-    "AdminDatabase": AdminDatabase,
-    "AdminMaster": AdminMaster,
-    "AdminPanel": AdminPanel,
-    "AdminSubscriptions": AdminSubscriptions,
-    "AffiliatesDashboard": AffiliatesDashboard,
     "Analytics": Analytics,
     "Calendar": Calendar,
     "CaseDetails": CaseDetails,
@@ -154,13 +145,11 @@ export const PAGES = {
     "RadarOportunidades": RadarOportunidades,
     "Reports": Reports,
     "Settings": Settings,
-    "SystemAudit": SystemAudit,
     "Tasks": Tasks,
     "TeamDetail": TeamDetail,
     "Teams": Teams,
     "Templates": Templates,
     "TermsOfService": TermsOfService,
-    "WhatsAppBot": WhatsAppBot,
 }
 
 export const pagesConfig = {
