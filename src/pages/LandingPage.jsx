@@ -315,7 +315,7 @@ export default function LandingPage() {
           </p>
 
           <div className="fu d2" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "3rem" }}>
-            <button onClick={login} className="btn-primary">Teste Grátis por 7 Dias →</button>
+            <button onClick={login} className="btn-outline-gold">✦ Assistente IA</button>
             <button onClick={goToPricing} className="btn-secondary">Ver Planos</button>
           </div>
 
@@ -569,11 +569,11 @@ export default function LandingPage() {
                 Junte-se a mais de 2.000 advogados que já economizam tempo e aumentam produtividade. Teste grátis por 7 dias — sem cartão de crédito.
               </p>
               <div className="fu d2" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <button onClick={login} className="btn-primary" style={{ background: "#fff", color: "var(--dark)", boxShadow: "0 4px 14px rgba(0,0,0,.15)" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--blue-light)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                <button onClick={login} className="btn-outline-gold" style={{ background: "#B8963E", color: "#fff", border: "1.5px solid #B8963E" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#B8963E"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#B8963E"; e.currentTarget.style.color = "#fff"; }}
                 >
-                  Teste Grátis 7 Dias →
+                  ✦ Assistente IA
                 </button>
                 <button onClick={goToPricing} style={{ background: "transparent", color: "rgba(255,255,255,.7)", border: "1.5px solid rgba(255,255,255,.2)", borderRadius: 10, padding: ".85rem 2rem", cursor: "pointer", fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".95rem", transition: "all .2s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,.6)"; e.currentTarget.style.color = "#fff"; }}
