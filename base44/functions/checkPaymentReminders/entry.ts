@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   const headers = {
@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     // Buscar todas as assinaturas ativas mensais
     const subscriptions = await base44.asServiceRole.entities.Subscription.filter({
       status: 'active',
-      plan: 'pro_monthly'
+      plan_type: 'monthly'
     });
 
     console.log(`Encontradas ${subscriptions.length} assinaturas mensais ativas`);
@@ -28,9 +28,9 @@ Deno.serve(async (req) => {
     const remindersToSend = [];
 
     for (const sub of subscriptions) {
-      if (!sub.next_billing_date) continue;
+      if (!sub.end_date) continue;
 
-      const billingDate = new Date(sub.next_billing_date);
+      const billingDate = new Date(sub.end_date);
       const daysUntilDue = Math.ceil((billingDate - today) / (1000 * 60 * 60 * 24));
 
       // Enviar lembretes 3 dias antes do vencimento
@@ -59,13 +59,14 @@ Deno.serve(async (req) => {
     // Enviar emails
     for (const reminder of remindersToSend) {
       try {
-        await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
-          templateType: 'payment_reminder',
-          data: reminder
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: reminder.userEmail,
+          subject: `Lembrete: sua assinatura vence em ${reminder.daysUntilDue} dias`,
+          body: `Olá, ${reminder.userName}!\n\nSua assinatura do plano ${reminder.planName} vence em ${reminder.daysUntilDue} dias (${reminder.dueDate}).\n\nValor: R$ ${reminder.amount}\n\nAcesse o ChatJuris para renovar sua assinatura.\n\nAtenciosamente,\nEquipe ChatJuris`
         });
         console.log(`Lembrete enviado para ${reminder.userEmail}`);
-      } catch (error) {
-        console.error(`Erro ao enviar lembrete para ${reminder.userEmail}:`, error);
+      } catch (emailError) {
+        console.error(`Erro ao enviar lembrete para ${reminder.userEmail}:`, emailError);
       }
     }
 
