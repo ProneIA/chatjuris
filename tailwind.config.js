@@ -14,7 +14,7 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			background: '#FFFFFF',
+  			background: '#F5F3EE',
   			foreground: '#1A1A1A',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
@@ -25,7 +25,7 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: '#b8922a',
+  				DEFAULT: '#B8963E',
   				foreground: '#FFFFFF'
   			},
   			secondary: {

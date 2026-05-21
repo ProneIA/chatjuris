@@ -9,21 +9,21 @@
    ═══════════════════════════════════════════════════════════ */
 :root {
   /* Brand */
-  --primary:        #b8922a;
+  --primary:        #B8963E;
   --primary-hover:  #9e7b22;
-  --primary-light:  rgba(184, 146, 42, 0.08);
+  --primary-light:  rgba(184, 150, 62, 0.08);
 
   /* Surfaces */
-  --bg:             #F9FAFB;
+  --bg:             #F5F3EE;
   --surface:        #FFFFFF;
-  --surface-2:      #F0F4FF;
+  --surface-2:      #F0EDE6;
 
   /* Text */
-  --text:           #0D0F1A;
-  --text-muted:     #6B7280;
+  --text:           #1A1A1A;
+  --text-muted:     #888888;
 
   /* Border */
-  --border:         #E5E7EB;
+  --border:         #E8E4DC;
 
   /* App-level aliases (used by layout/dashboard inline styles) */
   --app-bg:         var(--bg);
@@ -37,22 +37,22 @@
 
   /* Shadcn tokens (kept for component compatibility) */
   --background:           0 0% 100%;
-  --foreground:           0 0% 3.9%;
+  --foreground:           26 6% 10%;
   --card:                 0 0% 100%;
-  --card-foreground:      0 0% 3.9%;
+  --card-foreground:      26 6% 10%;
   --popover:              0 0% 100%;
-  --popover-foreground:   0 0% 3.9%;
-  --secondary:            240 5% 96%;
-  --secondary-foreground: 0 0% 9%;
-  --muted:                240 5% 96%;
-  --muted-foreground:     240 4% 46%;
-  --accent:               240 5% 96%;
-  --accent-foreground:    0 0% 9%;
+  --popover-foreground:   26 6% 10%;
+  --secondary:            36 15% 93%;
+  --secondary-foreground: 26 6% 10%;
+  --muted:                36 15% 93%;
+  --muted-foreground:     0 0% 53%;
+  --accent:               36 15% 93%;
+  --accent-foreground:    26 6% 10%;
   --destructive:          0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --input:                0 0% 89.8%;
-  --ring:                 43 74% 42%;
-  --radius:               0rem;
+  --input:                36 20% 88%;
+  --ring:                 38 55% 48%;
+  --radius:               0.5rem;
 
   /* Chart */
   --chart-1: 237 63% 42%;
@@ -169,12 +169,11 @@
 /* Selection */
 ::selection { background: var(--primary); color: #fff; }
 
-/* Remove all border-radius from interactive elements in the app */
-button:not(.public-page button):not([data-radix-popper-content-wrapper] button),
+/* Subtle border-radius for inputs */
 input:not(.public-page input),
 select:not(.public-page select),
 textarea:not(.public-page textarea) {
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -182,6 +181,7 @@ textarea:not(.public-page textarea) {
    ═══════════════════════════════════════════════════════════ */
 body {
   font-family: 'Outfit', -apple-system, sans-serif;
+  background: #F5F3EE;
 }
 .os {
   font-family: 'IBM Plex Sans', -apple-system, sans-serif !important;
@@ -215,25 +215,26 @@ body {
 .app-nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 1.25rem;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  margin: 0 0.5rem;
   text-decoration: none;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Outfit', -apple-system, sans-serif;
   font-weight: 500;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  border-left: 3px solid transparent;
-  transition: all 0.15s ease;
+  font-size: 0.8125rem;
+  color: #555555;
+  border-radius: 6px;
+  border-left: none;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .app-nav-item:hover {
-  border-left-color: var(--primary);
-  background: var(--primary-light);
+  background: #F0EDE6;
   color: var(--primary);
 }
 .app-nav-item.active {
   background: var(--primary);
   color: #fff;
-  border-left-color: transparent;
+  border-left: none;
 }
 .app-nav-item.active svg { color: #fff !important; }
 
@@ -241,13 +242,12 @@ body {
 .app-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0;
-  border-left: 3px solid transparent;
-  transition: all 250ms ease;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: box-shadow 200ms ease;
 }
 .app-card:hover {
-  border-left-color: var(--primary);
-  background: var(--primary-light);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.09);
 }
 
 /* Buttons */
@@ -255,38 +255,38 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.5rem;
+  padding: 0.625rem 1.25rem;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Outfit', -apple-system, sans-serif;
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(201,168,76,.3);
+  transition: background 0.2s;
+  box-shadow: none;
 }
-.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,.4); }
+.btn-primary:hover { background: var(--primary-hover); }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.5rem;
+  padding: 0.625rem 1.25rem;
   background: transparent;
-  color: var(--text-muted);
-  border: 1.5px solid var(--border);
+  color: var(--primary);
+  border: 1px solid var(--primary);
   border-radius: 8px;
   cursor: pointer;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Outfit', -apple-system, sans-serif;
   font-weight: 500;
   font-size: 0.875rem;
   text-decoration: none;
   transition: all 0.2s;
 }
-.btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+.btn-ghost:hover { background: var(--primary-light); }
 
 /* Section headers */
 .section-header {
@@ -309,11 +309,11 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.85rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #F0EDE6;
   transition: background 0.15s;
 }
-.list-row:hover { background: var(--primary-light); }
+.list-row:hover { background: #FAFAF7; }
 .list-row:last-child { border-bottom: none; }
 
 /* Status badge */
@@ -339,24 +339,8 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px var(--primary-light) !important;
 }
 
-/* Shadcn component overrides — remove radius */
-.rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-full {
-  border-radius: 0 !important;
-}
-/* Exception: avatar/circle elements */
+/* Avatar/circle elements */
 [data-radix-avatar-image], .avatar-circle { border-radius: 50% !important; }
-
-/* Modal / Dialog */
-[role="dialog"] > div,
-[data-radix-dialog-content] {
-  border-radius: 0 !important;
-}
-
-/* Dropdown */
-[data-radix-popper-content-wrapper] > div,
-[data-radix-dropdown-menu-content] {
-  border-radius: 0 !important;
-}
 
 /* ═══════════════════════════════════════════════════════════
    OSWALD DASH UTILITIES (used by Dashboard + Layout)

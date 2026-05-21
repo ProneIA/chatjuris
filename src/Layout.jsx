@@ -249,7 +249,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
 
     return (
-      <div style={{ minHeight: "100vh", background: "#f7f5f2", fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "#F5F3EE", fontFamily: "'Outfit', system-ui, sans-serif" }}>
         <React.Suspense fallback={null}><PWAHead /></React.Suspense>
         <React.Suspense fallback={null}><KeyboardShortcuts /></React.Suspense>
         <React.Suspense fallback={null}>
@@ -271,9 +271,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
           :root {
-            --bg: #f7f5f2; --surface: #ffffff; --surface-2: #f0ece6;
-            --border: #ece9e3; --text: #1a1a1a; --text-muted: #aaa;
-            --primary: #b8922a; --primary-hover: #9e7b22; --primary-light: rgba(184,146,42,0.08);
+            --bg: #F5F3EE; --surface: #ffffff; --surface-2: #F0EDE6;
+            --border: #E8E4DC; --text: #1A1A1A; --text-muted: #888888;
+            --primary: #B8963E; --primary-hover: #9e7b22; --primary-light: rgba(184,150,62,0.08);
           }
         `}</style>
 
@@ -412,7 +412,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         )}
 
         {/* Main Content */}
-        <main style={{ background:"#f7f5f2" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        <main style={{ background:"#F5F3EE" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
           {showBackButton && (
             <div style={{ background:"#FAFAFA", borderBottom:"1px solid #E0E0E0" }}>
               <div className="px-6 py-3 flex items-center justify-between">
@@ -445,7 +445,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -18, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeInOut" }}
-              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#f7f5f2" }}
+              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#F5F3EE" }}
             >
               {children}
             </motion.div>
