@@ -155,7 +155,7 @@ function PlanCard({ plan, onSelect, isCurrent }) {
         position: "relative",
         borderBottom: plan.popular
           ? "4px solid #C8A84B"
-          : hovered ? "4px solid #191970" : "4px solid transparent",
+          : hovered ? "4px solid #C8A84B" : "4px solid transparent",
         transition: "border-color .2s, box-shadow .2s",
         boxShadow: hovered ? "0 8px 32px rgba(0,0,0,.12)" : "none",
       }}
@@ -164,8 +164,8 @@ function PlanCard({ plan, onSelect, isCurrent }) {
       {plan.badge && (
         <div style={{
           position: "absolute", top: 0, right: 0,
-          background: plan.popular ? "#C8A84B" : "#191970",
-          color: plan.popular ? "#000" : "#fff",
+          background: "#C8A84B",
+          color: "#000",
           fontFamily: "'Oswald', sans-serif", fontWeight: 700,
           fontSize: ".65rem", padding: ".35rem .8rem",
           textTransform: "uppercase", letterSpacing: ".1em",
@@ -272,10 +272,10 @@ function BillingToggle({ billing, onChange }) {
         <button
           key={b}
           onClick={() => onChange(b)}
-          style={{
-            padding: ".6rem 1.6rem",
-            background: billing === b ? "#191970" : "#fff",
-            color: billing === b ? "#fff" : "#6b6b80",
+              style={{
+                padding: ".6rem 1.6rem",
+                background: billing === b ? "#C8A84B" : "#fff",
+                color: billing === b ? "#000" : "#6b6b80",
             border: "none", cursor: "pointer",
             fontFamily: "'Oswald', sans-serif", fontWeight: 600,
             fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em",
@@ -382,7 +382,7 @@ export default function Pricing() {
         <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1) contrast(1.2)" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.75)" }} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 30% 50%, rgba(25,25,112,.3) 0%, transparent 60%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "transparent" }} />
 
         <div style={{ position: "relative", zIndex: 2, padding: "0 2.5rem", maxWidth: "900px", marginLeft: "auto", marginRight: "auto" }}>
           {user && (
@@ -501,7 +501,7 @@ export default function Pricing() {
       <section style={{ position: "relative", overflow: "hidden", minHeight: "480px", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80&auto=format&fit=crop" alt=""
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)" }} />
-        <div style={{ position: "absolute", inset: 0, background: "rgba(25,25,112,.88)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.85)" }} />
         <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "5rem 2rem", maxWidth: "720px" }}>
           <p className="lbl fi" style={{ color: "rgba(255,255,255,.6)", marginBottom: "1.25rem" }}>✦ Comece Agora</p>
           <h2 className="D fu" style={{ fontSize: "clamp(2.5rem,7vw,5rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", lineHeight: 1, color: "#fff", marginBottom: "1.25rem" }}>
