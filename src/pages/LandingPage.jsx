@@ -66,6 +66,16 @@ const CSS = `
   }
   .btn-secondary:hover { border-color: var(--blue); transform: translateY(-1px); }
 
+  .btn-outline-gold {
+    display: inline-flex; align-items: center; gap: .6rem;
+    padding: .6rem 1.4rem;
+    background: transparent; color: #B8963E;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: .9rem;
+    border: 1.5px solid #B8963E; cursor: pointer; border-radius: 999px;
+    text-decoration: none; transition: all .2s;
+  }
+  .btn-outline-gold:hover { background: #B8963E; color: #fff; }
+
   /* Feature cards */
   .feat-card {
     background: #fff;
@@ -257,8 +267,8 @@ export default function LandingPage() {
             onMouseEnter={e => e.target.style.color = "var(--dark)"}
             onMouseLeave={e => e.target.style.color = "var(--gray)"}
           >Entrar</button>
-          <button onClick={login} className="btn-primary" style={{ padding: ".6rem 1.3rem", fontSize: ".875rem" }}>
-            Teste Grátis →
+          <button onClick={login} className="btn-outline-gold">
+            ✦ Assistente IA
           </button>
         </div>
 
@@ -281,7 +291,7 @@ export default function LandingPage() {
               {item.label}
             </Link>
           ))}
-          <button onClick={login} className="btn-primary">Começar Agora →</button>
+          <button onClick={login} className="btn-outline-gold">✦ Assistente IA</button>
         </div>
       )}
 
@@ -419,7 +429,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <button onClick={login} className="btn-primary fu d4">Experimentar Agora →</button>
+            <button onClick={login} className="btn-outline-gold fu d4">✦ Assistente IA</button>
           </div>
           {/* Visual side */}
           <div className="fu d2" style={{ position: "relative" }}>
@@ -523,9 +533,9 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <a href={createPageUrl("Pricing")} style={{ display: "block", textAlign: "center", padding: ".85rem", borderRadius: 10, fontWeight: 600, fontSize: ".9rem", textDecoration: "none", transition: "all .2s", background: p.dark ? "var(--blue)" : "transparent", color: p.dark ? "#fff" : "var(--dark)", border: p.dark ? "none" : "1.5px solid var(--border)", boxShadow: p.dark ? "0 4px 14px rgba(79,110,247,.35)" : "none" }}
-                  onMouseEnter={e => { if (!p.dark) { e.currentTarget.style.borderColor = "var(--blue)"; e.currentTarget.style.color = "var(--blue)"; }}}
-                  onMouseLeave={e => { if (!p.dark) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--dark)"; }}}
+                <a href={createPageUrl("Pricing")} style={{ display: "block", textAlign: "center", padding: ".85rem", borderRadius: 10, fontWeight: 600, fontSize: ".9rem", textDecoration: "none", transition: "all .2s", background: p.dark ? "var(--blue)" : "transparent", color: p.dark ? "#fff" : "#B8963E", border: p.dark ? "none" : "1.5px solid #B8963E", boxShadow: p.dark ? "0 4px 14px rgba(79,110,247,.35)" : "none" }}
+                  onMouseEnter={e => { if (!p.dark) { e.currentTarget.style.background = "#B8963E"; e.currentTarget.style.color = "#fff"; }}}
+                  onMouseLeave={e => { if (!p.dark) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#B8963E"; }}}
                 >
                   {p.dark ? "Assinar Agora →" : "Começar →"}
                 </a>
