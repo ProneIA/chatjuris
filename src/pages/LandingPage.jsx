@@ -44,37 +44,30 @@ const CSS = `
     border: 1px solid rgba(79,110,247,.2);
   }
 
-  /* Buttons */
-  .btn-primary {
-    display: inline-flex; align-items: center; gap: .5rem;
-    padding: .85rem 2rem;
-    background: var(--blue); color: #fff;
-    font-family: 'Inter', sans-serif; font-weight: 600; font-size: .95rem;
-    border: none; cursor: pointer; border-radius: 10px;
-    text-decoration: none; transition: background .2s, transform .15s, box-shadow .2s;
-    box-shadow: 0 4px 14px rgba(79,110,247,.35);
+  /* Buttons — gold style */
+  .btn-gold, .btn-primary, .btn-secondary, .btn-outline-gold {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 16px;
+    background: #ffffff;
+    border: 1.5px solid #C9A84C;
+    border-radius: 999px;
+    color: #A07830;
+    font-size: 13.5px; font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background .18s, box-shadow .18s, color .18s;
   }
-  .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,110,247,.45); }
-
-  .btn-secondary {
-    display: inline-flex; align-items: center; gap: .5rem;
-    padding: .85rem 2rem;
-    background: #fff; color: var(--dark);
-    font-family: 'Inter', sans-serif; font-weight: 600; font-size: .95rem;
-    border: 1.5px solid var(--border); cursor: pointer; border-radius: 10px;
-    text-decoration: none; transition: border-color .2s, transform .15s;
+  .btn-gold svg, .btn-primary svg, .btn-secondary svg, .btn-outline-gold svg { color: #C9A84C; }
+  .btn-gold:hover, .btn-primary:hover, .btn-secondary:hover, .btn-outline-gold:hover {
+    background: #FDF6E8;
+    box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+    color: #7A5C20;
   }
-  .btn-secondary:hover { border-color: var(--blue); transform: translateY(-1px); }
-
-  .btn-outline-gold {
-    display: inline-flex; align-items: center; gap: .6rem;
-    padding: .6rem 1.4rem;
-    background: transparent; color: #B8963E;
-    font-family: 'Inter', sans-serif; font-weight: 600; font-size: .9rem;
-    border: 1.5px solid #B8963E; cursor: pointer; border-radius: 999px;
-    text-decoration: none; transition: all .2s;
-  }
-  .btn-outline-gold:hover { background: #B8963E; color: #fff; }
+  .btn-gold:active, .btn-primary:active, .btn-secondary:active, .btn-outline-gold:active { transform: scale(.97); }
+  .btn-gold:disabled, .btn-primary:disabled, .btn-secondary:disabled, .btn-outline-gold:disabled { opacity: .45; cursor: not-allowed; }
 
   /* Feature cards */
   .feat-card {
@@ -517,7 +510,7 @@ export default function LandingPage() {
             ].map((p, i) => (
               <div key={p.name} className={`price-card fu d${i} ${p.dark ? "featured" : ""}`} style={{ position: "relative" }}>
                 {p.badge && (
-                  <div style={{ position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)", background: "var(--blue)", color: "#fff", borderRadius: "999px", padding: ".3rem .9rem", fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap" }}>{p.badge}</div>
+                  <div style={{ position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)", background: "#C9A84C", color: "#fff", borderRadius: "999px", padding: ".3rem .9rem", fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap" }}>{p.badge}</div>
                 )}
                 <h3 style={{ fontWeight: 700, fontSize: "1rem", color: p.dark ? "#fff" : "var(--dark)", marginBottom: ".25rem" }}>{p.name}</h3>
                 <p style={{ fontSize: ".82rem", color: p.dark ? "rgba(255,255,255,.4)" : "var(--gray)", marginBottom: "1.5rem" }}>{p.desc}</p>
@@ -533,11 +526,11 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <a href={createPageUrl("Pricing")} style={{ display: "block", textAlign: "center", padding: ".85rem", borderRadius: 10, fontWeight: 600, fontSize: ".9rem", textDecoration: "none", transition: "all .2s", background: p.dark ? "var(--blue)" : "transparent", color: p.dark ? "#fff" : "#B8963E", border: p.dark ? "none" : "1.5px solid #B8963E", boxShadow: p.dark ? "0 4px 14px rgba(79,110,247,.35)" : "none" }}
-                  onMouseEnter={e => { if (!p.dark) { e.currentTarget.style.background = "#B8963E"; e.currentTarget.style.color = "#fff"; }}}
-                  onMouseLeave={e => { if (!p.dark) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#B8963E"; }}}
+                <a href={createPageUrl("Pricing")} className="btn-gold" style={{ display: "flex", justifyContent: "center" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#FDF6E8"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(201,168,76,.15)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.boxShadow = "none"; }}
                 >
-                  {p.dark ? "Assinar Agora →" : "Começar →"}
+                  {p.dark ? "✦ Assinar Agora" : "✦ Começar"}
                 </a>
               </div>
             ))}
@@ -569,18 +562,8 @@ export default function LandingPage() {
                 Junte-se a mais de 2.000 advogados que já economizam tempo e aumentam produtividade. Teste grátis por 7 dias — sem cartão de crédito.
               </p>
               <div className="fu d2" style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <button onClick={login} className="btn-outline-gold" style={{ background: "#B8963E", color: "#fff", border: "1.5px solid #B8963E" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#B8963E"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "#B8963E"; e.currentTarget.style.color = "#fff"; }}
-                >
-                  ✦ Assistente IA
-                </button>
-                <button onClick={goToPricing} style={{ background: "transparent", color: "rgba(255,255,255,.7)", border: "1.5px solid rgba(255,255,255,.2)", borderRadius: 10, padding: ".85rem 2rem", cursor: "pointer", fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".95rem", transition: "all .2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,.6)"; e.currentTarget.style.color = "#fff"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,.2)"; e.currentTarget.style.color = "rgba(255,255,255,.7)"; }}
-                >
-                  Ver Planos
-                </button>
+                <button onClick={login} className="btn-gold">✦ Assistente IA</button>
+                <button onClick={goToPricing} className="btn-gold">Ver Planos</button>
               </div>
             </div>
           </div>
