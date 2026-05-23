@@ -297,10 +297,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
             <div className="flex items-center gap-2">
               {!isStandalone && (
-                <Button variant="ghost" size="sm" onClick={handleInstallApp} className="hidden md:flex items-center gap-2">
+                <button onClick={handleInstallApp} className="hidden md:flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   <span className="hidden xl:inline">Instalar App</span>
-                </Button>
+                </button>
               )}
 
 
