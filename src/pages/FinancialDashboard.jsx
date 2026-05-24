@@ -108,27 +108,31 @@ export default function FinancialDashboard({ theme = 'light' }) {
   );
 
   return (
-    <div className={`h-full ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Financeiro</h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-              Gestão completa de honorários e despesas
-            </p>
-          </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-            isDark ? 'bg-neutral-900 border border-neutral-800' : 'bg-gray-50 border border-gray-200'
-          }`}>
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-            </span>
+    <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
+      {/* Header com moldura */}
+      <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
+        <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Financeiro
+              </h1>
+              <p style={{ marginTop: "0.25rem", color: "#888888", fontSize: "0.875rem", margin: 0 }}>
+                Gestão completa de honorários e despesas
+              </p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem 1rem", borderRadius: "6px", background: "#F0EDE6", border: "1px solid #E8E4DC" }}>
+              <Calendar style={{ width: "1rem", height: "1rem", color: "#B8963E" }} />
+              <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#A07830" }}>
+                {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="p-6">
+      {/* Conteúdo */}
+      <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`mb-6 ${isDark ? 'bg-neutral-900' : 'bg-gray-100'}`}>
             <TabsTrigger value="overview">

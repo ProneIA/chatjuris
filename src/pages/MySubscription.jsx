@@ -196,15 +196,22 @@ export default function MySubscription({ theme = 'light' }) {
   const isExpired = subscription.end_date && new Date().toISOString().split('T')[0] > subscription.end_date;
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-4xl mx-auto">
+    <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
+      {/* Header com moldura */}
+      <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
+        <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
+          <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Minha Assinatura
+          </h1>
+        </div>
+      </div>
+
+      {/* Conteúdo */}
+      <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Minha Assinatura
-          </h1>
 
           {/* Card Principal do Plano */}
           <Card className={`mb-6 border-2 ${planConfig.bgClass} ${isDark ? 'bg-neutral-900' : 'bg-white'}`}>
@@ -416,8 +423,8 @@ export default function MySubscription({ theme = 'light' }) {
               </CardContent>
             </Card>
           )}
-        </motion.div>
-      </div>
-    </div>
-  );
-}
+          </motion.div>
+          </div>
+          </div>
+          );
+          }
