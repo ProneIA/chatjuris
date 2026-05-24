@@ -1,437 +1,363 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Crown, 
-  Calendar, 
-  CreditCard, 
-  CheckCircle2, 
-  AlertCircle,
-  Clock,
-  Star,
-  Zap,
-  ExternalLink,
-  Sparkles
+import {
+  Crown, Calendar, CreditCard, CheckCircle2, AlertCircle,
+  Clock, Star, Zap, Sparkles, ChevronRight, Shield,
+  MessageSquare, FileText, Users, RefreshCw, X
 } from "lucide-react";
-import { motion } from "framer-motion";
 import UpgradePlansSection from "@/components/subscription/UpgradePlansSection";
 
-export default function MySubscription({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+const GOLD = "#C9A84C";
+const GOLD_LIGHT = "#FBF5E6";
+const GOLD_BORDER = "#E8D5A0";
+
+const FEATURES = [
+  { icon: Sparkles, label: "Assistente Jurídico com IA (ilimitado)" },
+  { icon: FileText, label: "Geração de peças processuais" },
+  { icon: Shield, label: "Análise inteligente de documentos" },
+  { icon: MessageSquare, label: "Chat jurídico especializado" },
+  { icon: Users, label: "Gestão de clientes e processos" },
+  { icon: RefreshCw, label: "Monitoramento de Diário Oficial" },
+  { icon: CreditCard, label: "Controle financeiro e honorários" },
+  { icon: Calendar, label: "Agenda e calendário jurídico" },
+];
+
+const PLAN_CONFIG = {
+  trial: {
+    name: "Teste Gratuito",
+    badge: "TRIAL",
+    badgeBg: "#F0FDF4", badgeColor: "#16A34A", badgeBorder: "#BBF7D0",
+    iconBg: "#F0FDF4", iconColor: "#16A34A", icon: Sparkles,
+    desc: "Período de avaliação gratuita de 7 dias",
+  },
+  monthly: {
+    name: "Plano Mensal",
+    badge: "MENSAL",
+    badgeBg: GOLD_LIGHT, badgeColor: "#A07830", badgeBorder: GOLD_BORDER,
+    iconBg: GOLD_LIGHT, iconColor: GOLD, icon: Zap,
+    desc: "Renovação mensal automática",
+    isRecurrent: true,
+  },
+  yearly: {
+    name: "Plano Anual",
+    badge: "ANUAL",
+    badgeBg: "#F5F3FF", badgeColor: "#7C3AED", badgeBorder: "#DDD6FE",
+    iconBg: "#F5F3FF", iconColor: "#7C3AED", icon: Crown,
+    desc: "Renovação anual automática",
+    isRecurrent: true,
+  },
+  lifetime: {
+    name: "Plano Vitalício",
+    badge: "VITALÍCIO",
+    badgeBg: GOLD_LIGHT, badgeColor: "#A07830", badgeBorder: GOLD_BORDER,
+    iconBg: GOLD_LIGHT, iconColor: GOLD, icon: Star,
+    desc: "Acesso permanente — sem expiração",
+    isPermanent: true,
+  },
+};
+
+export default function MySubscription() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const { data: subscription, isLoading } = useQuery({
-    queryKey: ['my-subscription', user?.id],
+    queryKey: ["my-subscription", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const subs = await base44.entities.Subscription.filter({ user_id: user.id });
       return subs[0] || null;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
   });
 
-  // Calcular dias restantes do trial baseado na assinatura
+  const { data: payments = [] } = useQuery({
+    queryKey: ["my-payments", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      try {
+        return await base44.entities.Payment.filter({ user_id: user.id });
+      } catch { return []; }
+    },
+    enabled: !!user?.id,
+  });
+
+  const planType = subscription?.status === "trial" ? "trial" : (subscription?.plan_type || "monthly");
+  const plan = PLAN_CONFIG[planType] || PLAN_CONFIG.monthly;
+  const PlanIcon = plan.icon;
+
   const trialDaysLeft = React.useMemo(() => {
-    if (subscription?.status === 'trial' && subscription?.end_date) {
-      const today = new Date();
-      const endDate = new Date(subscription.end_date);
-      const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-      return daysLeft > 0 ? daysLeft : 0;
-    }
-    return 0;
+    if (subscription?.status !== "trial" || !subscription?.end_date) return 0;
+    const d = Math.ceil((new Date(subscription.end_date) - new Date()) / 86400000);
+    return Math.max(d, 0);
   }, [subscription]);
 
-  // Determinar configuração do plano
-  const planConfig = React.useMemo(() => {
+  const isExpired = subscription?.end_date && new Date() > new Date(subscription.end_date) && !plan.isPermanent;
+
+  const statusInfo = React.useMemo(() => {
     if (!subscription) return null;
+    if (isExpired) return { label: "Expirado", icon: AlertCircle, color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" };
+    if (subscription.status === "trial") return { label: `Em Teste · ${trialDaysLeft} dias restantes`, icon: Clock, color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" };
+    if (subscription.status === "active" || subscription.status === "lifetime") return { label: "Ativo", icon: CheckCircle2, color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" };
+    return { label: subscription.status, icon: AlertCircle, color: "#888", bg: "#F5F5F5", border: "#E5E5E5" };
+  }, [subscription, isExpired, trialDaysLeft]);
 
-    const configs = {
-      trial: {
-        name: "Teste Gratuito",
-        badge: "Teste 7 dias",
-        color: "green",
-        icon: Sparkles,
-        description: "Período de avaliação gratuito",
-        bgClass: "bg-green-50 border-green-200",
-        textClass: "text-green-800",
-        iconBg: "bg-green-100",
-        iconColor: "text-green-600"
-      },
-      monthly: {
-        name: "Plano Mensal",
-        badge: "Plano Mensal",
-        color: "blue",
-        icon: Zap,
-        description: "Renovação mensal automática",
-        bgClass: "bg-blue-50 border-blue-200",
-        textClass: "text-blue-800",
-        iconBg: "bg-blue-100",
-        iconColor: "text-blue-600",
-        isRecurrent: true
-      },
-      annual: {
-        name: "Plano Anual",
-        badge: "Plano Anual",
-        color: "purple",
-        icon: Crown,
-        description: "Renovação anual automática",
-        bgClass: "bg-purple-50 border-purple-200",
-        textClass: "text-purple-800",
-        iconBg: "bg-purple-100",
-        iconColor: "text-purple-600",
-        isRecurrent: true
-      },
-      lifetime: {
-        name: "Plano Vitalício",
-        badge: "Plano Vitalício",
-        color: "amber",
-        icon: Star,
-        description: "Acesso permanente — sem expiração",
-        bgClass: "bg-amber-50 border-amber-200",
-        textClass: "text-amber-800",
-        iconBg: "bg-amber-100",
-        iconColor: "text-amber-600",
-        isPermanent: true
-      }
-    };
-
-    const planType = subscription.status === 'trial' ? 'trial' : (subscription.plan_type || 'monthly');
-    return configs[planType] || configs.monthly;
-  }, [subscription]);
-
-  // Status da assinatura
-  const statusConfig = React.useMemo(() => {
-    if (!subscription) return null;
-
-    const today = new Date().toISOString().split('T')[0];
-    const isExpired = subscription.end_date && today > subscription.end_date;
-
-    if (isExpired) {
-      return {
-        label: "Expirado",
-        icon: AlertCircle,
-        color: "text-red-600",
-        bgColor: "bg-red-100"
-      };
-    }
-
-    if (subscription.status === 'trial') {
-      return {
-        label: `Em Teste (${trialDaysLeft} dias restantes)`,
-        icon: Clock,
-        color: "text-blue-600",
-        bgColor: "bg-blue-100"
-      };
-    }
-
-    if (subscription.status === 'active') {
-      return {
-        label: "Ativo",
-        icon: CheckCircle2,
-        color: "text-green-600",
-        bgColor: "bg-green-100"
-      };
-    }
-
-    return {
-      label: subscription.status,
-      icon: AlertCircle,
-      color: "text-gray-600",
-      bgColor: "bg-gray-100"
-    };
-  }, [subscription, trialDaysLeft]);
-
+  // Loading state
   if (isLoading || !user) {
     return (
       <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
-        <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
-          <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
-            <Skeleton className="h-10 w-64" />
-          </div>
+        <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0", padding: "1.5rem 2rem" }}>
+          <Skeleton className="h-8 w-56" />
         </div>
-        <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
-          <Card>
-            <CardContent className="p-8">
-              <Skeleton className="h-32 w-full" />
-            </CardContent>
-          </Card>
+        <div style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto" }}>
+          <Skeleton className="h-48 w-full rounded-xl" />
         </div>
       </div>
     );
   }
 
+  // No subscription
   if (!subscription) {
     return (
       <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
         <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
-          <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
-            <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div style={{ padding: "1.5rem 2rem", maxWidth: 1000, margin: "0 auto" }}>
+            <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "1.4rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.07em" }}>
               Minha Assinatura
             </h1>
           </div>
         </div>
-        <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
-          <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p style={{ fontSize: "1.125rem", marginBottom: "1rem", color: "#555555" }}>
-                Você não possui uma assinatura ativa
-              </p>
-              <Button 
-                onClick={() => window.location.href = '/Pricing'}
-              >
-                Ver Planos Disponíveis
-              </Button>
-            </CardContent>
-          </Card>
+        <div style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 16, padding: "3rem 2rem" }}>
+            <AlertCircle style={{ width: 48, height: 48, color: "#E8D5A0", margin: "0 auto 1rem" }} />
+            <p style={{ color: "#555", marginBottom: "1.5rem", fontSize: "1rem" }}>Você não possui assinatura ativa</p>
+            <button
+              onClick={() => window.location.href = "/Pricing"}
+              style={{ background: GOLD, color: "#fff", border: "none", borderRadius: 8, padding: "10px 28px", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}
+            >
+              Ver Planos
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const Icon = planConfig.icon;
-  const StatusIcon = statusConfig.icon;
-  const isExpired = subscription.end_date && new Date().toISOString().split('T')[0] > subscription.end_date;
+  const StatusIcon = statusInfo.icon;
 
   return (
     <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
-      {/* Header com moldura */}
+      {/* ── HEADER ── */}
       <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
-        <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
-          <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div style={{ padding: "1.5rem 2rem", maxWidth: 1000, margin: "0 auto" }}>
+          <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "1.4rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.07em" }}>
             Minha Assinatura
           </h1>
+          <p style={{ marginTop: "0.2rem", color: "#888", fontSize: "0.82rem", margin: 0 }}>
+            Detalhes do seu plano e histórico de pagamentos
+          </p>
         </div>
       </div>
 
-      {/* Conteúdo */}
-      <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+      {/* ── CONTEÚDO ── */}
+      <div style={{ padding: "2rem", maxWidth: 1000, margin: "0 auto", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-          {/* Card Principal do Plano */}
-          <Card style={{ marginBottom: "1.5rem" }}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-xl ${planConfig.iconBg} flex items-center justify-center`}>
-                    <Icon className={`w-8 h-8 ${planConfig.iconColor}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {planConfig.name}
-                      </h2>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${planConfig.bgClass} ${planConfig.textClass}`}>
-                        {planConfig.badge}
-                      </span>
-                    </div>
-                    <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                      {planConfig.description}
-                    </p>
-                  </div>
+        {/* Card do Plano Atual */}
+        <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+          {/* Topo colorido */}
+          <div style={{ background: `linear-gradient(135deg, ${GOLD_LIGHT} 0%, #fff 60%)`, borderBottom: "1px solid #F0EDE6", padding: "1.5rem 2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: plan.iconBg, border: `1.5px solid ${GOLD_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <PlanIcon style={{ width: 26, height: 26, color: plan.iconColor }} />
+              </div>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "1.25rem", color: "#1A1A1A" }}>{plan.name}</span>
+                  <span style={{ padding: "2px 10px", borderRadius: 999, background: plan.badgeBg, color: plan.badgeColor, border: `1px solid ${plan.badgeBorder}`, fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em" }}>
+                    {plan.badge}
+                  </span>
+                </div>
+                <p style={{ color: "#888", fontSize: "0.82rem", margin: 0 }}>{plan.desc}</p>
+              </div>
+            </div>
+            {/* Status badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 999, background: statusInfo.bg, border: `1px solid ${statusInfo.border}` }}>
+              <StatusIcon style={{ width: 15, height: 15, color: statusInfo.color }} />
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: statusInfo.color }}>{statusInfo.label}</span>
+            </div>
+          </div>
+
+          {/* Detalhes */}
+          <div style={{ padding: "1.5rem 2rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1.5rem" }}>
+            <div>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Data de Início</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#1A1A1A", display: "flex", alignItems: "center", gap: 6 }}>
+                <Calendar style={{ width: 14, height: 14, color: GOLD }} />
+                {subscription.start_date ? new Date(subscription.start_date).toLocaleDateString("pt-BR") : "N/A"}
+              </div>
+            </div>
+            {!plan.isPermanent && (
+              <div>
+                <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>
+                  {subscription.status === "trial" ? "Teste Termina em" : "Próxima Renovação"}
+                </div>
+                <div style={{ fontSize: "0.95rem", fontWeight: 600, color: isExpired ? "#DC2626" : "#1A1A1A", display: "flex", alignItems: "center", gap: 6 }}>
+                  <Calendar style={{ width: 14, height: 14, color: isExpired ? "#DC2626" : GOLD }} />
+                  {subscription.end_date ? new Date(subscription.end_date).toLocaleDateString("pt-BR") : "N/A"}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Status */}
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${statusConfig.bgColor}`}>
-                  <StatusIcon className={`w-5 h-5 ${statusConfig.color}`} />
-                </div>
-                <div>
-                  <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Status
-                  </p>
-                  <p className={`font-semibold ${statusConfig.color}`}>
-                    {statusConfig.label}
-                  </p>
-                </div>
+            )}
+            <div>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Pagamento</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#1A1A1A", display: "flex", alignItems: "center", gap: 6 }}>
+                <CreditCard style={{ width: 14, height: 14, color: GOLD }} />
+                {subscription.payment_method === "hotmart" ? "Hotmart" : subscription.payment_method || "N/A"}
               </div>
-
-              {/* Informações do Plano */}
-              <div className={`grid md:grid-cols-2 gap-6 pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                {/* Data de Início */}
-                <div className="flex items-start gap-3">
-                  <Calendar className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                  <div>
-                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
-                      Data de Início
-                    </p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {subscription.start_date ? new Date(subscription.start_date).toLocaleDateString('pt-BR') : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Data de Expiração (apenas se não for vitalício) */}
-                {!planConfig.isPermanent && (
-                  <div className="flex items-start gap-3">
-                    <Calendar className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                    <div>
-                      <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
-                        {subscription.status === 'trial' ? 'Teste termina em' : 'Próxima Renovação'}
-                      </p>
-                      <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {subscription.end_date ? new Date(subscription.end_date).toLocaleDateString('pt-BR') : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Provedor de Pagamento */}
-                <div className="flex items-start gap-3">
-                  <CreditCard className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                  <div>
-                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
-                      Provedor de Pagamento
-                    </p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {subscription.payment_method === 'hotmart' ? 'Hotmart' : subscription.payment_method || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Tipo de Cobrança */}
-                <div className="flex items-start gap-3">
-                  <Clock className={`w-5 h-5 mt-0.5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                  <div>
-                    <p className={`text-xs font-medium ${isDark ? 'text-neutral-500' : 'text-gray-500'} mb-1`}>
-                      Tipo de Cobrança
-                    </p>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {planConfig.isPermanent ? 'Pagamento Único' : planConfig.isRecurrent ? 'Recorrente' : 'Teste Gratuito'}
-                    </p>
-                  </div>
-                </div>
+            </div>
+            <div>
+              <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Cobrança</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "#1A1A1A", display: "flex", alignItems: "center", gap: 6 }}>
+                <RefreshCw style={{ width: 14, height: 14, color: GOLD }} />
+                {plan.isPermanent ? "Pagamento Único" : plan.isRecurrent ? "Recorrente" : "Teste Gratuito"}
               </div>
+            </div>
+          </div>
 
-              {/* Aviso de Renovação Automática (apenas para planos recorrentes) */}
-              {planConfig.isRecurrent && !isExpired && (
-                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-blue-50 border-blue-200'}`}>
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        ⚠️ Plano recorrente
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                        Sua assinatura será renovada automaticamente conforme o período contratado.
-                        {subscription.next_billing_date && (
-                          <> Próxima cobrança em <strong>{new Date(subscription.next_billing_date).toLocaleDateString('pt-BR')}</strong>.</>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Destaque para Plano Vitalício */}
-              {planConfig.isPermanent && (
-                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-amber-50 border-amber-200'}`}>
-                  <div className="flex items-start gap-3">
-                    <Star className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        ✨ Acesso Permanente
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                        Você possui acesso vitalício ao ChatJuris. Sem renovações, sem cobranças futuras. 
-                        Use para sempre! 🎉
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Aviso de Expiração */}
-              {isExpired && (
-                <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-neutral-800 border-red-700' : 'bg-red-50 border-red-200'}`}>
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
-                    <div>
-                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Assinatura Expirada
-                      </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                        Sua assinatura expirou. Renove agora para continuar usando todas as funcionalidades do ChatJuris.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Ações */}
-              <div className={`pt-6 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                {subscription.status === 'trial' && (
-                  <Button 
-                    onClick={() => window.location.href = '/Pricing'}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                  >
-                    Assinar um Plano
-                  </Button>
-                )}
-
-                {planConfig.isRecurrent && !isExpired && (
-                  <Button 
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.location.href = '/Pricing'}
-                  >
-                    Fazer Upgrade de Plano
-                  </Button>
-                )}
-
-                {isExpired && (
-                  <Button 
-                    onClick={() => window.location.href = '/Pricing'}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                  >
-                    Renovar Assinatura
-                  </Button>
-                )}
-
-                {planConfig.isPermanent && (
-                  <div className={`text-center py-4 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                    <CheckCircle2 className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-neutral-600' : 'text-green-500'}`} />
-                    <p className="text-sm">
-                      Você está com acesso vitalício. Aproveite! 🎉
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Seção de Upgrade de Planos */}
-          {!planConfig.isPermanent && (
-            <Card className={`mt-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
-              <CardHeader>
-                <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                  {subscription.status === 'trial' ? 'Escolha seu Plano' : 'Upgrade de Plano'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <UpgradePlansSection
-                  subscription={subscription}
-                  theme={theme}
-                />
-              </CardContent>
-            </Card>
+          {/* Aviso especial */}
+          {plan.isPermanent && (
+            <div style={{ margin: "0 2rem 1.5rem", padding: "0.875rem 1.25rem", background: GOLD_LIGHT, border: `1px solid ${GOLD_BORDER}`, borderRadius: 10, display: "flex", alignItems: "center", gap: 10 }}>
+              <Star style={{ width: 18, height: 18, color: GOLD, flexShrink: 0 }} />
+              <span style={{ fontSize: "0.85rem", color: "#A07830", fontWeight: 600 }}>
+                ✨ Você possui acesso vitalício ao JURIS — sem renovações, sem cobranças futuras.
+              </span>
+            </div>
           )}
-          </motion.div>
+          {isExpired && (
+            <div style={{ margin: "0 2rem 1.5rem", padding: "0.875rem 1.25rem", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, display: "flex", alignItems: "center", gap: 10 }}>
+              <AlertCircle style={{ width: 18, height: 18, color: "#DC2626", flexShrink: 0 }} />
+              <span style={{ fontSize: "0.85rem", color: "#B91C1C", fontWeight: 600 }}>
+                Assinatura expirada. Renove para continuar usando o JURIS.
+              </span>
+            </div>
+          )}
+
+          {/* Ações */}
+          <div style={{ padding: "1rem 2rem 1.5rem", borderTop: "1px solid #F0EDE6", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            {!plan.isPermanent && (
+              <button
+                onClick={() => window.location.href = "/Pricing"}
+                style={{ background: GOLD, color: "#fff", border: "none", borderRadius: 8, padding: "9px 22px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", boxShadow: "0 2px 8px rgba(201,168,76,0.25)" }}
+              >
+                {isExpired ? "Renovar Assinatura" : subscription.status === "trial" ? "Assinar um Plano" : "Gerenciar Assinatura"}
+              </button>
+            )}
+            {plan.isRecurrent && !isExpired && (
+              <button
+                style={{ background: "#fff", color: "#DC2626", border: "1px solid #FECACA", borderRadius: 8, padding: "9px 22px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}
+                onClick={() => {
+                  if (confirm("Deseja cancelar sua assinatura? Entre em contato com o suporte para concluir o cancelamento.")) {
+                    window.location.href = "/Contact";
+                  }
+                }}
+              >
+                Cancelar Plano
+              </button>
+            )}
           </div>
+        </div>
+
+        {/* Recursos Incluídos */}
+        <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #F0EDE6" }}>
+            <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "#1A1A1A" }}>
+              Recursos Incluídos
+            </span>
           </div>
-          );
-          }
+          <div style={{ padding: "1.25rem 1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "0.75rem" }}>
+            {FEATURES.map(({ icon: Icon, label }) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: GOLD_LIGHT, border: `1px solid ${GOLD_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <CheckCircle2 style={{ width: 14, height: 14, color: GOLD }} />
+                </div>
+                <span style={{ fontSize: "0.83rem", color: "#444", fontWeight: 500 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Histórico de Pagamentos */}
+        <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #F0EDE6" }}>
+            <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "#1A1A1A" }}>
+              Histórico de Pagamentos
+            </span>
+          </div>
+          {payments.length === 0 ? (
+            <div style={{ padding: "2.5rem", textAlign: "center", color: "#888", fontSize: "0.875rem" }}>
+              Nenhum pagamento registrado
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#FAFAFA" }}>
+                    {["Data", "Plano", "Valor", "Status"].map(h => (
+                      <th key={h} style={{ padding: "0.6rem 1.25rem", textAlign: "left", fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p, i) => (
+                    <tr key={i} style={{ borderTop: "1px solid #F5F3EE" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#FAFAF7"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      <td style={{ padding: "0.7rem 1.25rem", fontSize: "0.83rem", color: "#555", whiteSpace: "nowrap" }}>
+                        {p.created_date ? new Date(p.created_date).toLocaleDateString("pt-BR") : "—"}
+                      </td>
+                      <td style={{ padding: "0.7rem 1.25rem", fontSize: "0.85rem", color: "#1A1A1A", fontWeight: 500 }}>
+                        {p.plan_type || "Assinatura"}
+                      </td>
+                      <td style={{ padding: "0.7rem 1.25rem", fontSize: "0.88rem", fontWeight: 700, color: "#1A1A1A" }}>
+                        {p.amount ? `R$ ${Number(p.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
+                      </td>
+                      <td style={{ padding: "0.7rem 1.25rem" }}>
+                        <span style={{
+                          padding: "2px 10px", borderRadius: 999, fontSize: "0.72rem", fontWeight: 700,
+                          background: p.status === "approved" || p.status === "pago" ? "#F0FDF4" : "#FEF2F2",
+                          color: p.status === "approved" || p.status === "pago" ? "#16A34A" : "#DC2626",
+                        }}>
+                          {p.status === "approved" || p.status === "pago" ? "Pago" : "Pendente"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Upgrade / Planos */}
+        {!plan.isPermanent && subscription && (
+          <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 16, overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #F0EDE6" }}>
+              <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.07em", color: "#1A1A1A" }}>
+                {subscription.status === "trial" ? "Escolha seu Plano" : "Upgrade de Plano"}
+              </span>
+            </div>
+            <div style={{ padding: "1.5rem" }}>
+              <UpgradePlansSection subscription={subscription} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
