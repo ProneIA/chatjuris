@@ -152,10 +152,14 @@ export default function MySubscription({ theme = 'light' }) {
 
   if (isLoading || !user) {
     return (
-      <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <div className="max-w-4xl mx-auto">
-          <Skeleton className="h-10 w-64 mb-6" />
-          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+      <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
+        <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
+          <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
+            <Skeleton className="h-10 w-64" />
+          </div>
+        </div>
+        <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
+          <Card>
             <CardContent className="p-8">
               <Skeleton className="h-32 w-full" />
             </CardContent>
@@ -167,20 +171,23 @@ export default function MySubscription({ theme = 'light' }) {
 
   if (!subscription) {
     return (
-      <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <div className="max-w-4xl mx-auto">
-          <h1 className={`text-3xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Minha Assinatura
-          </h1>
-          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+      <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
+        <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
+          <div style={{ padding: "1.5rem 2rem", maxWidth: "1400px", margin: "0 auto" }}>
+            <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "1.5rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Minha Assinatura
+            </h1>
+          </div>
+        </div>
+        <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
+          <Card>
             <CardContent className="p-8 text-center">
-              <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
-              <p className={`text-lg mb-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <p style={{ fontSize: "1.125rem", marginBottom: "1rem", color: "#555555" }}>
                 Você não possui uma assinatura ativa
               </p>
               <Button 
                 onClick={() => window.location.href = '/Pricing'}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >
                 Ver Planos Disponíveis
               </Button>
@@ -214,7 +221,7 @@ export default function MySubscription({ theme = 'light' }) {
         >
 
           {/* Card Principal do Plano */}
-          <Card className={`mb-6 border-2 ${planConfig.bgClass} ${isDark ? 'bg-neutral-900' : 'bg-white'}`}>
+          <Card style={{ marginBottom: "1.5rem" }}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">

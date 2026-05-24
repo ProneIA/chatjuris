@@ -134,7 +134,7 @@ export default function FinancialDashboard({ theme = 'light' }) {
       {/* Conteúdo */}
       <div style={{ padding: "2rem", maxWidth: "1400px", margin: "0 auto" }}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`mb-6 ${isDark ? 'bg-neutral-900' : 'bg-gray-100'}`}>
+          <TabsList style={{ marginBottom: "1.5rem", background: "#F0EDE6" }}>
             <TabsTrigger value="overview">
               <BarChart3 className="w-4 h-4 mr-2" />
               Visão Geral
@@ -157,7 +157,7 @@ export default function FinancialDashboard({ theme = 'light' }) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview">
             {/* KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
