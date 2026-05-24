@@ -149,16 +149,33 @@ function NavDirectLink({ group, location, onNavigate, subscriptionExpired }) {
         textDecoration: "none",
         background: isActive ? "var(--primary)" : "transparent",
         color: isActive ? "#fff" : "var(--text-muted)",
-        borderLeft: isActive ? "3px solid var(--primary)" : "3px solid transparent",
+        border: isActive ? "1px solid var(--primary)" : "1px solid var(--border)",
+        borderRadius: "6px",
         fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em",
         textTransform: "uppercase",
-        transition: "background 0.15s, color 0.15s",
+        transition: "background 0.15s, color 0.15s, border 0.15s",
         marginBottom: 2,
+        marginLeft: "0.5rem",
+        marginRight: "0.5rem",
+        paddingLeft: "0.95rem",
+        paddingRight: "0.95rem",
       }}
-      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "var(--primary-light)"; e.currentTarget.style.color = "var(--primary)"; }}}
-      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}}
+      onMouseEnter={e => { 
+        if (!isActive) { 
+          e.currentTarget.style.background = "var(--primary-light)"; 
+          e.currentTarget.style.color = "var(--primary)"; 
+          e.currentTarget.style.border = "1px solid var(--primary)";
+        }
+      }}
+      onMouseLeave={e => { 
+        if (!isActive) { 
+          e.currentTarget.style.background = "transparent"; 
+          e.currentTarget.style.color = "var(--text-muted)"; 
+          e.currentTarget.style.border = "1px solid var(--border)";
+        }
+      }}
     >
-      <group.icon style={{ width: 15, height: 15, flexShrink: 0, color: isActive ? "#fff" : "var(--text-muted)" }} />
+      <group.icon style={{ width: 15, height: 15, flexShrink: 0, color: isActive ? "#fff" : "var(--primary)" }} />
       <span style={{ flex: 1 }}>{group.label}</span>
       {group.id === "assinatura" && subscriptionExpired && (
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} title="Assinatura expirada" />
