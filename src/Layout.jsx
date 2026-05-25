@@ -443,7 +443,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 }}
                 className="lg:hidden"
               >
-                <div style={{ padding: '12px 8px 80px' }}>
+                <div style={{ padding: '0 8px 80px' }}>
                   <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
                   {!isStandalone && (
                     <div style={{ padding: '12px 8px 0' }}>
