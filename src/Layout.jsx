@@ -292,7 +292,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
                   alt="Juris.IA"
-                  style={{ height: 28, objectFit: 'contain' }}
+                  style={{ height: 36, objectFit: 'contain', display: 'block' }}
                 />
               </Link>
             </div>
@@ -398,7 +398,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
                 alt="Juris.IA"
-                style={{ height: 30, objectFit: 'contain' }}
+                style={{ height: 40, objectFit: 'contain', display: 'block' }}
               />
             </Link>
           </div>

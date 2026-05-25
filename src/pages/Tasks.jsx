@@ -195,8 +195,7 @@ export default function Tasks({ theme = 'light' }) {
           </div>
           <Button 
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 shrink-0"
-            style={{ minHeight: 44 }}
+            style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer", flexShrink: 0, minHeight: 44 }}
           >
             {showForm ? <X className="w-4 h-4 sm:mr-2" /> : <Plus className="w-4 h-4 sm:mr-2" />}
             <span className="hidden sm:inline">{showForm ? "Cancelar" : "Nova Tarefa"}</span>
@@ -346,7 +345,7 @@ export default function Tasks({ theme = 'light' }) {
                   }
                 }}
                 disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer" }}
               >
                 {createMutation.isPending ? (
                   <>

@@ -178,8 +178,28 @@ Gere uma estratégia técnica e objetiva.`,
                   Chat com IA
                 </Button>
               </Link>
-              <Button onClick={generateStrategyWithAI} disabled={generatingStrategy} className="bg-blue-600 hover:bg-blue-700">
-                <Sparkles className="w-4 h-4 mr-2" />
+              <Button
+                onClick={generateStrategyWithAI}
+                disabled={generatingStrategy}
+                style={{
+                  background: generatingStrategy ? "rgba(184,150,62,0.5)" : "#B8963E",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "999px",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  padding: "8px 20px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: generatingStrategy ? "not-allowed" : "pointer",
+                  transition: "background 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                }}
+                onMouseEnter={e => { if (!generatingStrategy) e.currentTarget.style.background = "#9A7228"; }}
+                onMouseLeave={e => { if (!generatingStrategy) e.currentTarget.style.background = "#B8963E"; }}
+              >
+                <Sparkles className="w-4 h-4" />
                 {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia com IA'}
               </Button>
             </div>
