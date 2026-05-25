@@ -129,7 +129,7 @@ const Dashboard = React.memo(function Dashboard() {
           fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(22px, 3vw, 30px)',
           color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
         }}>
-          {user?.full_name?.split(' ')[0] || 'Advogado'} ✦
+          {user?.full_name?.split(' ')[0] || 'Advogado'}
         </h1>
         <p style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>
           {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
