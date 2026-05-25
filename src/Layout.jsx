@@ -268,91 +268,114 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           />
         </React.Suspense>
 
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap');
-          :root {
-            --bg: #F5F3EE; --surface: #ffffff; --surface-2: #F0EDE6;
-            --border: #E8E4DC; --text: #1A1A1A; --text-muted: #888888;
-            --primary: #B8963E; --primary-hover: #9e7b22; --primary-light: rgba(184,150,62,0.08);
-          }
-        `}</style>
+        {/* ── HEADER ── */}
+        <header style={{
+          position: 'fixed', top: 0, left: 0, right: 0, height: 'var(--header-h)',
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--border)',
+          zIndex: 50,
+          display: 'flex', alignItems: 'center',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="btn-ghost lg:hidden"
+                style={{ padding: '8px', minWidth: 'unset', borderRadius: 'var(--radius-sm)' }}
+                aria-label="Menu"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              <Link to={createPageUrl("Dashboard")} className="lg:hidden" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
+                  alt="Juris.IA"
+                  style={{ height: 28, objectFit: 'contain' }}
+                />
+              </Link>
+            </div>
 
-        {/* Top Bar */}
-        <header style={{ background:"#ffffff", borderBottom:"1px solid #ece9e3" }} className="fixed top-0 left-0 right-0 h-14 z-50">
-          <div className="h-full px-4 flex items-center justify-between">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ background:"none", border:"none", cursor:"pointer", color:"#333333", padding:"0.5rem" }}
-              className="lg:hidden"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-
-            <Link 
-              to={createPageUrl("Dashboard")} 
-              className="lg:hidden flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png" alt="ChatJuris" style={{ height:24, objectFit:"contain" }} />
-            </Link>
-
-            <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {!isStandalone && (
-                <button onClick={handleInstallApp} className="hidden md:flex items-center gap-2">
+                <button
+                  onClick={handleInstallApp}
+                  className="btn-ghost hidden md:inline-flex"
+                  style={{ fontSize: 13, padding: '7px 12px' }}
+                >
                   <Download className="w-4 h-4" />
                   <span className="hidden xl:inline">Instalar App</span>
                 </button>
               )}
 
-
-
               {user && (
-                <React.Suspense fallback={<div className="w-9 h-9" />}>
+                <React.Suspense fallback={<div style={{ width: 36, height: 36 }} />}>
                   <NotificationPanel user={user} />
                 </React.Suspense>
               )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:opacity-80">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isDark ? 'bg-white' : 'bg-black'}`}>
-                      <span className={`font-medium text-xs ${isDark ? 'text-black' : 'text-white'}`}>
+                  <button
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '5px 10px 5px 5px',
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-full)',
+                      cursor: 'pointer',
+                      transition: 'all var(--duration) var(--ease)',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-border)'; e.currentTarget.style.background = 'var(--gold-light)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+                  >
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>
                         {user?.full_name?.[0]?.toUpperCase() || 'U'}
                       </span>
                     </div>
+                    <span className="hidden sm:block" style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {user?.full_name?.split(' ')[0] || 'Usuário'}
+                    </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" style={{ width:220, background:"var(--surface)", border:"1px solid var(--border)", borderRadius:0 }}>
-                  <div className="px-3 py-2">
-                    <p style={{ fontFamily:"'Oswald',sans-serif", fontWeight:600, fontSize:".85rem", textTransform:"uppercase", color:"var(--text)" }}>{user?.full_name || 'Usuário'}</p>
-                    <p style={{ fontSize:".75rem", color:"var(--text-muted)" }}>{user?.email}</p>
+                <DropdownMenuContent align="end" style={{ width: 230, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-xl)', padding: 6 }}>
+                  <div style={{ padding: '10px 12px 8px' }}>
+                    <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>{user?.full_name || 'Usuário'}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{user?.email}</p>
                   </div>
-                  <DropdownMenuSeparator style={{ background:"var(--border)" }} />
+                  <DropdownMenuSeparator style={{ background: 'var(--border)', margin: '4px 0' }} />
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Settings")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
-                      <Settings className="w-4 h-4" /><span>Preferências</span>
+                    <Link to={createPageUrl("Settings")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
+                      <Settings className="w-4 h-4" /> Preferências
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("MyData")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
-                      <Bookmark className="w-4 h-4" /><span>Meus Dados</span>
+                    <Link to={createPageUrl("MyData")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
+                      <Bookmark className="w-4 h-4" /> Meus Dados
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Contact")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
-                      <MessageSquare className="w-4 h-4" /><span>Contato</span>
+                    <Link to={createPageUrl("Contact")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
+                      <MessageSquare className="w-4 h-4" /> Suporte
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("PrivacyPolicy")} style={{ color:"var(--text-muted)", fontSize:".85rem" }} className="flex items-center gap-2 cursor-pointer">
-                      <Bookmark className="w-4 h-4" /><span>Política de Privacidade</span>
+                    <Link to={createPageUrl("PrivacyPolicy")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
+                      <Bookmark className="w-4 h-4" /> Privacidade
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator style={{ background:"var(--border)" }} />
-                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} className="flex items-center gap-2 cursor-pointer" style={{ color:"var(--primary)", fontSize:".85rem" }}>
-                    <Shield className="w-4 h-4" /><span>Excluir Conta</span>
+                  <DropdownMenuSeparator style={{ background: 'var(--border)', margin: '4px 0' }} />
+                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: 13, cursor: 'pointer' }}>
+                    <Shield className="w-4 h-4" /> Excluir Conta
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer" style={{ color:"var(--primary)", fontSize:".85rem" }}>
-                    <LogOut className="w-4 h-4" /><span>Sair</span>
+                  <DropdownMenuItem onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>
+                    <LogOut className="w-4 h-4" /> Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -360,45 +383,81 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* Sidebar - Desktop */}
-        <aside style={{ background:"#ffffff", borderRight:"1px solid #ece9e3" }} className="hidden lg:block fixed left-0 top-14 bottom-0 w-64 overflow-y-auto">
-          <div className="py-4">
-            <Link to={createPageUrl("Dashboard")} style={{ display:"flex", alignItems:"center", padding:"0.75rem 1.25rem", marginBottom:"0.5rem", textDecoration:"none" }}>
-              <span style={{ fontFamily:"'IBM Plex Sans', system-ui, sans-serif", fontWeight:700, fontSize:"20px", color:"#1a1a1a", letterSpacing:"-0.5px" }}>JURIS</span>
+        {/* ── SIDEBAR DESKTOP ── */}
+        <aside style={{
+          position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
+          width: 'var(--sidebar-w)',
+          background: 'var(--surface)',
+          borderRight: '1px solid var(--border)',
+          overflowY: 'auto', overflowX: 'hidden',
+          zIndex: 40,
+          display: 'flex', flexDirection: 'column',
+        }} className="hidden lg:flex">
+          <div style={{ padding: '16px 16px 8px' }}>
+            <Link to={createPageUrl("Dashboard")} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
+                alt="Juris.IA"
+                style={{ height: 30, objectFit: 'contain' }}
+              />
             </Link>
-            <div style={{ height:1, background:"#ece9e3", margin:"0 0 0.5rem" }} />
+          </div>
+          <div className="divider" style={{ margin: '0 16px 4px' }} />
+          <div style={{ flex: 1, padding: '0 8px 16px' }}>
             <SidebarNav user={user} isMobile={false} />
           </div>
         </aside>
 
-        {/* Mobile Menu */}
+        {/* ── MOBILE DRAWER ── */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <>
               <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="lg:hidden fixed inset-0 bg-black/50 z-40 pt-14"
+                style={{
+                  position: 'fixed', inset: 0,
+                  background: 'rgba(0,0,0,0.4)',
+                  backdropFilter: 'blur(2px)',
+                  zIndex: 45,
+                  paddingTop: 'var(--header-h)',
+                }}
+                className="lg:hidden"
               />
               <motion.div
-                initial={{ x: -280, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -280, opacity: 0 }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                style={{ background:"#FFFFFF", borderRight:"1px solid #E0E0E0" }}
-                className="lg:hidden fixed top-14 left-0 bottom-0 w-72 z-40 overflow-y-auto"
+                initial={{ x: -280, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -280, opacity: 0 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+                style={{
+                  position: 'fixed', top: 'var(--header-h)', left: 0, bottom: 0,
+                  width: 272,
+                  background: 'var(--surface)',
+                  borderRight: '1px solid var(--border)',
+                  zIndex: 46,
+                  overflowY: 'auto',
+                  display: 'flex', flexDirection: 'column',
+                }}
+                className="lg:hidden"
               >
-                <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
-                {!isStandalone && (
-                  <div style={{ padding: "0.5rem 1rem" }}>
-                    <button
-                      onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
-                      className="btn-primary"
-                      style={{ width:"100%", justifyContent:"flex-start", padding:"0.65rem 1.25rem" }}
-                    >
-                      <Download style={{ width:16, height:16 }} />
-                      <span>Instalar Aplicativo</span>
-                    </button>
-                  </div>
-                )}
+                <div style={{ padding: '12px 8px 80px' }}>
+                  <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
+                  {!isStandalone && (
+                    <div style={{ padding: '12px 8px 0' }}>
+                      <button
+                        onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
+                        className="btn-secondary"
+                        style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
+                      >
+                        <Download className="w-4 h-4" />
+                        Instalar Aplicativo
+                      </button>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             </>
           )}
@@ -411,16 +470,20 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           </div>
         )}
 
-        {/* Main Content */}
-        <main style={{ background:"#F5F3EE" }} className={`min-h-screen pt-14 lg:pl-64 ${user && !publicPages.includes(currentPageName) ? 'pb-20 lg:pb-0' : ''}`}>
+        {/* ── MAIN ── */}
+        <main style={{
+          minHeight: '100vh',
+          background: 'var(--bg-app)',
+          paddingTop: 'var(--header-h)',
+        }} className="lg:pl-[240px]">
           {showBackButton && (
-            <div style={{ background:"#FAFAFA", borderBottom:"1px solid #E0E0E0" }}>
+            <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
               <div className="px-6 py-3 flex items-center justify-between">
-                <Link 
+                <Link
                   to={createPageUrl("Dashboard")}
-                  style={{ display:"inline-flex", alignItems:"center", gap:"0.5rem", fontSize:".75rem", fontFamily:"'Oswald',sans-serif", fontWeight:600, textTransform:"uppercase", letterSpacing:".1em", color:"var(--text-muted)", textDecoration:"none" }}
-                  onMouseEnter={e=>e.currentTarget.style.color="var(--primary)"}
-                  onMouseLeave={e=>e.currentTarget.style.color="var(--text-muted)"}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Voltar</span>
@@ -429,7 +492,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('openAIHistory'))}
                     className="btn-ghost"
-                    style={{ padding:"0.4rem 1rem", fontSize:".72rem" }}
+                    style={{ padding: '6px 12px', fontSize: 12 }}
                   >
                     <HistoryIcon className="w-4 h-4" />
                     <span>Histórico</span>
@@ -441,11 +504,15 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentPageName}
-              initial={{ x: 18, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -18, opacity: 0 }}
-              transition={{ duration: 0.18, ease: "easeInOut" }}
-              style={{ minHeight:"calc(100vh - 3.5rem)", background:"#F5F3EE" }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                minHeight: 'calc(100vh - var(--header-h))',
+                paddingBottom: user && !publicPages.includes(currentPageName) ? 'calc(var(--bottom-nav-h) + 16px)' : 0,
+              }}
+              className="lg:pb-0"
             >
               {children}
             </motion.div>

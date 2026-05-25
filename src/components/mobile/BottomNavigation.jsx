@@ -2,151 +2,133 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard,
-  FolderOpen,
-  Sparkles,
-  CheckSquare,
-  MoreHorizontal,
-  DollarSign,
-  Scale,
-  BookOpen,
-  Users2,
-  Activity,
-  MessageSquare,
-  Settings,
-  Crown,
-  LogOut,
-  Shield,
-  X
+  LayoutDashboard, FolderOpen, Bot, FileText, Settings,
+  MoreHorizontal, X, CheckSquare, Scale, BookOpen,
+  Calculator, Newspaper, Users, BarChart2, Zap, Shield, LogOut, Crown,
+  Activity, Users2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const mainItems = [
-  { title: "Painel", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
-  { title: "Processos", url: createPageUrl("Cases"), icon: FolderOpen },
-  { title: "IA", url: createPageUrl("AIAssistant"), icon: Sparkles, highlight: true },
-  { title: "Tarefas", url: createPageUrl("Tasks"), icon: CheckSquare },
-  { title: "Mais", url: null, icon: MoreHorizontal, isMenu: true },
+const MAIN_ITEMS = [
+  { to: "Dashboard",         label: "Início",    icon: LayoutDashboard },
+  { to: "Cases",             label: "Processos", icon: FolderOpen },
+  { to: "AIAssistant",       label: "IA",        icon: Bot, highlight: true },
+  { to: "DocumentGenerator", label: "Peças",     icon: FileText },
+  { to: null,                label: "Mais",      icon: MoreHorizontal, isMenu: true },
 ];
 
-const moreItems = [
-  { title: "Financeiro", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
-  { title: "Radar", url: createPageUrl("RadarOportunidades"), icon: Activity },
-  { title: "Pesquisa", url: createPageUrl("LegalResearch"), icon: Scale },
-  { title: "Modelos", url: createPageUrl("Templates"), icon: BookOpen },
-  { title: "Clientes", url: createPageUrl("Clients"), icon: Users2 },
-  { title: "WhatsApp Bot", url: createPageUrl("WhatsAppBot"), icon: MessageSquare },
-  { title: "Equipes", url: createPageUrl("Teams"), icon: Users2 },
-  { title: "Gestão", url: createPageUrl("GestaoHub"), icon: FolderOpen },
-  { title: "Ferramentas", url: createPageUrl("FerramentasHub"), icon: Scale },
-  { title: "Assinatura", url: createPageUrl("MySubscription"), icon: Crown },
-  { title: "Preferências", url: createPageUrl("Settings"), icon: Settings },
+const MORE_ITEMS = [
+  { to: "Tasks",              label: "Tarefas",      icon: CheckSquare },
+  { to: "Clients",            label: "Clientes",     icon: Users },
+  { to: "LegalResearch",      label: "Jurisprudência", icon: Scale },
+  { to: "Templates",          label: "Modelos",      icon: BookOpen },
+  { to: "CalculadoraJuridica", label: "Calculadora", icon: Calculator, directPath: "/CalculadoraJuridica" },
+  { to: "DiarioMonitor",      label: "Diário",       icon: Newspaper },
+  { to: "FinancialDashboard", label: "Financeiro",   icon: BarChart2 },
+  { to: "Teams",              label: "Equipe",       icon: Users2 },
+  { to: "RadarOportunidades", label: "Radar",        icon: Activity },
+  { to: "MySubscription",     label: "Assinatura",   icon: Zap },
+  { to: "Settings",           label: "Config",       icon: Settings },
 ];
 
-// Save / restore scroll per-page using sessionStorage
-function useScrollPreservation(pathname) {
-  const scrollRef = React.useRef({});
-
-  React.useEffect(() => {
-    const key = `scroll_${pathname}`;
-    const saved = sessionStorage.getItem(key);
-    if (saved) {
-      window.scrollTo(0, parseInt(saved, 10));
-    }
-
-    const saveScroll = () => {
-      sessionStorage.setItem(key, String(window.scrollY));
-    };
-
-    window.addEventListener("scroll", saveScroll, { passive: true });
-    return () => window.removeEventListener("scroll", saveScroll);
-  }, [pathname]);
-}
-
-export default function BottomNavigation({ isDark, user, onLogout }) {
+export default function BottomNavigation({ user, onLogout }) {
   const location = useLocation();
   const [showMore, setShowMore] = React.useState(false);
+  const isAdmin = user?.role === "admin";
 
-  useScrollPreservation(location.pathname);
+  const getHref = (item) => item.directPath || (item.to ? createPageUrl(item.to) : "#");
 
-  const adminMoreItems = user?.role === 'admin' 
-    ? [...moreItems, { title: "Admin", url: createPageUrl("AdminPanel"), icon: Shield }]
-    : moreItems;
+  const isActive = (item) => {
+    if (!item.to) return false;
+    const href = getHref(item);
+    return location.pathname === href || location.pathname.startsWith(href + "/");
+  };
+
+  const allMoreItems = isAdmin
+    ? [...MORE_ITEMS, { to: "AdminPanel", label: "Admin", icon: Shield }]
+    : MORE_ITEMS;
 
   return (
     <>
       {/* Bottom Nav Bar */}
-      <nav className={`fixed bottom-0 left-0 right-0 z-50 border-t safe-area-bottom ${
-        isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'
-      }`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <div className="flex items-center justify-around h-16 px-2">
-          {mainItems.map((item) => {
-            const isActive = item.url && location.pathname === item.url;
-            const Icon = item.icon;
+      <nav style={{
+        position: "fixed", bottom: 0, left: 0, right: 0,
+        height: "var(--bottom-nav-h)",
+        background: "rgba(255,255,255,0.96)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderTop: "1px solid var(--border)",
+        display: "flex", alignItems: "stretch",
+        zIndex: 50,
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}>
+        {MAIN_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item);
 
-            if (item.isMenu) {
-              return (
-                <button
-                  key="more"
-                  onClick={() => setShowMore(true)}
-                  className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all ${
-                    showMore
-                      ? isDark ? 'text-white' : 'text-black'
-                      : isDark ? 'text-neutral-500' : 'text-gray-400'
-                  }`}
-                >
-                  <Icon className="w-6 h-6" />
-                  <span className="text-[10px] font-medium">{item.title}</span>
-                </button>
-              );
-            }
-
+          if (item.isMenu) {
             return (
-              <Link
-                key={item.title}
-                to={item.url}
-                className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all relative ${
-                  isActive
-                    ? isDark ? 'text-white' : 'text-black'
-                    : isDark ? 'text-neutral-500' : 'text-gray-400'
-                }`}
+              <button
+                key="more"
+                onClick={() => setShowMore(true)}
+                style={{
+                  flex: 1, display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center", gap: 3,
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: "6px 0",
+                  color: showMore ? "var(--gold-deep)" : "var(--text-muted)",
+                  transition: "color 0.15s",
+                }}
               >
-                {item.highlight ? (
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center -mt-6 shadow-lg ${
-                    isActive 
-                      ? 'bg-gradient-to-br from-purple-600 to-indigo-600' 
-                      : 'bg-gradient-to-br from-purple-500 to-indigo-500'
-                  }`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <Icon className="w-6 h-6" />
-                      {isActive && (
-                        <motion.div
-                          layoutId="bottomNavIndicator"
-                          className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${
-                            isDark ? 'bg-white' : 'bg-black'
-                          }`}
-                        />
-                      )}
-                    </div>
-                    <span className="text-[10px] font-medium">{item.title}</span>
-                  </>
-                )}
-                {item.highlight && (
-                  <span className="text-[10px] font-medium mt-1">{item.title}</span>
-                )}
-              </Link>
+                <Icon style={{ width: 22, height: 22 }} />
+                <span style={{ fontSize: 10, fontWeight: 500 }}>Mais</span>
+              </button>
             );
-          })}
-        </div>
+          }
+
+          return (
+            <Link
+              key={item.to}
+              to={getHref(item)}
+              style={{
+                flex: 1, display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", gap: 3,
+                textDecoration: "none", padding: "6px 0",
+                color: active ? "var(--gold-deep)" : "var(--text-muted)",
+                position: "relative", transition: "color 0.15s ease",
+              }}
+            >
+              {active && (
+                <span style={{
+                  position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+                  width: 32, height: 3,
+                  background: "var(--gold)",
+                  borderRadius: "0 0 3px 3px",
+                }} />
+              )}
+              {item.highlight ? (
+                <div style={{
+                  width: 44, height: 44, borderRadius: 14,
+                  background: active
+                    ? "linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%)"
+                    : "linear-gradient(135deg, #C9A84C 0%, #9A7228 100%)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginTop: -10, boxShadow: "0 4px 12px rgba(201,168,76,0.35)",
+                }}>
+                  <Icon style={{ width: 22, height: 22, color: "#fff" }} />
+                </div>
+              ) : (
+                <Icon style={{ width: 22, height: 22, color: active ? "var(--gold)" : "var(--text-muted)", transition: "color 0.15s ease" }} />
+              )}
+              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.01em", marginTop: item.highlight ? 2 : 0 }}>
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* More Menu Overlay */}
+      {/* More Menu Sheet */}
       <AnimatePresence>
         {showMore && (
           <>
@@ -155,65 +137,90 @@ export default function BottomNavigation({ isDark, user, onLogout }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowMore(false)}
-              className="fixed inset-0 bg-black/60 z-50"
+              style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 55, backdropFilter: "blur(2px)" }}
             />
             <motion.div
-              initial={{ y: '100%' }}
+              initial={{ y: "100%" }}
               animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl border-t ${
-                isDark ? 'bg-neutral-950 border-neutral-800' : 'bg-white border-gray-200'
-              }`}
-              style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              style={{
+                position: "fixed", bottom: 0, left: 0, right: 0,
+                zIndex: 56,
+                background: "var(--surface)",
+                borderRadius: "20px 20px 0 0",
+                borderTop: "1px solid var(--border)",
+                paddingBottom: "env(safe-area-inset-bottom)",
+              }}
             >
               {/* Handle */}
-              <div className="flex justify-center pt-3 pb-1">
-                <div className={`w-10 h-1 rounded-full ${isDark ? 'bg-neutral-700' : 'bg-gray-300'}`} />
+              <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 4 }}>
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--border-strong)" }} />
               </div>
 
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-3">
-                <span className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>Menu</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 20px 12px" }}>
+                <span style={{ fontWeight: 700, fontSize: 17, color: "var(--text)" }}>Menu</span>
                 <button
                   onClick={() => setShowMore(false)}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-100 text-gray-500'
-                  }`}
+                  style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: "var(--surface-3)", border: "none", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "var(--text-secondary)",
+                  }}
                 >
-                  <X className="w-4 h-4" />
+                  <X style={{ width: 16, height: 16 }} />
                 </button>
               </div>
 
-              {/* Items Grid */}
-              <div className="grid grid-cols-4 gap-1 px-4 pb-4 max-h-[60vh] overflow-y-auto">
-                {adminMoreItems.map((item) => {
+              {/* Grid */}
+              <div style={{
+                display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 4, padding: "0 12px 16px",
+                maxHeight: "55vh", overflowY: "auto",
+              }}>
+                {allMoreItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.url;
+                  const active = isActive(item);
                   return (
                     <Link
-                      key={item.title}
-                      to={item.url}
+                      key={item.to}
+                      to={getHref(item)}
                       onClick={() => setShowMore(false)}
-                      className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl transition-all ${
-                        isActive
-                          ? isDark ? 'bg-neutral-800 text-white' : 'bg-gray-100 text-black'
-                          : isDark ? 'text-neutral-400 hover:bg-neutral-900' : 'text-gray-600 hover:bg-gray-50'
-                      }`}
+                      style={{
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 6, padding: "12px 8px",
+                        borderRadius: 12, textDecoration: "none",
+                        background: active ? "var(--gold-light)" : "transparent",
+                        color: active ? "var(--gold-deep)" : "var(--text-secondary)",
+                        transition: "background 0.15s",
+                        minHeight: 70,
+                      }}
                     >
-                      <Icon className="w-6 h-6" />
-                      <span className="text-[10px] font-medium text-center leading-tight">{item.title}</span>
+                      <Icon style={{ width: 22, height: 22, color: active ? "var(--gold)" : "var(--text-muted)" }} />
+                      <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2 }}>
+                        {item.label}
+                      </span>
                     </Link>
                   );
                 })}
 
-                {/* Logout */}
+                {/* Sair */}
                 <button
-                  onClick={() => { setShowMore(false); onLogout(); }}
-                  className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl text-red-500 hover:bg-red-50"
+                  onClick={() => { setShowMore(false); onLogout?.(); }}
+                  style={{
+                    display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center",
+                    gap: 6, padding: "12px 8px",
+                    borderRadius: 12, border: "none", cursor: "pointer",
+                    background: "transparent", color: "var(--error)",
+                    minHeight: 70, fontFamily: "var(--font-sans)",
+                  }}
                 >
-                  <LogOut className="w-6 h-6" />
-                  <span className="text-[10px] font-medium">Sair</span>
+                  <LogOut style={{ width: 22, height: 22 }} />
+                  <span style={{ fontSize: 10, fontWeight: 500 }}>Sair</span>
                 </button>
               </div>
             </motion.div>

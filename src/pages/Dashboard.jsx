@@ -118,231 +118,175 @@ const Dashboard = React.memo(function Dashboard() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, fontFamily: outfit, padding: "32px 36px" }}>
+    <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(16px, 4vw, 40px)', maxWidth: 1280, margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
 
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 32 }}>
-        <div>
-          <h1 style={{ fontFamily: plexBold, fontSize: 32, fontWeight: 700, color: TEXT, margin: 0, lineHeight: 1.1, letterSpacing: "-0.5px" }}>
-            {getGreeting()},{" "}
-            <span style={{ color: GOLD }}>{user?.full_name?.split(" ")[0] || "Advogado"}</span>
-          </h1>
-          <p style={{ marginTop: 6, fontSize: 11, textTransform: "uppercase", letterSpacing: "2px", color: MUTED, fontFamily: outfit }}>
-            {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-          </p>
-        </div>
-        <Link to={createPageUrl("AIAssistant")} style={{ textDecoration: "none" }}>
-          <button
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "10px 22px",
-              background: "transparent",
-              border: `1px solid ${GOLD}`,
-              borderRadius: 50,
-              color: GOLD,
-              fontFamily: outfit,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: "pointer",
-              transition: "background 0.2s, box-shadow 0.2s",
-              minHeight: 44,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = GOLD_LIGHT; e.currentTarget.style.boxShadow = `0 4px 16px rgba(184,146,42,0.18)`; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.boxShadow = "none"; }}
-          >
-            <Sparkles style={{ width: 15, height: 15 }} />
-            ✦ Assistente IA
-          </button>
-        </Link>
+      {/* ── Greeting ── */}
+      <div className="animate-fade-up" style={{ marginBottom: 28 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
+          {getGreeting()},
+        </p>
+        <h1 style={{
+          fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(22px, 3vw, 30px)',
+          color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
+        }}>
+          {user?.full_name?.split(' ')[0] || 'Advogado'} ✦
+        </h1>
+        <p style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>
+          {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+        </p>
       </div>
 
-      {/* ── Quick Actions ──────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
-        {quickActions.map((action, i) => {
-          const Icon = action.icon;
-          return (
-            <Link key={i} to={action.url} style={{ textDecoration: "none" }}>
-              <div
-                style={{
-                  position: "relative",
-                  background: SURFACE,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 20,
-                  padding: "22px 12px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  transition: "border-color 0.2s, box-shadow 0.2s, transform 0.2s",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = GOLD_BORDER;
-                  e.currentTarget.style.boxShadow = `0 8px 24px rgba(184,146,42,0.14)`;
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                  e.currentTarget.querySelector(".qa-label").style.color = GOLD;
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = BORDER;
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.querySelector(".qa-label").style.color = MUTED;
-                }}
-              >
-                {action.badge && (
-                  <span style={{
-                    position: "absolute", top: 12, right: 12,
-                    fontSize: 8, fontWeight: 700,
-                    padding: "2px 7px",
-                    background: GOLD_LIGHT,
-                    color: GOLD,
-                    borderRadius: 50,
-                    fontFamily: outfit,
-                  }}>{action.badge}</span>
-                )}
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-                  <Icon style={{ width: 24, height: 24, color: GOLD }} />
-                </div>
-                <p className="qa-label" style={{
-                  fontSize: 10, fontWeight: 600,
-                  textTransform: "uppercase", letterSpacing: "1.5px",
-                  color: MUTED, margin: 0, fontFamily: outfit,
-                  transition: "color 0.2s",
-                }}>
-                  {action.title}
-                </p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* ── Stat Cards ─────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
+      {/* ── Stats Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }} className="lg:grid-cols-4">
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <Link key={i} to={stat.link} style={{ textDecoration: "none" }}>
-              <div
-                style={{
-                  background: SURFACE,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: 20,
-                  padding: "18px 20px",
-                  cursor: "pointer",
-                  transition: "box-shadow 0.2s, transform 0.2s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 6px 20px rgba(184,146,42,0.12)`; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
+            <Link key={i} to={stat.link} style={{ textDecoration: 'none' }}>
+              <div className="card card-interactive animate-fade-up" style={{ padding: '18px 20px', animationDelay: `${i * 60}ms` }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-                  <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "1.8px", color: MUTED, margin: 0, fontFamily: outfit }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', margin: 0 }}>
                     {stat.title}
                   </p>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, background: GOLD_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon style={{ width: 16, height: 16, color: GOLD }} />
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--gold-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon style={{ width: 16, height: 16, color: 'var(--gold)' }} />
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                  <span style={{ fontFamily: plexBold, fontSize: 38, fontWeight: 700, lineHeight: 1, color: TEXT, letterSpacing: "-0.5px" }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 800, lineHeight: 1, color: 'var(--text)' }}>
                     {stat.value}
                   </span>
                   {stat.extra !== undefined && (
-                    <span style={{ fontSize: 14, color: MUTED, fontFamily: outfit }}>/ {stat.extra}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>/ {stat.extra}</span>
                   )}
                 </div>
-                <p style={{ fontSize: 11, color: GOLD, marginTop: 4, fontFamily: outfit }}>{stat.sub}</p>
+                <p style={{ fontSize: 11, color: 'var(--gold)', marginTop: 4, margin: '4px 0 0' }}>{stat.sub}</p>
               </div>
             </Link>
           );
         })}
       </div>
 
-      {/* ── Prazos e Tarefas + Processos ───────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      {/* ── Quick Actions ── */}
+      <div style={{ marginBottom: 28 }}>
+        <p className="text-label" style={{ marginBottom: 12 }}>Acesso Rápido</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {quickActions.map(({ title, url, badge }) => (
+            <Link key={url} to={url} className={badge ? 'btn-primary' : 'btn-secondary'} style={{ fontSize: 13 }}>
+              {title}
+            </Link>
+          ))}
+        </div>
+      </div>
 
-        {/* Prazos */}
-        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 20, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Clock style={{ width: 15, height: 15, color: GOLD }} />
-              <span style={{ fontFamily: outfit, fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: "1.5px", color: TEXT }}>
-                Prazos e Tarefas
-              </span>
+      {/* ── Content Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }} className="lg:grid-cols-2">
+
+        {/* Tarefas */}
+        <div className="card animate-fade-up delay-2" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Clock style={{ width: 15, height: 15, color: 'var(--gold)' }} />
+              <h3 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', margin: 0 }}>Prazos e Tarefas</h3>
             </div>
-            <Link to={createPageUrl("Tasks")} style={{ fontFamily: outfit, fontSize: 11, fontWeight: 600, color: GOLD, textDecoration: "none", display: "flex", alignItems: "center", gap: 4, letterSpacing: "0.5px" }}>
+            <Link to={createPageUrl("Tasks")} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
               Ver todas <ArrowRight style={{ width: 12, height: 12 }} />
             </Link>
           </div>
-          <div>
-            {loadingTasks ? (
-              <div style={{ padding: "2rem", textAlign: "center", color: MUTED, fontSize: 13 }}>Carregando...</div>
-            ) : upcomingTasks.length === 0 ? (
-              <div style={{ padding: "2.5rem", textAlign: "center" }}>
-                <CheckSquare style={{ width: 28, height: 28, color: MUTED, margin: "0 auto 8px" }} />
-                <p style={{ fontFamily: outfit, fontSize: 13, color: MUTED }}>Nenhuma tarefa pendente</p>
+          {loadingTasks ? (
+            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 44, borderRadius: 8 }} />)}
+            </div>
+          ) : upcomingTasks.length === 0 ? (
+            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+              ✅ Nenhuma tarefa pendente
+            </div>
+          ) : upcomingTasks.map((task, i) => {
+            const urg = getTaskUrgency(task);
+            return (
+              <div key={task.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '11px 20px',
+                borderBottom: i < upcomingTasks.length - 1 ? '1px solid var(--border)' : 'none',
+                transition: 'background 0.15s', cursor: 'default',
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: urg.color, flexShrink: 0 }} />
+                <p style={{ flex: 1, fontSize: 13, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
+                <span style={{
+                  fontSize: 11, fontWeight: 600, padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  background: urg.color + '18', color: urg.color, flexShrink: 0,
+                }}>
+                  {task.due_date && format(new Date(task.due_date), "dd/MM")} · {urg.label}
+                </span>
               </div>
-            ) : upcomingTasks.map(task => {
-              const urg = getTaskUrgency(task);
-              return (
-                <div key={task.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 20px", borderBottom: `1px solid ${BORDER}`, transition: "background 0.15s", cursor: "default" }}
-                  onMouseEnter={e => e.currentTarget.style.background = GOLD_LIGHT}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  <div style={{ width: 6, height: 6, borderRadius: 2, background: urg.color, flexShrink: 0 }} />
-                  <p style={{ flex: 1, fontSize: 13, fontFamily: outfit, color: TEXT, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.title}</p>
-                  <span style={{ fontSize: 10, fontFamily: outfit, fontWeight: 600, color: urg.color, letterSpacing: "0.5px", flexShrink: 0 }}>
-                    {task.due_date && format(new Date(task.due_date), "dd/MM")} — {urg.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+            );
+          })}
         </div>
 
         {/* Processos Recentes */}
-        <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 20, overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <FolderOpen style={{ width: 15, height: 15, color: GOLD }} />
-              <span style={{ fontFamily: outfit, fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: "1.5px", color: TEXT }}>
-                Processos Recentes
-              </span>
+        <div className="card animate-fade-up delay-3" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FolderOpen style={{ width: 15, height: 15, color: 'var(--gold)' }} />
+              <h3 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', margin: 0 }}>Processos Recentes</h3>
             </div>
-            <Link to={createPageUrl("Cases")} style={{ fontFamily: outfit, fontSize: 11, fontWeight: 600, color: GOLD, textDecoration: "none", display: "flex", alignItems: "center", gap: 4, letterSpacing: "0.5px" }}>
+            <Link to={createPageUrl("Cases")} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
               Ver todos <ArrowRight style={{ width: 12, height: 12 }} />
             </Link>
           </div>
-          <div>
-            {loadingCases ? (
-              <div style={{ padding: "2rem", textAlign: "center", color: MUTED, fontSize: 13 }}>Carregando...</div>
-            ) : recentCases.length === 0 ? (
-              <div style={{ padding: "2.5rem", textAlign: "center" }}>
-                <FolderOpen style={{ width: 28, height: 28, color: MUTED, margin: "0 auto 8px" }} />
-                <p style={{ fontFamily: outfit, fontSize: 13, color: MUTED }}>Nenhum processo cadastrado</p>
-                <Link to={createPageUrl("Cases")}>
-                  <button style={{ marginTop: 12, padding: "8px 20px", background: GOLD, color: "#fff", border: "none", borderRadius: 50, cursor: "pointer", fontFamily: outfit, fontWeight: 600, fontSize: 12 }}>
-                    + Criar processo
-                  </button>
-                </Link>
-              </div>
-            ) : recentCases.map(c => {
-              const statusLabel = { in_progress: "Em andamento", new: "Novo", waiting: "Aguardando", closed: "Arquivado" }[c.status] || c.status;
-              const statusColor = { in_progress: GOLD, new: "#27ae60", waiting: "#e67e22", closed: MUTED }[c.status] || MUTED;
-              return (
-                <Link key={c.id} to={createPageUrl("Cases")} style={{ textDecoration: "none" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 20px", borderBottom: `1px solid ${BORDER}`, transition: "background 0.15s" }}
-                    onMouseEnter={e => e.currentTarget.style.background = GOLD_LIGHT}
-                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                  >
-                    <div style={{ width: 6, height: 6, borderRadius: 2, background: statusColor, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontFamily: outfit, fontWeight: 500, color: TEXT, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</p>
-                      <p style={{ fontSize: 11, fontFamily: outfit, color: MUTED, margin: 0 }}>{c.client_name}</p>
-                    </div>
-                    <span style={{ fontSize: 10, fontFamily: outfit, fontWeight: 600, color: statusColor, letterSpacing: "0.5px", flexShrink: 0 }}>{statusLabel}</span>
+          {loadingCases ? (
+            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 52, borderRadius: 8 }} />)}
+            </div>
+          ) : recentCases.length === 0 ? (
+            <div style={{ padding: '32px 20px', textAlign: 'center' }}>
+              <FolderOpen style={{ width: 28, height: 28, color: 'var(--text-muted)', margin: '0 auto 8px' }} />
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Nenhum processo cadastrado</p>
+              <Link to={createPageUrl("Cases")} className="btn-primary" style={{ fontSize: 13 }}>+ Criar processo</Link>
+            </div>
+          ) : recentCases.map((c, i) => {
+            const statusMap = { in_progress: { label: 'Em andamento', color: 'var(--info)' }, new: { label: 'Novo', color: 'var(--success)' }, waiting: { label: 'Aguardando', color: 'var(--warning)' }, closed: { label: 'Encerrado', color: 'var(--text-muted)' } };
+            const s = statusMap[c.status] || { label: c.status, color: 'var(--text-muted)' };
+            return (
+              <Link key={c.id} to={createPageUrl("Cases")} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '11px 20px',
+                  borderBottom: i < recentCases.length - 1 ? '1px solid var(--border)' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 8,
+                    background: 'var(--gold-light)', color: 'var(--gold-deep)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {c.case_number?.slice(-2) || (i + 1).toString().padStart(2, '0')}
                   </div>
-                </Link>
-              );
-            })}
-          </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{c.client_name}</p>
+                  </div>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    background: s.color + '18', color: s.color, flexShrink: 0,
+                  }}>
+                    {s.label}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
       </div>
