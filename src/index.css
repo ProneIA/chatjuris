@@ -464,6 +464,17 @@ input:hover:not(:focus), textarea:hover:not(:focus), select:hover:not(:focus) {
 .delay-5, .fd-5, .dash-d5 { animation-delay: 300ms; }
 
 /* ═══════════════════════════════════════════════════════════
+   SIDEBAR TOGGLE
+   ═══════════════════════════════════════════════════════════ */
+.sidebar-open  { transform: translateX(0) !important; }
+.sidebar-closed { transform: translateX(-100%) !important; }
+
+@media (min-width: 1024px) {
+  .sidebar-open,
+  .sidebar-closed { transform: translateX(0) !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
    UTILITÁRIOS MOBILE
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 1023px) {

@@ -383,35 +383,11 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           </div>
         </header>
 
-        {/* ── SIDEBAR DESKTOP ── */}
-        <aside style={{
-          position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
-          width: 'var(--sidebar-w)',
-          background: 'var(--surface)',
-          borderRight: '1px solid var(--border)',
-          overflowY: 'auto', overflowX: 'hidden',
-          zIndex: 40,
-          display: 'flex', flexDirection: 'column',
-        }} className="hidden lg:flex">
-          <div style={{ padding: '16px 16px 8px' }}>
-            <Link to={createPageUrl("Dashboard")} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
-                alt="Juris.IA"
-                style={{ height: 40, objectFit: 'contain', display: 'block' }}
-              />
-            </Link>
-          </div>
-          <div className="divider" style={{ margin: '0 16px 4px' }} />
-          <div style={{ flex: 1, padding: '0 8px 16px' }}>
-            <SidebarNav user={user} isMobile={false} />
-          </div>
-        </aside>
-
-        {/* ── MOBILE DRAWER ── */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
+        {/* ── SIDEBAR (Desktop sempre visível, Mobile toggle) ── */}
+        <AnimatePresence initial={false}>
+          {(isMobileMenuOpen) && (
             <>
+              {/* Overlay mobile */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -427,41 +403,36 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 }}
                 className="lg:hidden"
               />
-              <motion.div
-                initial={{ x: -280, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -280, opacity: 0 }}
-                transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-                style={{
-                  position: 'fixed', top: 'var(--header-h)', left: 0, bottom: 0,
-                  width: 272,
-                  background: 'var(--surface)',
-                  borderRight: '1px solid var(--border)',
-                  zIndex: 46,
-                  overflowY: 'auto',
-                  display: 'flex', flexDirection: 'column',
-                }}
-                className="lg:hidden"
-              >
-                <div style={{ padding: '0 8px 80px' }}>
-                  <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={true} />
-                  {!isStandalone && (
-                    <div style={{ padding: '12px 8px 0' }}>
-                      <button
-                        onClick={() => { handleInstallApp(); setIsMobileMenuOpen(false); }}
-                        className="btn-secondary"
-                        style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
-                      >
-                        <Download className="w-4 h-4" />
-                        Instalar Aplicativo
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
             </>
           )}
         </AnimatePresence>
+        <aside
+          className={isMobileMenuOpen ? 'sidebar-open' : 'sidebar-closed'}
+          style={{
+            position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
+            width: 'var(--sidebar-w)',
+            background: 'var(--surface)',
+            borderRight: '1px solid var(--border)',
+            overflowY: 'auto', overflowX: 'hidden',
+            zIndex: 46,
+            display: 'flex', flexDirection: 'column',
+            transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)',
+          }}
+        >
+          <div style={{ padding: '16px 16px 8px' }}>
+            <Link to={createPageUrl("Dashboard")} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
+                alt="Juris.IA"
+                style={{ height: 40, objectFit: 'contain', display: 'block' }}
+              />
+            </Link>
+          </div>
+          <div className="divider" style={{ margin: '0 16px 4px' }} />
+          <div style={{ flex: 1, padding: '0 8px 16px' }}>
+            <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={false} />
+          </div>
+        </aside>
 
         {/* Bottom Navigation - Mobile */}
         {user && !publicPages.includes(currentPageName) && (
@@ -475,7 +446,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           minHeight: '100vh',
           background: 'var(--bg-app)',
           paddingTop: 'var(--header-h)',
-        }} className="lg:pl-[240px]">
+        }} className="lg:pl-[240px] pl-0">
           {showBackButton && (
             <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
               <div className="px-6 py-3 flex items-center justify-between">
