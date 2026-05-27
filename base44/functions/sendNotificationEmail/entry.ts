@@ -224,12 +224,21 @@ const EMAIL_TEMPLATES = {
   })
 };
 
-Deno.serve(async (req) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGINS = ['https://chatjuris.com', 'https://www.chatjuris.com'];
+
+function getCorsHeaders(req) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
   };
+}
+
+Deno.serve(async (req) => {
+  const headers = getCorsHeaders(req);
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers });
@@ -264,7 +273,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ success: true }, { headers });
   } catch (error) {
-    console.error('Erro ao enviar email:', error);
-    return Response.json({ error: error.message }, { status: 500, headers });
+    console.error('[sendNotificationEmail] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500, headers });
   }
 });

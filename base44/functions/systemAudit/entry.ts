@@ -530,6 +530,7 @@ ${allIssues.filter(i => i.level === 'CRITICAL' || i.level === 'HIGH').map(i =>
     });
 
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[systemAudit] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 });
   }
 });

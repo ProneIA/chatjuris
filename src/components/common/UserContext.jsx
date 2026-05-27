@@ -67,9 +67,10 @@ export function UserProvider({ children }) {
       }
       return data;
     } catch {
-      setHasAccess(true); // fallback: não bloquear em caso de erro
+      console.error('[UserContext] Falha ao verificar acesso — negando por segurança');
+      setHasAccess(false);
       setAccessChecked(true);
-      return { canAccess: true };
+      return { canAccess: false, reason: 'network_error' };
     }
   }, []);
 

@@ -19,7 +19,12 @@ async function deriveKey() {
 
 Deno.serve(async (req) => {
   try {
-    // Teste sem auth para validar o algoritmo
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Apenas administradores podem usar esta função' }, { status: 403 });
+    }
+
     const testCPF = "123.456.789-00";
     const encoder = new TextEncoder();
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -58,6 +63,7 @@ Deno.serve(async (req) => {
       key_bits: 256
     });
   } catch (error) {
-    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
+    console.error('[testEncryption] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 });
   }
 });

@@ -21,10 +21,7 @@ Deno.serve(async (req) => {
       subscriptions 
     });
   } catch (error) {
-    console.error('Erro ao buscar usuários:', error);
-    return Response.json({ 
-      error: error.message,
-      details: error.stack 
-    }, { status: 500 });
+    console.error('[adminGetUsers] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 });
   }
 });

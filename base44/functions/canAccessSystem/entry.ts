@@ -16,14 +16,12 @@ Deno.serve(async (req) => {
         const result = await validateUserAccess(base44, user);
         return Response.json(result);
     } catch (error) {
-        // Fallback conservador: permitir acesso mas logar o erro
-        // Não bloquear por falha técnica, mas registrar
-        console.error('[canAccessSystem] Erro:', error.message);
+        console.error('[canAccessSystem] Erro inesperado:', error?.message);
         return Response.json({ 
-            canAccess: true,
-            reason: 'error_fallback',
-            error: error.message
-        }, { status: 200 });
+            canAccess: false,
+            reason: 'system_error',
+            message: 'Não foi possível verificar sua assinatura. Tente novamente em instantes.'
+        }, { status: 503 });
     }
 });
 

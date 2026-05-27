@@ -136,30 +136,12 @@ export default function JusTrackConfiguracoes() {
   };
 
   const handleTest = async (field, apiKey) => {
-    if (field === "juditApiKey") {
-      try {
-        // Testa chamando um endpoint simples da Judit
-        const res = await fetch("https://requests.judit.io/api/oab?oab_number=12345&uf=SP", {
-          headers: { "api-key": apiKey, "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(8000),
-        });
-        return res.status !== 401 && res.status !== 403;
-      } catch {
-        return false;
-      }
+    try {
+      const result = await base44.functions.invoke('testApiKey', { field, apiKey });
+      return result?.data?.valid === true;
+    } catch {
+      return false;
     }
-    if (field === "escavadorApiKey") {
-      try {
-        const res = await fetch("https://api.escavador.com/api/v2/advogados/oab/SP/12345", {
-          headers: { "Authorization": `Bearer ${apiKey}` },
-          signal: AbortSignal.timeout(8000),
-        });
-        return res.status !== 401 && res.status !== 403;
-      } catch {
-        return false;
-      }
-    }
-    return false;
   };
 
   return (

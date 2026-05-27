@@ -10,6 +10,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import ProtectedRoute from './components/ProtectedRoute';
 import LGPDAudit from './pages/LGPDAudit';
 import LGPDCompliance from './pages/LGPDCompliance';
 import LexIA from './pages/LexIA';
@@ -144,17 +145,17 @@ const AuthenticatedApp = () => {
       <Route path="/LexIA" element={
         <LexIA />
       } />
-      <Route path="/JusTrackDashboard" element={<JusTrackDashboard />} />
-      <Route path="/JusTrackOAB" element={<JusTrackOAB />} />
-      <Route path="/JusTrackPesquisa" element={<JusTrackPesquisa />} />
-      <Route path="/JusTrackProcessos" element={<JusTrackProcessos />} />
-      <Route path="/JusTrackNovo" element={<JusTrackNovo />} />
-      <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
-      <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
-      <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
+      <Route path="/JusTrackDashboard" element={<ProtectedRoute><JusTrackDashboard /></ProtectedRoute>} />
+      <Route path="/JusTrackOAB" element={<ProtectedRoute><JusTrackOAB /></ProtectedRoute>} />
+      <Route path="/JusTrackPesquisa" element={<ProtectedRoute><JusTrackPesquisa /></ProtectedRoute>} />
+      <Route path="/JusTrackProcessos" element={<ProtectedRoute><JusTrackProcessos /></ProtectedRoute>} />
+      <Route path="/JusTrackNovo" element={<ProtectedRoute><JusTrackNovo /></ProtectedRoute>} />
+      <Route path="/JusTrackDetalhes" element={<ProtectedRoute><JusTrackDetalhes /></ProtectedRoute>} />
+      <Route path="/JusTrackEditar" element={<ProtectedRoute><JusTrackEditar /></ProtectedRoute>} />
+      <Route path="/JusTrackConfiguracoes" element={<ProtectedRoute><JusTrackConfiguracoes /></ProtectedRoute>} />
       <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><ProtectedAdminRoute><AgentSettings /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><ProtectedAdminRoute><WebhookTest /></ProtectedAdminRoute></LayoutWrapper>} />
-      <Route path="/CalculadoraJuridica" element={<CalculadoraJuridica />} />
+      <Route path="/CalculadoraJuridica" element={<ProtectedRoute><CalculadoraJuridica /></ProtectedRoute>} />
       <Route path="/criar-senha" element={<CriarSenha />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

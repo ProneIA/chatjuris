@@ -103,10 +103,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Erro ao atualizar assinatura:', error);
-    return Response.json({ 
-      error: error.message,
-      details: error.stack 
-    }, { status: 500 });
+    console.error('[adminUpdateSubscription] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 });
   }
 });

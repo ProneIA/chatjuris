@@ -10,7 +10,11 @@ import TribunalDonutChart from "@/components/justrack/TribunalDonutChart";
 export default function JusTrackDashboard() {
   const { data: processos = [], isLoading } = useQuery({
     queryKey: ["processos"],
-    queryFn: () => base44.entities.Processo.list("-created_date", 100),
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      if (!user?.email) return [];
+      return base44.entities.Processo.filter({ created_by: user.email }, "-created_date", 100);
+    },
   });
 
   const total = processos.length;

@@ -65,8 +65,8 @@ Deno.serve(async (req) => {
     return Response.json({ success: true, data: result });
 
   } catch (error) {
-    console.error('Erro na ação admin:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[adminSecureAction] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500 });
   }
 });
 

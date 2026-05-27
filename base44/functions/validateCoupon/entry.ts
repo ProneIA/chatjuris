@@ -4,23 +4,45 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+const ALLOWED_ORIGINS = ['https://chatjuris.com', 'https://www.chatjuris.com'];
+
+function getCorsHeaders(req) {
+  const origin = req.headers.get('origin') || '';
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
+  };
+}
+
 const PLANS = {
   pro_monthly: { price: 119.90 },
   pro_yearly:  { price: 1198.80 }
 };
 
-// Cupons fixos do sistema (não afiliados)
 const SYSTEM_COUPONS = {
   pro_monthly: { JURIS25: 0.25, MENSAL50OFF: 0.50 },
   pro_yearly:  { JURIS50: 0.50 }
 };
 
+// Rate limiting em memória
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60_000;
+const RATE_LIMIT_MAX = 10;
+
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId) ?? { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+  if (now > entry.resetAt) { entry.count = 1; entry.resetAt = now + RATE_LIMIT_WINDOW; }
+  else entry.count++;
+  rateLimitMap.set(userId, entry);
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 Deno.serve(async (req) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  const headers = getCorsHeaders(req);
 
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers });
@@ -32,6 +54,10 @@ Deno.serve(async (req) => {
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401, headers });
+    }
+
+    if (!checkRateLimit(user.id)) {
+      return Response.json({ valid: false, message: 'Muitas tentativas. Aguarde 1 minuto.' }, { status: 429, headers });
     }
 
     const { planId, couponCode } = await req.json();
@@ -66,7 +92,7 @@ Deno.serve(async (req) => {
       }, { headers });
     }
 
-    // 2️⃣ Checar cupons de afiliados (busca no banco pelo affiliate_code)
+    // 2️⃣ Checar cupons de afiliados
     const affiliates = await base44.asServiceRole.entities.Affiliate.filter({
       affiliate_code: couponLower,
       status: 'active'
@@ -78,7 +104,7 @@ Deno.serve(async (req) => {
 
     const affiliate = affiliates[0];
 
-    // 🛡️ Antifraude: afiliado não pode usar o próprio cupom
+    // Antifraude: afiliado não pode usar o próprio cupom
     if (affiliate.user_email === user.email) {
       return Response.json({ valid: false, message: 'Você não pode usar o seu próprio cupom de afiliado' }, { status: 400, headers });
     }
@@ -100,7 +126,7 @@ Deno.serve(async (req) => {
     }, { headers });
 
   } catch (error) {
-    console.error('Erro ao validar cupom:', error);
-    return Response.json({ error: error.message }, { status: 500, headers });
+    console.error('[validateCoupon] Erro:', error);
+    return Response.json({ error: 'Erro interno. Tente novamente.' }, { status: 500, headers });
   }
 });

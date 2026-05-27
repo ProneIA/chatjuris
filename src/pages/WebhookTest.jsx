@@ -3,10 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const WEBHOOK_BASE_URL = "/api/functions";
 const WEBHOOK_URLS = [
   "https://chatjuris.com/api/whatsappWebhook",
   "https://chatjuris.com/functions/whatsappWebhook",
-  "https://base44.app/api/apps/690e408daf48e0f633c6cf3a/functions/whatsappWebhook",
+  `${WEBHOOK_BASE_URL}/whatsappWebhook`,
 ];
 
 export default function WebhookTest() {

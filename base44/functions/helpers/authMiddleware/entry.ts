@@ -15,9 +15,11 @@ export async function requireActiveSubscription(req) {
     }
 
     // Buscar subscription do usuário
-    const subs = await base44.asServiceRole.entities.Subscription.filter({ 
-      user_id: user.id 
-    });
+    const subs = await base44.asServiceRole.entities.Subscription.filter(
+      { user_id: user.id },
+      '-created_date',
+      10
+    );
     
     if (subs.length === 0) {
       return { authorized: false, error: 'Assinatura não encontrada' };

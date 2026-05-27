@@ -2,6 +2,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
+    const webhookToken = req.headers.get('apikey') || req.headers.get('x-webhook-token');
+    const expectedToken = Deno.env.get('EVOLUTION_WEBHOOK_TOKEN');
+    if (expectedToken && webhookToken !== expectedToken) {
+      console.warn('[WhatsApp Webhook] Token inválido — request rejeitado');
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const base44 = createClientFromRequest(req);
     const body = await req.json();
     console.log("Webhook recebido:", JSON.stringify(body));
