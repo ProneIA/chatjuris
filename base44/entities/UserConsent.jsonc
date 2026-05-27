@@ -1,0 +1,57 @@
+{
+  "name": "UserConsent",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio"
+    },
+    "consent_type": {
+      "type": "string",
+      "enum": [
+        "privacy_policy",
+        "terms_of_use",
+        "data_processing",
+        "marketing"
+      ],
+      "description": "Tipo de consentimento"
+    },
+    "accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o usu\u00e1rio aceitou"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora da aceita\u00e7\u00e3o"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP de onde foi aceito"
+    },
+    "version": {
+      "type": "string",
+      "description": "Vers\u00e3o do termo aceito"
+    }
+  },
+  "required": [
+    "user_email",
+    "consent_type",
+    "accepted"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "user_email": "{{user.email}}"
+    },
+    "update": {
+      "user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_email": "{{user.email}}"
+    }
+  }
+}

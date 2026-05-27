@@ -1,0 +1,41 @@
+{
+  "name": "TeamMessage",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "ID da equipe"
+    },
+    "message": {
+      "type": "string",
+      "description": "Conte\u00fado da mensagem"
+    },
+    "sent_by": {
+      "type": "string",
+      "description": "Email de quem enviou"
+    },
+    "sent_by_member": {
+      "type": "string",
+      "description": "Nome e cargo do membro"
+    }
+  },
+  "required": [
+    "team_id",
+    "message",
+    "sent_by"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

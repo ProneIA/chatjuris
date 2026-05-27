@@ -1,0 +1,95 @@
+{
+  "name": "LegalDocument",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do documento"
+    },
+    "content": {
+      "type": "string",
+      "description": "Conte\u00fado do documento"
+    },
+    "ocr_content": {
+      "type": "string",
+      "description": "Conte\u00fado extra\u00eddo por OCR para busca"
+    },
+    "type": {
+      "type": "string",
+      "description": "Tipo do documento"
+    },
+    "status": {
+      "type": "string",
+      "description": "Status do documento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL do arquivo atual"
+    },
+    "current_version": {
+      "type": "number",
+      "default": 1,
+      "description": "Vers\u00e3o atual do documento"
+    },
+    "case_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos processos relacionados"
+    },
+    "task_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs das tarefas relacionadas"
+    },
+    "client_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos clientes relacionados"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "ID da equipe"
+    },
+    "shared_with": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails com acesso"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags do documento"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -12,8 +12,17 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
+        // VALIDAÇÃO: Bloquear se email_locked (já usou trial e foi deletado)
+        if (user.email_locked === true) {
+            return Response.json({ 
+                success: false, 
+                error: 'Este e-mail já utilizou o período de teste gratuito. Faça o pagamento para continuar.',
+                email_locked: true
+            }, { status: 403 });
+        }
+
         // VALIDAÇÃO ROBUSTA: Bloquear se usuário JÁ teve trial (mesmo expirado)
-        if (user.trial_start_date || user.subscription_start_date || user.subscription_status === 'expired') {
+        if (user.trial_start_date || user.trial_started_at || user.subscription_start_date || user.subscription_status === 'expired') {
             return Response.json({ 
                 success: false, 
                 error: 'Usuário já teve trial ou assinatura anteriormente'
@@ -29,7 +38,10 @@ Deno.serve(async (req) => {
             subscription_type: 'trial',
             trial_start_date: now.toISOString(),
             trial_end_date: trialEnd.toISOString(),
-            is_lifetime: false
+            trial_started_at: now.toISOString(),
+            trial_ends_at: trialEnd.toISOString(),
+            is_lifetime: false,
+            email_locked: false
         });
 
         // Log de auditoria

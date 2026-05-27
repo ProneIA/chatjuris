@@ -1,0 +1,82 @@
+{
+  "name": "WithdrawalRequest",
+  "type": "object",
+  "properties": {
+    "affiliate_id": {
+      "type": "string",
+      "description": "ID do afiliado"
+    },
+    "affiliate_name": {
+      "type": "string",
+      "description": "Nome do afiliado"
+    },
+    "affiliate_email": {
+      "type": "string",
+      "description": "Email do afiliado"
+    },
+    "pix_key": {
+      "type": "string",
+      "description": "Chave PIX para pagamento"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor solicitado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "paid"
+      ],
+      "default": "pending",
+      "description": "Status da solicita\u00e7\u00e3o"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motivo da rejei\u00e7\u00e3o (se aplic\u00e1vel)"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data do pagamento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "affiliate_id",
+    "affiliate_email",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "data.affiliate_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.affiliate_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

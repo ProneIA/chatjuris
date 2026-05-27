@@ -332,7 +332,11 @@ async function activateSubscription(base44, payment) {
       subscription_status: 'active',
       subscription_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
       subscription_start_date: startDate.toISOString(),
-      subscription_end_date: endDate.toISOString()
+      subscription_end_date: endDate.toISOString(),
+      subscription_expires_at: endDate.toISOString(),
+      payment_reference: String(payment.id),
+      blocked_at: null,
+      email_locked: false
     });
 
     const payments = await base44.asServiceRole.entities.Payment.filter({ mp_payment_id: String(payment.id) });

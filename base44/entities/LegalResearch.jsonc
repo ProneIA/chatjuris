@@ -1,0 +1,115 @@
+{
+  "name": "LegalResearch",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da pesquisa"
+    },
+    "query": {
+      "type": "string",
+      "description": "Consulta/pergunta da pesquisa"
+    },
+    "research_type": {
+      "type": "string",
+      "enum": [
+        "jurisprudence",
+        "statute",
+        "doctrine",
+        "general"
+      ],
+      "description": "Tipo de pesquisa"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "civil",
+        "criminal",
+        "trabalhista",
+        "tributario",
+        "familia",
+        "empresarial",
+        "consumidor",
+        "previdenciario",
+        "constitucional",
+        "administrativo",
+        "geral"
+      ],
+      "description": "\u00c1rea do direito"
+    },
+    "results_summary": {
+      "type": "string",
+      "description": "Resumo dos resultados gerado pela IA"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "court": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "citation": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "relevance_score": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Fontes encontradas"
+    },
+    "case_id": {
+      "type": "string",
+      "description": "ID do caso relacionado (opcional)"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anota\u00e7\u00f5es do usu\u00e1rio"
+    }
+  },
+  "required": [
+    "title",
+    "query",
+    "research_type"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

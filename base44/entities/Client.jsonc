@@ -1,0 +1,78 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome completo do cliente"
+    },
+    "cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone"
+    },
+    "address": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "marital_status": {
+      "type": "string",
+      "enum": [
+        "single",
+        "married",
+        "divorced",
+        "widowed",
+        "common_law"
+      ],
+      "description": "Estado civil"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "company"
+      ],
+      "default": "individual",
+      "description": "Tipo de cliente"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "archived"
+      ],
+      "default": "active",
+      "description": "Status do cliente"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais"
+    }
+  },
+  "required": [
+    "name",
+    "phone"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

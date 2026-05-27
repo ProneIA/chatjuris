@@ -1,0 +1,36 @@
+{
+  "name": "TeamMember",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "ID da equipe"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do membro"
+    },
+    "role": {
+      "type": "string",
+      "description": "Cargo/fun\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "team_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

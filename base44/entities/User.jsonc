@@ -1,0 +1,99 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user",
+      "description": "Papel do usu\u00e1rio"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "active",
+        "blocked",
+        "deleted",
+        "lifetime",
+        "expired"
+      ],
+      "description": "Status da assinatura"
+    },
+    "subscription_type": {
+      "type": "string",
+      "description": "Tipo do plano (monthly, yearly, lifetime, trial)"
+    },
+    "trial_start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de in\u00edcio do trial (trial_started_at)"
+    },
+    "trial_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de fim do trial = trial_started_at + 7 dias (trial_ends_at)"
+    },
+    "trial_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Alias: data do primeiro login"
+    },
+    "trial_ends_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Alias: trial_started_at + 7 dias"
+    },
+    "subscription_start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de in\u00edcio da assinatura paga"
+    },
+    "subscription_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de vencimento da assinatura paga (subscription_expires_at)"
+    },
+    "subscription_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de vencimento do plano pago"
+    },
+    "blocked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data em que o acesso foi bloqueado"
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data em que os dados foram apagados"
+    },
+    "email_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Impede novo trial com mesmo e-mail (bloqueio p\u00f3s-dele\u00e7\u00e3o)"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone do usu\u00e1rio (para bloqueio por telefone)"
+    },
+    "payment_reference": {
+      "type": "string",
+      "description": "ID do pagamento no Mercado Pago / refer\u00eancia externa"
+    },
+    "is_lifetime": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 plano vital\u00edcio"
+    },
+    "has_password": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o usu\u00e1rio j\u00e1 criou uma senha local"
+    }
+  }
+}

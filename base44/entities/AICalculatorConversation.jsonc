@@ -1,0 +1,59 @@
+{
+  "name": "AICalculatorConversation",
+  "type": "object",
+  "properties": {
+    "calculator_type": {
+      "type": "string",
+      "description": "Tipo de calculadora"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico de mensagens"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da conversa"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima mensagem"
+    }
+  },
+  "required": [
+    "calculator_type"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

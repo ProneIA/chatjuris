@@ -1,0 +1,123 @@
+{
+  "name": "DiaryPublication",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo ou resumo da publica\u00e7\u00e3o"
+    },
+    "content": {
+      "type": "string",
+      "description": "Conte\u00fado completo da publica\u00e7\u00e3o"
+    },
+    "source": {
+      "type": "string",
+      "description": "Fonte/Di\u00e1rio de origem"
+    },
+    "publication_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da publica\u00e7\u00e3o"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "intimacao",
+        "sentenca",
+        "despacho",
+        "edital",
+        "decisao",
+        "acordao",
+        "citacao",
+        "outros"
+      ],
+      "description": "Categoria da publica\u00e7\u00e3o"
+    },
+    "court": {
+      "type": "string",
+      "description": "Tribunal/\u00d3rg\u00e3o"
+    },
+    "case_number": {
+      "type": "string",
+      "description": "N\u00famero do processo mencionado"
+    },
+    "parties_involved": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Partes envolvidas identificadas"
+    },
+    "keywords_matched": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palavras-chave que corresponderam"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "Resumo gerado pela IA"
+    },
+    "ai_analysis": {
+      "type": "string",
+      "description": "An\u00e1lise detalhada da IA"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "alta",
+        "media",
+        "baixa"
+      ],
+      "default": "media",
+      "description": "N\u00edvel de urg\u00eancia identificado"
+    },
+    "deadline_detected": {
+      "type": "string",
+      "format": "date",
+      "description": "Prazo identificado na publica\u00e7\u00e3o"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se foi lida"
+    },
+    "is_starred": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marcada como importante"
+    },
+    "linked_case_id": {
+      "type": "string",
+      "description": "ID do caso vinculado no sistema"
+    },
+    "linked_client_id": {
+      "type": "string",
+      "description": "ID do cliente vinculado"
+    },
+    "monitoring_id": {
+      "type": "string",
+      "description": "ID do monitoramento que capturou"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

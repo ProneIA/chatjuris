@@ -1,0 +1,71 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "comment",
+        "mention",
+        "task_assigned",
+        "case_shared",
+        "document_shared",
+        "deadline"
+      ],
+      "description": "Tipo de notifica\u00e7\u00e3o"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da notifica\u00e7\u00e3o"
+    },
+    "message": {
+      "type": "string",
+      "description": "Mensagem da notifica\u00e7\u00e3o"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email do destinat\u00e1rio"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se foi lida"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Tipo de entidade relacionada"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID da entidade relacionada"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Email de quem gerou a notifica\u00e7\u00e3o"
+    },
+    "actor_name": {
+      "type": "string",
+      "description": "Nome de quem gerou a notifica\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "message",
+    "recipient_email"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "recipient_email": "{{user.email}}"
+    },
+    "update": {
+      "recipient_email": "{{user.email}}"
+    },
+    "delete": {
+      "recipient_email": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "name": "ParcelaHonorario",
+  "type": "object",
+  "properties": {
+    "contrato_id": {
+      "type": "string",
+      "description": "ID do contrato de honor\u00e1rio"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "numero_parcela": {
+      "type": "number",
+      "description": "N\u00famero da parcela"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor da parcela"
+    },
+    "data_vencimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pagamento efetivo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "pago",
+        "atrasado",
+        "cancelado"
+      ],
+      "default": "pendente",
+      "description": "Status da parcela"
+    },
+    "forma_recebimento": {
+      "type": "string",
+      "enum": [
+        "dinheiro",
+        "pix",
+        "transferencia",
+        "boleto",
+        "cartao",
+        "cheque"
+      ],
+      "description": "Forma de recebimento"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre a parcela"
+    }
+  },
+  "required": [
+    "contrato_id",
+    "numero_parcela",
+    "valor",
+    "data_vencimento"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

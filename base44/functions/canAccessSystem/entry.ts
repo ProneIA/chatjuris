@@ -30,6 +30,42 @@ async function validateUserAccess(base44, user) {
     const nowISO = now.toISOString();
 
     // ============================================================
+    // VERIFICAÇÃO email_locked — conta deletada, bloquear login
+    // ============================================================
+    if (user.email_locked === true) {
+        return {
+            canAccess: false,
+            reason: 'email_locked',
+            message: 'Este e-mail já utilizou o período de teste gratuito. Faça o pagamento para continuar.',
+            redirectToPricing: true
+        };
+    }
+
+    // ============================================================
+    // VERIFICAÇÃO subscription_status == "deleted"
+    // ============================================================
+    if (user.subscription_status === 'deleted') {
+        return {
+            canAccess: false,
+            reason: 'account_deleted',
+            message: 'Sua conta foi removida por inatividade.',
+            redirectToLogin: true
+        };
+    }
+
+    // ============================================================
+    // VERIFICAÇÃO subscription_status == "blocked"
+    // ============================================================
+    if (user.subscription_status === 'blocked') {
+        return {
+            canAccess: false,
+            reason: 'account_blocked',
+            message: 'Seu acesso está bloqueado. Renove sua assinatura para continuar.',
+            redirectToPricing: true
+        };
+    }
+
+    // ============================================================
     // PASSO 1: Buscar a Subscription mais recente do usuário
     // Esta é a FONTE DA VERDADE - tem prioridade sobre user.fields
     // ============================================================
@@ -97,16 +133,29 @@ async function validateUserAccess(base44, user) {
     // PASSO 3: Sem subscription válida — verificar trial no User
     // (usuários que ainda não tiveram Subscription criada)
     // ============================================================
-    if (user.subscription_status === 'trial' && user.trial_end_date) {
-        if (nowISO <= user.trial_end_date) {
-            const daysLeft = Math.ceil((new Date(user.trial_end_date) - now) / (1000 * 60 * 60 * 24));
+    if (user.subscription_status === 'trial') {
+        const trialEnd = user.trial_ends_at || user.trial_end_date;
+        if (trialEnd && nowISO <= trialEnd) {
+            const daysLeft = Math.ceil((new Date(trialEnd) - now) / (1000 * 60 * 60 * 24));
             return {
                 canAccess: true,
                 subscription_status: 'trial',
                 subscription_type: 'trial',
-                trial_end_date: user.trial_end_date,
+                trial_end_date: trialEnd,
                 days_left: Math.max(0, daysLeft),
                 reason: 'trial_active'
+            };
+        } else if (trialEnd && nowISO > trialEnd) {
+            // Trial expirado — bloquear e atualizar status
+            await base44.asServiceRole.entities.User.update(user.id, {
+                subscription_status: 'blocked',
+                blocked_at: nowISO
+            }).catch(() => {});
+            return {
+                canAccess: false,
+                reason: 'trial_expired',
+                message: 'Seu período de teste encerrou. Assine para continuar.',
+                redirectToPricing: true
             };
         }
     }
@@ -128,17 +177,19 @@ async function validateUserAccess(base44, user) {
     // PASSO 5: Sem acesso válido — bloquear e redirecionar
     // ============================================================
 
-    // Atualizar status do user para expired se estava ativo
-    if (user.subscription_status === 'active' || user.subscription_status === 'trial') {
+    // Atualizar status do user para blocked se estava ativo/trial sem sub válida
+    if (user.subscription_status === 'active') {
         await base44.asServiceRole.entities.User.update(user.id, {
-            subscription_status: 'expired'
-        });
+            subscription_status: 'blocked',
+            blocked_at: nowISO
+        }).catch(() => {});
     }
 
     return {
         canAccess: false,
-        subscription_status: 'expired',
+        subscription_status: 'blocked',
         reason: 'no_active_subscription',
+        message: 'Sua assinatura expirou. Renove para continuar.',
         redirectToPricing: true
     };
 }

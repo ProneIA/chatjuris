@@ -1,0 +1,75 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da conversa"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "assistant",
+        "image_generator",
+        "document_analyzer",
+        "legal_document_generator"
+      ],
+      "default": "assistant",
+      "description": "Modo da IA"
+    },
+    "messages": {
+      "type": "array",
+      "description": "Hist\u00f3rico de mensagens",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima mensagem"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Conversa marcada como favorita"
+    }
+  },
+  "required": [
+    "title",
+    "mode"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

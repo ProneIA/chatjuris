@@ -1,0 +1,68 @@
+{
+  "name": "CaseUpdate",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "ID do caso"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da atualiza\u00e7\u00e3o"
+    },
+    "content": {
+      "type": "string",
+      "description": "Conte\u00fado da atualiza\u00e7\u00e3o"
+    },
+    "update_type": {
+      "type": "string",
+      "enum": [
+        "status_change",
+        "document_added",
+        "hearing_scheduled",
+        "deadline",
+        "general",
+        "milestone"
+      ],
+      "description": "Tipo de atualiza\u00e7\u00e3o"
+    },
+    "is_visible_to_client": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o cliente pode ver esta atualiza\u00e7\u00e3o"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de arquivos anexados"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_id",
+    "title",
+    "content",
+    "update_type"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

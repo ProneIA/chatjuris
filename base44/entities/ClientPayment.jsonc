@@ -1,0 +1,119 @@
+{
+  "name": "ClientPayment",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "case_id": {
+      "type": "string",
+      "description": "ID do processo relacionado"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do pagamento/honor\u00e1rio"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "honorario",
+        "despesa",
+        "reembolso"
+      ],
+      "default": "honorario",
+      "description": "Tipo de pagamento"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "installments"
+      ],
+      "default": "cash",
+      "description": "Forma de pagamento"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Valor total"
+    },
+    "paid_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor j\u00e1 pago"
+    },
+    "installments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "number"
+          },
+          "value": {
+            "type": "number"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "paid": {
+            "type": "boolean",
+            "default": false
+          },
+          "paid_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "Parcelas do pagamento"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "partial",
+        "paid",
+        "overdue"
+      ],
+      "default": "pending",
+      "description": "Status do pagamento"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pagamento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "client_id",
+    "title",
+    "type",
+    "payment_method",
+    "total_value"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -300,19 +300,39 @@ function BillingToggle({ billing, onChange }) {
 }
 
 // ─── Pricing Page ─────────────────────────────────────────────────────────────
+// Mensagens contextuais por motivo de bloqueio
+const BLOCK_MESSAGES = {
+  trial_expired: { color: "#ef4444", icon: "⚠️", text: "Seu período de teste encerrou. Assine para continuar." },
+  account_blocked: { color: "#f97316", icon: "🔒", text: "Seu acesso está bloqueado. Renove sua assinatura para continuar." },
+  email_locked: { color: "#8b5cf6", icon: "📧", text: "Este e-mail já utilizou o período de teste gratuito. Faça o pagamento para continuar." },
+  no_active_subscription: { color: "#f97316", icon: "🔒", text: "Sua assinatura expirou. Renove para continuar." },
+  blocked: { color: "#f97316", icon: "🔒", text: "Seu acesso foi bloqueado. Escolha um plano para continuar." },
+};
+
 export default function Pricing() {
   const [user, setUser] = useState(null);
   const [trialDaysLeft, setTrialDaysLeft] = useState(0);
   const [billing, setBilling] = useState("monthly");
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [blockReason, setBlockReason] = useState(null);
   const obsRef = useRef(null);
 
   useEffect(() => {
+    // Ler motivo do bloqueio da URL
+    const params = new URLSearchParams(window.location.search);
+    const blocked = params.get("blocked");
+    if (blocked) setBlockReason(decodeURIComponent(blocked));
+
     base44.auth.me().then(async (u) => {
       setUser(u);
       if (u?.trial_status === "active" && u?.trial_end_date) {
         const days = Math.ceil((new Date(u.trial_end_date) - new Date()) / 864e5);
         setTrialDaysLeft(days > 0 ? days : 0);
+      }
+      // Detectar bloqueio pelo status do usuário se não veio na URL
+      if (!blocked && u) {
+        if (u.subscription_status === 'blocked') setBlockReason('account_blocked');
+        else if (u.email_locked) setBlockReason('email_locked');
       }
     }).catch(() => {});
   }, []);
@@ -391,14 +411,16 @@ export default function Pricing() {
               ← Voltar ao Painel
             </Link>
           )}
-          {user?.trial_status === "active" && trialDaysLeft > 0 && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", background: "#C8A84B", color: "#000", padding: ".4rem 1rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em" }}>
-              <Sparkles style={{ width: 14, height: 14 }} /> Teste: {trialDaysLeft} {trialDaysLeft === 1 ? "dia" : "dias"} restantes
+          {/* Mensagem contextual de bloqueio */}
+          {blockReason && BLOCK_MESSAGES[blockReason] && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: ".6rem", background: BLOCK_MESSAGES[blockReason].color, color: "#fff", padding: ".5rem 1.2rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: ".72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", maxWidth: 600 }}>
+              <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0 }} />
+              {BLOCK_MESSAGES[blockReason].text}
             </div>
           )}
-          {user?.trial_status === "expired" && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", background: "#ef4444", color: "#fff", padding: ".4rem 1rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em" }}>
-              <AlertTriangle style={{ width: 14, height: 14 }} /> Período de Teste Expirado
+          {!blockReason && user?.trial_status === "active" && trialDaysLeft > 0 && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", background: "#C8A84B", color: "#000", padding: ".4rem 1rem", marginBottom: "1.5rem", fontFamily: "'Oswald',sans-serif", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em" }}>
+              <Sparkles style={{ width: 14, height: 14 }} /> Teste: {trialDaysLeft} {trialDaysLeft === 1 ? "dia" : "dias"} restantes
             </div>
           )}
 

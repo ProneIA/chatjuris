@@ -1,0 +1,40 @@
+{
+  "name": "AdminMasterLog",
+  "type": "object",
+  "properties": {
+    "admin_email": {
+      "type": "string",
+      "description": "Email do super admin que acessou"
+    },
+    "action": {
+      "type": "string",
+      "description": "A\u00e7\u00e3o realizada (ex: view_overview, view_financial)"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Endere\u00e7o IP de origem"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "User agent do navegador"
+    },
+    "details": {
+      "type": "string",
+      "description": "Detalhes adicionais em JSON"
+    }
+  },
+  "required": [
+    "admin_email",
+    "action"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": false,
+    "delete": false
+  }
+}

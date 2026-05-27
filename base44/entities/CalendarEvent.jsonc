@@ -1,0 +1,173 @@
+{
+  "name": "CalendarEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo do evento"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada do evento"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "meeting",
+        "deadline",
+        "research",
+        "hearing",
+        "consultation",
+        "team_sync",
+        "personal",
+        "task",
+        "other"
+      ],
+      "description": "Tipo de evento"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora de in\u00edcio"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora de t\u00e9rmino"
+    },
+    "case_id": {
+      "type": "string",
+      "description": "ID do processo relacionado"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente relacionado"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "ID da equipe (evento compartilhado)"
+    },
+    "calendar_provider": {
+      "type": "string",
+      "enum": [
+        "google",
+        "outlook",
+        "local"
+      ],
+      "default": "local",
+      "description": "Provedor do calend\u00e1rio"
+    },
+    "location": {
+      "type": "string",
+      "description": "Local do evento"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de participantes (emails)"
+    },
+    "reminder_minutes": {
+      "type": "number",
+      "default": 30,
+      "description": "Minutos antes para lembrete"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o lembrete j\u00e1 foi enviado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "completed",
+        "cancelled",
+        "rescheduled",
+        "overdue"
+      ],
+      "default": "scheduled",
+      "description": "Status do evento"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Prioridade do evento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionais"
+    },
+    "actions": {
+      "type": "array",
+      "description": "Lista de a\u00e7\u00f5es/checklist do evento",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean",
+            "default": false
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "color": {
+      "type": "string",
+      "description": "Cor personalizada do evento (hex)"
+    },
+    "is_all_day": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o evento dura o dia todo"
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "none",
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "default": "none",
+      "description": "Padr\u00e3o de recorr\u00eancia"
+    }
+  },
+  "required": [
+    "title",
+    "start_time",
+    "end_time",
+    "event_type"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

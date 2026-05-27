@@ -1,0 +1,79 @@
+{
+  "name": "ClientPortalAccess",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "client_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email do cliente para acesso ao portal"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "access_token": {
+      "type": "string",
+      "description": "Token \u00fanico de acesso"
+    },
+    "case_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos casos que o cliente pode acessar"
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "view_documents": {
+          "type": "boolean",
+          "default": true
+        },
+        "view_updates": {
+          "type": "boolean",
+          "default": true
+        },
+        "send_messages": {
+          "type": "boolean",
+          "default": true
+        },
+        "upload_documents": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_access": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "client_id",
+    "client_email",
+    "client_name",
+    "access_token"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

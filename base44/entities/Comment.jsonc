@@ -1,0 +1,67 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "Conte\u00fado do coment\u00e1rio"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "case",
+        "document",
+        "task"
+      ],
+      "description": "Tipo de entidade comentada"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID da entidade comentada"
+    },
+    "author_email": {
+      "type": "string",
+      "description": "Email do autor"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Nome do autor"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails de usu\u00e1rios mencionados"
+    }
+  },
+  "required": [
+    "content",
+    "entity_type",
+    "entity_id",
+    "author_email"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "mentions": {
+            "$contains": "{{user.email}}"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

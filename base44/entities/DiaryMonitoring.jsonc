@@ -1,0 +1,134 @@
+{
+  "name": "DiaryMonitoring",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do monitoramento"
+    },
+    "group_name": {
+      "type": "string",
+      "description": "Nome do grupo/projeto para organiza\u00e7\u00e3o"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente vinculado"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palavras-chave para monitorar"
+    },
+    "client_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Nomes de clientes para monitorar"
+    },
+    "case_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "N\u00fameros de processos para monitorar"
+    },
+    "courts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tribunais para monitorar"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categorias de interesse"
+    },
+    "notify_categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categorias espec\u00edficas para notificar"
+    },
+    "notify_urgencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "N\u00edveis de urg\u00eancia para notificar (alta, media, baixa)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o monitoramento est\u00e1 ativo"
+    },
+    "notification_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Receber notifica\u00e7\u00f5es por email"
+    },
+    "notification_push": {
+      "type": "boolean",
+      "default": false,
+      "description": "Receber notifica\u00e7\u00f5es push no app"
+    },
+    "notify_urgent_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notificar apenas publica\u00e7\u00f5es urgentes"
+    },
+    "notify_with_deadlines": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notificar quando houver prazos identificados"
+    },
+    "email_frequency": {
+      "type": "string",
+      "enum": [
+        "instant",
+        "daily",
+        "weekly"
+      ],
+      "default": "instant",
+      "description": "Frequ\u00eancia de emails"
+    },
+    "last_notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima notifica\u00e7\u00e3o enviada"
+    },
+    "publications_found": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de publica\u00e7\u00f5es encontradas"
+    },
+    "last_match_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima correspond\u00eancia encontrada"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "name": "WhatsAppAgentConfig",
+  "type": "object",
+  "properties": {
+    "agent_name": {
+      "type": "string",
+      "description": "Nome do assistente"
+    },
+    "greeting_message": {
+      "type": "string",
+      "description": "Mensagem de boas-vindas"
+    },
+    "office_name": {
+      "type": "string",
+      "description": "Nome do escrit\u00f3rio"
+    },
+    "office_hours": {
+      "type": "string",
+      "default": "Segunda a Sexta, 9h \u00e0s 18h",
+      "description": "Hor\u00e1rio de atendimento"
+    },
+    "services_offered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Servi\u00e7os oferecidos"
+    },
+    "custom_instructions": {
+      "type": "string",
+      "description": "Instru\u00e7\u00f5es personalizadas para o agente"
+    },
+    "collect_appointment_info": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se deve coletar informa\u00e7\u00f5es de agendamento"
+    },
+    "response_tone": {
+      "type": "string",
+      "enum": [
+        "formal",
+        "amigavel",
+        "profissional"
+      ],
+      "default": "profissional",
+      "description": "Tom das respostas"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o agente est\u00e1 ativo"
+    },
+    "whatsapp_connected": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o WhatsApp est\u00e1 conectado"
+    }
+  },
+  "required": [
+    "agent_name",
+    "office_name"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

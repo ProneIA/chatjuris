@@ -1,0 +1,116 @@
+{
+  "name": "SystemAuditLog",
+  "type": "object",
+  "properties": {
+    "executed_by": {
+      "type": "string",
+      "description": "Email do admin que executou a auditoria"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "scheduled"
+      ],
+      "default": "manual",
+      "description": "Como a auditoria foi disparada"
+    },
+    "result_score": {
+      "type": "number",
+      "description": "Score geral de sa\u00fade do sistema (0-100)"
+    },
+    "routes_status": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "ERROR"
+      ],
+      "description": "Status das rotas"
+    },
+    "auth_security": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "RISK"
+      ],
+      "description": "Status de autentica\u00e7\u00e3o e seguran\u00e7a"
+    },
+    "database_integrity": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "WARNING"
+      ],
+      "description": "Integridade do banco de dados"
+    },
+    "performance": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "SLOW"
+      ],
+      "description": "Performance geral"
+    },
+    "security": {
+      "type": "string",
+      "enum": [
+        "SAFE",
+        "ATTENTION"
+      ],
+      "description": "Status de seguran\u00e7a"
+    },
+    "lgpd_compliance": {
+      "type": "string",
+      "enum": [
+        "COMPLIANT",
+        "ISSUE"
+      ],
+      "description": "Conformidade LGPD"
+    },
+    "critical_issues": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de problemas cr\u00edticos encontrados"
+    },
+    "total_issues": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de problemas encontrados"
+    },
+    "issues_json": {
+      "type": "string",
+      "description": "JSON com a lista de problemas detalhados"
+    },
+    "report_json": {
+      "type": "string",
+      "description": "JSON completo do relat\u00f3rio de auditoria"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o da auditoria em milissegundos"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se notifica\u00e7\u00e3o de alerta foi enviada"
+    }
+  },
+  "required": [
+    "executed_by",
+    "result_score"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": false,
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

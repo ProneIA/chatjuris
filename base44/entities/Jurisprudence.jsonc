@@ -1,0 +1,88 @@
+{
+  "name": "Jurisprudence",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo ou ementa da jurisprud\u00eancia"
+    },
+    "court": {
+      "type": "string",
+      "enum": [
+        "STF",
+        "STJ",
+        "TST",
+        "TSE",
+        "STM",
+        "TRF",
+        "TJ",
+        "TRT",
+        "outros"
+      ],
+      "description": "Tribunal"
+    },
+    "case_number": {
+      "type": "string",
+      "description": "N\u00famero do processo/ac\u00f3rd\u00e3o"
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da decis\u00e3o"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Resumo da decis\u00e3o"
+    },
+    "full_text": {
+      "type": "string",
+      "description": "Texto completo do ac\u00f3rd\u00e3o"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags/palavras-chave"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "URL da fonte"
+    },
+    "relevance_score": {
+      "type": "number",
+      "description": "Pontua\u00e7\u00e3o de relev\u00e2ncia (0-100)"
+    },
+    "case_id": {
+      "type": "string",
+      "description": "ID do processo relacionado"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Anota\u00e7\u00f5es do advogado"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marcado como favorito"
+    }
+  },
+  "required": [
+    "title",
+    "court"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

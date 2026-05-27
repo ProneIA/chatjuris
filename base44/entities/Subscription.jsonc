@@ -1,0 +1,106 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "monthly",
+        "yearly",
+        "lifetime"
+      ],
+      "description": "Tipo de plano"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "active",
+        "expired",
+        "canceled",
+        "lifetime"
+      ],
+      "description": "Status da assinatura"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de in\u00edcio"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de t\u00e9rmino (null para vital\u00edcio)"
+    },
+    "trial_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de t\u00e9rmino do trial"
+    },
+    "is_lifetime": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 plano vital\u00edcio"
+    },
+    "price": {
+      "type": "number",
+      "description": "Pre\u00e7o pago"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "M\u00e9todo de pagamento"
+    },
+    "payment_external_id": {
+      "type": "string",
+      "description": "ID externo do pagamento"
+    },
+    "hotmart_subscription_id": {
+      "type": "string",
+      "description": "ID da assinatura Hotmart"
+    },
+    "cakto_order_id": {
+      "type": "string",
+      "description": "ID do pedido Cakto"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_type",
+    "status",
+    "start_date"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

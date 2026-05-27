@@ -1,0 +1,57 @@
+{
+  "name": "WebhookEvent",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "ID \u00fanico do evento (data.id do MP ou uuid gerado)"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Tipo do evento (payment, preapproval, etc)"
+    },
+    "mp_payment_id": {
+      "type": "string",
+      "description": "ID do pagamento no Mercado Pago"
+    },
+    "payload_json": {
+      "type": "string",
+      "description": "Payload bruto recebido (JSON string)"
+    },
+    "processed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o evento foi processado com sucesso"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando foi processado"
+    },
+    "error": {
+      "type": "string",
+      "description": "Erro ocorrido durante o processamento, se houver"
+    },
+    "mp_status": {
+      "type": "string",
+      "description": "Status retornado pelo MP na consulta"
+    },
+    "signature_valid": {
+      "type": "boolean",
+      "description": "Se a assinatura HMAC foi validada"
+    }
+  },
+  "required": [
+    "event_id"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": false,
+    "delete": false
+  }
+}

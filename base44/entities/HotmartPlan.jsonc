@@ -1,0 +1,86 @@
+{
+  "name": "HotmartPlan",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "enum": [
+        "TESTE",
+        "MENSAL",
+        "ANUAL",
+        "VITALICIO"
+      ],
+      "description": "Nome do plano"
+    },
+    "duration_days": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o em dias (null para vital\u00edcio)"
+    },
+    "price": {
+      "type": "number",
+      "description": "Pre\u00e7o do plano"
+    },
+    "hotmart_product_id": {
+      "type": "string",
+      "description": "ID do produto na Hotmart"
+    },
+    "hotmart_checkout_url": {
+      "type": "string",
+      "description": "URL de checkout da Hotmart"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 assinatura recorrente"
+    },
+    "is_free": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 gratuito (trial)"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de funcionalidades do plano"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do plano"
+    },
+    "installments": {
+      "type": "string",
+      "description": "Informa\u00e7\u00e3o de parcelamento"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o plano est\u00e1 ativo para venda"
+    }
+  },
+  "required": [
+    "name",
+    "price",
+    "is_recurring",
+    "is_free"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": true,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

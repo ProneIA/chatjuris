@@ -59,10 +59,17 @@ export function UserProvider({ children }) {
       setAccessCache(userId, data);
       setAccessChecked(true);
 
-      if (!data.canAccess && data.redirectToPricing) {
-        const publicPagesCheck = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic"];
-        if (!publicPagesCheck.includes(window.location.pathname)) {
-          window.location.href = '/Pricing';
+      if (!data.canAccess) {
+        const publicPages = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic", "/login", "/cadastro"];
+        const isPublic = publicPages.some(p => window.location.pathname.startsWith(p));
+        if (!isPublic) {
+          if (data.reason === 'account_deleted' || data.redirectToLogin) {
+            window.location.href = '/LandingPage';
+          } else if (data.redirectToPricing) {
+            // Passar o motivo do bloqueio como query param para exibir mensagem na página /Pricing
+            const msg = encodeURIComponent(data.reason || 'blocked');
+            window.location.href = `/Pricing?blocked=${msg}`;
+          }
         }
       }
       return data;

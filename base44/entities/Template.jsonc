@@ -1,0 +1,78 @@
+{
+  "name": "Template",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do template"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "peticao",
+        "recurso",
+        "contestacao",
+        "contrato",
+        "procuracao",
+        "parecer",
+        "memorando",
+        "outros"
+      ],
+      "description": "Categoria"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "civil",
+        "criminal",
+        "trabalhista",
+        "tributario",
+        "familia",
+        "empresarial",
+        "consumidor",
+        "previdenciario",
+        "geral"
+      ],
+      "description": "\u00c1rea do direito"
+    },
+    "content": {
+      "type": "string",
+      "description": "Conte\u00fado do template"
+    },
+    "variables": {
+      "type": "array",
+      "description": "Vari\u00e1veis do template (ex: {{nome_cliente}})",
+      "items": {
+        "type": "string"
+      }
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do template"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Template favorito"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "content"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

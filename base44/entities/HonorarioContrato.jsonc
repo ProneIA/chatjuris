@@ -1,0 +1,111 @@
+{
+  "name": "HonorarioContrato",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "caso_id": {
+      "type": "string",
+      "description": "ID do caso relacionado"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "fixo",
+        "exito",
+        "hibrido",
+        "hora"
+      ],
+      "default": "fixo",
+      "description": "Tipo de honor\u00e1rio"
+    },
+    "valor_total": {
+      "type": "number",
+      "description": "Valor total do contrato"
+    },
+    "porcentagem_exito": {
+      "type": "number",
+      "description": "Percentual sobre \u00eaxito (se aplic\u00e1vel)"
+    },
+    "valor_hora": {
+      "type": "number",
+      "description": "Valor por hora (se aplic\u00e1vel)"
+    },
+    "forma_pagamento": {
+      "type": "string",
+      "enum": [
+        "a_vista",
+        "parcelado"
+      ],
+      "default": "parcelado",
+      "description": "Forma de pagamento"
+    },
+    "numero_parcelas": {
+      "type": "number",
+      "default": 1,
+      "description": "N\u00famero de parcelas"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio do contrato"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de t\u00e9rmino (se aplic\u00e1vel)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "concluido",
+        "cancelado",
+        "suspenso"
+      ],
+      "default": "ativo",
+      "description": "Status do contrato"
+    },
+    "valor_recebido": {
+      "type": "number",
+      "default": 0,
+      "description": "Total j\u00e1 recebido"
+    },
+    "valor_pendente": {
+      "type": "number",
+      "default": 0,
+      "description": "Total ainda pendente"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o contrato"
+    }
+  },
+  "required": [
+    "cliente_id",
+    "cliente_nome",
+    "tipo",
+    "valor_total",
+    "data_inicio"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

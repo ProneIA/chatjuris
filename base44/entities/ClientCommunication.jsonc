@@ -1,0 +1,75 @@
+{
+  "name": "ClientCommunication",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "phone",
+        "meeting",
+        "whatsapp",
+        "video_call",
+        "other"
+      ],
+      "default": "email",
+      "description": "Tipo de comunica\u00e7\u00e3o"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Assunto da comunica\u00e7\u00e3o"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas ou resumo da comunica\u00e7\u00e3o"
+    },
+    "communication_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora da comunica\u00e7\u00e3o"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o em minutos (para reuni\u00f5es/liga\u00e7\u00f5es)"
+    },
+    "related_case_id": {
+      "type": "string",
+      "description": "ID do caso relacionado"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de arquivos anexados"
+    }
+  },
+  "required": [
+    "client_id",
+    "type",
+    "subject",
+    "communication_date"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
