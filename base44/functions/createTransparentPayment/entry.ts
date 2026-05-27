@@ -7,20 +7,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const PLANS = {
-  pro_monthly: {
-    name: 'Juris Pro - Plano Mensal',
-    description: 'Assinatura mensal da plataforma Juris Pro',
-    amount: 119.90,
-    durationDays: 30,
-    maxInstallments: 1
-  },
-  pro_yearly: {
-    name: 'Juris Pro - Plano Anual',
-    description: 'Assinatura anual da plataforma Juris Pro',
-    amount: 1198.80,
-    durationDays: 365,
-    maxInstallments: 12
-  }
+  basic_monthly:   { name: 'Juris Básico - Mensal',   description: 'Assinatura mensal Básica — Juris',    amount:  89.90, durationDays: 30,  maxInstallments: 1 },
+  adv_monthly:     { name: 'Juris Advogado - Mensal',  description: 'Assinatura mensal Advogado — Juris',  amount: 119.90, durationDays: 30,  maxInstallments: 1 },
+  empresa_monthly: { name: 'Juris Empresas - Mensal',  description: 'Assinatura mensal Empresas — Juris',  amount: 219.90, durationDays: 30,  maxInstallments: 1 },
+  adv_yearly:      { name: 'Juris Advogado - Anual',   description: 'Assinatura anual Advogado — Juris',   amount: 1197.00, durationDays: 365, maxInstallments: 12 },
+  empresa_yearly:  { name: 'Juris Empresas - Anual',   description: 'Assinatura anual Empresas — Juris',   amount: 2197.00, durationDays: 365, maxInstallments: 12 },
+  // Aliases legados
+  pro_monthly:     { name: 'Juris Pro - Plano Mensal', description: 'Assinatura mensal da plataforma Juris Pro', amount: 119.90, durationDays: 30,  maxInstallments: 1 },
+  pro_yearly:      { name: 'Juris Pro - Plano Anual',  description: 'Assinatura anual da plataforma Juris Pro',  amount: 1197.00, durationDays: 365, maxInstallments: 12 },
 };
 
 // Cupons fixos do sistema

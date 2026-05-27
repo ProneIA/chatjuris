@@ -55,17 +55,23 @@ Deno.serve(async (req) => {
 
         const planId = existingPayment[0].plan_id;
         const PLANS = {
-          pro_monthly: { amount: 119.90, durationDays: 30 },
-          pro_yearly: { amount: 1198.80, durationDays: 365 }
+          basic_monthly:   { amount:  89.90, durationDays: 30 },
+          adv_monthly:     { amount: 119.90, durationDays: 30 },
+          empresa_monthly: { amount: 219.90, durationDays: 30 },
+          adv_yearly:      { amount: 1197.00, durationDays: 365 },
+          empresa_yearly:  { amount: 2197.00, durationDays: 365 },
+          pro_monthly:     { amount: 119.90, durationDays: 30 },
+          pro_yearly:      { amount: 1197.00, durationDays: 365 },
         };
         const plan = PLANS[planId];
 
         if (plan) {
+          const isYearly = planId.includes('yearly');
           const startDate = new Date();
           const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
           const subData = {
             user_id: user.id,
-            plan_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
+            plan_type: isYearly ? 'yearly' : 'monthly',
             status: 'active',
             start_date: startDate.toISOString(),
             end_date: endDate.toISOString(),
@@ -83,9 +89,13 @@ Deno.serve(async (req) => {
 
           await base44.asServiceRole.entities.User.update(user.id, {
             subscription_status: 'active',
-            subscription_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
+            subscription_type: isYearly ? 'yearly' : 'monthly',
             subscription_start_date: startDate.toISOString(),
-            subscription_end_date: endDate.toISOString()
+            subscription_end_date: endDate.toISOString(),
+            subscription_expires_at: endDate.toISOString(),
+            blocked_at: null,
+            email_locked: false,
+            payment_reference: String(paymentId)
           });
         }
       }

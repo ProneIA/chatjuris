@@ -6,8 +6,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const PLANS = {
-  pro_monthly: { price: 119.90, durationDays: 30 },
-  pro_yearly: { price: 1198.80, durationDays: 365 }
+  // Planos mensais
+  basic_monthly:   { price:  89.90, durationDays: 30 },
+  adv_monthly:     { price: 119.90, durationDays: 30 },
+  empresa_monthly: { price: 219.90, durationDays: 30 },
+  // Planos anuais
+  adv_yearly:      { price: 1197.00, durationDays: 365 },
+  empresa_yearly:  { price: 2197.00, durationDays: 365 },
+  // Aliases legados
+  pro_monthly:     { price: 119.90, durationDays: 30 },
+  pro_yearly:      { price: 1197.00, durationDays: 365 },
 };
 
 async function validateMPSignature(req, body) {

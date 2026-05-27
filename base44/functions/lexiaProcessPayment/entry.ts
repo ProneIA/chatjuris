@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
       payment_method_id,
       transaction_amount: Number(transaction_amount),
       description: description || "Assinatura Juris",
+      external_reference: user.id,
       notification_url: notificationUrl,
       // binary_mode DEVE ser false para permitir parcelamento
       binary_mode: false,
