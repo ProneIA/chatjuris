@@ -245,9 +245,9 @@ export default function LandingPageLayout() {
   ];
 
   const testimonials = [
-    { text: "O Juris.IA transformou completamente minha rotina. Reduzi em 70% o tempo que gastava redigindo petições.", name: "Dra. Ana Lima", role: "Advogada Cível — São Paulo/SP" },
-    { text: "A ferramenta de acompanhamento de processos é incrível. Nunca mais perdi um prazo desde que comecei a usar.", name: "Dr. Carlos Mendes", role: "Advogado Trabalhista — Rio de Janeiro/RJ" },
-    { text: "O gerador de documentos com IA é impressionante. A qualidade das peças geradas é profissional e precisa.", name: "Dra. Fernanda Costa", role: "Sócia-Fundadora — Costa & Associados" },
+    { text: "O Juris.IA transformou completamente minha rotina. Reduzi em 70% o tempo que gastava redigindo petições.", name: "Dra. Ana Lima", role: "" },
+    { text: "A ferramenta de acompanhamento de processos é incrível. Nunca mais perdi um prazo desde que comecei a usar.", name: "Dr. Carlos Mendes", role: "" },
+    { text: "O gerador de documentos com IA é impressionante. A qualidade das peças geradas é profissional e precisa.", name: "Dra. Fernanda Costa", role: "" },
   ];
 
   return (
