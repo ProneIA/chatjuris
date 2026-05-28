@@ -288,13 +288,6 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               >
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
-              <Link to={createPageUrl("Dashboard")} className="lg:hidden" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
-                  alt="Juris.IA"
-                  style={{ height: 36, objectFit: 'contain', display: 'block' }}
-                />
-              </Link>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
