@@ -39,8 +39,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
+const S = {
+  bg: "#f5f5f4", card: "#ffffff", border: "#e7e5e4",
+  textPrimary: "#1c1917", textSecondary: "#78716c",
+  accent: "#1a1a1a", accentHover: "#333333", radius: 6,
+};
+
 export default function ClientPortal({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -159,50 +165,50 @@ export default function ClientPortal({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
+    <div style={{ minHeight: "100vh", padding: 24, background: S.bg, fontFamily: "var(--font-sans)" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
           <div>
-            <h1 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Portal do Cliente
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              Gerencie o acesso dos seus clientes aos casos
-            </p>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 600, color: S.textPrimary, margin: 0 }}>Portal do Cliente</h1>
+            <p style={{ fontSize: "0.875rem", color: S.textSecondary, marginTop: 4 }}>Gerencie o acesso dos seus clientes aos casos</p>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
+          <button
+            onClick={() => setShowCreateDialog(true)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: S.accent, color: "#fff", border: "none",
+              borderRadius: S.radius, padding: "9px 16px",
+              fontSize: "0.875rem", fontWeight: 500, cursor: "pointer",
+              transition: "background 0.15s", fontFamily: "var(--font-sans)",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = S.accentHover}
+            onMouseLeave={e => e.currentTarget.style.background = S.accent}
+          >
+            <Plus style={{ width: 16, height: 16 }} />
             Criar Acesso
-          </Button>
+          </button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
           {[
             { label: "Portais Ativos", value: portals.filter(p => p.is_active).length, icon: Users },
             { label: "Mensagens", value: messages.length, icon: MessageSquare },
             { label: "Atualizações", value: updates.length, icon: Bell },
             { label: "Clientes", value: clients.length, icon: Users },
           ].map((stat, i) => (
-            <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                  <stat.icon className={`w-5 h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
-                </div>
-                <div>
-                  <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
-                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{stat.label}</p>
-                </div>
-              </div>
+            <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+              <p style={{ fontSize: "0.75rem", fontWeight: 500, color: S.textSecondary, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px" }}>{stat.label}</p>
+              <p style={{ fontSize: "2rem", fontWeight: 700, color: S.textPrimary, margin: 0, lineHeight: 1 }}>{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }} className="lg:grid-cols-3-auto">
           {/* Portal List */}
-          <div className={`lg:col-span-1 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-            <div className="p-4 border-b border-neutral-800">
+          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, overflow: "hidden" }}>
+            <div style={{ padding: 16, borderBottom: `1px solid ${S.border}` }}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -213,23 +219,26 @@ export default function ClientPortal({ theme = 'light' }) {
                 />
               </div>
             </div>
-            <div className="divide-y divide-neutral-800 max-h-[600px] overflow-y-auto">
+            <div style={{ maxHeight: 600, overflowY: "auto" }}>
               {filteredPortals.map((portal) => (
                 <div
                   key={portal.id}
                   onClick={() => setSelectedPortal(portal)}
-                  className={`p-4 cursor-pointer transition-colors ${
-                    selectedPortal?.id === portal.id
-                      ? isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                      : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-gray-50'
-                  }`}
+                  style={{
+                    padding: 16, cursor: "pointer",
+                    borderBottom: `1px solid ${S.border}`,
+                    background: selectedPortal?.id === portal.id ? S.bg : S.card,
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = S.bg; }}
+                  onMouseLeave={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = S.card; }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 500, color: S.textPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 0 2px", fontSize: "0.875rem" }}>
                         {portal.client_name}
                       </p>
-                      <p className={`text-sm truncate ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                      <p style={{ fontSize: "0.8rem", color: S.textSecondary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
                         {portal.client_email}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
@@ -261,34 +270,43 @@ export default function ClientPortal({ theme = 'light' }) {
                 </div>
               ))}
               {filteredPortals.length === 0 && (
-                <div className="p-8 text-center">
-                  <Users className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Nenhum portal encontrado
-                  </p>
+                <div style={{ padding: 32, textAlign: "center" }}>
+                  <Users style={{ width: 40, height: 40, margin: "0 auto 12px", color: S.border }} />
+                  <p style={{ fontSize: "0.875rem", color: S.textSecondary }}>Nenhum portal encontrado</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Portal Details */}
-          <div className={`lg:col-span-2 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, overflow: "hidden" }}>
             {selectedPortal ? (
               <Tabs defaultValue="messages" className="h-full">
-                <div className={`p-4 border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                  <div className="flex items-center justify-between mb-4">
+                <div style={{ padding: 16, borderBottom: `1px solid ${S.border}` }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                     <div>
-                      <h2 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <h2 style={{ fontWeight: 600, color: S.textPrimary, margin: "0 0 2px", fontSize: "0.95rem" }}>
                         {selectedPortal.client_name}
                       </h2>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                      <p style={{ fontSize: "0.8rem", color: S.textSecondary, margin: 0 }}>
                         {selectedPortal.client_email}
                       </p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => copyPortalLink(selectedPortal)}>
-                      <ExternalLink className="w-4 h-4 mr-2" />
+                    <button
+                      onClick={() => copyPortalLink(selectedPortal)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        background: "transparent", border: `1px solid ${S.border}`,
+                        borderRadius: S.radius, padding: "7px 12px",
+                        fontSize: "0.8rem", color: S.textPrimary, cursor: "pointer",
+                        transition: "border-color 0.15s", fontFamily: "var(--font-sans)",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = S.accent}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = S.border}
+                    >
+                      <ExternalLink style={{ width: 14, height: 14 }} />
                       Copiar Link
-                    </Button>
+                    </button>
                   </div>
                   <TabsList>
                     <TabsTrigger value="messages">Mensagens</TabsTrigger>
@@ -352,18 +370,18 @@ export default function ClientPortal({ theme = 'light' }) {
                   <div className="space-y-4">
                     {updates.map((update) => (
                       <div key={update.id} className={`p-4 rounded-lg border ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                        <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            update.update_type === 'milestone' ? 'bg-green-500/20 text-green-500' :
-                            update.update_type === 'deadline' ? 'bg-red-500/20 text-red-500' :
-                            'bg-blue-500/20 text-blue-500'
-                          }`}>
-                            <Bell className="w-4 h-4" />
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                          <div style={{
+                            width: 32, height: 32, borderRadius: S.radius,
+                            background: S.bg, border: `1px solid ${S.border}`,
+                            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                          }}>
+                            <Bell style={{ width: 14, height: 14, color: S.textSecondary }} />
                           </div>
-                          <div className="flex-1">
-                            <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{update.title}</h4>
-                            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>{update.content}</p>
-                            <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ fontWeight: 500, color: S.textPrimary, margin: "0 0 4px", fontSize: "0.875rem" }}>{update.title}</h4>
+                            <p style={{ fontSize: "0.8rem", color: S.textSecondary, margin: "0 0 6px", lineHeight: 1.5 }}>{update.content}</p>
+                            <p style={{ fontSize: "0.75rem", color: S.textSecondary, margin: 0 }}>
                               {new Date(update.created_date).toLocaleDateString('pt-BR')}
                             </p>
                           </div>
@@ -398,12 +416,10 @@ export default function ClientPortal({ theme = 'light' }) {
                 </TabsContent>
               </Tabs>
             ) : (
-              <div className="h-[500px] flex items-center justify-center">
-                <div className="text-center">
-                  <Users className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                  <p className={`${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                    Selecione um portal para ver detalhes
-                  </p>
+              <div style={{ height: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ textAlign: "center" }}>
+                  <Users style={{ width: 48, height: 48, margin: "0 auto 12px", color: S.border }} />
+                  <p style={{ color: S.textSecondary, fontSize: "0.875rem" }}>Selecione um portal para ver detalhes</p>
                 </div>
               </div>
             )}

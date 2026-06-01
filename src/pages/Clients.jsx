@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus, Search, Building2, User as UserIcon } from "lucide-react";
 import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
@@ -10,7 +8,6 @@ import ClientDetails from "../components/clients/ClientDetails";
 import { useDebounce } from "@/components/common/useDebounce";
 
 export default function Clients({ theme = 'light' }) {
-  const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [showForm, setShowForm] = useState(false);
@@ -30,19 +27,6 @@ export default function Clients({ theme = 'light' }) {
       return base44.entities.Client.filter({ created_by: user.email }, '-created_date');
     },
     enabled: !!user?.email
-  });
-
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      let subs = await base44.entities.Subscription.filter({ user_id: user.id });
-      if (subs.length === 0) {
-        subs = await base44.entities.Subscription.filter({ user_id: user.email });
-      }
-      return subs[0] || null;
-    },
-    enabled: !!user?.id
   });
 
   const createMutation = useMutation({
@@ -88,86 +72,104 @@ export default function Clients({ theme = 'light' }) {
   const individualClients = clients.filter(c => c.type === 'individual').length;
   const companyClients = clients.filter(c => c.type === 'company').length;
 
+  const S = {
+    bg: "#f5f5f4",
+    card: "#ffffff",
+    border: "#e7e5e4",
+    textPrimary: "#1c1917",
+    textSecondary: "#78716c",
+    accent: "#1a1a1a",
+    accentHover: "#333333",
+    radius: 6,
+  };
+
   return (
-    <div className={`h-full flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="flex-1 flex overflow-hidden">
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-        <div className={`border-b px-4 sm:px-6 py-4 sm:py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center justify-between mb-4 sm:mb-6 gap-3">
-            <div>
-              <h1 className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Clientes</h1>
-              <p className={`mt-1 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Gerencie seus clientes</p>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: S.bg }}>
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+
+          {/* Header */}
+          <div style={{ borderBottom: `1px solid ${S.border}`, padding: "20px 24px", background: S.bg }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
+              <div>
+                <h1 style={{ fontSize: "1.5rem", fontWeight: 600, color: S.textPrimary, margin: 0 }}>Clientes</h1>
+                <p style={{ fontSize: "0.875rem", color: S.textSecondary, marginTop: 4 }}>Gerencie seus clientes</p>
+              </div>
+              <button
+                onClick={() => { setShowForm(true); setEditingClient(null); setSelectedClient(null); }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: S.accent, color: "#fff", border: "none",
+                  borderRadius: S.radius, padding: "9px 16px",
+                  fontSize: "0.875rem", fontWeight: 500, cursor: "pointer",
+                  transition: "background 0.15s", flexShrink: 0,
+                  fontFamily: "var(--font-sans)",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = S.accentHover}
+                onMouseLeave={e => e.currentTarget.style.background = S.accent}
+              >
+                <Plus style={{ width: 16, height: 16 }} />
+                <span>Novo Cliente</span>
+              </button>
             </div>
-            <Button
-              onClick={() => {
-                setShowForm(true);
-                setEditingClient(null);
-                setSelectedClient(null);
-              }}
-              className={isDark ? 'bg-white text-black hover:bg-gray-100 shrink-0' : 'bg-gray-900 text-white hover:bg-gray-800 shrink-0'}
-              style={{ minHeight: 44 }}
-            >
-              <Plus className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Novo Cliente</span>
-            </Button>
+
+            {/* Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {[
+                { label: "Ativos", value: activeClients, icon: null },
+                { label: "Físicas", value: individualClients, icon: UserIcon },
+                { label: "Jurídicas", value: companyClients, icon: Building2 },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} style={{
+                  background: S.card, border: `1px solid ${S.border}`,
+                  borderRadius: S.radius, padding: "12px 16px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                    {Icon && <Icon style={{ width: 14, height: 14, color: S.textSecondary, flexShrink: 0 }} />}
+                    <p style={{ fontSize: "0.75rem", fontWeight: 500, color: S.textSecondary, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>{label}</p>
+                  </div>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: S.textPrimary, margin: 0, lineHeight: 1 }}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div style={{ position: "relative", marginTop: 16 }}>
+              <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: S.textSecondary }} />
+              <input
+                placeholder="Buscar por nome, email ou CPF/CNPJ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%", padding: "9px 12px 9px 38px",
+                  background: S.card, border: `1px solid ${S.border}`,
+                  borderRadius: S.radius, fontSize: "0.875rem",
+                  color: S.textPrimary, outline: "none", boxSizing: "border-box",
+                  fontFamily: "var(--font-sans)",
+                }}
+              />
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-xs sm:text-sm mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Ativos</p>
-              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeClients}</p>
-            </div>
-            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <div className={`flex items-center gap-1 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-                <p className="text-xs sm:text-sm truncate">Físicas</p>
-              </div>
-              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{individualClients}</p>
-            </div>
-            <div className={`border rounded-lg p-3 sm:p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <div className={`flex items-center gap-1 mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                <Building2 className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-                <p className="text-xs sm:text-sm truncate">Jurídicas</p>
-              </div>
-              <p className={`text-xl sm:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{companyClients}</p>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="relative mt-4">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-            <Input
-              placeholder="Buscar por nome, email ou CPF/CNPJ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
-            />
+          <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px 24px" }}>
+            {showForm ? (
+              <ClientForm
+                client={editingClient}
+                onSubmit={handleSubmit}
+                onCancel={() => { setShowForm(false); setEditingClient(null); }}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+              />
+            ) : (
+              <ClientList
+                clients={filteredClients}
+                isLoading={isLoading}
+                onSelectClient={setSelectedClient}
+                selectedClient={selectedClient}
+              />
+            )}
           </div>
         </div>
-
-        <div className={`flex-1 overflow-y-auto p-3 sm:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-          {showForm ? (
-            <ClientForm
-              client={editingClient}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setShowForm(false);
-                setEditingClient(null);
-              }}
-              isLoading={createMutation.isPending || updateMutation.isPending}
-            />
-          ) : (
-            <ClientList
-              clients={filteredClients}
-              isLoading={isLoading}
-              onSelectClient={setSelectedClient}
-              selectedClient={selectedClient}
-            />
-          )}
-        </div>
-      </div>
 
         {/* Details Sidebar */}
         {selectedClient && !showForm && (
