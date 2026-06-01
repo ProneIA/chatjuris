@@ -119,15 +119,15 @@ const ADMIN_GROUP = {
 // ─── Badge ─────────────────────────────────────────────────────────────────
 function NavBadge({ label }) {
   const styles = {
-    IA:       { bg: "rgba(184,150,62,0.12)", color: "#9A7228" },
-    NOVO:     { bg: "rgba(16,185,129,0.12)", color: "#10b981" },
-    RESTRITO: { bg: "rgba(239,68,68,0.12)",  color: "#ef4444" },
+    IA:       { bg: "rgba(99,102,241,0.2)", color: "#a5b4fc" },
+    NOVO:     { bg: "rgba(16,185,129,0.2)", color: "#6ee7b7" },
+    RESTRITO: { bg: "rgba(239,68,68,0.2)",  color: "#fca5a5" },
   };
   const s = styles[label] || styles.RESTRITO;
   return (
     <span style={{
-      fontSize: "0.6rem", fontWeight: 700, padding: "1px 5px",
-      borderRadius: 3, background: s.bg, color: s.color,
+      fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px",
+      borderRadius: 100, background: s.bg, color: s.color,
       letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
     }}>
       {label}
@@ -143,24 +143,25 @@ function NavDirectLink({ group, location, onNavigate, subscriptionExpired }) {
       onClick={() => { onNavigate?.(); window.location.href = group.url; }}
       style={{
         display: "flex", alignItems: "center", gap: "0.6rem",
-        width: "100%", padding: "0.55rem 1.1rem",
-        background: isActive ? "rgba(184,150,62,0.08)" : "transparent",
+        width: "100%", padding: "10px 16px",
+        background: isActive ? "rgba(99,102,241,0.15)" : "transparent",
         border: "none", cursor: "pointer",
-        borderLeft: isActive ? "3px solid #B8963E" : "3px solid transparent",
+        borderLeft: isActive ? "2px solid #6366F1" : "2px solid transparent",
         transition: "background 0.15s",
-        fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em",
+        fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em",
         textTransform: "uppercase",
-        color: isActive ? "#9A7228" : "var(--text-muted)",
+        color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.45)",
         marginBottom: 2,
-        fontFamily: "'Outfit', system-ui, sans-serif",
+        fontFamily: "'Inter', system-ui, sans-serif",
+        borderRadius: "0 8px 8px 0",
       }}
-      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(184,150,62,0.06)"; }}
+      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
       onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
     >
-      <group.icon style={{ width: 15, height: 15, flexShrink: 0, color: isActive ? "#B8963E" : "var(--text-muted)" }} />
+      <group.icon style={{ width: 16, height: 16, flexShrink: 0, color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.4)", strokeWidth: 1.5 }} />
       <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
       {group.id === "assinatura" && subscriptionExpired && (
-        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0, display: "inline-block" }} title="Assinatura expirada" />
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#EF4444", flexShrink: 0, display: "inline-block" }} title="Assinatura expirada" />
       )}
     </button>
   );
@@ -203,33 +204,32 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
         onClick={toggle}
         style={{
           display: "flex", alignItems: "center", gap: "0.6rem",
-          width: "100%", padding: "0.55rem 1.1rem",
-          background: isAdminGroup
-            ? (open ? "rgba(239,68,68,0.08)" : "transparent")
-            : "transparent",
+          width: "100%", padding: "10px 16px",
+          background: isAdminGroup ? "rgba(239,68,68,0.1)" : "transparent",
           border: "none", cursor: "pointer",
-          borderLeft: isAdminGroup ? "3px solid rgba(239,68,68,0.4)" : "3px solid transparent",
+          borderLeft: isAdminGroup ? "2px solid rgba(239,68,68,0.5)" : "2px solid transparent",
           transition: "background 0.15s",
+          borderRadius: "0 8px 8px 0",
         }}
-        onMouseEnter={e => { if (!isAdminGroup) e.currentTarget.style.background = "rgba(184,150,62,0.06)"; }}
-        onMouseLeave={e => { if (!isAdminGroup) e.currentTarget.style.background = isAdminGroup && open ? "rgba(239,68,68,0.08)" : "transparent"; }}
+        onMouseEnter={e => { if (!isAdminGroup) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+        onMouseLeave={e => { if (!isAdminGroup) e.currentTarget.style.background = "transparent"; }}
       >
         <group.icon style={{
-          width: 15, height: 15, flexShrink: 0,
-          color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
+          width: 16, height: 16, flexShrink: 0, strokeWidth: 1.5,
+          color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.4)",
         }} />
         <span style={{
           flex: 1, textAlign: "left",
-          fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em",
+          fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
-          fontFamily: "'Outfit', system-ui, sans-serif",
+          color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.45)",
+          fontFamily: "'Inter', system-ui, sans-serif",
         }}>
           {group.label}
         </span>
         {isAdminGroup && <NavBadge label="RESTRITO" />}
         <ChevronDown style={{
-          width: 13, height: 13, color: isAdminGroup ? "#c0392b" : "var(--text-muted)",
+          width: 13, height: 13, color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.3)",
           transform: open ? "rotate(180deg)" : "rotate(0deg)",
           transition: "transform 0.2s ease",
           flexShrink: 0,
@@ -239,7 +239,7 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
       {/* Itens do grupo */}
       <div style={{
         overflow: "hidden",
-        maxHeight: open ? `${visibleItems.length * 44}px` : "0px",
+        maxHeight: open ? `${visibleItems.length * 40}px` : "0px",
         transition: "max-height 0.22s ease",
       }}>
         {visibleItems.map((item) => {
@@ -251,29 +251,30 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
               onClick={onNavigate}
               style={{
                 display: "flex", alignItems: "center", gap: "0.65rem",
-                padding: "0.5rem 1.1rem 0.5rem 2.2rem",
+                padding: "9px 16px 9px 36px",
                 textDecoration: "none",
-                background: isActive ? "rgba(184,150,62,0.10)" : "transparent",
-                color: isActive ? "#9A7228" : "var(--text-muted)",
-                borderLeft: isActive ? "3px solid #B8963E" : "3px solid transparent",
-                fontSize: "0.8rem", fontWeight: isActive ? 600 : 400,
+                background: isActive ? "rgba(99,102,241,0.15)" : "transparent",
+                color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.5)",
+                borderLeft: isActive ? "2px solid #6366F1" : "2px solid transparent",
+                fontSize: "0.8125rem", fontWeight: isActive ? 500 : 400,
                 transition: "background 0.12s, color 0.12s",
                 minHeight: 36,
+                borderRadius: "0 8px 8px 0",
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.background = "rgba(184,150,62,0.06)";
-                  e.currentTarget.style.color = "#9A7228";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                  e.currentTarget.style.color = "rgba(255,255,255,0.8)";
                 }
               }}
               onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "var(--text-muted)";
+                  e.currentTarget.style.color = "rgba(255,255,255,0.5)";
                 }
               }}
             >
-              <item.icon style={{ width: 14, height: 14, flexShrink: 0, color: isActive ? "#B8963E" : "inherit" }} />
+              <item.icon style={{ width: 16, height: 16, flexShrink: 0, strokeWidth: 1.5, color: isActive ? "#a5b4fc" : "inherit" }} />
               <span style={{ flex: 1 }}>{item.title}</span>
               {item.badge && <NavBadge label={item.badge} />}
             </Link>

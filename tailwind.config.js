@@ -5,6 +5,7 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
+  			'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
   			'plex': ['IBM Plex Sans', '-apple-system', 'sans-serif'],
   			'outfit': ['Outfit', '-apple-system', 'sans-serif'],
   		},
@@ -14,8 +15,8 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			background: '#F5F3EE',
-  			foreground: '#1A1A1A',
+  			background: '#F8FAFC',
+  			foreground: '#0F172A',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -25,7 +26,7 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: '#B8963E',
+  				DEFAULT: '#6366F1',
   				foreground: '#FFFFFF'
   			},
   			secondary: {
@@ -46,7 +47,7 @@ module.exports = {
   			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
-  			ring: '#b8922a',
+  			ring: '#6366F1',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

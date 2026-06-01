@@ -271,10 +271,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* ── HEADER ── */}
         <header style={{
           position: 'fixed', top: 0, left: 0, right: 0, height: 'var(--header-h)',
-          background: 'rgba(255,255,255,0.92)',
+          background: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--border)',
+          borderBottom: '1px solid #E2E8F0',
           zIndex: 50,
           display: 'flex', alignItems: 'center',
         }}>
@@ -320,13 +320,13 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                       cursor: 'pointer',
                       transition: 'all var(--duration) var(--ease)',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-border)'; e.currentTarget.style.background = 'var(--gold-light)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'; e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
                   >
                     <div style={{
                       width: 28, height: 28, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                       <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>
                         {user?.full_name?.[0]?.toUpperCase() || 'U'}
@@ -404,8 +404,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           style={{
             position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
             width: 'var(--sidebar-w)',
-            background: 'var(--surface)',
-            borderRight: '1px solid var(--border)',
+            background: '#0A0E1A',
+            borderRight: '1px solid rgba(255,255,255,0.06)',
             overflowY: 'auto', overflowX: 'hidden',
             zIndex: 46,
             display: 'flex', flexDirection: 'column',
@@ -417,11 +417,11 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
                 alt="Juris.IA"
-                style={{ height: 40, objectFit: 'contain', display: 'block' }}
+                style={{ height: 40, objectFit: 'contain', display: 'block', filter: 'brightness(0) invert(1)' }}
               />
             </Link>
           </div>
-          <div className="divider" style={{ margin: '0 16px 4px' }} />
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '0 16px 4px' }} />
           <div style={{ flex: 1, padding: '0 8px 16px' }}>
             <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={false} />
           </div>
@@ -446,7 +446,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 <Link
                   to={createPageUrl("Dashboard")}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
                   onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   <ArrowLeft className="w-4 h-4" />
