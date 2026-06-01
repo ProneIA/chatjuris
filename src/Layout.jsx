@@ -249,7 +249,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     const showBackButton = !pagesWithoutBackButton.includes(currentPageName);
 
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F3EE", fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
         <React.Suspense fallback={null}><PWAHead /></React.Suspense>
         <React.Suspense fallback={null}><KeyboardShortcuts /></React.Suspense>
         <React.Suspense fallback={null}>
@@ -268,111 +268,142 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           />
         </React.Suspense>
 
-        {/* ── HEADER ── */}
+        {/* ── TOPBAR ── */}
         <header style={{
           position: 'fixed', top: 0, left: 0, right: 0, height: 'var(--header-h)',
-          background: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #E2E8F0',
+          background: 'var(--white)',
+          borderBottom: '1px solid var(--ink-6)',
           zIndex: 50,
           display: 'flex', alignItems: 'center',
+          padding: '0 28px 0 0',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="btn-ghost lg:hidden"
-                style={{ padding: '8px', minWidth: 'unset', borderRadius: 'var(--radius-sm)' }}
-                aria-label="Menu"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '0 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              height: '100%', color: 'var(--ink-3)',
+              transition: 'color var(--duration)',
+            }}
+            aria-label="Menu"
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--ink)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--ink-3)'}
+          >
+            {isMobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+          </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {!isStandalone && (
+          {/* Breadcrumb — desktop */}
+          <div className="hidden lg:flex items-center" style={{
+            flex: 1, paddingLeft: 'calc(var(--sidebar-w) + 28px)',
+            gap: 6, fontSize: 11, color: 'var(--ink-4)',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            <span>Juris.IA</span>
+            <span style={{ color: 'var(--ink-5)' }}>/</span>
+            <span style={{ color: 'var(--ink-2)', fontWeight: 500 }}>{currentPageName}</span>
+          </div>
+
+          {/* Right actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginLeft: 'auto' }}>
+            {/* Data */}
+            <span className="hidden md:block" style={{
+              fontSize: 11, color: 'var(--ink-4)',
+              fontFamily: 'var(--font-sans)', paddingRight: 16,
+            }}>
+              {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </span>
+            {/* Divisor */}
+            <div className="hidden md:block" style={{ width: 1, height: 20, background: 'var(--ink-6)', marginRight: 12 }} />
+
+            {/* Notifications */}
+            {user && (
+              <React.Suspense fallback={<div style={{ width: 30, height: 30 }} />}>
+                <NotificationPanel user={user} />
+              </React.Suspense>
+            )}
+
+            {/* User dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button
-                  onClick={handleInstallApp}
-                  className="btn-ghost hidden md:inline-flex"
-                  style={{ fontSize: 13, padding: '7px 12px' }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '0 0 0 12px',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    transition: 'opacity var(--duration)',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden xl:inline">Instalar App</span>
-                </button>
-              )}
-
-              {user && (
-                <React.Suspense fallback={<div style={{ width: 36, height: 36 }} />}>
-                  <NotificationPanel user={user} />
-                </React.Suspense>
-              )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '5px 10px 5px 5px',
-                      background: 'var(--surface-2)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-full)',
-                      cursor: 'pointer',
-                      transition: 'all var(--duration) var(--ease)',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'; e.currentTarget.style.background = 'rgba(99,102,241,0.06)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
-                  >
-                    <div style={{
-                      width: 28, height: 28, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                    }}>
-                      <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>
-                        {user?.full_name?.[0]?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <span className="hidden sm:block" style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {user?.full_name?.split(' ')[0] || 'Usuário'}
+                  <div style={{
+                    width: 30, height: 30,
+                    background: 'var(--ink)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <span style={{ color: 'var(--white)', fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-sans)' }}>
+                      {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" style={{ width: 230, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-xl)', padding: 6 }}>
-                  <div style={{ padding: '10px 12px 8px' }}>
-                    <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', marginBottom: 2 }}>{user?.full_name || 'Usuário'}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{user?.email}</p>
                   </div>
-                  <DropdownMenuSeparator style={{ background: 'var(--border)', margin: '4px 0' }} />
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Settings")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
-                      <Settings className="w-4 h-4" /> Preferências
-                    </Link>
+                  <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-2)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.full_name?.split(' ')[0] || 'Usuário'}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" style={{ width: 220, background: 'var(--white)', border: '1px solid var(--ink-6)', borderRadius: 0, boxShadow: 'none', padding: 0 }}>
+                <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--ink-6)' }}>
+                  <p style={{ fontWeight: 600, fontSize: 12, color: 'var(--ink)', marginBottom: 2, fontFamily: 'var(--font-sans)' }}>{user?.full_name || 'Usuário'}</p>
+                  <p style={{ fontSize: 11, color: 'var(--ink-4)', fontFamily: 'var(--font-sans)' }}>{user?.email}</p>
+                </div>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("Settings")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  >
+                    <Settings size={13} /> Preferências
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("MyData")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  >
+                    <Bookmark size={13} /> Meus Dados
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("Contact")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  >
+                    <MessageSquare size={13} /> Suporte
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={createPageUrl("PrivacyPolicy")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  >
+                    <Bookmark size={13} /> Privacidade
+                  </Link>
+                </DropdownMenuItem>
+                <div style={{ borderTop: '1px solid var(--ink-6)' }}>
+                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--danger)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Shield size={13} /> Excluir Conta
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("MyData")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
-                      <Bookmark className="w-4 h-4" /> Meus Dados
-                    </Link>
+                  <DropdownMenuItem onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  >
+                    <LogOut size={13} /> Sair
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("Contact")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
-                      <MessageSquare className="w-4 h-4" /> Suporte
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl("PrivacyPolicy")} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', cursor: 'pointer' }}>
-                      <Bookmark className="w-4 h-4" /> Privacidade
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator style={{ background: 'var(--border)', margin: '4px 0' }} />
-                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: 13, cursor: 'pointer' }}>
-                    <Shield className="w-4 h-4" /> Excluir Conta
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>
-                    <LogOut className="w-4 h-4" /> Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -404,26 +435,68 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           style={{
             position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
             width: 'var(--sidebar-w)',
-            background: '#0A0E1A',
-            borderRight: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--ink)',
+            borderRight: '1px solid rgba(255,255,255,0.08)',
             overflowY: 'auto', overflowX: 'hidden',
             zIndex: 46,
             display: 'flex', flexDirection: 'column',
-            transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)',
+            transition: 'transform 0.2s ease',
           }}
         >
-          <div style={{ padding: '16px 16px 8px' }}>
-            <Link to={createPageUrl("Dashboard")} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png"
-                alt="Juris.IA"
-                style={{ height: 40, objectFit: 'contain', display: 'block', filter: 'brightness(0) invert(1)' }}
-              />
+          {/* Logo area */}
+          <div style={{ padding: '20px 20px 0' }}>
+            <Link to={createPageUrl("Dashboard")} style={{ textDecoration: 'none', display: 'block' }}>
+              <div style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontStyle: 'italic',
+                fontWeight: 700,
+                fontSize: 20,
+                color: 'var(--white)',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+              }}>
+                Juris<span style={{ fontStyle: 'normal', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 600, letterSpacing: 0 }}>.IA</span>
+              </div>
+              <div style={{
+                fontSize: 8, fontWeight: 600, letterSpacing: '0.12em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)',
+                fontFamily: "'Inter', system-ui, sans-serif",
+                marginTop: 4,
+              }}>
+                O futuro da advocacia
+              </div>
             </Link>
           </div>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '0 16px 4px' }} />
-          <div style={{ flex: 1, padding: '0 8px 16px' }}>
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '16px 0 8px' }} />
+          <div style={{ flex: 1, paddingBottom: 16 }}>
             <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={false} />
+          </div>
+          {/* User footer */}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 28, height: 28, background: 'rgba(255,255,255,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-sans)' }}>
+                  {user?.full_name?.[0]?.toUpperCase() || 'U'}
+                </span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)' }}>
+                  {user?.full_name?.split(' ')[0] || 'Usuário'}
+                </p>
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', margin: '2px 0 0', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'var(--font-sans)' }}>
+                  {user?.role === 'admin' ? 'Administrador' : 'Advogado'}
+                </p>
+              </div>
+              <Link to={createPageUrl("Settings")} style={{ color: 'rgba(255,255,255,0.25)', transition: 'color var(--duration)', display: 'flex' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
+              >
+                <Settings size={13} />
+              </Link>
+            </div>
           </div>
         </aside>
 
@@ -437,28 +510,29 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* ── MAIN ── */}
         <main style={{
           minHeight: '100vh',
-          background: 'var(--bg-app)',
+          background: 'var(--surface)',
           paddingTop: 'var(--header-h)',
-        }} className="lg:pl-[240px] pl-0">
+        }} className="lg:pl-[220px] pl-0">
           {showBackButton && (
-            <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-              <div className="px-6 py-3 flex items-center justify-between">
+            <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--ink-6)' }}>
+              <div style={{ padding: '10px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Link
                   to={createPageUrl("Dashboard")}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-4)', textDecoration: 'none', transition: 'color var(--duration)', fontFamily: 'var(--font-sans)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--ink)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--ink-4)'}
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Voltar</span>
+                  <ArrowLeft size={12} />
+                  <span>Início</span>
                 </Link>
                 {currentPageName === "AIAssistant" && (
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('openAIHistory'))}
-                    className="btn-ghost"
-                    style={{ padding: '6px 12px', fontSize: 12 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: '1px solid var(--ink-6)', padding: '6px 12px', fontSize: 11, cursor: 'pointer', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', transition: 'all var(--duration)' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ink-4)'; e.currentTarget.style.color = 'var(--ink)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--ink-6)'; e.currentTarget.style.color = 'var(--ink-3)'; }}
                   >
-                    <HistoryIcon className="w-4 h-4" />
+                    <HistoryIcon size={12} />
                     <span>Histórico</span>
                   </button>
                 )}

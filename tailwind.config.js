@@ -6,17 +6,20 @@ module.exports = {
   	extend: {
   		fontFamily: {
   			'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-  			'plex': ['IBM Plex Sans', '-apple-system', 'sans-serif'],
-  			'outfit': ['Outfit', '-apple-system', 'sans-serif'],
+  			'serif': ['Playfair Display', 'Georgia', 'serif'],
+  			'display': ['Playfair Display', 'Georgia', 'serif'],
+  			'heading': ['Playfair Display', 'Georgia', 'serif'],
+  			'body': ['Inter', 'system-ui', 'sans-serif'],
+  			'mono': ['Courier New', 'Courier', 'monospace'],
   		},
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: '0px',
+  			md: '0px',
+  			sm: '0px',
   		},
   		colors: {
-  			background: '#F8FAFC',
-  			foreground: '#0F172A',
+  			background: '#FAFAF9',
+  			foreground: '#0A0A0A',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -26,8 +29,17 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: '#6366F1',
+  				DEFAULT: '#0A0A0A',
   				foreground: '#FFFFFF'
+  			},
+  			ink: {
+  				DEFAULT: '#0A0A0A',
+  				2: '#3A3A3A',
+  				3: '#7A7A7A',
+  				4: '#B0B0B0',
+  				5: '#D8D8D8',
+  				6: '#EFEFEF',
+  				7: '#F7F6F4',
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',

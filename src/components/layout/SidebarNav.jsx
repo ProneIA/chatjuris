@@ -45,9 +45,7 @@ const NAV_GROUPS = [
     defaultOpen: false,
     directLink: true,
     url: createPageUrl("FinancialDashboard"),
-    items: [
-      { title: "Visão Geral", url: createPageUrl("FinancialDashboard"), icon: DollarSign },
-    ],
+    items: [],
   },
   {
     id: "ferramentas",
@@ -116,22 +114,59 @@ const ADMIN_GROUP = {
   ],
 };
 
-// ─── Badge ─────────────────────────────────────────────────────────────────
+// ─── Badge de menu ─────────────────────────────────────────────────────────
 function NavBadge({ label }) {
-  const styles = {
-    IA:       { bg: "rgba(99,102,241,0.2)", color: "#a5b4fc" },
-    NOVO:     { bg: "rgba(16,185,129,0.2)", color: "#6ee7b7" },
-    RESTRITO: { bg: "rgba(239,68,68,0.2)",  color: "#fca5a5" },
-  };
-  const s = styles[label] || styles.RESTRITO;
+  const isNew = label === "NOVO";
+  const isDanger = label === "RESTRITO";
   return (
     <span style={{
-      fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px",
-      borderRadius: 100, background: s.bg, color: s.color,
-      letterSpacing: "0.04em", textTransform: "uppercase", flexShrink: 0,
+      fontSize: 8, fontWeight: 600, padding: "2px 5px",
+      border: "1px solid",
+      borderRadius: 0,
+      letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0,
+      color: isDanger ? "rgba(192,57,43,0.8)" : isNew ? "rgba(26,107,60,0.8)" : "rgba(255,255,255,0.35)",
+      borderColor: isDanger ? "rgba(192,57,43,0.3)" : isNew ? "rgba(26,107,60,0.3)" : "rgba(255,255,255,0.15)",
+      background: "transparent",
+      fontFamily: "'Inter', system-ui, sans-serif",
     }}>
       {label}
     </span>
+  );
+}
+
+// ─── Estilos compartilhados ────────────────────────────────────────────────
+const ITEM_BASE = {
+  display: "flex", alignItems: "center", gap: 10,
+  width: "100%", padding: "8px 20px",
+  background: "transparent", border: "none", cursor: "pointer",
+  borderLeft: "2px solid transparent",
+  transition: "all 0.12s ease",
+  fontSize: 12, fontWeight: 400,
+  color: "rgba(255,255,255,0.45)",
+  textDecoration: "none",
+  fontFamily: "'Inter', system-ui, sans-serif",
+  borderRadius: 0,
+  textAlign: "left",
+};
+
+const ITEM_ACTIVE = {
+  background: "rgba(255,255,255,0.06)",
+  color: "#FFFFFF",
+  fontWeight: 500,
+  borderLeftColor: "#FFFFFF",
+};
+
+// ─── Label de seção ────────────────────────────────────────────────────────
+function SectionLabel({ children }) {
+  return (
+    <div style={{
+      fontSize: 8, fontWeight: 600, letterSpacing: "0.12em",
+      textTransform: "uppercase", color: "rgba(255,255,255,0.20)",
+      padding: "12px 20px 6px",
+      fontFamily: "'Inter', system-ui, sans-serif",
+    }}>
+      {children}
+    </div>
   );
 }
 
@@ -141,27 +176,14 @@ function NavDirectLink({ group, location, onNavigate, subscriptionExpired }) {
   return (
     <button
       onClick={() => { onNavigate?.(); window.location.href = group.url; }}
-      style={{
-        display: "flex", alignItems: "center", gap: "0.6rem",
-        width: "100%", padding: "10px 16px",
-        background: isActive ? "rgba(99,102,241,0.15)" : "transparent",
-        border: "none", cursor: "pointer",
-        borderLeft: isActive ? "2px solid #6366F1" : "2px solid transparent",
-        transition: "background 0.15s",
-        fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em",
-        textTransform: "uppercase",
-        color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.45)",
-        marginBottom: 2,
-        fontFamily: "'Inter', system-ui, sans-serif",
-        borderRadius: "0 8px 8px 0",
-      }}
-      onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-      onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+      style={{ ...ITEM_BASE, ...(isActive ? ITEM_ACTIVE : {}) }}
+      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
+      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
     >
-      <group.icon style={{ width: 16, height: 16, flexShrink: 0, color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.4)", strokeWidth: 1.5 }} />
-      <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
+      <group.icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.5 }} />
+      <span style={{ flex: 1 }}>{group.label}</span>
       {group.id === "assinatura" && subscriptionExpired && (
-        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#EF4444", flexShrink: 0, display: "inline-block" }} title="Assinatura expirada" />
+        <span style={{ width: 6, height: 6, background: "#C0392B", display: "inline-block" }} />
       )}
     </button>
   );
@@ -198,49 +220,34 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
   const isAdminGroup = group.id === "admin";
 
   return (
-    <div style={{ marginBottom: 2 }}>
-      {/* Cabeçalho do grupo */}
+    <div>
       <button
         onClick={toggle}
         style={{
-          display: "flex", alignItems: "center", gap: "0.6rem",
-          width: "100%", padding: "10px 16px",
-          background: isAdminGroup ? "rgba(239,68,68,0.1)" : "transparent",
-          border: "none", cursor: "pointer",
-          borderLeft: isAdminGroup ? "2px solid rgba(239,68,68,0.5)" : "2px solid transparent",
-          transition: "background 0.15s",
-          borderRadius: "0 8px 8px 0",
+          ...ITEM_BASE,
+          borderLeftColor: isAdminGroup ? "rgba(192,57,43,0.5)" : "transparent",
+          background: isAdminGroup ? "rgba(192,57,43,0.06)" : "transparent",
+          color: isAdminGroup ? "rgba(192,57,43,0.7)" : "rgba(255,255,255,0.45)",
         }}
-        onMouseEnter={e => { if (!isAdminGroup) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-        onMouseLeave={e => { if (!isAdminGroup) e.currentTarget.style.background = "transparent"; }}
+        onMouseEnter={e => { if (!isAdminGroup) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
+        onMouseLeave={e => { if (!isAdminGroup) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
       >
-        <group.icon style={{
-          width: 16, height: 16, flexShrink: 0, strokeWidth: 1.5,
-          color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.4)",
-        }} />
-        <span style={{
-          flex: 1, textAlign: "left",
-          fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.45)",
-          fontFamily: "'Inter', system-ui, sans-serif",
-        }}>
-          {group.label}
-        </span>
+        <group.icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.5 }} />
+        <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
         {isAdminGroup && <NavBadge label="RESTRITO" />}
         <ChevronDown style={{
-          width: 13, height: 13, color: isAdminGroup ? "#fca5a5" : "rgba(255,255,255,0.3)",
+          width: 11, height: 11,
+          color: isAdminGroup ? "rgba(192,57,43,0.5)" : "rgba(255,255,255,0.25)",
           transform: open ? "rotate(180deg)" : "rotate(0deg)",
-          transition: "transform 0.2s ease",
+          transition: "transform 0.15s ease",
           flexShrink: 0,
         }} />
       </button>
 
-      {/* Itens do grupo */}
       <div style={{
         overflow: "hidden",
-        maxHeight: open ? `${visibleItems.length * 40}px` : "0px",
-        transition: "max-height 0.22s ease",
+        maxHeight: open ? `${visibleItems.length * 36}px` : "0px",
+        transition: "max-height 0.18s ease",
       }}>
         {visibleItems.map((item) => {
           const isActive = location.pathname === item.url;
@@ -250,31 +257,15 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
               to={item.url}
               onClick={onNavigate}
               style={{
-                display: "flex", alignItems: "center", gap: "0.65rem",
-                padding: "9px 16px 9px 36px",
-                textDecoration: "none",
-                background: isActive ? "rgba(99,102,241,0.15)" : "transparent",
-                color: isActive ? "#a5b4fc" : "rgba(255,255,255,0.5)",
-                borderLeft: isActive ? "2px solid #6366F1" : "2px solid transparent",
-                fontSize: "0.8125rem", fontWeight: isActive ? 500 : 400,
-                transition: "background 0.12s, color 0.12s",
-                minHeight: 36,
-                borderRadius: "0 8px 8px 0",
+                ...ITEM_BASE,
+                padding: "8px 20px 8px 42px",
+                fontSize: 11,
+                ...(isActive ? ITEM_ACTIVE : {}),
               }}
-              onMouseEnter={e => {
-                if (!isActive) {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                  e.currentTarget.style.color = "rgba(255,255,255,0.8)";
-                }
-              }}
-              onMouseLeave={e => {
-                if (!isActive) {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-                }
-              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
             >
-              <item.icon style={{ width: 16, height: 16, flexShrink: 0, strokeWidth: 1.5, color: isActive ? "#a5b4fc" : "inherit" }} />
+              <item.icon style={{ width: 13, height: 13, flexShrink: 0, strokeWidth: 1.5 }} />
               <span style={{ flex: 1 }}>{item.title}</span>
               {item.badge && <NavBadge label={item.badge} />}
             </Link>
@@ -292,18 +283,37 @@ export default function SidebarNav({ user, onNavigate, isMobile = false, subscri
 
   const groups = NAV_GROUPS.filter(g => !g.adminOnly || isAdmin);
 
-  return (
-    <nav style={{ paddingTop: "0.5rem", paddingBottom: "1rem" }}>
-      {groups.map(group => (
-        group.directLink
-          ? <NavDirectLink key={group.id} group={group} location={location} onNavigate={onNavigate} subscriptionExpired={subscriptionExpired} />
-          : <NavGroup key={group.id} group={group} isAdmin={isAdmin} location={location} onNavigate={onNavigate} isMobile={isMobile} />
-      ))}
+  // Agrupa por seções
+  const painel = groups.filter(g => ["painel"].includes(g.id));
+  const gestao = groups.filter(g => ["gestao", "financeiro"].includes(g.id));
+  const ferramentas = groups.filter(g => ["ferramentas"].includes(g.id));
+  const outros = groups.filter(g => ["whatsapp", "equipe", "assinatura"].includes(g.id));
 
-      {/* Grupo Admin — só para admins */}
+  const renderGroup = (g) => g.directLink
+    ? <NavDirectLink key={g.id} group={g} location={location} onNavigate={onNavigate} subscriptionExpired={subscriptionExpired} />
+    : <NavGroup key={g.id} group={g} isAdmin={isAdmin} location={location} onNavigate={onNavigate} isMobile={isMobile} />;
+
+  return (
+    <nav style={{ paddingBottom: 8 }}>
+      <SectionLabel>Principal</SectionLabel>
+      {painel.map(renderGroup)}
+
+      <SectionLabel>Escritório</SectionLabel>
+      {gestao.map(renderGroup)}
+
+      <SectionLabel>Ferramentas</SectionLabel>
+      {ferramentas.map(renderGroup)}
+
+      {outros.length > 0 && (
+        <>
+          <SectionLabel>Configurações</SectionLabel>
+          {outros.map(renderGroup)}
+        </>
+      )}
+
       {isAdmin && (
         <>
-          <div style={{ height: 1, background: "var(--border)", margin: "0.5rem 1rem" }} />
+          <div style={{ height: 1, background: "rgba(192,57,43,0.2)", margin: "8px 0" }} />
           <NavGroup
             group={ADMIN_GROUP}
             isAdmin={isAdmin}

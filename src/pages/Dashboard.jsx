@@ -4,43 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  Users,
-  FolderOpen,
-  FileText,
-  CheckSquare,
-  AlertTriangle,
-  Clock,
-  ArrowRight,
-  Sparkles,
-  Calculator,
-  BookOpen,
-  Plus,
+  Users, FolderOpen, FileText, CheckSquare,
+  AlertTriangle, Clock, ArrowRight, Sparkles,
+  Calculator, BookOpen, Plus, TrendingUp,
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// ── Tokens ──────────────────────────────────────────────────────
-const GOLD = "#b8922a";
-const GOLD_LIGHT = "rgba(184,146,42,0.08)";
-const GOLD_BORDER = "rgba(184,146,42,0.45)";
-const BG = "#f7f5f2";
-const SURFACE = "#ffffff";
-const BORDER = "#ece9e3";
-const TEXT = "#1a1a1a";
-const MUTED = "#aaa";
-
-const plexBold = "'IBM Plex Sans', system-ui, sans-serif";
-const outfit = "'Outfit', system-ui, sans-serif";
-
-// ── Google Fonts injection ───────────────────────────────────────
-if (typeof document !== "undefined" && !document.getElementById("juris-fonts")) {
-  const link = document.createElement("link");
-  link.id = "juris-fonts";
-  link.rel = "stylesheet";
-  link.href =
-    "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap";
-  document.head.appendChild(link);
-}
 
 const Dashboard = React.memo(function Dashboard() {
   const [user, setUser] = React.useState(null);
@@ -92,213 +61,313 @@ const Dashboard = React.memo(function Dashboard() {
   const activeCases = React.useMemo(() => cases.filter(c => c.status === "in_progress").length, [cases]);
   const totalCases = cases.length;
   const urgentTasks = React.useMemo(() => tasks.filter(t => t.priority === "urgent").length, [tasks]);
-  const pendingTasks = React.useMemo(() => tasks.length, [tasks]);
+  const pendingTasks = tasks.length;
   const pendingDocuments = React.useMemo(() => documents.filter(d => d.status === "draft" || d.status === "review").length, [documents]);
-  const upcomingTasks = React.useMemo(() => tasks.slice(0, 5), [tasks]);
-  const recentCases = React.useMemo(() => cases.slice(0, 4), [cases]);
+  const upcomingTasks = React.useMemo(() => tasks.slice(0, 6), [tasks]);
+  const recentCases = React.useMemo(() => cases.slice(0, 5), [cases]);
 
-  const getGreeting = React.useCallback(() => {
+  const getGreeting = () => {
     const h = new Date().getHours();
-    if (h < 12) return "Bom Dia";
-    if (h < 18) return "Boa Tarde";
-    return "Boa Noite";
-  }, []);
+    if (h < 12) return "Bom dia";
+    if (h < 18) return "Boa tarde";
+    return "Boa noite";
+  };
 
   const getTaskUrgency = (task) => {
-    if (!task.due_date) return { label: "Sem prazo", color: "#aaa" };
+    if (!task.due_date) return { label: "Sem prazo", color: "var(--ink-4)", badge: "b-neutral" };
     const d = new Date(task.due_date);
-    if (isPast(d) && !isToday(d)) return { label: "Atrasado", color: "#e74c3c" };
-    if (isToday(d)) return { label: "Hoje", color: "#e67e22" };
-    if (isTomorrow(d)) return { label: "Amanhã", color: "#f1c40f" };
+    if (isPast(d) && !isToday(d)) return { label: "Atrasado", color: "var(--danger)", badge: "b-danger" };
+    if (isToday(d)) return { label: "Hoje", color: "var(--danger)", badge: "b-danger" };
+    if (isTomorrow(d)) return { label: "Amanhã", color: "var(--warn)", badge: "b-warn" };
     const days = differenceInDays(d, new Date());
-    if (days <= 7) return { label: `${days} dias`, color: GOLD };
-    return { label: format(d, "dd/MM"), color: "#aaa" };
+    if (days <= 7) return { label: `${days}d`, color: "var(--warn)", badge: "b-warn" };
+    return { label: format(d, "dd/MM"), color: "var(--ink-4)", badge: "b-neutral" };
   };
 
   const quickActions = [
-    { title: "Novo Processo", icon: Plus, url: createPageUrl("Cases") },
-    { title: "Assistente IA", icon: Sparkles, url: createPageUrl("AIAssistant"), badge: "IA" },
-    { title: "Calculadora", icon: Calculator, url: createPageUrl("LegalCalculator") },
-    { title: "Pesquisa Jurídica", icon: BookOpen, url: createPageUrl("LegalResearch") },
+    { title: "Novo Processo", sub: "Cadastrar caso", icon: Plus, url: createPageUrl("Cases") },
+    { title: "Assistente IA", sub: "Redigir peças", icon: Sparkles, url: createPageUrl("AIAssistant") },
+    { title: "Calculadora", sub: "Cálculos jurídicos", icon: Calculator, url: createPageUrl("LegalCalculator") },
+    { title: "Pesquisa", sub: "Jurisprudência", icon: BookOpen, url: createPageUrl("LegalResearch") },
   ];
 
   const statCards = [
-    { title: "Clientes Ativos", value: clients.length, sub: "cadastrados", icon: Users, link: createPageUrl("Clients") },
-    { title: "Processos", value: totalCases, extra: activeCases, sub: `${activeCases} em andamento`, icon: FolderOpen, link: createPageUrl("Cases") },
-    { title: "Documentos", value: pendingDocuments, sub: "pendentes", icon: FileText, link: createPageUrl("DocumentsEnhanced") },
-    { title: "Tarefas", value: urgentTasks, extra: pendingTasks, sub: urgentTasks > 0 ? "urgentes" : "em dia", icon: AlertTriangle, link: createPageUrl("Tasks") },
+    {
+      title: "Clientes", value: clients.length, sub: "cadastrados",
+      icon: Users, link: createPageUrl("Clients"),
+      accentColor: "var(--ink)", status: null,
+    },
+    {
+      title: "Processos", value: totalCases, sub: `${activeCases} em andamento`,
+      icon: FolderOpen, link: createPageUrl("Cases"),
+      accentColor: "var(--ok)", status: activeCases > 0 ? { label: `${activeCases} ativos`, ok: true } : null,
+    },
+    {
+      title: "Documentos", value: pendingDocuments, sub: "pendentes de revisão",
+      icon: FileText, link: createPageUrl("DocumentsEnhanced"),
+      accentColor: pendingDocuments > 0 ? "var(--warn)" : "var(--ink-5)", status: null,
+    },
+    {
+      title: "Tarefas Urgentes", value: urgentTasks, sub: `${pendingTasks} no total`,
+      icon: AlertTriangle, link: createPageUrl("Tasks"),
+      accentColor: urgentTasks > 0 ? "var(--danger)" : "var(--ink-5)",
+      status: urgentTasks > 0 ? { label: "Ação requerida", danger: true } : { label: "Em dia", ok: true },
+    },
   ];
 
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: 'clamp(20px, 3vw, 32px) clamp(16px, 4vw, 40px)', maxWidth: 1280, margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ fontFamily: "var(--font-sans)", background: "var(--surface)", minHeight: "100vh" }}>
 
-      {/* ── Greeting ── */}
-      <div className="animate-fade-up" style={{ marginBottom: 28 }}>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
-          {getGreeting()},
+      {/* ── Cabeçalho editorial ── */}
+      <div style={{
+        background: "var(--white)",
+        borderBottom: "1px solid var(--ink-6)",
+        padding: "28px 32px 24px",
+      }}>
+        <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 6, letterSpacing: "0.02em" }}>
+          {getGreeting()}, {user?.full_name?.split(" ")[0] || "Advogado"}
         </p>
         <h1 style={{
-          fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(22px, 3vw, 30px)',
-          color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontWeight: 600, fontSize: 28,
+          color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0,
         }}>
-          {user?.full_name?.split(' ')[0] || 'Advogado'}
+          Painel de Controle
         </h1>
-        <p style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>
-          {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+        <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)", letterSpacing: "0.01em" }}>
+          {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </div>
 
-      {/* ── Stats Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }} className="lg:grid-cols-4">
-        {statCards.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <Link key={i} to={stat.link} style={{ textDecoration: 'none' }}>
-              <div className="card card-interactive animate-fade-up" style={{ padding: '18px 20px', animationDelay: `${i * 60}ms` }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', margin: 0 }}>
+      <div style={{ padding: "0 32px 32px" }}>
+
+        {/* ── KPI Grid ── */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+          background: "var(--ink-6)",
+          gap: 1, marginTop: 1,
+          borderBottom: "1px solid var(--ink-6)",
+        }} className="lg:grid-cols-4 grid-cols-2">
+          {statCards.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <Link key={i} to={stat.link} style={{ textDecoration: "none", display: "block" }}>
+                <div
+                  style={{
+                    background: "var(--white)",
+                    padding: "20px 22px 18px",
+                    transition: "background var(--duration)",
+                    position: "relative",
+                    cursor: "pointer",
+                    borderBottom: `2px solid ${stat.accentColor}`,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "var(--white)"}
+                >
+                  <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px", fontFamily: "var(--font-sans)" }}>
                     {stat.title}
                   </p>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--gold-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon style={{ width: 16, height: 16, color: 'var(--gold)' }} />
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+                    <span style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: 36, fontWeight: 600, lineHeight: 1,
+                      color: "var(--ink)", letterSpacing: "-0.04em",
+                    }}>
+                      {stat.value}
+                    </span>
+                    <span style={{ fontSize: 12, color: "var(--ink-4)", fontWeight: 400 }}>
+                      {stat.sub}
+                    </span>
                   </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 800, lineHeight: 1, color: 'var(--text)' }}>
-                    {stat.value}
-                  </span>
-                  {stat.extra !== undefined && (
-                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>/ {stat.extra}</span>
+                  {stat.status && (
+                    <p style={{
+                      fontSize: 10, fontWeight: 500,
+                      color: stat.status.danger ? "var(--danger)" : stat.status.ok ? "var(--ok)" : "var(--ink-4)",
+                      margin: 0,
+                    }}>
+                      {stat.status.label}
+                    </p>
                   )}
-                </div>
-                <p style={{ fontSize: 11, color: 'var(--gold)', marginTop: 4, margin: '4px 0 0' }}>{stat.sub}</p>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* ── Quick Actions ── */}
-      <div style={{ marginBottom: 28 }}>
-        <p className="text-label" style={{ marginBottom: 12 }}>Acesso Rápido</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {quickActions.map(({ title, url, badge }) => (
-            <Link key={url} to={url} className={badge ? 'btn-primary' : 'btn-secondary'} style={{ fontSize: 13 }}>
-              {title}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Content Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }} className="lg:grid-cols-2">
-
-        {/* Tarefas */}
-        <div className="card animate-fade-up delay-2" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Clock style={{ width: 15, height: 15, color: 'var(--gold)' }} />
-              <h3 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', margin: 0 }}>Prazos e Tarefas</h3>
-            </div>
-            <Link to={createPageUrl("Tasks")} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-              Ver todas <ArrowRight style={{ width: 12, height: 12 }} />
-            </Link>
-          </div>
-          {loadingTasks ? (
-            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 44, borderRadius: 8 }} />)}
-            </div>
-          ) : upcomingTasks.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
-              ✅ Nenhuma tarefa pendente
-            </div>
-          ) : upcomingTasks.map((task, i) => {
-            const urg = getTaskUrgency(task);
-            return (
-              <div key={task.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '11px 20px',
-                borderBottom: i < upcomingTasks.length - 1 ? '1px solid var(--border)' : 'none',
-                transition: 'background 0.15s', cursor: 'default',
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <div style={{ width: 7, height: 7, borderRadius: '50%', background: urg.color, flexShrink: 0 }} />
-                <p style={{ flex: 1, fontSize: 13, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, padding: '2px 8px',
-                  borderRadius: 'var(--radius-full)',
-                  background: urg.color + '18', color: urg.color, flexShrink: 0,
-                }}>
-                  {task.due_date && format(new Date(task.due_date), "dd/MM")} · {urg.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Processos Recentes */}
-        <div className="card animate-fade-up delay-3" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <FolderOpen style={{ width: 15, height: 15, color: 'var(--gold)' }} />
-              <h3 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)', margin: 0 }}>Processos Recentes</h3>
-            </div>
-            <Link to={createPageUrl("Cases")} style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
-              Ver todos <ArrowRight style={{ width: 12, height: 12 }} />
-            </Link>
-          </div>
-          {loadingCases ? (
-            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 52, borderRadius: 8 }} />)}
-            </div>
-          ) : recentCases.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center' }}>
-              <FolderOpen style={{ width: 28, height: 28, color: 'var(--text-muted)', margin: '0 auto 8px' }} />
-              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Nenhum processo cadastrado</p>
-              <Link to={createPageUrl("Cases")} className="btn-primary" style={{ fontSize: 13 }}>+ Criar processo</Link>
-            </div>
-          ) : recentCases.map((c, i) => {
-            const statusMap = { in_progress: { label: 'Em andamento', color: 'var(--info)' }, new: { label: 'Novo', color: 'var(--success)' }, waiting: { label: 'Aguardando', color: 'var(--warning)' }, closed: { label: 'Encerrado', color: 'var(--text-muted)' } };
-            const s = statusMap[c.status] || { label: c.status, color: 'var(--text-muted)' };
-            return (
-              <Link key={c.id} to={createPageUrl("Cases")} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '11px 20px',
-                  borderBottom: i < recentCases.length - 1 ? '1px solid var(--border)' : 'none',
-                  transition: 'background 0.15s',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 8,
-                    background: 'var(--gold-light)', color: 'var(--gold-deep)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 700, flexShrink: 0,
-                  }}>
-                    {c.case_number?.slice(-2) || (i + 1).toString().padStart(2, '0')}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '2px 0 0' }}>{c.client_name}</p>
-                  </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    background: s.color + '18', color: s.color, flexShrink: 0,
-                  }}>
-                    {s.label}
-                  </span>
                 </div>
               </Link>
             );
           })}
+        </div>
+
+        {/* ── Acesso Rápido ── */}
+        <div style={{ marginTop: 24 }}>
+          <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-4)", marginBottom: 10 }}>
+            Acesso Rápido
+          </p>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+            background: "var(--ink-6)", gap: 1,
+            border: "1px solid var(--ink-6)",
+          }} className="lg:grid-cols-4 grid-cols-2">
+            {quickActions.map(({ title, sub, icon: Icon, url }) => (
+              <Link key={url} to={url} style={{ textDecoration: "none" }}>
+                <div
+                  style={{ background: "var(--white)", padding: "16px 18px", cursor: "pointer", transition: "background var(--duration)" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "var(--ink-7)"; e.currentTarget.querySelector(".qa-icon").style.color = "var(--ink)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.querySelector(".qa-icon").style.color = "var(--ink-4)"; }}
+                >
+                  <Icon className="qa-icon" style={{ width: 16, height: 16, color: "var(--ink-4)", marginBottom: 8, transition: "color var(--duration)", strokeWidth: 1.5 }} />
+                  <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: "0 0 2px" }}>{title}</p>
+                  <p style={{ fontSize: 10, color: "var(--ink-4)", margin: 0, letterSpacing: "0.02em" }}>{sub}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Content Grid ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, marginTop: 24, background: "var(--ink-6)" }} className="lg:grid-cols-2 grid-cols-1">
+
+          {/* Prazos e Tarefas */}
+          <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)" }}>
+            <div style={{
+              padding: "14px 20px", borderBottom: "1px solid var(--ink-6)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: 0 }}>
+                  Prazos & Tarefas
+                </p>
+                {urgentTasks > 0 && (
+                  <span className="badge badge-danger">{urgentTasks} urgente{urgentTasks > 1 ? "s" : ""}</span>
+                )}
+              </div>
+              <Link to={createPageUrl("Tasks")} style={{ fontSize: 11, color: "var(--ink-4)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, transition: "color var(--duration)" }}
+                onMouseEnter={e => e.currentTarget.style.color = "var(--ink)"}
+                onMouseLeave={e => e.currentTarget.style.color = "var(--ink-4)"}
+              >
+                Ver todas <ArrowRight style={{ width: 11, height: 11 }} />
+              </Link>
+            </div>
+            {loadingTasks ? (
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 38 }} />)}
+              </div>
+            ) : upcomingTasks.length === 0 ? (
+              <div style={{ padding: "28px 20px", textAlign: "center", color: "var(--ink-4)", fontSize: 12 }}>
+                Nenhuma tarefa pendente
+              </div>
+            ) : upcomingTasks.map((task, i) => {
+              const urg = getTaskUrgency(task);
+              return (
+                <div key={task.id} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  padding: "10px 20px",
+                  borderBottom: i < upcomingTasks.length - 1 ? "1px solid var(--ink-7)" : "none",
+                  transition: "background var(--duration)", cursor: "default",
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <div style={{ width: 2, height: 28, background: urg.color, flexShrink: 0, alignSelf: "stretch" }} />
+                  <p style={{ flex: 1, fontSize: 12, color: "var(--ink-2)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.title}</p>
+                  <span className={`badge ${urg.badge}`}>
+                    {task.due_date && format(new Date(task.due_date), "dd/MM")} · {urg.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Processos Recentes */}
+          <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)" }}>
+            <div style={{
+              padding: "14px 20px", borderBottom: "1px solid var(--ink-6)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: 0 }}>
+                Processos Recentes
+              </p>
+              <Link to={createPageUrl("Cases")} style={{ fontSize: 11, color: "var(--ink-4)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, transition: "color var(--duration)" }}
+                onMouseEnter={e => e.currentTarget.style.color = "var(--ink)"}
+                onMouseLeave={e => e.currentTarget.style.color = "var(--ink-4)"}
+              >
+                Ver todos <ArrowRight style={{ width: 11, height: 11 }} />
+              </Link>
+            </div>
+            {loadingCases ? (
+              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: 46 }} />)}
+              </div>
+            ) : recentCases.length === 0 ? (
+              <div style={{ padding: "28px 20px", textAlign: "center" }}>
+                <p style={{ fontSize: 12, color: "var(--ink-4)", marginBottom: 12 }}>Nenhum processo cadastrado</p>
+                <Link to={createPageUrl("Cases")} className="btn-primary">+ Criar processo</Link>
+              </div>
+            ) : recentCases.map((c, i) => {
+              const statusMap = {
+                in_progress: { label: "Em andamento", badge: "b-ok" },
+                new: { label: "Novo", badge: "b-neutral" },
+                waiting: { label: "Aguardando", badge: "b-warn" },
+                closed: { label: "Encerrado", badge: "b-neutral" },
+                archived: { label: "Arquivado", badge: "b-neutral" },
+              };
+              const s = statusMap[c.status] || { label: c.status, badge: "b-neutral" };
+              return (
+                <Link key={c.id} to={createPageUrl("Cases")} style={{ textDecoration: "none" }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    padding: "10px 20px",
+                    borderBottom: i < recentCases.length - 1 ? "1px solid var(--ink-7)" : "none",
+                    transition: "background var(--duration)",
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <div style={{
+                      width: 32, height: 32,
+                      background: "var(--ink-7)", border: "1px solid var(--ink-6)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 400,
+                      color: "var(--ink-4)", flexShrink: 0,
+                    }}>
+                      {(i + 1).toString().padStart(2, "0")}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</p>
+                      <p style={{ fontSize: 10, color: "var(--ink-4)", margin: "2px 0 0" }}>{c.client_name}</p>
+                    </div>
+                    <span className={`badge ${s.badge}`}>{s.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+        </div>
+
+        {/* ── Rodapé do sistema ── */}
+        <div style={{
+          marginTop: 24,
+          border: "1px solid var(--ink-6)",
+          background: "var(--white)",
+          display: "flex",
+          overflow: "hidden",
+        }}>
+          {[
+            { icon: "🔒", label: "LGPD Compliant", value: "Dados protegidos" },
+            { icon: "✓", label: "Sistemas", value: "Operacionais" },
+            { icon: "↻", label: "Sincronização", value: format(new Date(), "HH:mm 'de hoje'") },
+          ].map((item, i) => (
+            <div key={i} style={{
+              flex: 1,
+              padding: "10px 16px",
+              borderRight: i < 2 ? "1px solid var(--ink-6)" : "none",
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <span style={{ fontSize: 12 }}>{item.icon}</span>
+              <div>
+                <span style={{ fontSize: 10, color: "var(--ink-4)", fontFamily: "var(--font-sans)" }}>{item.label}: </span>
+                <span style={{ fontSize: 10, color: "var(--ink-2)", fontWeight: 500, fontFamily: "var(--font-sans)" }}>{item.value}</span>
+              </div>
+            </div>
+          ))}
         </div>
 
       </div>
