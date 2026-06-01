@@ -53,28 +53,40 @@ const Dashboard = React.memo(function Dashboard() {
     queryKey: ["dashboard-clients", user?.email],
     queryFn: () => base44.entities.Client.filter({ created_by: user.email }, "-created_date", 20),
     enabled: !!user?.email,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    retryDelay: 3000,
   });
 
   const { data: cases = [], isLoading: loadingCases } = useQuery({
     queryKey: ["dashboard-cases", user?.email],
     queryFn: () => base44.entities.Case.filter({ created_by: user.email }, "-created_date", 8),
     enabled: !!user?.email,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    retryDelay: 3000,
   });
 
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["dashboard-tasks", user?.email],
     queryFn: () => base44.entities.Task.filter({ created_by: user.email, status: "pending" }, "due_date", 10),
     enabled: !!user?.email,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
+    retry: 1,
+    retryDelay: 3000,
   });
 
   const { data: documents = [] } = useQuery({
     queryKey: ["dashboard-documents", user?.email],
     queryFn: () => base44.entities.LegalDocument.filter({ created_by: user.email }, "-created_date", 20),
     enabled: !!user?.email,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+    retryDelay: 3000,
   });
 
   const activeCases = React.useMemo(() => cases.filter(c => c.status === "in_progress").length, [cases]);
