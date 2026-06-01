@@ -364,10 +364,25 @@ input:focus, textarea:focus, select:focus {
   color: var(--danger);
   border-color: var(--danger-border);
 }
-.badge-neutral {
+.badge-neutral, .b-neutral {
   background: var(--ink-7);
   color: var(--ink-3);
   border-color: var(--ink-5);
+}
+.badge-warning, .b-warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-color: var(--warn-border);
+}
+.badge-success, .b-ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border-color: var(--ok-border);
+}
+.b-danger, .badge-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
 }
 
 /* Status badge legacy */

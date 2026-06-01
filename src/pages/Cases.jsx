@@ -6,6 +6,8 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FolderOpen, Loader2 } from "lucide-react";
+import PageHeader from "@/components/common/PageHeader";
+import StatCard from "@/components/common/StatCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -158,77 +160,74 @@ export default function Cases({ theme = 'light' }) {
 
   if (!user) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--surface)" }}>
+        <Loader2 style={{ width: 28, height: 28, color: "var(--ink-4)" }} className="animate-spin" />
       </div>
     );
   }
 
-  return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-5 sm:mb-8 gap-3">
-          <div>
-            <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Processos
-            </h1>
-            <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-              {cases.length} processo(s) encontrado(s)
-            </p>
-          </div>
-          <Button 
-            onClick={() => {
-              setEditingCase(null);
-              resetForm();
-              setShowForm(true);
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700 shrink-0"
-            style={{ minHeight: 44 }}
-          >
-            <Plus className="w-4 h-4 sm:mr-2" />
-            <span className="hidden sm:inline">Novo Processo</span>
-          </Button>
-        </div>
+  const activeCases = cases.filter(c => c.status === "in_progress").length;
+  const urgentCases = cases.filter(c => c.priority === "urgent").length;
+  const closedCases = cases.filter(c => c.status === "closed").length;
 
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Buscar processos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white' : 'bg-white'}`}
-            />
-          </div>
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
+      <PageHeader
+        title="Processos"
+        sub={`${cases.length} processo(s) cadastrado(s)`}
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => { setEditingCase(null); resetForm(); setShowForm(true); }}
+          >
+            <Plus size={14} />
+            Novo Processo
+          </button>
+        }
+      />
+
+      {/* KPI Strip */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
+        <StatCard title="Total" value={cases.length} sub="processos" accentColor="ink" loading={isLoading} />
+        <StatCard title="Em andamento" value={activeCases} sub="ativos" accentColor="ok" status={activeCases > 0 ? { label: "Ativos", ok: true } : null} loading={isLoading} />
+        <StatCard title="Urgentes" value={urgentCases} sub="prioridade alta" accentColor={urgentCases > 0 ? "danger" : "neutral"} status={urgentCases > 0 ? { label: "Ação requerida", danger: true } : { label: "Em dia", ok: true }} loading={isLoading} />
+        <StatCard title="Concluídos" value={closedCases} sub="encerrados" accentColor="neutral" loading={isLoading} />
+      </div>
+
+      <div style={{ padding: "24px 28px" }}>
+        {/* Search */}
+        <div style={{ position: "relative", marginBottom: 20, maxWidth: 480 }}>
+          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--ink-4)" }} />
+          <input
+            placeholder="Buscar processos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: "100%", paddingLeft: 36, paddingRight: 12, paddingTop: 9, paddingBottom: 9, border: "1px solid var(--ink-5)", background: "var(--white)", fontSize: 12, fontFamily: "var(--font-sans)", outline: "none", color: "var(--ink)" }}
+          />
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          <div style={{ display: "flex", justifyContent: "center", padding: "60px 0" }}>
+            <Loader2 style={{ width: 24, height: 24, color: "var(--ink-4)" }} className="animate-spin" />
           </div>
         ) : filteredCases.length === 0 ? (
-          <div className={`text-center py-20 border-2 border-dashed rounded-xl ${isDark ? 'border-neutral-800' : 'border-gray-300'}`}>
-            <FolderOpen className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-            <h3 className={`text-xl font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Nenhum processo encontrado
-            </h3>
-            <p className={`mt-2 mb-6 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+          <div style={{ textAlign: "center", padding: "60px 20px", border: "1px solid var(--ink-6)", background: "var(--white)" }}>
+            <FolderOpen style={{ width: 40, height: 40, color: "var(--ink-5)", margin: "0 auto 12px" }} />
+            <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink-2)", marginBottom: 6 }}>Nenhum processo encontrado</p>
+            <p style={{ fontSize: 12, color: "var(--ink-4)", marginBottom: 16 }}>
               {cases.length === 0 ? "Crie seu primeiro processo" : "Nenhum resultado para sua busca"}
             </p>
-            <Button onClick={() => setShowForm(true)}>
-              Criar processo
-            </Button>
+            <button className="btn-primary" onClick={() => setShowForm(true)}>+ Criar processo</button>
           </div>
         ) : (
-          <PullToRefresh onRefresh={refetch} isDark={isDark}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <PullToRefresh onRefresh={refetch} isDark={false}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1" style={{ background: "var(--ink-6)" }}>
               {filteredCases.map((caseItem) => (
                 <CaseCard
                   key={caseItem.id}
                   caseItem={caseItem}
                   onClick={() => navigate(createPageUrl("CaseDetails") + "?id=" + caseItem.id)}
-                  theme={theme}
+                  theme="light"
                 />
               ))}
             </div>
@@ -414,7 +413,6 @@ export default function Cases({ theme = 'light' }) {
             </div>
           </DialogContent>
         </Dialog>
-        </div>
       </div>
     </div>
   );

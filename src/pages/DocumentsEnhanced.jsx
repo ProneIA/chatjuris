@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import PageHeader from "@/components/common/PageHeader";
+import StatCard from "@/components/common/StatCard";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -295,97 +297,42 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
 
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
 
-  if (userLoading || docsLoading) {
-    return (
-      <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <div className={`h-7 w-40 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
-              <div className={`h-4 w-56 rounded animate-pulse mt-2 ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            {[1,2,3,4].map(i => (
-              <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-                <div className={`h-10 w-10 rounded-lg animate-pulse mb-2 ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`} />
-                <div className={`h-6 w-12 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-200'}`} />
-              </div>
-            ))}
-          </div>
-          <div className={`rounded-xl border divide-y ${isDark ? 'bg-neutral-900 border-neutral-800 divide-neutral-800' : 'bg-white border-gray-200 divide-gray-100'}`}>
-            {[1,2,3,4,5].map(i => (
-              <div key={i} className="p-4 flex items-center gap-3">
-                <div className={`h-5 w-5 rounded animate-pulse ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`} />
-                <div className="flex-1">
-                  <div className={`h-4 w-2/3 rounded animate-pulse mb-1 ${isDark ? 'bg-neutral-700' : 'bg-gray-200'}`} />
-                  <div className={`h-3 w-1/3 rounded animate-pulse ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
-          <div>
-            <h1 className={`text-xl sm:text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Documentos
-            </h1>
-            <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              Gerencie seus documentos jurídicos
-            </p>
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" size="sm" onClick={() => setShowTagDialog(true)} className="flex-1 sm:flex-none">
-              <Tag className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Tags</span>
-            </Button>
-            <Button size="sm" onClick={() => setShowUploadDialog(true)} className="flex-1 sm:flex-none">
-              <Upload className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Upload</span>
-            </Button>
-          </div>
-        </div>
+    <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
+      <PageHeader
+        title="Documentos"
+        sub="Gerencie seus documentos jurídicos"
+        actions={
+          <>
+            <button className="btn-secondary" onClick={() => setShowTagDialog(true)}>
+              <Tag size={13} /> Tags
+            </button>
+            <button className="btn-primary" onClick={() => setShowUploadDialog(true)}>
+              <Upload size={13} /> Upload
+            </button>
+          </>
+        }
+      />
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          {[
-            { label: "Total", value: documents.length, icon: FileText },
-            { label: "Rascunhos", value: documents.filter(d => d.status === 'draft').length, icon: Edit },
-            { label: "Indexados", value: documents.filter(d => d.ocr_content).length, icon: Scan },
-            { label: "Tags", value: tags.length, icon: Tag },
-          ].map((stat, i) => (
-            <div key={i} className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                  <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
-                </div>
-                <div>
-                  <p className={`text-lg sm:text-2xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</p>
-                  <p className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{stat.label}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* KPI Strip */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
+        <StatCard title="Total" value={documents.length} sub="documentos" accentColor="ink" loading={userLoading || docsLoading} />
+        <StatCard title="Rascunhos" value={documents.filter(d => d.status === 'draft').length} sub="pendentes" accentColor={documents.filter(d=>d.status==='draft').length > 0 ? "warn" : "neutral"} loading={userLoading || docsLoading} />
+        <StatCard title="Indexados" value={documents.filter(d => d.ocr_content).length} sub="com OCR" accentColor="ok" loading={userLoading || docsLoading} />
+        <StatCard title="Tags" value={tags.length} sub="categorias" accentColor="neutral" loading={userLoading || docsLoading} />
+      </div>
 
+      <div style={{ padding: "24px 28px" }}>
         {/* Filters & Search */}
-        <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border mb-4 sm:mb-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-          <div className="flex flex-col gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
+        <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)", padding: "14px 16px", marginBottom: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ position: "relative" }}>
+              <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--ink-4)" }} />
+              <input
                 placeholder="Buscar em títulos, conteúdo e documentos indexados..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 text-sm"
+                style={{ width: "100%", paddingLeft: 32, border: "1px solid var(--ink-5)", fontSize: 12, fontFamily: "var(--font-sans)", background: "var(--surface)", paddingTop: 8, paddingBottom: 8, paddingRight: 12, outline: "none", color: "var(--ink)" }}
               />
             </div>
             {filterTags.length > 0 && (
@@ -401,123 +348,93 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                 })}
               </div>
             )}
-            <div className="flex gap-2">
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className={`flex-1 px-3 py-2 text-sm rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-200'}`}
+                style={{ flex: 1, padding: "8px 10px", border: "1px solid var(--ink-5)", fontSize: 12, fontFamily: "var(--font-sans)", background: "var(--white)", color: "var(--ink)", outline: "none" }}
               >
                 <option value="all">Todos os tipos</option>
                 {docTypes.map(type => (
                   <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
                 ))}
               </select>
-              <div className="flex gap-1">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => setViewMode("grid")}
-                  className="h-9 w-9"
-                >
-                  <Grid className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => setViewMode("list")}
-                  className="h-9 w-9"
-                >
-                  <List className="w-4 h-4" />
-                </Button>
+              <div style={{ display: "flex", gap: 4 }}>
+                <button onClick={() => setViewMode("grid")} style={{ padding: "7px 10px", border: "1px solid var(--ink-5)", background: viewMode === "grid" ? "var(--ink)" : "var(--white)", color: viewMode === "grid" ? "var(--white)" : "var(--ink-3)", cursor: "pointer", transition: "all var(--duration)" }}>
+                  <Grid size={13} />
+                </button>
+                <button onClick={() => setViewMode("list")} style={{ padding: "7px 10px", border: "1px solid var(--ink-5)", background: viewMode === "list" ? "var(--ink)" : "var(--white)", color: viewMode === "list" ? "var(--white)" : "var(--ink-3)", cursor: "pointer", transition: "all var(--duration)" }}>
+                  <List size={13} />
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Document List - Full Width on Mobile */}
-        <div className="space-y-4">
+        {/* Document List */}
+        <div>
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filteredDocs.map((doc) => (
-                <div
-                  key={doc.id}
-                  onClick={() => handleSelectDoc(doc)}
-                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border cursor-pointer transition-all active:scale-[0.98] ${
-                    selectedDoc?.id === doc.id
-                      ? 'ring-2 ring-blue-500'
-                      : ''
-                  } ${isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                >
-                  <div className="flex items-start justify-between mb-2 sm:mb-3">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                      <FileText className={`w-4 h-4 sm:w-5 sm:h-5 ${isDark ? 'text-white' : 'text-gray-700'}`} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 1, background: "var(--ink-6)" }}>
+              {filteredDocs.map((doc) => {
+                const statusLabel = { draft: "Rascunho", review: "Revisão", approved: "Aprovado", sent: "Enviado", archived: "Arquivado" }[doc.status] || doc.status;
+                return (
+                  <div
+                    key={doc.id}
+                    onClick={() => handleSelectDoc(doc)}
+                    style={{ background: selectedDoc?.id === doc.id ? "var(--ink-7)" : "var(--white)", padding: "16px 18px", cursor: "pointer", transition: "background var(--duration)", borderLeft: selectedDoc?.id === doc.id ? "2px solid var(--ink)" : "2px solid transparent" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
+                    onMouseLeave={e => e.currentTarget.style.background = selectedDoc?.id === doc.id ? "var(--ink-7)" : "var(--white)"}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+                      <FileText style={{ width: 16, height: 16, color: "var(--ink-4)", strokeWidth: 1.5 }} />
+                      <span className="badge badge-neutral">{statusLabel}</span>
                     </div>
-                    <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs">
-                      {doc.status === 'draft' && 'Rascunho'}
-                      {doc.status === 'review' && 'Revisão'}
-                      {doc.status === 'approved' && 'Aprovado'}
-                      {doc.status === 'sent' && 'Enviado'}
-                      {doc.status === 'archived' && 'Arquivado'}
-                    </Badge>
+                    <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
+                    <p style={{ fontSize: 10, color: "var(--ink-4)", margin: 0 }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
                   </div>
-                  <h3 className={`font-medium text-sm sm:text-base mb-1 line-clamp-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {doc.title}
-                  </h3>
-                  <p className={`text-xs sm:text-sm mb-2 sm:mb-3 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    {doc.type?.charAt(0).toUpperCase() + doc.type?.slice(1)}
-                  </p>
-                  <span className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                    {new Date(doc.created_date).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <div className={`rounded-lg sm:rounded-xl border divide-y ${isDark ? 'bg-neutral-900 border-neutral-800 divide-neutral-800' : 'bg-white border-gray-200 divide-gray-200'}`}>
-              {filteredDocs.map((doc) => (
-                <div
-                  key={doc.id}
-                  onClick={() => handleSelectDoc(doc)}
-                  className={`p-3 sm:p-4 cursor-pointer transition-colors active:bg-opacity-80 ${
-                    selectedDoc?.id === doc.id
-                      ? isDark ? 'bg-neutral-800' : 'bg-gray-100'
-                      : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`} />
-                    <div className="flex-1 min-w-0">
-                      <h3 className={`font-medium text-sm sm:text-base truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{doc.title}</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className={`text-xs sm:text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{doc.type}</p>
-                        <span className={`text-[10px] sm:text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                          • {new Date(doc.created_date).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
+            <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)" }}>
+              {filteredDocs.map((doc, i) => {
+                const statusLabel = { draft: "Rascunho", review: "Revisão", approved: "Aprovado", sent: "Enviado", archived: "Arquivado" }[doc.status] || doc.status;
+                return (
+                  <div
+                    key={doc.id}
+                    onClick={() => handleSelectDoc(doc)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 16px",
+                      borderBottom: i < filteredDocs.length - 1 ? "1px solid var(--ink-7)" : "none",
+                      cursor: "pointer", transition: "background var(--duration)",
+                      background: selectedDoc?.id === doc.id ? "var(--ink-7)" : "transparent",
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
+                    onMouseLeave={e => e.currentTarget.style.background = selectedDoc?.id === doc.id ? "var(--ink-7)" : "transparent"}
+                  >
+                    <FileText style={{ width: 14, height: 14, color: "var(--ink-4)", flexShrink: 0, strokeWidth: 1.5 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
+                      <p style={{ fontSize: 10, color: "var(--ink-4)", margin: "2px 0 0" }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
                     </div>
-                    <Badge variant={doc.status === 'approved' ? 'default' : 'secondary'} className="text-[10px] sm:text-xs shrink-0">
-                      {doc.status === 'draft' && 'Rascunho'}
-                      {doc.status === 'review' && 'Revisão'}
-                      {doc.status === 'approved' && 'Aprovado'}
-                      {doc.status === 'sent' && 'Enviado'}
-                      {doc.status === 'archived' && 'Arquivado'}
-                    </Badge>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                    <span className="badge badge-neutral">{statusLabel}</span>
+                    <ChevronRight style={{ width: 13, height: 13, color: "var(--ink-5)", flexShrink: 0 }} />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
           {filteredDocs.length === 0 && (
-            <div className={`text-center py-12 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <FileText className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-              <p className={`${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Nenhum documento encontrado</p>
+            <div style={{ textAlign: "center", padding: "48px 20px", border: "1px solid var(--ink-6)", background: "var(--white)" }}>
+              <FileText style={{ width: 32, height: 32, color: "var(--ink-5)", margin: "0 auto 10px" }} />
+              <p style={{ fontSize: 12, color: "var(--ink-4)" }}>Nenhum documento encontrado</p>
             </div>
           )}
         </div>
 
-        {/* Document Details Sheet - Full Screen on Mobile */}
+        {/* Document Details Sheet */}
         <Dialog open={showDetails} onOpenChange={setShowDetails}>
           <DialogContent className="max-w-lg sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>

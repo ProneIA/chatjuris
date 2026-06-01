@@ -2,62 +2,21 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DollarSign, TrendingUp, TrendingDown, AlertCircle,
-  Calendar, PieChart, BarChart3, FileText, Plus, Filter
+  PieChart, BarChart3, FileText, Plus
 } from "lucide-react";
+import PageHeader from "@/components/common/PageHeader";
+import StatCard from "@/components/common/StatCard";
 import HonorariosManager from "@/components/financial/HonorariosManager";
 import DespesasManager from "@/components/financial/DespesasManager";
 import DREReport from "@/components/financial/DREReport";
 import FluxoCaixaReport from "@/components/financial/FluxoCaixaReport";
 
-const GOLD = "#C9A84C";
-const GOLD_LIGHT = "#FBF5E6";
-const GOLD_BORDER = "#E8D5A0";
-
 const fmt = (v) =>
   typeof v === "number"
     ? `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
     : v;
-
-function SummaryCard({ title, value, icon: Icon, trend, trendLabel, accentColor }) {
-  const colors = {
-    green: { bg: "#F0FDF4", border: "#BBF7D0", icon: "#16A34A", text: "#15803D" },
-    red:   { bg: "#FEF2F2", border: "#FECACA", icon: "#DC2626", text: "#B91C1C" },
-    gold:  { bg: GOLD_LIGHT, border: GOLD_BORDER, icon: GOLD, text: "#A07830" },
-  };
-  const c = colors[accentColor] || colors.gold;
-
-  return (
-    <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #E8E4DC",
-      borderRadius: 12,
-      padding: "1.25rem 1.5rem",
-      display: "flex",
-      flexDirection: "column",
-      gap: "0.5rem",
-      boxShadow: "0 1px 4px rgba(0,0,0,0.05)"
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.06em" }}>{title}</span>
-        <div style={{ width: 34, height: 34, borderRadius: 8, background: c.bg, border: `1px solid ${c.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon style={{ width: 16, height: 16, color: c.icon }} />
-        </div>
-      </div>
-      <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "#1A1A1A", fontFamily: "'IBM Plex Sans', sans-serif", lineHeight: 1.1 }}>
-        {fmt(value)}
-      </div>
-      {trend && (
-        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: c.text, fontWeight: 500 }}>
-          {trend === "up" ? <TrendingUp style={{ width: 13, height: 13 }} /> : <TrendingDown style={{ width: 13, height: 13 }} />}
-          {trendLabel}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const PERIOD_OPTIONS = [
   { label: "Este mês", value: "month" },
@@ -137,73 +96,47 @@ export default function FinancialDashboard() {
     })),
   ].sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 20);
 
-  const headerStyle = {
-    background: "#FAFAFA",
-    borderBottom: "1px solid #E0E0E0",
-  };
-  const contentStyle = {
-    padding: "2rem",
-    maxWidth: 1400,
-    margin: "0 auto",
-  };
-
   return (
-    <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
-      {/* ── HEADER ── */}
-      <div style={headerStyle}>
-        <div style={{ padding: "1.5rem 2rem", maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-          <div>
-            <h1 style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 800, fontSize: "1.4rem", color: "#1A1A1A", margin: 0, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-              Financeiro
-            </h1>
-            <p style={{ marginTop: "0.2rem", color: "#888", fontSize: "0.82rem", margin: 0 }}>
-              Gestão de honorários, despesas e fluxo de caixa
-            </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-            {/* Period filter */}
-            <div style={{ display: "flex", gap: 4, background: "#F0EDE6", borderRadius: 8, padding: 3, border: "1px solid #E8E4DC" }}>
+    <div style={{ background: "var(--surface)", minHeight: "100vh", fontFamily: "var(--font-sans)" }}>
+      <PageHeader
+        title="Financeiro"
+        sub="Gestão de honorários, despesas e fluxo de caixa"
+        actions={
+          <>
+            <div style={{ display: "flex", gap: 0, border: "1px solid var(--ink-5)" }}>
               {PERIOD_OPTIONS.map(o => (
                 <button
                   key={o.value}
                   onClick={() => setPeriod(o.value)}
                   style={{
-                    padding: "5px 14px",
-                    borderRadius: 6,
-                    border: "none",
-                    fontSize: "0.78rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    background: period === o.value ? "#FFFFFF" : "transparent",
-                    color: period === o.value ? GOLD : "#888",
-                    boxShadow: period === o.value ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                    transition: "all 0.15s",
+                    padding: "7px 14px", border: "none", borderRight: "1px solid var(--ink-5)",
+                    fontSize: 11, fontWeight: period === o.value ? 600 : 400,
+                    cursor: "pointer", fontFamily: "var(--font-sans)",
+                    background: period === o.value ? "var(--ink)" : "var(--white)",
+                    color: period === o.value ? "var(--white)" : "var(--ink-3)",
+                    transition: "all var(--duration)",
                   }}
                 >
                   {o.label}
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => { setActiveTab("honorarios"); }}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "8px 18px", borderRadius: 8,
-                background: GOLD, border: "none", color: "#fff",
-                fontWeight: 700, fontSize: "0.82rem", cursor: "pointer",
-                letterSpacing: "0.04em", textTransform: "uppercase",
-                boxShadow: "0 2px 8px rgba(201,168,76,0.3)",
-              }}
-            >
-              <Plus style={{ width: 15, height: 15 }} />
-              Nova Transação
+            <button className="btn-primary" onClick={() => setActiveTab("honorarios")}>
+              <Plus size={13} /> Nova Transação
             </button>
-          </div>
-        </div>
+          </>
+        }
+      />
+
+      {/* KPI Strip */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
+        <StatCard title="Saldo do Período" value={fmt(saldo)} accentColor={saldo >= 0 ? "ok" : "danger"} status={saldo >= 0 ? { label: "Positivo", ok: true } : { label: "Negativo", danger: true }} />
+        <StatCard title="Receitas" value={fmt(totalRecebido)} sub={`${taxaRecebimento}% dos contratos`} accentColor="ok" />
+        <StatCard title="A Receber" value={fmt(totalPendente)} accentColor="warn" status={totalPendente > 0 ? { label: "Pendente", warn: true } : null} />
+        <StatCard title="Despesas" value={fmt(totalDespesas)} accentColor={totalDespesas > totalRecebido ? "danger" : "neutral"} />
       </div>
 
-      {/* ── CONTEÚDO ── */}
-      <div style={contentStyle}>
+      <div style={{ padding: "24px 28px" }}>
         {/* Alerta parcelas atrasadas */}
         {parcelasAtrasadas > 0 && (
           <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderLeft: "4px solid #F97316", borderRadius: 10, padding: "0.75rem 1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: 10 }}>
@@ -215,65 +148,68 @@ export default function FinancialDashboard() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList style={{ marginBottom: "1.5rem", background: "#F0EDE6", border: "1px solid #E8E4DC", borderRadius: 10, padding: 4 }}>
-            <TabsTrigger value="overview"><BarChart3 className="w-4 h-4 mr-1.5" />Visão Geral</TabsTrigger>
-            <TabsTrigger value="honorarios"><DollarSign className="w-4 h-4 mr-1.5" />Honorários</TabsTrigger>
-            <TabsTrigger value="despesas"><TrendingDown className="w-4 h-4 mr-1.5" />Despesas</TabsTrigger>
-            <TabsTrigger value="dre"><PieChart className="w-4 h-4 mr-1.5" />DRE</TabsTrigger>
-            <TabsTrigger value="fluxo"><FileText className="w-4 h-4 mr-1.5" />Fluxo de Caixa</TabsTrigger>
+          <TabsList style={{ background: "var(--white)", border: "1px solid var(--ink-6)", borderRadius: 0, padding: 0, marginBottom: 20, display: "flex" }}>
+            {[
+              { value: "overview", icon: BarChart3, label: "Visão Geral" },
+              { value: "honorarios", icon: DollarSign, label: "Honorários" },
+              { value: "despesas", icon: TrendingDown, label: "Despesas" },
+              { value: "dre", icon: PieChart, label: "DRE" },
+              { value: "fluxo", icon: FileText, label: "Fluxo de Caixa" },
+            ].map(t => (
+              <TabsTrigger key={t.value} value={t.value} style={{ flex: 1, borderRadius: 0, fontSize: 11, fontWeight: 500, display: "flex", alignItems: "center", gap: 5, fontFamily: "var(--font-sans)" }}>
+                <t.icon style={{ width: 13, height: 13 }} />{t.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          {/* ── VISÃO GERAL ── */}
           <TabsContent value="overview">
-            {/* KPI Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-              <SummaryCard title="Saldo do Período" value={saldo} icon={DollarSign} accentColor={saldo >= 0 ? "green" : "red"} />
-              <SummaryCard title="Receitas" value={totalRecebido} icon={TrendingUp} trend="up" trendLabel={`${taxaRecebimento}% dos contratos`} accentColor="green" />
-              <SummaryCard title="A Receber" value={totalPendente} icon={AlertCircle} accentColor="gold" />
-              <SummaryCard title="Despesas" value={totalDespesas} icon={TrendingDown} accentColor="red" />
-            </div>
+            {/* Alerta parcelas atrasadas */}
+            {parcelasAtrasadas > 0 && (
+              <div style={{ background: "var(--warn-bg)", border: "1px solid var(--warn-border)", borderLeft: "3px solid var(--warn)", padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <AlertCircle style={{ width: 14, height: 14, color: "var(--warn)", flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: "var(--ink-2)", fontWeight: 600 }}>
+                  {parcelasAtrasadas} parcela{parcelasAtrasadas > 1 ? "s" : ""} atrasada{parcelasAtrasadas > 1 ? "s" : ""} — verifique a aba Honorários
+                </span>
+              </div>
+            )}
 
             {/* Resumo rápido */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
-              <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 12, padding: "1.25rem" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.75rem" }}>Contratos Ativos</div>
-                <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#1A1A1A", fontFamily: "'IBM Plex Sans', sans-serif" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, marginBottom: 20, background: "var(--ink-6)" }}>
+              <div style={{ background: "var(--white)", padding: "18px 20px", borderBottom: "2px solid var(--ok)" }}>
+                <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 10px" }}>Contratos Ativos</p>
+                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.04em" }}>
                   {contratos.filter(c => c.status === "ativo").length}
-                </div>
-                <div style={{ fontSize: "0.8rem", color: "#888", marginTop: 4 }}>
-                  Total contratado: {fmt(totalContratado)}
-                </div>
+                </span>
+                <p style={{ fontSize: 11, color: "var(--ink-4)", margin: "4px 0 0" }}>Total: {fmt(totalContratado)}</p>
               </div>
-              <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 12, padding: "1.25rem" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.75rem" }}>Taxa de Recebimento</div>
-                <div style={{ fontSize: "2.2rem", fontWeight: 800, color: "#1A1A1A", fontFamily: "'IBM Plex Sans', sans-serif" }}>
+              <div style={{ background: "var(--white)", padding: "18px 20px", borderBottom: "2px solid var(--warn)" }}>
+                <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 10px" }}>Taxa de Recebimento</p>
+                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.04em" }}>
                   {taxaRecebimento}%
-                </div>
-                <div style={{ background: "#F0EDE6", borderRadius: 999, height: 6, marginTop: 10 }}>
-                  <div style={{ width: `${Math.min(taxaRecebimento, 100)}%`, height: "100%", borderRadius: 999, background: GOLD, transition: "width 0.4s" }} />
+                </span>
+                <div style={{ background: "var(--ink-6)", height: 3, marginTop: 10 }}>
+                  <div style={{ width: `${Math.min(taxaRecebimento, 100)}%`, height: "100%", background: "var(--warn)", transition: "width 0.4s" }} />
                 </div>
               </div>
             </div>
 
             {/* Tabela de transações recentes */}
-            <div style={{ background: "#fff", border: "1px solid #E8E4DC", borderRadius: 12, overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #F0EDE6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#1A1A1A" }}>
-                  Transações Recentes
-                </span>
-                <span style={{ fontSize: "0.75rem", color: "#888" }}>{transacoesRecentes.length} registros</span>
+            <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)" }}>
+              <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--ink-6)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: 0 }}>Transações Recentes</p>
+                <span style={{ fontSize: 10, color: "var(--ink-4)" }}>{transacoesRecentes.length} registros</span>
               </div>
               {transacoesRecentes.length === 0 ? (
-                <div style={{ padding: "3rem", textAlign: "center", color: "#888", fontSize: "0.875rem" }}>
+                <div style={{ padding: "40px", textAlign: "center", color: "var(--ink-4)", fontSize: 12 }}>
                   Nenhuma transação no período selecionado
                 </div>
               ) : (
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
-                      <tr style={{ background: "#FAFAFA" }}>
+                      <tr style={{ background: "var(--ink-7)" }}>
                         {["Data", "Descrição", "Categoria", "Valor", "Status"].map(h => (
-                          <th key={h} style={{ padding: "0.6rem 1rem", textAlign: "left", fontSize: "0.72rem", fontWeight: 700, color: "#888", textTransform: "uppercase", letterSpacing: "0.07em", whiteSpace: "nowrap" }}>
+                          <th key={h} style={{ padding: "8px 14px", textAlign: "left", fontSize: 9, fontWeight: 600, color: "var(--ink-4)", textTransform: "uppercase", letterSpacing: "0.10em", whiteSpace: "nowrap", fontFamily: "var(--font-sans)" }}>
                             {h}
                           </th>
                         ))}
@@ -281,30 +217,24 @@ export default function FinancialDashboard() {
                     </thead>
                     <tbody>
                       {transacoesRecentes.map((t, i) => (
-                        <tr key={i} style={{ borderTop: "1px solid #F5F3EE", transition: "background 0.1s" }}
-                          onMouseEnter={e => e.currentTarget.style.background = "#FAFAF7"}
+                        <tr key={i} style={{ borderTop: "1px solid var(--ink-7)", transition: "background var(--duration)" }}
+                          onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                         >
-                          <td style={{ padding: "0.7rem 1rem", fontSize: "0.82rem", color: "#555", whiteSpace: "nowrap" }}>
+                          <td style={{ padding: "9px 14px", fontSize: 11, color: "var(--ink-3)", whiteSpace: "nowrap" }}>
                             {t.data ? new Date(t.data).toLocaleDateString("pt-BR") : "—"}
                           </td>
-                          <td style={{ padding: "0.7rem 1rem", fontSize: "0.85rem", color: "#1A1A1A", fontWeight: 500, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <td style={{ padding: "9px 14px", fontSize: 12, color: "var(--ink-2)", fontWeight: 500, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {t.descricao}
                           </td>
-                          <td style={{ padding: "0.7rem 1rem" }}>
-                            <span style={{ padding: "2px 10px", borderRadius: 999, background: "#F0EDE6", color: "#A07830", fontSize: "0.72rem", fontWeight: 600 }}>
-                              {t.categoria}
-                            </span>
+                          <td style={{ padding: "9px 14px" }}>
+                            <span className="badge badge-neutral">{t.categoria}</span>
                           </td>
-                          <td style={{ padding: "0.7rem 1rem", fontSize: "0.88rem", fontWeight: 700, color: t.valor >= 0 ? "#16A34A" : "#DC2626", whiteSpace: "nowrap" }}>
+                          <td style={{ padding: "9px 14px", fontSize: 12, fontWeight: 600, color: t.valor >= 0 ? "var(--ok)" : "var(--danger)", whiteSpace: "nowrap" }}>
                             {t.valor >= 0 ? "+" : ""}{fmt(t.valor)}
                           </td>
-                          <td style={{ padding: "0.7rem 1rem" }}>
-                            <span style={{
-                              padding: "2px 10px", borderRadius: 999, fontSize: "0.72rem", fontWeight: 700,
-                              background: t.status === "pago" ? "#F0FDF4" : t.status === "atrasado" ? "#FEF2F2" : "#FFF7ED",
-                              color: t.status === "pago" ? "#16A34A" : t.status === "atrasado" ? "#DC2626" : "#EA580C",
-                            }}>
+                          <td style={{ padding: "9px 14px" }}>
+                            <span className={`badge ${t.status === "pago" ? "badge-success" : t.status === "atrasado" ? "badge-danger" : "badge-warning"}`}>
                               {t.status === "pago" ? "Pago" : t.status === "atrasado" ? "Atrasado" : "Pendente"}
                             </span>
                           </td>

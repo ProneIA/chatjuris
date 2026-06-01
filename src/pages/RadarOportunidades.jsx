@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, TrendingUp, MapPin, Bell, Sparkles, AlertCircle, MessageSquare } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import RadarDashboard from '@/components/radar/RadarDashboard';
 import TendenciasChart from '@/components/radar/TendenciasChart';
 import MapaRegional from '@/components/radar/MapaRegional';
+import PageHeader from '@/components/common/PageHeader';
 import { toast } from 'sonner';
 
 export default function RadarOportunidades({ theme }) {
@@ -137,189 +134,108 @@ Gere uma estratégia técnica e objetiva.`,
     { id: 'imobiliario', label: 'Imobiliário', color: 'bg-orange-500' }
   ];
 
-  if (isLoading) {
-    return (
-      <div className={`flex items-center justify-center min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-                <Activity className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Radar de Oportunidades
-                </h1>
-                <p className={`${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                  Inteligência Jurídica Agregada
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={atualizarDados} disabled={atualizandoDados} variant="outline">
-                <Activity className="w-4 h-4 mr-2" />
-                {atualizandoDados ? 'Atualizando...' : 'Atualizar Dados'}
-              </Button>
-              <Link to={createPageUrl("AIAssistant") + "?mode=marketing_juridico"}>
-                <Button variant="outline">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Chat com IA
-                </Button>
-              </Link>
-              <Button
-                onClick={generateStrategyWithAI}
-                disabled={generatingStrategy}
-                style={{
-                  background: generatingStrategy ? "rgba(184,150,62,0.5)" : "#B8963E",
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "999px",
-                  fontWeight: 600,
-                  fontSize: 14,
-                  padding: "8px 20px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  cursor: generatingStrategy ? "not-allowed" : "pointer",
-                  transition: "background 0.2s",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
-                }}
-                onMouseEnter={e => { if (!generatingStrategy) e.currentTarget.style.background = "#9A7228"; }}
-                onMouseLeave={e => { if (!generatingStrategy) e.currentTarget.style.background = "#B8963E"; }}
-              >
-                <Sparkles className="w-4 h-4" />
-                {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia com IA'}
-              </Button>
-            </div>
-          </div>
+    <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
+      <PageHeader
+        title="Radar de Oportunidades"
+        sub="Inteligência Jurídica Agregada"
+        actions={
+          <>
+            <button className="btn-secondary" onClick={atualizarDados} disabled={atualizandoDados}>
+              <Activity size={13} />
+              {atualizandoDados ? 'Atualizando...' : 'Atualizar'}
+            </button>
+            <Link to={createPageUrl("AIAssistant") + "?mode=marketing_juridico"} style={{ textDecoration: "none" }}>
+              <button className="btn-secondary">
+                <MessageSquare size={13} /> Chat IA
+              </button>
+            </Link>
+            <button className="btn-primary" onClick={generateStrategyWithAI} disabled={generatingStrategy}>
+              <Sparkles size={13} />
+              {generatingStrategy ? 'Gerando...' : 'Gerar Estratégia'}
+            </button>
+          </>
+        }
+      />
 
-          {/* Aviso LGPD/OAB */}
-          <div className={`p-4 rounded-lg border ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <p className={`text-sm ${isDark ? 'text-amber-200' : 'text-amber-900'}`}>
-                <strong>Aviso Importante:</strong> As informações disponibilizadas têm caráter exclusivamente informativo e estratégico, 
-                não configurando captação direta de clientela, em conformidade com o Código de Ética da OAB e LGPD (Lei 13.709/2018).
-              </p>
-            </div>
-          </div>
-        </motion.div>
+      <div style={{ padding: "20px 28px" }}>
+        {/* Aviso LGPD/OAB */}
+        <div style={{ background: "var(--warn-bg)", border: "1px solid var(--warn-border)", borderLeft: "3px solid var(--warn)", padding: "10px 14px", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <AlertCircle style={{ width: 14, height: 14, color: "var(--warn)", flexShrink: 0, marginTop: 1 }} />
+          <p style={{ fontSize: 11, color: "var(--ink-2)", margin: 0, lineHeight: 1.6 }}>
+            <strong>Aviso:</strong> As informações têm caráter exclusivamente informativo e estratégico, não configurando captação direta de clientela, em conformidade com o Código de Ética da OAB e LGPD.
+          </p>
+        </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className={isDark ? 'bg-neutral-900' : 'bg-white'}>
-            <TabsTrigger value="dashboard">
-              <Activity className="w-4 h-4 mr-2" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="tendencias">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Tendências
-            </TabsTrigger>
-            <TabsTrigger value="mapa">
-              <MapPin className="w-4 h-4 mr-2" />
-              Mapa Regional
-            </TabsTrigger>
-            <TabsTrigger value="alertas">
-              <Bell className="w-4 h-4 mr-2" />
-              Alertas
-            </TabsTrigger>
+        <Tabs defaultValue="dashboard">
+          <TabsList style={{ background: "var(--white)", border: "1px solid var(--ink-6)", borderRadius: 0, padding: 0, marginBottom: 20, display: "flex" }}>
+            {[
+              { value: "dashboard", icon: Activity, label: "Dashboard" },
+              { value: "tendencias", icon: TrendingUp, label: "Tendências" },
+              { value: "mapa", icon: MapPin, label: "Mapa Regional" },
+              { value: "alertas", icon: Bell, label: `Alertas${insights?.filter(i => i.relevancia === 'alta').length ? ` (${insights.filter(i => i.relevancia === 'alta').length})` : ''}` },
+            ].map(t => (
+              <TabsTrigger key={t.value} value={t.value} style={{ flex: 1, borderRadius: 0, fontSize: 11, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+                <t.icon style={{ width: 13, height: 13 }} />
+                {t.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="dashboard">
-            <RadarDashboard insights={insights} casosPublicos={casosPublicos} theme={theme} />
+            <RadarDashboard insights={insights} casosPublicos={casosPublicos} />
           </TabsContent>
-
           <TabsContent value="tendencias">
-            <TendenciasChart insights={insights} theme={theme} />
+            <TendenciasChart insights={insights} />
           </TabsContent>
-
           <TabsContent value="mapa">
-            <MapaRegional casosPublicos={casosPublicos} theme={theme} />
+            <MapaRegional casosPublicos={casosPublicos} />
           </TabsContent>
-
           <TabsContent value="alertas">
-            <div className="grid gap-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, background: "var(--ink-6)" }}>
               {insights?.filter(i => i.relevancia === 'alta').map((insight) => (
-                <Card key={insight.id} className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                          {insight.titulo}
-                        </CardTitle>
-                        <CardDescription className={isDark ? 'text-neutral-400' : 'text-gray-600'}>
-                          {insight.area_juridica} • {insight.regiao}
-                        </CardDescription>
-                      </div>
-                      <Badge className="bg-red-100 text-red-700">Alta Relevância</Badge>
+                <div key={insight.id} style={{ background: "var(--white)", padding: "16px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px" }}>{insight.titulo}</p>
+                      <p style={{ fontSize: 11, color: "var(--ink-4)", margin: 0 }}>{insight.area_juridica} · {insight.regiao}</p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                        {insight.descricao}
-                      </p>
-                      {insight.estrategia_sugerida && (
-                        <div className={`p-3 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-50'}`}>
-                          <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            Estratégia Sugerida:
-                          </p>
-                          <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
-                            {insight.estrategia_sugerida}
-                          </p>
-                        </div>
-                      )}
+                    <span className="badge badge-danger">Alta Relevância</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "var(--ink-3)", margin: "0 0 8px" }}>{insight.descricao}</p>
+                  {insight.estrategia_sugerida && (
+                    <div style={{ background: "var(--ink-7)", border: "1px solid var(--ink-6)", padding: "10px 12px" }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-4)", margin: "0 0 4px" }}>Estratégia Sugerida</p>
+                      <p style={{ fontSize: 12, color: "var(--ink-2)", margin: 0 }}>{insight.estrategia_sugerida}</p>
                     </div>
-                  </CardContent>
-                </Card>
+                  )}
+                </div>
               ))}
+              {!insights?.filter(i => i.relevancia === 'alta').length && (
+                <div style={{ background: "var(--white)", padding: "40px 20px", textAlign: "center", fontSize: 12, color: "var(--ink-4)" }}>
+                  Nenhum alerta de alta relevância no momento
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
 
         {/* Filtros por Área */}
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
-          <CardHeader>
-            <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-              Filtrar por Área Jurídica
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedArea === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedArea('all')}
-              >
-                Todas
-              </Button>
-              {areas.map((area) => (
-                <Button
-                  key={area.id}
-                  variant={selectedArea === area.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedArea(area.id)}
-                >
-                  <div className={`w-2 h-2 rounded-full ${area.color} mr-2`}></div>
-                  {area.label}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)", marginTop: 20 }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--ink-6)" }}>
+            <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-4)", margin: 0 }}>Filtrar por Área Jurídica</p>
+          </div>
+          <div style={{ padding: "12px 16px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <button onClick={() => setSelectedArea('all')} style={{ padding: "5px 12px", border: "1px solid", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-sans)", background: selectedArea === 'all' ? "var(--ink)" : "transparent", color: selectedArea === 'all' ? "var(--white)" : "var(--ink-3)", borderColor: selectedArea === 'all' ? "var(--ink)" : "var(--ink-5)", transition: "all var(--duration)", fontWeight: selectedArea === 'all' ? 500 : 400 }}>
+              Todas
+            </button>
+            {areas.map((area) => (
+              <button key={area.id} onClick={() => setSelectedArea(area.id)} style={{ padding: "5px 12px", border: "1px solid", fontSize: 11, cursor: "pointer", fontFamily: "var(--font-sans)", background: selectedArea === area.id ? "var(--ink)" : "transparent", color: selectedArea === area.id ? "var(--white)" : "var(--ink-3)", borderColor: selectedArea === area.id ? "var(--ink)" : "var(--ink-5)", transition: "all var(--duration)", fontWeight: selectedArea === area.id ? 500 : 400 }}>
+                {area.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
