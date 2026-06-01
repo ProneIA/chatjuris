@@ -114,6 +114,13 @@
   --header-h:     52px;
   --bottom-nav-h: 64px;
 
+  /* ── Design Tokens de Componentes ── */
+  --card-radius:  0px;
+  --card-border:  1px solid var(--ink-6);
+  --card-shadow:  none;
+  --alert-radius: 0px;
+  --btn-radius:   0px;
+
   /* ── Shadcn tokens ── */
   --background:     0 0% 98%;
   --foreground:     0 0% 4%;

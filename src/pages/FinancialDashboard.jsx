@@ -3,11 +3,12 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  DollarSign, TrendingUp, TrendingDown, AlertCircle,
+  DollarSign, TrendingUp, TrendingDown,
   PieChart, BarChart3, FileText, Plus
 } from "lucide-react";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
+import AlertBanner from "@/components/common/AlertBanner";
 import HonorariosManager from "@/components/financial/HonorariosManager";
 import DespesasManager from "@/components/financial/DespesasManager";
 import DREReport from "@/components/financial/DREReport";
@@ -139,11 +140,11 @@ export default function FinancialDashboard() {
       <div style={{ padding: "24px 28px" }}>
         {/* Alerta parcelas atrasadas */}
         {parcelasAtrasadas > 0 && (
-          <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderLeft: "4px solid #F97316", borderRadius: 10, padding: "0.75rem 1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: 10 }}>
-            <AlertCircle style={{ width: 18, height: 18, color: "#EA580C", flexShrink: 0 }} />
-            <span style={{ fontSize: "0.85rem", color: "#9A3412", fontWeight: 600 }}>
-              {parcelasAtrasadas} parcela{parcelasAtrasadas > 1 ? "s" : ""} atrasada{parcelasAtrasadas > 1 ? "s" : ""} — verifique a aba Honorários
-            </span>
+          <div style={{ marginBottom: "1.5rem" }}>
+            <AlertBanner
+              variant="warn"
+              message={`${parcelasAtrasadas} parcela${parcelasAtrasadas > 1 ? "s" : ""} atrasada${parcelasAtrasadas > 1 ? "s" : ""} — verifique a aba Honorários`}
+            />
           </div>
         )}
 
@@ -163,15 +164,6 @@ export default function FinancialDashboard() {
           </TabsList>
 
           <TabsContent value="overview">
-            {/* Alerta parcelas atrasadas */}
-            {parcelasAtrasadas > 0 && (
-              <div style={{ background: "var(--warn-bg)", border: "1px solid var(--warn-border)", borderLeft: "3px solid var(--warn)", padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-                <AlertCircle style={{ width: 14, height: 14, color: "var(--warn)", flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: "var(--ink-2)", fontWeight: 600 }}>
-                  {parcelasAtrasadas} parcela{parcelasAtrasadas > 1 ? "s" : ""} atrasada{parcelasAtrasadas > 1 ? "s" : ""} — verifique a aba Honorários
-                </span>
-              </div>
-            )}
 
             {/* Resumo rápido */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, marginBottom: 20, background: "var(--ink-6)" }}>
