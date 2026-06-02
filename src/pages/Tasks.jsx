@@ -181,48 +181,29 @@ export default function Tasks({ theme = 'light' }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-sans)' }}>
-
-      {/* ── Cabeçalho editorial ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Escritório</p>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-              Tarefas & Prazos
-            </h1>
-            <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>Gerencie tarefas, prazos e responsabilidades</p>
-          </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="btn-primary"
-          >
-            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            <span>{showForm ? "Cancelar" : "Nova Tarefa"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
-        {[
-          { label: "Pendentes", value: pendingTasks.length, accent: "var(--ink)" },
-          { label: "Atrasadas", value: overdueTasks.length, accent: overdueTasks.length > 0 ? "var(--danger)" : "var(--ink-5)" },
-          { label: "Concluídas", value: completedTasks.length, accent: "var(--ok)" },
-          { label: "Total", value: tasks.length, accent: "var(--ink-5)" },
-        ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "var(--white)", padding: "20px 22px 18px", borderBottom: `2px solid ${accent}` }}>
-            <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px" }}>{label}</p>
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{value}</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ padding: "24px 28px" }}>
+    <div style={{ minHeight: '100vh', padding: '16px 24px', background: 'var(--surface)' }}>
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <BackNavigation to={createPageUrl("Dashboard")} theme={theme} />
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Tarefas
+            </h1>
+            <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }} className="hidden sm:block">
+              Gerencie tarefas, prazos e responsabilidades
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowForm(!showForm)}
+            style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer", flexShrink: 0, minHeight: 44 }}
+          >
+            {showForm ? <X className="w-4 h-4 sm:mr-2" /> : <Plus className="w-4 h-4 sm:mr-2" />}
+            <span className="hidden sm:inline">{showForm ? "Cancelar" : "Nova Tarefa"}</span>
+          </Button>
+        </div>
 
       {showForm && (
-        <Card style={{ border: "1px solid var(--ink-6)", borderRadius: 0, boxShadow: "none" }}>
+        <Card>
           <CardHeader>
             <CardTitle>Criar Nova Tarefa</CardTitle>
           </CardHeader>
@@ -362,7 +343,7 @@ export default function Tasks({ theme = 'light' }) {
                   }
                 }}
                 disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}
-                style={{ background: "var(--ink)", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", fontWeight: 600, padding: "8px 18px", cursor: "pointer" }}
+                style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer" }}
               >
                 {createMutation.isPending ? (
                   <>
@@ -398,10 +379,36 @@ export default function Tasks({ theme = 'light' }) {
         </Card>
       )}
 
-
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Pendentes</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{pendingTasks.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p style={{ fontSize: 13, color: 'var(--danger)' }}>Atrasadas</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{overdueTasks.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p style={{ fontSize: 13, color: 'var(--success)' }}>Concluídas</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{completedTasks.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Total</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{tasks.length}</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Filtros e Busca */}
-      <Card style={{ border: "1px solid var(--ink-6)", borderRadius: 0, boxShadow: "none" }}>
+      <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
@@ -700,7 +707,6 @@ export default function Tasks({ theme = 'light' }) {
           </CardContent>
         </Card>
       )}
-      </div>
       </div>
     </div>
   );

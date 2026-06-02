@@ -84,58 +84,75 @@ export default function Clients() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
-
-      {/* ── Cabeçalho editorial ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
-          <div>
-            <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Escritório</p>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-              Clientes
-            </h1>
-            <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>Gerencie sua carteira de clientes</p>
-          </div>
-          <button
-            onClick={() => { setShowForm(true); setEditingClient(null); setSelectedClient(null); }}
-            className="btn-primary"
-          >
-            <Plus style={{ width: 14, height: 14 }} />
-            Novo Cliente
-          </button>
-        </div>
-      </div>
-
-      {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }}>
-        {[
-          { label: "Ativos", value: activeClients, accentColor: "var(--ok)" },
-          { label: "Pessoas Físicas", value: individualClients, accentColor: "var(--ink)" },
-          { label: "Pessoas Jurídicas", value: companyClients, accentColor: "var(--warn)" },
-        ].map(({ label, value, accentColor }) => (
-          <div key={label} style={{ background: "var(--white)", padding: "20px 22px 18px", borderBottom: `2px solid ${accentColor}` }}>
-            <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px" }}>{label}</p>
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{value}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Search ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "12px 28px" }}>
-        <div style={{ position: "relative", maxWidth: 480 }}>
-          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--ink-4)" }} />
-          <input
-            placeholder="Buscar por nome, email ou CPF/CNPJ..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: "100%", paddingLeft: 36, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: "1px solid var(--ink-5)", background: "var(--white)", fontSize: 12, fontFamily: "var(--font-sans)", outline: "none", color: "var(--ink)" }}
-          />
-        </div>
-      </div>
-
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", background: S.bg }}>
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px 28px 24px" }}>
+
+          {/* Header */}
+          <div style={{ borderBottom: `1px solid ${S.border}`, padding: "20px 24px", background: S.bg }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
+              <div>
+                <h1 style={{ fontSize: "1.5rem", fontWeight: 600, color: S.textPrimary, margin: 0 }}>Clientes</h1>
+                <p style={{ fontSize: "0.875rem", color: S.textSecondary, marginTop: 4 }}>Gerencie seus clientes</p>
+              </div>
+              <button
+                onClick={() => { setShowForm(true); setEditingClient(null); setSelectedClient(null); }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: S.accent, color: "#fff", border: "none",
+                  borderRadius: S.radius, padding: "9px 16px",
+                  fontSize: "0.875rem", fontWeight: 500, cursor: "pointer",
+                  transition: "background 0.15s", flexShrink: 0,
+                  fontFamily: "var(--font-sans)",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = S.accentHover}
+                onMouseLeave={e => e.currentTarget.style.background = S.accent}
+              >
+                <Plus style={{ width: 16, height: 16 }} />
+                <span>Novo Cliente</span>
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {[
+                { label: "Ativos", value: activeClients, icon: null },
+                { label: "Físicas", value: individualClients, icon: UserIcon },
+                { label: "Jurídicas", value: companyClients, icon: Building2 },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} style={{
+                  background: S.card, border: `1px solid ${S.border}`,
+                  borderRadius: S.radius, padding: "12px 16px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                    {Icon && <Icon style={{ width: 14, height: 14, color: S.textSecondary, flexShrink: 0 }} />}
+                    <p style={{ fontSize: "0.75rem", fontWeight: 500, color: S.textSecondary, textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>{label}</p>
+                  </div>
+                  <p style={{ fontSize: "2rem", fontWeight: 700, color: S.textPrimary, margin: 0, lineHeight: 1 }}>{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div style={{ position: "relative", marginTop: 16 }}>
+              <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: S.textSecondary }} />
+              <input
+                placeholder="Buscar por nome, email ou CPF/CNPJ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%", padding: "9px 12px 9px 38px",
+                  background: S.card, border: `1px solid ${S.border}`,
+                  borderRadius: S.radius, fontSize: "0.875rem",
+                  color: S.textPrimary, outline: "none", boxSizing: "border-box",
+                  fontFamily: "var(--font-sans)",
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: "12px 24px 24px" }}>
             {showForm ? (
               <ClientForm
                 client={editingClient}

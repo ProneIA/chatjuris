@@ -172,25 +172,21 @@ export default function Cases({ theme = 'light' }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
-
-      {/* ── Cabeçalho editorial ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Escritório</p>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-              Processos
-            </h1>
-            <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>{cases.length} processo(s) cadastrado(s)</p>
-          </div>
-          <button className="btn-primary" onClick={() => { setEditingCase(null); resetForm(); setShowForm(true); }}>
+      <PageHeader
+        title="Processos"
+        sub={`${cases.length} processo(s) cadastrado(s)`}
+        actions={
+          <button
+            className="btn-primary"
+            onClick={() => { setEditingCase(null); resetForm(); setShowForm(true); }}
+          >
             <Plus size={14} />
             Novo Processo
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* ── KPI Strip ── */}
+      {/* KPI Strip */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
         <StatCard title="Total" value={cases.length} sub="processos" accentColor="ink" loading={isLoading} />
         <StatCard title="Em andamento" value={activeCases} sub="ativos" accentColor="ok" status={activeCases > 0 ? { label: "Ativos", ok: true } : null} loading={isLoading} />

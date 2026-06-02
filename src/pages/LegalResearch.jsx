@@ -325,30 +325,36 @@ export default function LegalResearch({ theme = 'light' }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)', fontFamily: 'var(--font-sans)' }}>
-
-      {/* ── Cabeçalho editorial ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
-        <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Ferramentas</p>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-          Pesquisa Jurídica
-        </h1>
-        <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>Busca direta nas APIs oficiais dos tribunais — {tribunaisCompleto.length} tribunais disponíveis</p>
-      </div>
-
-      {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
-        {[
-          { label: 'Total Salvas', value: stats.total, accent: "var(--ink)" },
-          { label: 'STF', value: stats.stf, accent: "var(--danger)" },
-          { label: 'STJ', value: stats.stj, accent: "var(--ok)" },
-          { label: 'Favoritas', value: stats.favorites, accent: "var(--warn)" },
-        ].map(({ label, value, accent }) => (
-          <div key={label} style={{ background: "var(--white)", padding: "20px 22px 18px", borderBottom: `2px solid ${accent}` }}>
-            <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px" }}>{label}</p>
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{value}</span>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
+      {/* Header */}
+      <div style={{ borderBottom: '1px solid var(--border)', padding: '24px', background: 'var(--main-bg)' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)' }}>
+                Pesquisa Jurídica
+              </h1>
+              <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }}>
+                Busca direta nas APIs oficiais dos tribunais — sem IA · {tribunaisCompleto.length} tribunais disponíveis
+              </p>
+            </div>
           </div>
-        ))}
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Total Salvas', value: stats.total, accent: 'var(--info)' },
+              { label: 'STF', value: stats.stf, accent: 'var(--danger)' },
+              { label: 'STJ', value: stats.stj, accent: 'var(--success)' },
+              { label: 'Favoritas', value: stats.favorites, accent: 'var(--accent)' },
+            ].map(({ label, value, accent }) => (
+              <div key={label} style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)', borderBottom: `3px solid ${accent}` }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>{label}</p>
+                <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}

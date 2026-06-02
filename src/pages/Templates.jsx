@@ -87,51 +87,53 @@ export default function Templates() {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surface)', fontFamily: 'var(--font-sans)' }}>
-
-      {/* ── Cabeçalho editorial ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
-          <div>
-            <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Ferramentas</p>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
-              Modelos de Peças
-            </h1>
-            <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>Modelos de documentos jurídicos prontos para uso</p>
+    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--surface)' }}>
+      <div className="flex-1 flex flex-col">
+        <div style={{ borderBottom: '1px solid var(--border)', padding: '16px 24px', background: 'var(--main-bg)' }}>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)' }}>Modelos de Peças</h1>
+              <p style={{ marginTop: 4, color: 'var(--text-secondary)', fontSize: 13 }}>Modelos de documentos jurídicos</p>
+            </div>
+            <Button
+              onClick={() => {
+                setShowForm(true);
+                setEditingTemplate(null);
+                setSelectedTemplate(null);
+              }}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Modelo
+            </Button>
           </div>
-          <button className="btn-primary" onClick={() => { setShowForm(true); setEditingTemplate(null); setSelectedTemplate(null); }}>
-            <Plus style={{ width: 14, height: 14 }} />
-            Novo Modelo
-          </button>
-        </div>
-      </div>
 
-      {/* ── KPI Strip ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }}>
-        <div style={{ background: "var(--white)", padding: "20px 22px 18px", borderBottom: "2px solid var(--ink)" }}>
-          <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px" }}>Total de Modelos</p>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{templates.length}</span>
-        </div>
-        <div style={{ background: "var(--white)", padding: "20px 22px 18px", borderBottom: "2px solid var(--warn)" }}>
-          <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 12px" }}>Favoritos</p>
-          <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 36, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{favoriteTemplates}</span>
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 16, background: 'var(--main-bg)', borderBottom: '3px solid var(--info)' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>Total de Modelos</p>
+              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{templates.length}</p>
+            </div>
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 16, background: 'var(--main-bg)', borderBottom: '3px solid var(--accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Star className="w-4 h-4" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>Favoritos</p>
+              </div>
+              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-primary)' }}>{favoriteTemplates}</p>
+            </div>
+          </div>
 
-      {/* ── Search ── */}
-      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "12px 28px" }}>
-        <div style={{ position: "relative", maxWidth: 480 }}>
-          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--ink-4)" }} />
-          <input
-            placeholder="Buscar modelos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: "100%", paddingLeft: 36, paddingRight: 12, paddingTop: 8, paddingBottom: 8, border: "1px solid var(--ink-5)", background: "var(--white)", fontSize: 12, fontFamily: "var(--font-sans)", outline: "none", color: "var(--ink)" }}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <Input
+              placeholder="Buscar modelos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
-      </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px 24px', background: 'var(--surface)' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 24, background: 'var(--surface)' }}>
           {showForm ? (
             <TemplateForm
               template={editingTemplate}
@@ -151,6 +153,8 @@ export default function Templates() {
             />
           )}
         </div>
+      </div>
+
       {selectedTemplate && !showForm && (
         <TemplateDetails
           template={selectedTemplate}
