@@ -7,7 +7,7 @@ import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
 import { useDebounce } from "@/components/common/useDebounce";
 
-export default function Clients({ theme = 'light' }) {
+export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [showForm, setShowForm] = useState(false);
@@ -73,14 +73,14 @@ export default function Clients({ theme = 'light' }) {
   const companyClients = clients.filter(c => c.type === 'company').length;
 
   const S = {
-    bg: "#f5f5f4",
-    card: "#ffffff",
-    border: "#e7e5e4",
-    textPrimary: "#1c1917",
-    textSecondary: "#78716c",
-    accent: "#1a1a1a",
+    bg: "var(--surface)",
+    card: "var(--main-bg)",
+    border: "var(--border)",
+    textPrimary: "var(--text-primary)",
+    textSecondary: "var(--text-secondary)",
+    accent: "var(--ink)",
     accentHover: "#333333",
-    radius: 6,
+    radius: "var(--radius-sm)",
   };
 
   return (
@@ -177,7 +177,7 @@ export default function Clients({ theme = 'light' }) {
             client={selectedClient}
             onClose={() => setSelectedClient(null)}
             onEdit={handleEdit}
-            theme={theme}
+            theme="light"
           />
         )}
       </div>

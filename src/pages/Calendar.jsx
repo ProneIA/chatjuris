@@ -27,7 +27,7 @@ import { isPast, isSameDay, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function Calendar({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [viewMode, setViewMode] = useState('month'); // month, week, day
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showEventForm, setShowEventForm] = useState(false);
@@ -334,16 +334,16 @@ export default function Calendar({ theme = 'light' }) {
   };
 
   return (
-    <div className={`h-screen flex flex-col ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
       {/* Header */}
-      <div className={`border-b px-4 md:px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+      <div style={{ borderBottom: '1px solid var(--border)', padding: '16px 24px', background: 'var(--main-bg)' }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div>
-              <h1 className={`text-xl md:text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>
                 Calendário Inteligente
               </h1>
-              <p className={`text-sm mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+              <p style={{ fontSize: 13, marginTop: 4, color: 'var(--text-secondary)' }}>
                 {format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </p>
             </div>
@@ -351,48 +351,39 @@ export default function Calendar({ theme = 'light' }) {
 
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className={`flex rounded-lg border ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
+            <div style={{ display: 'flex', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
               {['day', 'week', 'month'].map(mode => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                    viewMode === mode
-                      ? isDark ? 'bg-white text-black' : 'bg-gray-900 text-white'
-                      : isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
-                  } first:rounded-l-lg last:rounded-r-lg`}
+                  style={{
+                    padding: '6px 12px', fontSize: 13, fontWeight: 500, transition: 'all var(--transition)',
+                    background: viewMode === mode ? 'var(--ink)' : 'transparent',
+                    color: viewMode === mode ? '#fff' : 'var(--text-secondary)',
+                    border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)'
+                  }}
                 >
                   {mode === 'day' ? 'Dia' : mode === 'week' ? 'Semana' : 'Mês'}
                 </button>
               ))}
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className={isDark ? 'border-neutral-800 text-white' : ''}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="w-4 h-4" />
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAIScheduler(true)}
-              className={isDark ? 'border-neutral-800 text-white' : ''}
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowAIScheduler(true)}>
               <CalendarIcon className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">IA</span>
             </Button>
 
             <Button
               size="sm"
+              className="btn-primary"
               onClick={() => {
                 setSelectedEvent(null);
                 setShowEventForm(true);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Plus className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">Novo</span>
@@ -403,85 +394,40 @@ export default function Calendar({ theme = 'light' }) {
         {/* Search Bar */}
         <div className="mt-4">
           <div className="relative">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar eventos..."
-              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white' : ''}`}
+              className="pl-10"
             />
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <CalendarIcon className="w-4 h-4 text-blue-500" />
+          {[
+            { label: 'Hoje', value: todayEvents.length, icon: CalendarIcon, color: 'var(--info)', bg: 'var(--info-bg)' },
+            { label: 'Ações', value: `${completedActions}/${todayActions}`, icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
+            { label: 'Pendentes', value: pendingEvents.length, icon: Clock, color: 'var(--warn)', bg: 'var(--warn-bg)' },
+            { label: 'Atrasados', value: overdueEvents, icon: AlertCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <motion.div
+              key={label}
+              whileHover={{ scale: 1.02 }}
+              style={{ padding: 12, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}
+            >
+              <div className="flex items-center gap-2">
+                <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg }}>
+                  <Icon className="w-4 h-4" style={{ color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{label}</p>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{value}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Hoje</p>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {todayEvents.length}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Ações</p>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {completedActions}/{todayActions}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-orange-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Pendentes</p>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {pendingEvents.length}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <AlertCircle className="w-4 h-4 text-red-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Atrasados</p>
-                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {overdueEvents}
-                </p>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
       </div>
 
@@ -502,13 +448,13 @@ export default function Calendar({ theme = 'light' }) {
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Carregando eventos...</p>
+              <div style={{ width: 48, height: 48, border: '4px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }}></div>
+              <p style={{ color: 'var(--text-secondary)' }}>Carregando eventos...</p>
             </div>
           </div>
         ) : eventsError ? (
           <div className="flex items-center justify-center h-full">
-            <div className={`p-6 rounded-lg border ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+            <div style={{ padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--danger-border)', background: 'var(--danger-bg)' }}>
               <p className="text-red-600">Erro ao carregar eventos: {eventsError.message}</p>
             </div>
           </div>

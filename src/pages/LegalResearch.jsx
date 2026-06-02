@@ -153,7 +153,7 @@ const areas = [
 ];
 
 export default function LegalResearch({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [activeTab, setActiveTab] = useState("search");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("jurisprudence");
@@ -325,16 +325,16 @@ export default function LegalResearch({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       {/* Header */}
-      <div className={`border-b px-6 py-6 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+      <div style={{ borderBottom: '1px solid var(--border)', padding: '24px', background: 'var(--main-bg)' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className={`text-3xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)' }}>
                 Pesquisa Jurídica
               </h1>
-              <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+              <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }}>
                 Busca direta nas APIs oficiais dos tribunais — sem IA · {tribunaisCompleto.length} tribunais disponíveis
               </p>
             </div>
@@ -342,22 +342,17 @@ export default function LegalResearch({ theme = 'light' }) {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total Salvas</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
-            </div>
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>STF</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.stf}</p>
-            </div>
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>STJ</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.stj}</p>
-            </div>
-            <div className={`p-4 rounded-lg ${isDark ? 'bg-neutral-900' : 'bg-white border'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Favoritas</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.favorites}</p>
-            </div>
+            {[
+              { label: 'Total Salvas', value: stats.total, accent: 'var(--info)' },
+              { label: 'STF', value: stats.stf, accent: 'var(--danger)' },
+              { label: 'STJ', value: stats.stj, accent: 'var(--success)' },
+              { label: 'Favoritas', value: stats.favorites, accent: 'var(--accent)' },
+            ].map(({ label, value, accent }) => (
+              <div key={label} style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)', borderBottom: `3px solid ${accent}` }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>{label}</p>
+                <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{value}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -365,7 +360,7 @@ export default function LegalResearch({ theme = 'light' }) {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={isDark ? 'bg-neutral-900' : 'bg-white border'}>
+          <TabsList>
             <TabsTrigger value="search" className="gap-2">
               <Search className="w-4 h-4" />
               Nova Pesquisa
@@ -381,11 +376,11 @@ export default function LegalResearch({ theme = 'light' }) {
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Search Form */}
               <div className="lg:col-span-2 space-y-6">
-                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <div style={{ padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
                   <div className="space-y-4">
                     {/* Type Selection */}
                     <div>
-                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                         Tipo de Pesquisa
                       </label>
                       <div className="grid grid-cols-3 gap-2">
@@ -395,19 +390,15 @@ export default function LegalResearch({ theme = 'light' }) {
                             <button
                               key={type.id}
                               onClick={() => setSearchType(type.id)}
-                              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                searchType === type.id
-                                  ? isDark 
-                                    ? 'border-blue-500 bg-blue-500/10' 
-                                    : 'border-blue-500 bg-blue-50'
-                                  : isDark
-                                    ? 'border-neutral-700 hover:border-neutral-600'
-                                    : 'border-gray-200 hover:border-gray-300'
-                              }`}
+                              style={{
+                                padding: 16, borderRadius: 'var(--radius-md)', border: `2px solid ${searchType === type.id ? 'var(--accent)' : 'var(--border)'}`,
+                                background: searchType === type.id ? 'var(--warn-bg)' : 'var(--main-bg)',
+                                cursor: 'pointer', textAlign: 'left', transition: 'all var(--transition)'
+                              }}
                             >
-                              <Icon className={`w-5 h-5 mb-2 ${searchType === type.id ? 'text-blue-500' : isDark ? 'text-neutral-400' : 'text-gray-600'}`} />
-                              <div className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{type.label}</div>
-                              <div className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>{type.description}</div>
+                              <Icon className="w-5 h-5 mb-2" style={{ color: searchType === type.id ? 'var(--accent)' : 'var(--text-secondary)' }} />
+                              <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-primary)' }}>{type.label}</div>
+                              <div style={{ fontSize: 11, marginTop: 4, color: 'var(--text-muted)' }}>{type.description}</div>
                             </button>
                           );
                         })}
@@ -417,13 +408,13 @@ export default function LegalResearch({ theme = 'light' }) {
                     {/* Filters */}
                     <div className="grid md:grid-cols-3 gap-4">
                       <div>
-                        <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                        <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                           Área do Direito
                         </label>
                         <select
                           value={selectedArea}
                           onChange={(e) => setSelectedArea(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                          style={{ width: '100%' }}
                         >
                           <option value="">Todas as áreas</option>
                           {areas.map(area => (
@@ -433,13 +424,13 @@ export default function LegalResearch({ theme = 'light' }) {
                       </div>
 
                       <div>
-                        <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                        <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                           Período
                         </label>
                         <select
                           value={yearFilter}
                           onChange={(e) => setYearFilter(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                          style={{ width: '100%' }}
                         >
                           <option value="all">Todos os anos</option>
                           <option value="2026">2026</option>
@@ -461,13 +452,13 @@ export default function LegalResearch({ theme = 'light' }) {
 
                       {searchType === "jurisprudence" && (
                         <div>
-                          <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                             Tribunal
                           </label>
                           <select
                             value={selectedTribunal}
                             onChange={(e) => setSelectedTribunal(e.target.value)}
-                            className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                            style={{ width: '100%' }}
                           >
                             <option value="all">Todos os Tribunais</option>
                             <optgroup label="Tribunais Superiores">
@@ -506,7 +497,7 @@ export default function LegalResearch({ theme = 'light' }) {
                               href={tribunaisCompleto.find(t => t.value === selectedTribunal).url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                              style={{ fontSize: 11, color: 'var(--info)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}
                             >
                               <ExternalLink className="w-3 h-3" />
                               Ver portal oficial
@@ -518,7 +509,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                     {/* Search Query */}
                     <div>
-                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                         Consulta
                       </label>
                       <Textarea
@@ -531,7 +522,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                     {/* Context */}
                     <div>
-                      <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <label style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, display: 'block', color: 'var(--text-secondary)' }}>
                         Contexto Adicional (Opcional)
                       </label>
                       <Textarea
@@ -560,7 +551,7 @@ export default function LegalResearch({ theme = 'light' }) {
                         </>
                       )}
                     </Button>
-                    <p className={`text-xs text-center ${isDark ? "text-neutral-500" : "text-gray-400"}`}>
+                    <p style={{ fontSize: 11, textAlign: 'center', color: 'var(--text-muted)' }}>
                       Busca direta nas APIs oficiais — sem IA · sem tokens · dados reais
                     </p>
                   </div>
@@ -577,7 +568,7 @@ export default function LegalResearch({ theme = 'light' }) {
                     >
                       {/* Erros / avisos */}
                       {searchErrors && (
-                        <div className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${isDark ? "bg-yellow-900/20 border-yellow-800 text-yellow-300" : "bg-yellow-50 border-yellow-200 text-yellow-800"}`}>
+                        <div style={{ padding: 12, borderRadius: 'var(--radius-md)', border: '1px solid var(--warn-border)', fontSize: 11, display: 'flex', alignItems: 'flex-start', gap: 8, background: 'var(--warn-bg)', color: '#7a6010' }}>
                           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                           <div>
                             <strong>Avisos:</strong> {searchErrors.join(" · ")}
@@ -587,7 +578,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                       {/* Resumo */}
                       {currentResult.summary && (
-                        <div className={`p-4 rounded-lg border-l-4 border-blue-700 text-sm ${isDark ? "bg-blue-900/20 text-blue-200" : "bg-blue-50 text-gray-700"}`}>
+                        <div style={{ padding: 16, borderLeft: '4px solid var(--info)', fontSize: 13, background: 'var(--info-bg)', color: 'var(--text-primary)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
                           <div className="font-semibold text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2 text-xs">
                             📋 Resumo da Pesquisa
                             <span className="font-normal text-gray-400">(gerado localmente — sem IA)</span>
@@ -599,7 +590,7 @@ export default function LegalResearch({ theme = 'light' }) {
                       {/* Cabeçalho resultados */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
                             {currentResult.results?.length || 0} resultado(s)
                           </span>
                           {currentResult.sources?.map(s => (
@@ -624,10 +615,10 @@ export default function LegalResearch({ theme = 'light' }) {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className={`p-4 rounded-xl border transition-shadow hover:shadow-md ${isDark ? "bg-neutral-900 border-neutral-700" : "bg-white border-gray-200"}`}
+                                style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}
                               >
                                 <div className="flex items-start justify-between gap-3 mb-2">
-                                  <h4 className={`text-sm font-semibold leading-snug ${isDark ? "text-white" : "text-gray-800"}`}>{r.title}</h4>
+                                  <h4 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>{r.title}</h4>
                                   <div className="flex gap-1.5 flex-shrink-0">
                                     <Badge className="text-xs">{r.court}</Badge>
                                     {r.relevance_score >= 70 && (
@@ -636,28 +627,28 @@ export default function LegalResearch({ theme = 'light' }) {
                                   </div>
                                 </div>
 
-                                <div className={`flex flex-wrap gap-3 text-xs mb-2 ${isDark ? "text-neutral-400" : "text-gray-500"}`}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 11, marginBottom: 8, color: 'var(--text-secondary)' }}>
                                   {r.case_number && <span>Processo: {r.case_number}</span>}
                                   {r.decision_date && <span>Julgado: {r.decision_date.split("-").reverse().join("/")}</span>}
                                   <span>Score: {r.relevance_score}/100</span>
                                 </div>
 
                                 {r.summary && (
-                                  <p className={`text-xs leading-relaxed mb-3 line-clamp-3 ${isDark ? "text-neutral-400" : "text-gray-600"}`}>{r.summary}</p>
+                                  <p style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 12, color: 'var(--text-secondary)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.summary}</p>
                                 )}
 
                                 {r.tags?.length > 0 && (
                                   <div className="flex flex-wrap gap-1 mb-3">
                                     {r.tags.map(tag => (
-                                      <span key={tag} className={`text-xs px-2 py-0.5 rounded ${isDark ? "bg-neutral-800 text-neutral-400" : "bg-gray-100 text-gray-500"}`}>{tag}</span>
+                                      <span key={tag} style={{ fontSize: 11, padding: '1px 8px', borderRadius: 'var(--radius-sm)', background: 'var(--surface)', color: 'var(--text-secondary)' }}>{tag}</span>
                                     ))}
                                   </div>
                                 )}
 
-                                <div className={`flex gap-3 pt-2 border-t ${isDark ? "border-neutral-700" : "border-gray-100"}`}>
+                                <div style={{ display: 'flex', gap: 12, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                                   {r.source_url && (
                                     <a href={r.source_url} target="_blank" rel="noreferrer"
-                                      className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                      style={{ fontSize: 11, color: 'var(--info)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
                                       <ExternalLink className="w-3 h-3" />
                                       Ver no tribunal
                                     </a>
@@ -665,7 +656,7 @@ export default function LegalResearch({ theme = 'light' }) {
                                   <button
                                     onClick={() => handleSaveResult(r)}
                                     disabled={isSaved}
-                                    className={`text-xs flex items-center gap-1 ${isSaved ? "text-green-600" : "text-blue-600 hover:underline"}`}
+                                    style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, color: isSaved ? 'var(--success)' : 'var(--info)', background: 'none', border: 'none', cursor: 'pointer' }}
                                   >
                                     {isSaved ? <><CheckCircle2 className="w-3 h-3" /> Salvo</> : <><Save className="w-3 h-3" /> Salvar</>}
                                   </button>
@@ -675,7 +666,7 @@ export default function LegalResearch({ theme = 'light' }) {
                           })}
                         </div>
                       ) : (
-                        <div className={`text-center py-10 text-sm ${isDark ? "text-neutral-500" : "text-gray-400"}`}>
+                        <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-muted)' }}>
                           Nenhum resultado retornado pelas APIs. Tente outros termos ou tribunal.
                         </div>
                       )}
@@ -685,14 +676,14 @@ export default function LegalResearch({ theme = 'light' }) {
               </div>
 
               {/* Quick Links */}
-              <div className={`p-6 rounded-xl border h-fit sticky top-6 max-h-[calc(100vh-120px)] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-                <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <div style={{ padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)', position: 'sticky', top: 24, maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
+                <h3 style={{ fontWeight: 600, marginBottom: 16, color: 'var(--text-primary)', fontSize: 14 }}>
                   Acesso Rápido aos Tribunais
                 </h3>
                 
                 {/* Tribunais Superiores */}
                 <div className="mb-4">
-                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     TRIBUNAIS SUPERIORES
                   </p>
                   <div className="space-y-1">
@@ -702,16 +693,14 @@ export default function LegalResearch({ theme = 'light' }) {
                         href={tribunal.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          isDark 
-                            ? 'hover:bg-neutral-800' 
-                            : 'hover:bg-gray-50'
-                        }`}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 'var(--radius-sm)', textDecoration: 'none', transition: 'background var(--transition)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                           {tribunal.value}
                         </span>
-                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                        <ExternalLink className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                       </a>
                     ))}
                   </div>
@@ -719,7 +708,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                 {/* TRFs */}
                 <div className="mb-4">
-                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     TRFs
                   </p>
                   <div className="space-y-1">
@@ -729,16 +718,14 @@ export default function LegalResearch({ theme = 'light' }) {
                         href={tribunal.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          isDark 
-                            ? 'hover:bg-neutral-800' 
-                            : 'hover:bg-gray-50'
-                        }`}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 'var(--radius-sm)', textDecoration: 'none', transition: 'background var(--transition)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                           {tribunal.value}
                         </span>
-                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                        <ExternalLink className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                       </a>
                     ))}
                   </div>
@@ -746,7 +733,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                 {/* TJs - Todos os Estados */}
                 <div className="mb-4">
-                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     TJs - TRIBUNAIS ESTADUAIS
                   </p>
                   <div className="space-y-1">
@@ -756,16 +743,14 @@ export default function LegalResearch({ theme = 'light' }) {
                         href={tribunal.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          isDark 
-                            ? 'hover:bg-neutral-800' 
-                            : 'hover:bg-gray-50'
-                        }`}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 'var(--radius-sm)', textDecoration: 'none', transition: 'background var(--transition)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                           {tribunal.value}
                         </span>
-                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                        <ExternalLink className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                       </a>
                     ))}
                   </div>
@@ -773,7 +758,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                 {/* Consultas Unificadas */}
                 <div>
-                  <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 10, fontWeight: 600, marginBottom: 8, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     CONSULTAS UNIFICADAS
                   </p>
                   <div className="space-y-1">
@@ -783,23 +768,21 @@ export default function LegalResearch({ theme = 'light' }) {
                         href={tribunal.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                          isDark 
-                            ? 'hover:bg-neutral-800' 
-                            : 'hover:bg-gray-50'
-                        }`}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 8, borderRadius: 'var(--radius-sm)', textDecoration: 'none', transition: 'background var(--transition)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
                           {tribunal.value}
                         </span>
-                        <ExternalLink className={`w-3 h-3 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+                        <ExternalLink className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                       </a>
                     ))}
                   </div>
                 </div>
 
-                <div className={`mt-4 pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                  <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     {tribunaisCompleto.length - 1} tribunais disponíveis
                   </p>
                 </div>
@@ -812,9 +795,9 @@ export default function LegalResearch({ theme = 'light' }) {
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Saved List */}
               <div className="lg:col-span-2">
-                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <div style={{ padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14 }}>
                       Pesquisas Salvas
                     </h3>
                     <div className="flex gap-2">
@@ -844,33 +827,33 @@ export default function LegalResearch({ theme = 'light' }) {
                         onClick={() => setSelectedSaved(research)}
                         className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                           selectedSaved?.id === research.id
-                            ? isDark ? 'border-blue-500 bg-blue-500/10' : 'border-blue-500 bg-blue-50'
-                            : isDark ? 'border-neutral-700 hover:border-neutral-600' : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-[var(--accent)] bg-[var(--warn-bg)]'
+                            : 'border-[var(--border)] hover:border-[var(--border-strong)]'
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              <h4 style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: 13 }}>
                                 {research.title}
                               </h4>
                               {research.is_favorite && <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />}
                             </div>
                             <div className="flex items-center gap-2 text-xs">
                               <Badge variant="outline">{research.court || 'Geral'}</Badge>
-                              <span className={isDark ? 'text-neutral-500' : 'text-gray-500'}>
+                              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>
                                 {new Date(research.created_date).toLocaleDateString('pt-BR')}
                               </span>
                             </div>
                           </div>
-                          <ChevronRight className={`w-5 h-5 ${isDark ? 'text-neutral-600' : 'text-gray-400'}`} />
+                          <ChevronRight className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
                         </div>
                       </div>
                     ))}
                     {filteredResearches.length === 0 && (
                       <div className="text-center py-12">
-                        <BookOpen className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-                        <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
+                        <BookOpen className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--border)' }} />
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                           Nenhuma pesquisa salva
                         </p>
                       </div>
@@ -881,9 +864,9 @@ export default function LegalResearch({ theme = 'light' }) {
 
               {/* Details */}
               {selectedSaved && (
-                <div className={`p-6 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
+                <div style={{ padding: 24, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14 }}>
                       Detalhes
                     </h3>
                     <div className="flex gap-2">
@@ -911,7 +894,7 @@ export default function LegalResearch({ theme = 'light' }) {
                     </div>
                   </div>
 
-                  <div className={`prose prose-sm max-w-none ${isDark ? 'prose-invert' : ''}`}>
+                  <div className="prose prose-sm max-w-none">
                     <ReactMarkdown>{selectedSaved.full_text || selectedSaved.summary}</ReactMarkdown>
                   </div>
                 </div>

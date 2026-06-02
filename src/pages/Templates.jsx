@@ -9,8 +9,8 @@ import TemplateForm from "../components/templates/TemplateForm";
 import TemplateDetails from "../components/templates/TemplateDetails";
 import { useDebounce } from "@/components/common/useDebounce";
 
-export default function Templates({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+export default function Templates() {
+  const isDark = false;
   const [user, setUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -87,13 +87,13 @@ export default function Templates({ theme = 'light' }) {
   const favoriteTemplates = templates.filter(t => t.is_favorite).length;
 
   return (
-    <div className={`min-h-screen flex ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--surface)' }}>
       <div className="flex-1 flex flex-col">
-        <div className={`border-b px-6 py-4 ${isDark ? 'bg-black border-neutral-800' : 'bg-white border-gray-200'}`}>
+        <div style={{ borderBottom: '1px solid var(--border)', padding: '16px 24px', background: 'var(--main-bg)' }}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>Modelos de Peças</h1>
-              <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Modelos de documentos jurídicos</p>
+              <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--text-primary)' }}>Modelos de Peças</h1>
+              <p style={{ marginTop: 4, color: 'var(--text-secondary)', fontSize: 13 }}>Modelos de documentos jurídicos</p>
             </div>
             <Button
               onClick={() => {
@@ -101,7 +101,7 @@ export default function Templates({ theme = 'light' }) {
                 setEditingTemplate(null);
                 setSelectedTemplate(null);
               }}
-              className={isDark ? 'bg-white text-black hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800'}
+              className="btn-primary"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Modelo
@@ -109,31 +109,31 @@ export default function Templates({ theme = 'light' }) {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Total de Modelos</p>
-              <p className={`text-2xl font-light mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{templates.length}</p>
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 16, background: 'var(--main-bg)', borderBottom: '3px solid var(--info)' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>Total de Modelos</p>
+              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{templates.length}</p>
             </div>
-            <div className={`border rounded-lg p-4 ${isDark ? 'border-neutral-800 bg-neutral-900' : 'border-gray-200 bg-white'}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>Favoritos</p>
+            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 16, background: 'var(--main-bg)', borderBottom: '3px solid var(--accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Star className="w-4 h-4" style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary)' }}>Favoritos</p>
               </div>
-              <p className={`text-2xl font-light ${isDark ? 'text-white' : 'text-gray-900'}`}>{favoriteTemplates}</p>
+              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-primary)' }}>{favoriteTemplates}</p>
             </div>
           </div>
 
           <div className="relative">
-            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
             <Input
               placeholder="Buscar modelos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+              className="pl-10"
             />
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 24, background: 'var(--surface)' }}>
           {showForm ? (
             <TemplateForm
               template={editingTemplate}

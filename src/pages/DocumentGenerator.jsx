@@ -270,14 +270,19 @@ function Stepper({ step }) {
         return (
           <React.Fragment key={idx}>
             <div className="flex flex-col items-center gap-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                ${done ? "bg-indigo-600 text-white" : active ? "bg-indigo-600 text-white ring-4 ring-indigo-200" : "bg-gray-200 text-gray-500"}`}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 13, fontWeight: 700, transition: 'all var(--transition)',
+                background: done || active ? 'var(--ink)' : 'var(--border)',
+                color: done || active ? '#fff' : 'var(--text-secondary)',
+                outline: active ? '3px solid rgba(200,181,96,0.3)' : 'none', outlineOffset: 2
+              }}>
                 {done ? <Check className="w-4 h-4" /> : idx}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${active ? "text-indigo-600" : done ? "text-indigo-400" : "text-gray-400"}`}>{label}</span>
+              <span style={{ fontSize: 11, fontWeight: 500, display: 'block', color: active ? 'var(--accent)' : done ? 'var(--text-secondary)' : 'var(--text-muted)' }} className="hidden sm:block">{label}</span>
             </div>
             {i < steps.length - 1 && (
-              <div className={`h-0.5 w-8 sm:w-12 mx-1 mb-4 transition-all ${step > idx ? "bg-indigo-500" : "bg-gray-200"}`} />
+              <div style={{ height: 2, width: 48, margin: '0 4px 16px', background: step > idx ? 'var(--accent)' : 'var(--border)', transition: 'background var(--transition)' }} />
             )}
           </React.Fragment>
         );
@@ -378,9 +383,9 @@ export default function DocumentGenerator() {
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-2 mb-2">
             <div style={{ width: 8, height: 8, background: "var(--primary)" }} />
-            <span style={{ fontFamily: "'Oswald',sans-serif", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "var(--text-muted)" }}>Gerador de Peças</span>
+            <span style={{ fontFamily: "var(--font-body)", fontSize: ".7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", color: "var(--text-secondary)" }}>Gerador de Peças</span>
           </div>
-          <h1 style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: "1.8rem", textTransform: "uppercase", letterSpacing: "-0.01em", color: "var(--text)" }}>
+          <h1 style={{ fontFamily: "var(--font-body)", fontWeight: 700, fontSize: "1.8rem", textTransform: "uppercase", letterSpacing: "-0.01em", color: "var(--text-primary)" }}>
             Máquina de Peças Jurídicas
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: ".9rem", marginTop: ".5rem" }}>
@@ -403,13 +408,15 @@ export default function DocumentGenerator() {
                   <button
                     key={area.id}
                     onClick={() => selecionarArea(area.id)}
-                    className="flex flex-col items-center gap-2 p-4 transition-all hover:bg-indigo-50 group"
+                    className="flex flex-col items-center gap-2 p-4 transition-all group"
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--warn-bg)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
                     style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
                   >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all group-hover:bg-indigo-100" style={{ background: "var(--surface-2)" }}>
-                      <Icon className="w-5 h-5 group-hover:text-indigo-600 transition-colors" style={{ color: "var(--text-muted)" }} />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all" style={{ background: "var(--border)" }}>
+                      <Icon className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
                     </div>
-                    <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-muted)", textAlign: "center", lineHeight: 1.3 }} className="group-hover:text-indigo-600 transition-colors">
+                    <span style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.3 }}>
                       {area.label}
                     </span>
                   </button>
@@ -424,7 +431,7 @@ export default function DocumentGenerator() {
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="section-header">
               <h2 className="section-title">Tipo de Documento</h2>
-              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+              <span style={{ background: "var(--ink)", color: "#fff", fontFamily: "var(--font-body)", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
                 {areaLabel}
               </span>
             </div>
@@ -433,14 +440,16 @@ export default function DocumentGenerator() {
                 <button
                   key={tipo.id}
                   onClick={() => selecionarTipo(tipo)}
-                  className="flex items-center gap-4 p-5 text-left transition-all hover:bg-indigo-50 group"
+                  className="flex items-center gap-4 p-5 text-left transition-all group"
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--warn-bg)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
                   style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
-                >
-                  <div className="w-10 h-10 flex items-center justify-center flex-shrink-0" style={{ background: "var(--primary-light)" }}>
-                    <FileText className="w-5 h-5" style={{ color: "var(--primary)" }} />
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center flex-shrink-0" style={{ background: "var(--surface)" }}>
+                      <FileText className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".85rem", textTransform: "uppercase", letterSpacing: ".04em", color: "var(--text)" }} className="group-hover:text-indigo-600 transition-colors">
+                    <p style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: ".85rem", textTransform: "uppercase", letterSpacing: ".04em", color: "var(--text-primary)" }}>
                       {tipo.label}
                     </p>
                     <p style={{ fontSize: ".72rem", color: "var(--text-muted)", marginTop: "2px" }}>{tipo.campos.length} campos</p>
@@ -462,7 +471,7 @@ export default function DocumentGenerator() {
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="section-header">
               <h2 className="section-title">{tipoLabel}</h2>
-              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+              <span style={{ background: "var(--ink)", color: "#fff", fontFamily: "var(--font-body)", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
                 {areaLabel}
               </span>
             </div>
@@ -473,7 +482,7 @@ export default function DocumentGenerator() {
                 const isOpcional = CAMPOS_OPCIONAIS.has(campo);
                 return (
                   <div key={campo}>
-                    <label style={{ display: "block", fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: ".72rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-muted)", marginBottom: "6px" }}>
+                    <label style={{ display: "block", fontFamily: "var(--font-body)", fontWeight: 600, fontSize: ".72rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-secondary)", marginBottom: "6px" }}>
                       {label}
                       {isOpcional && <span style={{ fontWeight: 400, marginLeft: 6, textTransform: "none", letterSpacing: 0, fontSize: ".7rem" }}>(opcional)</span>}
                     </label>
@@ -520,7 +529,7 @@ export default function DocumentGenerator() {
           <div className="mt-6 p-8 flex flex-col items-center gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <Loader2 className="w-10 h-10 animate-spin" style={{ color: "var(--primary)" }} />
             <div className="text-center">
-              <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".9rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text)" }}>
+              <p style={{ fontFamily: "var(--font-body)", fontWeight: 700, fontSize: ".9rem", textTransform: "uppercase", letterSpacing: ".08em", color: "var(--text-primary)" }}>
                 Redigindo sua peça...
               </p>
               <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginTop: 4 }}>
@@ -538,7 +547,7 @@ export default function DocumentGenerator() {
                 <Check className="w-4 h-4 text-green-600" />
                 <h2 className="section-title">{tipoLabel} — Gerado</h2>
               </div>
-              <span style={{ background: "var(--primary)", color: "#fff", fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
+              <span style={{ background: "var(--ink)", color: "#fff", fontFamily: "var(--font-body)", fontWeight: 700, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".08em", padding: "3px 10px" }}>
                 {areaLabel}
               </span>
             </div>

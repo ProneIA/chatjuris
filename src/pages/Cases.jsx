@@ -18,7 +18,7 @@ import { useDebounce } from "@/components/common/useDebounce";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Cases({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
