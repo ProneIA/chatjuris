@@ -79,7 +79,7 @@ const urgencyConfig = {
 };
 
 export default function DiaryMonitor({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const queryClient = useQueryClient();
   
   const [activeTab, setActiveTab] = useState("publications");
@@ -238,15 +238,15 @@ export default function DiaryMonitor({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-[#0a0a0f]' : 'bg-slate-50'}`}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <div className="max-w-7xl mx-auto p-6 md:p-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className={`text-2xl md:text-3xl font-light tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Monitor de <span className="font-semibold">Diários Oficiais</span>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Monitor de <span style={{ fontWeight: 600 }}>Diários Oficiais</span>
             </h1>
-            <p className={`mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            <p style={{ marginTop: 4, color: 'var(--text-secondary)', fontSize: 13 }}>
               Acompanhamento inteligente de publicações com IA
             </p>
           </div>
@@ -254,15 +254,13 @@ export default function DiaryMonitor({ theme = 'light' }) {
             <Button
               variant="outline"
               onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-              className={isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filtros
             </Button>
             <Button
-              variant="outline"
+              variant={showMonitoringDashboard ? "default" : "outline"}
               onClick={() => setShowMonitoringDashboard(!showMonitoringDashboard)}
-              className={`${showMonitoringDashboard ? 'bg-purple-600 text-white hover:bg-purple-700' : ''} ${!showMonitoringDashboard && isDark ? 'border-neutral-700 text-white hover:bg-neutral-800' : ''}`}
             >
               <Bell className="w-4 h-4 mr-2" />
               Monitoramentos
@@ -308,28 +306,24 @@ export default function DiaryMonitor({ theme = 'light' }) {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: "Total", value: stats.total, icon: Newspaper, color: "blue" },
-            { label: "Não Lidas", value: stats.unread, icon: Eye, color: "amber" },
-            { label: "Urgentes", value: stats.urgent, icon: AlertTriangle, color: "red" },
-            { label: "Favoritas", value: stats.starred, icon: Star, color: "purple" }
+            { label: "Total", value: stats.total, icon: Newspaper, iconColor: 'var(--info)' },
+            { label: "Não Lidas", value: stats.unread, icon: Eye, iconColor: 'var(--warn)' },
+            { label: "Urgentes", value: stats.urgent, icon: AlertTriangle, iconColor: 'var(--danger)' },
+            { label: "Favoritas", value: stats.starred, icon: Star, iconColor: 'var(--accent)' }
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
-              <div 
+              <div
                 key={i}
-                className={`p-4 rounded-xl border ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}
+                style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${stat.color}-500/10`}>
-                    <Icon className={`w-5 h-5 text-${stat.color}-500`} />
+                  <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)' }}>
+                    <Icon className="w-5 h-5" style={{ color: stat.iconColor }} />
                   </div>
                   <div>
-                    <p className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {stat.value}
-                    </p>
-                    <p className={`text-xs ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-                      {stat.label}
-                    </p>
+                    <p style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{stat.label}</p>
                   </div>
                 </div>
               </div>
@@ -338,20 +332,20 @@ export default function DiaryMonitor({ theme = 'light' }) {
         </div>
 
         {/* Filters */}
-        <div className={`p-4 rounded-xl border mb-6 ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
+        <div style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginBottom: 24, background: 'var(--main-bg)' }}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
               <Input
                 placeholder="Buscar por título, conteúdo ou número do processo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}
+                className="pl-10"
               />
             </div>
             <div className="flex flex-wrap gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className={`w-[140px] ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}>
+                <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -363,7 +357,7 @@ export default function DiaryMonitor({ theme = 'light' }) {
               </Select>
 
               <Select value={selectedUrgency} onValueChange={setSelectedUrgency}>
-                <SelectTrigger className={`w-[130px] ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : ''}`}>
+                <SelectTrigger className="w-[130px]">
                   <SelectValue placeholder="Urgência" />
                 </SelectTrigger>
                 <SelectContent>
@@ -378,7 +372,6 @@ export default function DiaryMonitor({ theme = 'light' }) {
                 variant={showUnreadOnly ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowUnreadOnly(!showUnreadOnly)}
-                className={!showUnreadOnly && isDark ? 'border-neutral-700 text-neutral-300' : ''}
               >
                 <Eye className="w-4 h-4 mr-1" />
                 Não lidas
@@ -388,7 +381,6 @@ export default function DiaryMonitor({ theme = 'light' }) {
                 variant={showStarredOnly ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowStarredOnly(!showStarredOnly)}
-                className={!showStarredOnly && isDark ? 'border-neutral-700 text-neutral-300' : ''}
               >
                 <Star className="w-4 h-4 mr-1" />
                 Favoritas
@@ -401,15 +393,15 @@ export default function DiaryMonitor({ theme = 'light' }) {
         <div className="space-y-3">
           {loadingPubs ? (
             Array(5).fill(0).map((_, i) => (
-              <Skeleton key={i} className={`h-32 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />
+              <Skeleton key={i} className="h-32 rounded-xl" />
             ))
           ) : filteredPublications.length === 0 ? (
-            <div className={`text-center py-16 rounded-xl border ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
-              <Newspaper className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
-              <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <div style={{ textAlign: 'center', padding: '64px 0', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
+              <Newspaper className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--border)' }} />
+              <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 8, color: 'var(--text-primary)' }}>
                 Nenhuma publicação encontrada
               </h3>
-              <p className={`text-sm mb-4 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+              <p style={{ fontSize: 13, marginBottom: 16, color: 'var(--text-secondary)' }}>
                 Analise um diário oficial para começar
               </p>
               <Button onClick={() => setShowAnalyzer(true)} className="gap-2">
@@ -449,9 +441,9 @@ export default function DiaryMonitor({ theme = 'light' }) {
 
       {/* Publication Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className={`max-w-3xl max-h-[85vh] overflow-y-auto ${isDark ? 'bg-neutral-900 border-neutral-800' : ''}`}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>
+            <DialogTitle>
               Detalhes da Publicação
             </DialogTitle>
           </DialogHeader>

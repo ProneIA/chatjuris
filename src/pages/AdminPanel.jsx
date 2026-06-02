@@ -34,7 +34,7 @@ import 'moment/locale/pt-br';
 moment.locale('pt-br');
 
 export default function AdminPanel({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
@@ -266,10 +266,10 @@ export default function AdminPanel({ theme = 'light' }) {
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)' }}>
         <div className="text-center">
-          <Shield className={`w-16 h-16 mx-auto mb-4 animate-pulse ${isDark ? 'text-neutral-700' : 'text-gray-400'}`} />
-          <p className={isDark ? 'text-neutral-400' : 'text-gray-600'}>Verificando permissões...</p>
+          <Shield className="w-16 h-16 mx-auto mb-4 animate-pulse" style={{ color: 'var(--text-muted)' }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Verificando permissões...</p>
         </div>
       </div>
     );
@@ -289,23 +289,23 @@ export default function AdminPanel({ theme = 'light' }) {
   }
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
+    <div style={{ minHeight: '100vh', padding: 24, background: 'var(--surface)' }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Shield className={`w-8 h-8 ${isDark ? 'text-red-500' : 'text-red-600'}`} />
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>
               Painel Administrativo
             </h1>
           </div>
-          <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
             Gestão de usuários, assinaturas e auditoria do sistema
           </p>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className={isDark ? 'bg-neutral-900' : 'bg-white'}>
+          <TabsList>
             <TabsTrigger value="dashboard">
               <TrendingUp className="w-4 h-4 mr-2" />
               Dashboard
@@ -342,10 +342,10 @@ export default function AdminPanel({ theme = 'light' }) {
                     <div className="flex items-center gap-3">
                       <AlertCircle className="w-6 h-6 text-red-600" />
                       <div>
-                        <p className="font-semibold text-red-800">
+                        <p style={{ fontWeight: 600, color: 'var(--danger)' }}>
                           ⚠️ {metrics.duplicateCount} usuário(s) com múltiplas assinaturas ativas
                         </p>
-                        <p className="text-sm text-red-600">
+                        <p style={{ fontSize: 13, color: 'var(--danger)' }}>
                           Execute a limpeza para corrigir dados inconsistentes
                         </p>
                       </div>
@@ -366,7 +366,7 @@ export default function AdminPanel({ theme = 'light' }) {
                           }
                         }
                       }}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="btn-primary"
                     >
                       Limpar Duplicatas
                     </Button>
@@ -376,99 +376,67 @@ export default function AdminPanel({ theme = 'light' }) {
             )}
 
             <div className="grid md:grid-cols-4 gap-4">
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+              <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <Users className={`w-5 h-5 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`} />
-                    <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.totalUsers}
-                    </span>
+                    <Users className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                    <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{metrics.totalUsers}</span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Total de Usuários</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Total de Usuários</p>
                 </CardContent>
               </Card>
 
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+              <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.activeUsers}
-                    </span>
+                    <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--success)' }} />
+                    <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{metrics.activeUsers}</span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Assinaturas Ativas (únicas)</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Assinaturas Ativas (únicas)</p>
                 </CardContent>
               </Card>
 
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+              <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <XCircle className="w-5 h-5 text-red-500" />
-                    <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.expiredUsers}
-                    </span>
+                    <XCircle className="w-5 h-5" style={{ color: 'var(--danger)' }} />
+                    <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{metrics.expiredUsers}</span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Assinaturas Expiradas</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Assinaturas Expiradas</p>
                 </CardContent>
               </Card>
 
-              <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+              <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <Star className="w-5 h-5 text-amber-500" />
-                    <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.planDistribution.lifetime}
-                    </span>
+                    <Star className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                    <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{metrics.planDistribution.lifetime}</span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Planos Vitalícios</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Planos Vitalícios</p>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <Card>
               <CardHeader>
-                <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                  Distribuição por Plano
-                </CardTitle>
+                <CardTitle>Distribuição por Plano</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-blue-500" />
-                      <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Teste (7 dias)</span>
+                  {[
+                    { icon: Clock, color: 'var(--info)', label: 'Teste (7 dias)', value: metrics.planDistribution.trial },
+                    { icon: Zap, color: 'var(--success)', label: 'Mensal', value: metrics.planDistribution.monthly },
+                    { icon: Crown, color: 'var(--accent)', label: 'Anual', value: metrics.planDistribution.annual },
+                    { icon: Star, color: 'var(--accent)', label: 'Vitalício', value: metrics.planDistribution.lifetime },
+                  ].map(({ icon: Icon, color, label, value }) => (
+                    <div key={label} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4" style={{ color }} />
+                        <span style={{ color: 'var(--text-primary)', fontSize: 13 }}>{label}</span>
+                      </div>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 13 }}>{value}</span>
                     </div>
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.planDistribution.trial}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-green-500" />
-                      <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Mensal</span>
-                    </div>
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.planDistribution.monthly}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-purple-500" />
-                      <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Anual</span>
-                    </div>
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.planDistribution.annual}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-amber-500" />
-                      <span className={isDark ? 'text-neutral-300' : 'text-gray-700'}>Vitalício</span>
-                    </div>
-                    <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {metrics.planDistribution.lifetime}
-                    </span>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -488,33 +456,31 @@ export default function AdminPanel({ theme = 'light' }) {
               </div>
             </div>
 
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <thead>
                       <tr>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Usuário</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Email</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Plano Atual</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Status</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Ações</th>
+                        {["Usuário", "Email", "Plano Atual", "Status", "Ações"].map(h => (
+                          <th key={h} style={{ textAlign: 'left', padding: 16, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', borderBottom: '2px solid var(--border)' }}>{h}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.map((u) => {
                         const sub = getUserSubscription(u.id);
                         return (
-                          <tr key={u.id} className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
-                            <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{u.full_name || 'N/A'}</td>
-                            <td className={`p-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{u.email}</td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                sub?.plan_type === 'lifetime' ? 'bg-amber-100 text-amber-700' :
-                                sub?.plan_type === 'annual' ? 'bg-purple-100 text-purple-700' :
-                                sub?.plan_type === 'monthly' ? 'bg-blue-100 text-blue-700' :
-                                sub?.status === 'trial' ? 'bg-cyan-100 text-cyan-700' :
-                                'bg-gray-100 text-gray-700'
+                          <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: 16, color: 'var(--text-primary)', fontSize: 13 }}>{u.full_name || 'N/A'}</td>
+                            <td style={{ padding: 16, color: 'var(--text-secondary)', fontSize: 13 }}>{u.email}</td>
+                            <td style={{ padding: 16 }}>
+                              <span className={`badge ${
+                                sub?.plan_type === 'lifetime' ? 'badge-gold' :
+                                sub?.plan_type === 'annual' ? 'badge-neutral' :
+                                sub?.plan_type === 'monthly' ? 'badge-info' :
+                                sub?.status === 'trial' ? 'badge-info' :
+                                'badge-neutral'
                               }`}>
                                 {sub?.plan_type === 'lifetime' ? '⭐ Vitalício' :
                                  sub?.plan_type === 'annual' ? '👑 Anual' :
@@ -522,12 +488,12 @@ export default function AdminPanel({ theme = 'light' }) {
                                  sub?.status === 'trial' ? '⏱️ Teste' : '❌ Sem plano'}
                               </span>
                             </td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                sub?.status === 'active' ? 'bg-green-100 text-green-700' :
-                                sub?.status === 'trial' ? 'bg-blue-100 text-blue-700' :
-                                sub?.status === 'expired' ? 'bg-red-100 text-red-700' :
-                                'bg-gray-100 text-gray-700'
+                            <td style={{ padding: 16 }}>
+                              <span className={`badge ${
+                                sub?.status === 'active' ? 'badge-success' :
+                                sub?.status === 'trial' ? 'badge-info' :
+                                sub?.status === 'expired' ? 'badge-error' :
+                                'badge-neutral'
                               }`}>
                                 {sub?.status === 'active' ? 'Ativo' :
                                  sub?.status === 'trial' ? 'Teste' :
@@ -594,53 +560,51 @@ export default function AdminPanel({ theme = 'light' }) {
               </Button>
             </div>
 
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <thead>
                       <tr>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Email</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Plano</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Status</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Provedor</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Expira em</th>
+                        {["Email", "Plano", "Status", "Provedor", "Expira em"].map(h => (
+                          <th key={h} style={{ textAlign: 'left', padding: 16, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', borderBottom: '2px solid var(--border)' }}>{h}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {filteredSubscriptions.map((sub) => {
                         const user = allUsers.find(u => u.id === sub.user_id);
                         return (
-                          <tr key={sub.id} className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
-                            <td className={`p-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                          <tr key={sub.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: 16, color: 'var(--text-secondary)', fontSize: 13 }}>
                               {user?.email || 'N/A'}
                             </td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                sub.plan_type === 'lifetime' ? 'bg-amber-100 text-amber-700' :
-                                sub.plan_type === 'annual' ? 'bg-purple-100 text-purple-700' :
-                                sub.plan_type === 'monthly' ? 'bg-blue-100 text-blue-700' :
-                                'bg-gray-100 text-gray-700'
+                            <td style={{ padding: 16 }}>
+                              <span className={`badge ${
+                                sub.plan_type === 'lifetime' ? 'badge-gold' :
+                                sub.plan_type === 'annual' ? 'badge-neutral' :
+                                sub.plan_type === 'monthly' ? 'badge-info' :
+                                'badge-neutral'
                               }`}>
                                 {sub.plan_type === 'lifetime' ? 'Vitalício' :
                                  sub.plan_type === 'annual' ? 'Anual' :
                                  sub.plan_type === 'monthly' ? 'Mensal' : 'Teste'}
                               </span>
                             </td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                sub.status === 'active' ? 'bg-green-100 text-green-700' :
-                                sub.status === 'trial' ? 'bg-blue-100 text-blue-700' :
-                                'bg-red-100 text-red-700'
+                            <td style={{ padding: 16 }}>
+                              <span className={`badge ${
+                                sub.status === 'active' ? 'badge-success' :
+                                sub.status === 'trial' ? 'badge-info' :
+                                'badge-error'
                               }`}>
                                 {sub.status}
                               </span>
                             </td>
-                            <td className={`p-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                            <td style={{ padding: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
                               {sub.payment_method === 'manual' ? '🔧 Manual' :
                                sub.payment_method === 'hotmart' ? '🛒 Hotmart' : sub.payment_method}
                             </td>
-                            <td className={`p-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                            <td style={{ padding: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
                               {sub.end_date ? moment(sub.end_date).format('DD/MM/YYYY') : '♾️ Vitalício'}
                             </td>
                           </tr>
@@ -655,15 +619,13 @@ export default function AdminPanel({ theme = 'light' }) {
 
           {/* LIBERAÇÃO MANUAL */}
           <TabsContent value="release" className="space-y-4">
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <Card>
               <CardHeader>
-                <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                  Liberação Manual de Assinatura
-                </CardTitle>
+                <CardTitle>Liberação Manual de Assinatura</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
                     Email do Usuário *
                   </label>
                   <Input
@@ -675,13 +637,13 @@ export default function AdminPanel({ theme = 'light' }) {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
                     Tipo de Plano *
                   </label>
                   <select
                     value={releaseForm.plan_type}
                     onChange={(e) => setReleaseForm({ ...releaseForm, plan_type: e.target.value })}
-                    className={`w-full p-2 border rounded ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                    style={{ width: '100%' }}
                   >
                     <option value="trial">Teste (7 dias)</option>
                     <option value="monthly">Mensal (30 dias)</option>
@@ -691,7 +653,7 @@ export default function AdminPanel({ theme = 'light' }) {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
                     Observação / Motivo *
                   </label>
                   <Textarea
@@ -702,14 +664,14 @@ export default function AdminPanel({ theme = 'light' }) {
                   />
                 </div>
 
-                <div className={`p-4 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-yellow-50 border-yellow-200'}`}>
+                <div style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--warn-border)', background: 'var(--warn-bg)' }}>
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" />
+                    <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" style={{ color: 'var(--warn)' }} />
                     <div>
-                      <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <p style={{ fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>
                         ⚠️ Atenção
                       </p>
-                      <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                         Esta ação substituirá qualquer plano anterior do usuário. 
                         Liberações manuais não geram renovação automática.
                       </p>
@@ -720,7 +682,7 @@ export default function AdminPanel({ theme = 'light' }) {
                 <Button
                   onClick={() => releaseManualMutation.mutate(releaseForm)}
                   disabled={!releaseForm.email || !releaseForm.notes || releaseManualMutation.isPending}
-                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  className="w-full btn-primary"
                 >
                   {releaseManualMutation.isPending ? 'Liberando...' : 'Liberar Assinatura'}
                 </Button>
@@ -735,21 +697,18 @@ export default function AdminPanel({ theme = 'light' }) {
 
           {/* LOGS */}
           <TabsContent value="logs" className="space-y-4">
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+            <Card>
               <CardHeader>
-                <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                  Logs de Auditoria
-                </CardTitle>
+                <CardTitle>Logs de Auditoria</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
+                    <thead>
                       <tr>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Data</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Admin</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Ação</th>
-                        <th className={`text-left p-4 text-sm font-medium ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>Detalhes</th>
+                        {["Data", "Admin", "Ação", "Detalhes"].map(h => (
+                          <th key={h} style={{ textAlign: 'left', padding: 16, fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', borderBottom: '2px solid var(--border)' }}>{h}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
@@ -760,19 +719,19 @@ export default function AdminPanel({ theme = 'light' }) {
                         } catch (e) {}
 
                         return (
-                          <tr key={log.id} className={`border-b ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
-                            <td className={`p-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                          <tr key={log.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
                               {moment(log.created_date).format('DD/MM/YYYY HH:mm')}
                             </td>
-                            <td className={`p-4 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                            <td style={{ padding: 16, fontSize: 13, color: 'var(--text-primary)' }}>
                               {log.user_email}
                             </td>
-                            <td className="p-4">
-                              <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                            <td style={{ padding: 16 }}>
+                              <span className="badge badge-info">
                                 Liberação Manual
                               </span>
                             </td>
-                            <td className={`p-4 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                            <td style={{ padding: 16, fontSize: 13, color: 'var(--text-secondary)' }}>
                               <div>
                                 <p><strong>Usuário:</strong> {details.target_email}</p>
                                 <p><strong>Plano:</strong> {details.plan_type}</p>
@@ -793,32 +752,30 @@ export default function AdminPanel({ theme = 'light' }) {
 
         {/* Dialog de Edição de Plano */}
         <Dialog open={editUserDialog} onOpenChange={setEditUserDialog}>
-          <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                Alterar Plano do Usuário
-              </DialogTitle>
+              <DialogTitle>Alterar Plano do Usuário</DialogTitle>
             </DialogHeader>
             
             {selectedUser && (
               <div className="space-y-4">
-                <div className={`p-3 rounded-lg ${isDark ? 'bg-neutral-800' : 'bg-gray-100'}`}>
-                  <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <div style={{ padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--surface)' }}>
+                  <p style={{ fontWeight: 500, color: 'var(--text-primary)' }}>
                     {selectedUser.full_name || 'Sem nome'}
                   </p>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                     {selectedUser.email}
                   </p>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
                     Selecione o Plano
                   </label>
                   <select
                     value={editPlanType}
                     onChange={(e) => setEditPlanType(e.target.value)}
-                    className={`w-full p-3 border rounded-lg ${isDark ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-gray-300'}`}
+                    style={{ width: '100%' }}
                   >
                     <option value="trial">⏱️ Teste (7 dias)</option>
                     <option value="monthly">📅 Mensal (30 dias)</option>
@@ -827,8 +784,8 @@ export default function AdminPanel({ theme = 'light' }) {
                   </select>
                 </div>
 
-                <div className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-yellow-50 border-yellow-200'}`}>
-                  <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                <div style={{ padding: 12, borderRadius: 'var(--radius-md)', border: '1px solid var(--warn-border)', background: 'var(--warn-bg)' }}>
+                  <p style={{ fontSize: 13, color: '#7a6010' }}>
                     ⚠️ Esta ação substituirá o plano atual do usuário imediatamente.
                   </p>
                 </div>
@@ -846,7 +803,7 @@ export default function AdminPanel({ theme = 'light' }) {
                   planType: editPlanType
                 })}
                 disabled={updateUserPlanMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
+                className="btn-primary"
               >
                 {updateUserPlanMutation.isPending ? 'Salvando...' : 'Salvar Plano'}
               </Button>

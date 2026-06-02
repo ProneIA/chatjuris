@@ -10,30 +10,30 @@ import { cn } from "@/lib/utils";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 const areaColors = {
-  civil: "bg-blue-100 text-blue-800",
-  criminal: "bg-red-100 text-red-800",
-  trabalhista: "bg-green-100 text-green-800",
-  tributario: "bg-yellow-100 text-yellow-800",
-  familia: "bg-purple-100 text-purple-800",
-  empresarial: "bg-indigo-100 text-indigo-800",
-  consumidor: "bg-pink-100 text-pink-800",
-  previdenciario: "bg-orange-100 text-orange-800",
-  outros: "bg-slate-100 text-slate-800"
+  civil:          "bg-[var(--info-bg)] text-[var(--info)]",
+  criminal:       "bg-[var(--danger-bg)] text-[var(--danger)]",
+  trabalhista:    "bg-[var(--success-bg)] text-[var(--success)]",
+  tributario:     "bg-[var(--warn-bg)] text-[#7a6010]",
+  familia:        "bg-[var(--surface)] text-[var(--text-secondary)]",
+  empresarial:    "bg-[var(--surface)] text-[var(--text-secondary)]",
+  consumidor:     "bg-[var(--surface)] text-[var(--text-secondary)]",
+  previdenciario: "bg-[var(--warn-bg)] text-[#7a6010]",
+  outros:         "bg-[var(--surface)] text-[var(--text-secondary)]"
 };
 
 const statusColors = {
-  new: "bg-green-100 text-green-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  waiting: "bg-yellow-100 text-yellow-800",
-  closed: "bg-slate-100 text-slate-800",
-  archived: "bg-slate-100 text-slate-500"
+  new:        "bg-[var(--success-bg)] text-[var(--success)]",
+  in_progress:"bg-[var(--info-bg)] text-[var(--info)]",
+  waiting:    "bg-[var(--warn-bg)] text-[#7a6010]",
+  closed:     "bg-[var(--surface)] text-[var(--text-secondary)]",
+  archived:   "bg-[var(--surface)] text-[var(--text-muted)]"
 };
 
 const priorityColors = {
-  low: "bg-slate-100 text-slate-600",
-  medium: "bg-blue-100 text-blue-700",
-  high: "bg-orange-100 text-orange-700",
-  urgent: "bg-red-100 text-red-700"
+  low:    "bg-[var(--surface)] text-[var(--text-secondary)]",
+  medium: "bg-[var(--info-bg)] text-[var(--info)]",
+  high:   "bg-[var(--warn-bg)] text-[#7a6010]",
+  urgent: "bg-[var(--danger-bg)] text-[var(--danger)]"
 };
 
 export default function CaseList({ cases, isLoading, onSelectCase, selectedCase, folders = [], onMoveToFolder, onRefresh, isDark }) {
@@ -50,11 +50,11 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
   if (cases.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-8 h-8 text-slate-400" />
+        <div style={{ width: 64, height: 64, background: 'var(--surface)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+          <FileText className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
         </div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhum processo encontrado</h3>
-        <p className="text-slate-600">Crie um novo processo para começar</p>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Nenhum processo encontrado</h3>
+        <p style={{ color: 'var(--text-secondary)' }}>Crie um novo processo para começar</p>
       </div>
     );
   }
@@ -64,28 +64,24 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
       {cases.map((caseItem) => {
         const isSelected = selectedCase?.id === caseItem.id;
         return (
-          <motion.div
-            key={caseItem.id}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-          >
+          <motion.div key={caseItem.id} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
             <Card
               onClick={() => onSelectCase(caseItem)}
               className={cn(
-                "p-4 cursor-pointer transition-all hover:shadow-md",
-                isSelected ? "ring-2 ring-blue-500 bg-blue-50" : "hover:bg-slate-50"
+                "p-4 cursor-pointer transition-all",
+                isSelected ? "ring-2 ring-[var(--accent)] bg-[var(--surface)]" : "hover:bg-[var(--surface)]"
               )}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 mb-1">
+                  <h3 style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
                     {caseItem.title}
                   </h3>
-                  <p className="text-sm text-slate-600">
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                     {caseItem.client_name}
                   </p>
                   {caseItem.case_number && (
-                    <p className="text-xs text-slate-500 mt-1 font-mono">
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }} className="font-mono">
                       {caseItem.case_number}
                     </p>
                   )}
@@ -113,7 +109,7 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-4" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 {caseItem.deadline && (
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
@@ -123,10 +119,7 @@ export default function CaseList({ cases, isLoading, onSelectCase, selectedCase,
                 {caseItem.value && (
                   <div className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3" />
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(caseItem.value)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(caseItem.value)}
                   </div>
                 )}
               </div>

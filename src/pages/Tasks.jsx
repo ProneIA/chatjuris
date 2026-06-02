@@ -21,7 +21,7 @@ import { useDebounce } from "@/components/common/useDebounce";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 
 export default function Tasks({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [user, setUser] = useState(null);
@@ -181,15 +181,15 @@ export default function Tasks({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen p-4 sm:p-6 ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
+    <div style={{ minHeight: '100vh', padding: '16px 24px', background: 'var(--surface)' }}>
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <BackNavigation to={createPageUrl("Dashboard")} theme={theme} />
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
               Tarefas
             </h1>
-            <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'} hidden sm:block`}>
+            <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }} className="hidden sm:block">
               Gerencie tarefas, prazos e responsabilidades
             </p>
           </div>
@@ -203,48 +203,46 @@ export default function Tasks({ theme = 'light' }) {
         </div>
 
       {showForm && (
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardHeader>
-            <CardTitle className={isDark ? 'text-white' : ''}>Criar Nova Tarefa</CardTitle>
+            <CardTitle>Criar Nova Tarefa</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className={isDark ? 'text-neutral-300' : ''}>Título *</Label>
+              <Label>Título *</Label>
               <Input
                 placeholder="Ex: Protocolar petição inicial"
                 value={newTask.title}
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
                 style={{ fontSize: 16, minHeight: 44 }}
               />
             </div>
 
             <div className="space-y-2">
-              <Label className={isDark ? 'text-neutral-300' : ''}>Descrição</Label>
+              <Label>Descrição</Label>
               <Textarea
                 placeholder="Detalhes da tarefa..."
                 value={newTask.description}
                 onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                className={`h-20 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+                className="h-20"
                 style={{ fontSize: 16 }}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Data de Vencimento *</Label>
+                <Label>Data de Vencimento *</Label>
                 <Input
                   type="date"
                   value={newTask.due_date}
                   onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                  className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Prioridade</Label>
+                <Label>Prioridade</Label>
                 <Select value={newTask.priority} onValueChange={(v) => setNewTask({ ...newTask, priority: v })}>
-                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -257,9 +255,9 @@ export default function Tasks({ theme = 'light' }) {
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Tipo de Tarefa</Label>
+                <Label>Tipo de Tarefa</Label>
                 <Select value={newTask.type} onValueChange={(v) => setNewTask({ ...newTask, type: v })}>
-                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -274,9 +272,9 @@ export default function Tasks({ theme = 'light' }) {
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Atribuir a</Label>
+                <Label>Atribuir a</Label>
                 <Select value={newTask.assigned_to} onValueChange={(v) => setNewTask({ ...newTask, assigned_to: v })}>
-                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -292,9 +290,9 @@ export default function Tasks({ theme = 'light' }) {
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Caso Relacionado</Label>
+                <Label>Caso Relacionado</Label>
                 <Select value={newTask.case_id} onValueChange={(v) => setNewTask({ ...newTask, case_id: v })}>
-                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+                  <SelectTrigger>
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
                   <SelectContent>
@@ -307,9 +305,9 @@ export default function Tasks({ theme = 'light' }) {
               </div>
 
               <div className="space-y-2">
-                <Label className={isDark ? 'text-neutral-300' : ''}>Cliente Relacionado</Label>
+                <Label>Cliente Relacionado</Label>
                 <Select value={newTask.client_id} onValueChange={(v) => setNewTask({ ...newTask, client_id: v })}>
-                  <SelectTrigger className={isDark ? 'bg-neutral-800 border-neutral-700' : ''}>
+                  <SelectTrigger>
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
                   <SelectContent>
@@ -383,28 +381,28 @@ export default function Tasks({ theme = 'light' }) {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardContent className="pt-6">
-            <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>Pendentes</p>
-            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{pendingTasks.length}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Pendentes</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{pendingTasks.length}</p>
           </CardContent>
         </Card>
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-red-500">Atrasadas</p>
-            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{overdueTasks.length}</p>
+            <p style={{ fontSize: 13, color: 'var(--danger)' }}>Atrasadas</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{overdueTasks.length}</p>
           </CardContent>
         </Card>
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-green-500">Concluídas</p>
-            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{completedTasks.length}</p>
+            <p style={{ fontSize: 13, color: 'var(--success)' }}>Concluídas</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{completedTasks.length}</p>
           </CardContent>
         </Card>
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardContent className="pt-6">
-            <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>Total</p>
-            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{tasks.length}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Total</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{tasks.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -415,12 +413,12 @@ export default function Tasks({ theme = 'light' }) {
           <div className="flex flex-col gap-3">
             <div className="flex gap-2">
               <div className="flex-1 relative">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                 <Input
                   placeholder="Buscar tarefas..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`pl-10 ${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`}
+                  className="pl-10"
                   style={{ fontSize: 16, minHeight: 44 }}
                 />
               </div>
@@ -444,7 +442,7 @@ export default function Tasks({ theme = 'light' }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                <SelectTrigger style={{ minHeight: 44 }}>
                   <SelectValue placeholder="Prioridade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -457,7 +455,7 @@ export default function Tasks({ theme = 'light' }) {
               </Select>
 
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                <SelectTrigger style={{ minHeight: 44 }}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -469,7 +467,7 @@ export default function Tasks({ theme = 'light' }) {
               </Select>
 
               <Select value={filterAssigned} onValueChange={setFilterAssigned}>
-                <SelectTrigger className={`${isDark ? 'bg-neutral-800 border-neutral-700' : ''}`} style={{ minHeight: 44 }}>
+                <SelectTrigger style={{ minHeight: 44 }}>
                   <SelectValue placeholder="Responsável" />
                 </SelectTrigger>
                 <SelectContent>
@@ -491,18 +489,18 @@ export default function Tasks({ theme = 'light' }) {
       {viewMode === 'list' ? (
         <PullToRefresh onRefresh={refetchTasks} isDark={isDark}>
         <div className="space-y-4">
-          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
             Tarefas ({filteredTasks.length})
           </h2>
           {isLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => <Skeleton key={i} className={`h-24 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-slate-200'}`} />)}
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
             </div>
           ) : filteredTasks.length === 0 ? (
-            <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+            <Card>
               <CardContent className="p-12 text-center">
-                <CheckSquare className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-slate-300'}`} />
-                <p className={isDark ? 'text-neutral-400' : 'text-slate-500'}>Nenhuma tarefa encontrada</p>
+                <CheckSquare className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--border)' }} />
+                <p style={{ color: 'var(--text-secondary)' }}>Nenhuma tarefa encontrada</p>
               </CardContent>
             </Card>
           ) : (
@@ -518,11 +516,13 @@ export default function Tasks({ theme = 'light' }) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <Card className={`cursor-pointer transition-all ${
-                      isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'hover:shadow-md'
-                    } ${urgency === 'overdue' ? 'border-l-4 border-l-red-500' :
-                       urgency === 'today' ? 'border-l-4 border-l-orange-500' :
-                       urgency === 'tomorrow' ? 'border-l-4 border-l-yellow-500' : ''}`}
+                    <Card
+                      className="cursor-pointer transition-all hover:shadow-md"
+                      style={{
+                        borderLeft: urgency === 'overdue' ? '4px solid var(--danger)' :
+                                    urgency === 'today' ? '4px solid var(--warn)' :
+                                    urgency === 'tomorrow' ? '4px solid var(--accent)' : undefined
+                      }}
                     >
                       <CardContent className="p-4 sm:p-5">
                         <div className="flex items-start justify-between gap-3">
@@ -540,11 +540,11 @@ export default function Tasks({ theme = 'light' }) {
                               style={{ minWidth: 20, minHeight: 20 }}
                             />
                             <div className="flex-1 min-w-0">
-                              <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'} ${task.status === 'completed' ? 'line-through opacity-60' : ''}`}>
+                              <h3 style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)', textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>
                                 {task.title}
                               </h3>
                               {task.description && (
-                                <p className={`text-sm mb-3 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                                 <p style={{ fontSize: 13, marginBottom: 12, color: 'var(--text-secondary)' }}>
                                   {task.description}
                                 </p>
                               )}
@@ -552,9 +552,9 @@ export default function Tasks({ theme = 'light' }) {
                               <div className="flex flex-wrap gap-2">
                                 {task.due_date && (
                                   <Badge variant="outline" className={
-                                    urgency === 'overdue' ? 'border-red-500 text-red-500' :
-                                    urgency === 'today' ? 'border-orange-500 text-orange-500' :
-                                    urgency === 'tomorrow' ? 'border-yellow-500 text-yellow-500' : ''
+                                    urgency === 'overdue' ? 'border-[var(--danger)] text-[var(--danger)]' :
+                                    urgency === 'today' ? 'border-[var(--warn)] text-[var(--warn)]' :
+                                    urgency === 'tomorrow' ? 'border-[var(--accent)] text-[var(--accent)]' : ''
                                   }>
                                     <Calendar className="w-3 h-3 mr-1" />
                                     {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
@@ -586,12 +586,12 @@ export default function Tasks({ theme = 'light' }) {
                           </div>
                           
                           <div className="flex flex-col gap-2">
-                            <Badge className={
-                              task.priority === 'urgent' ? 'bg-red-500' :
-                              task.priority === 'high' ? 'bg-orange-500' :
-                              task.priority === 'medium' ? 'bg-yellow-500' :
-                              'bg-slate-500'
-                            }>
+                            <Badge style={{
+                             background: task.priority === 'urgent' ? 'var(--danger)' :
+                                         task.priority === 'high' ? 'var(--warn)' :
+                                         task.priority === 'medium' ? 'var(--accent)' : 'var(--text-muted)',
+                             color: '#fff'
+                            }}>
                               {task.priority === 'urgent' && 'Urgente'}
                               {task.priority === 'high' && 'Alta'}
                               {task.priority === 'medium' && 'Média'}
@@ -617,10 +617,10 @@ export default function Tasks({ theme = 'light' }) {
         </div>
         </PullToRefresh>
       ) : (
-        <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className={isDark ? 'text-white' : ''}>
+              <CardTitle>
                 {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
               </CardTitle>
               <div className="flex gap-2">
@@ -651,7 +651,7 @@ export default function Tasks({ theme = 'light' }) {
           <CardContent>
             <div className="grid grid-cols-7 gap-2">
               {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                <div key={day} className={`text-center text-sm font-semibold p-2 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                <div key={day} style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, padding: 8, color: 'var(--text-secondary)' }}>
                   {day}
                 </div>
               ))}
@@ -669,35 +669,33 @@ export default function Tasks({ theme = 'light' }) {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`aspect-square border rounded-lg p-2 transition-all ${
-                      isCurrentDay 
-                        ? isDark ? 'bg-blue-500/20 border-blue-500' : 'bg-blue-50 border-blue-300'
-                        : isDark ? 'bg-neutral-800 border-neutral-700 hover:border-neutral-600' : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
+                    style={{
+                      aspectRatio: '1', border: '1px solid', borderRadius: 'var(--radius-md)', padding: 8, transition: 'all var(--transition)',
+                      borderColor: isCurrentDay ? 'var(--accent)' : 'var(--border)',
+                      background: isCurrentDay ? 'var(--warn-bg)' : 'var(--main-bg)'
+                    }}
                   >
-                    <div className={`text-sm font-medium mb-1 ${
-                      isCurrentDay 
-                        ? 'text-blue-500' 
-                        : isDark ? 'text-white' : 'text-slate-900'
-                    }`}>
+                    <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, color: isCurrentDay ? 'var(--accent)' : 'var(--text-primary)' }}>
                       {format(day, 'd')}
                     </div>
                     <div className="space-y-1">
                       {dayTasks.slice(0, 2).map(task => (
                         <div
                           key={task.id}
-                          className={`text-[10px] px-1 py-0.5 rounded truncate ${
-                            task.priority === 'urgent' ? 'bg-red-500 text-white' :
-                            task.priority === 'high' ? 'bg-orange-500 text-white' :
-                            isDark ? 'bg-neutral-700 text-neutral-300' : 'bg-slate-100 text-slate-700'
-                          }`}
+                          style={{
+                            fontSize: 10, padding: '1px 4px', borderRadius: 'var(--radius-sm)',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            background: task.priority === 'urgent' ? 'var(--danger)' :
+                                        task.priority === 'high' ? 'var(--warn)' : 'var(--surface)',
+                            color: task.priority === 'urgent' || task.priority === 'high' ? '#fff' : 'var(--text-secondary)'
+                          }}
                           title={task.title}
                         >
                           {task.title}
                         </div>
                       ))}
                       {dayTasks.length > 2 && (
-                        <div className={`text-[10px] ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+                        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
                           +{dayTasks.length - 2} mais
                         </div>
                       )}

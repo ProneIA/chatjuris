@@ -362,7 +362,7 @@ function ScoreBadge({ score, projected }) {
 }
 
 export default function LGPDCompliance({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [activeDoc, setActiveDoc] = useState(null);
   const [user, setUser] = React.useState(null);
 
@@ -389,7 +389,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-slate-50'}`}>
+    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <div className="max-w-5xl mx-auto p-6 md:p-8 space-y-6">
 
         {/* Header */}
@@ -399,10 +399,10 @@ export default function LGPDCompliance({ theme = 'light' }) {
           </Link>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className={`text-2xl md:text-3xl font-bold flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <h1 style={{ fontSize: 24, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-primary)' }}>
                 <Shield className="w-8 h-8 text-green-600" /> Plano de Conformidade LGPD
               </h1>
-              <p className={`mt-1 text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+              <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }}>
                 Implementação técnica, jurídica e operacional — Lei 13.709/2018
               </p>
             </div>
@@ -443,8 +443,12 @@ export default function LGPDCompliance({ theme = 'light' }) {
         <Section title="Roadmap de Implementação (30/60/90 dias)" icon={Calendar} color="bg-blue-100 text-blue-600" defaultOpen={true}>
           <div className="space-y-6">
             {ROADMAP.map((phase, pi) => {
-              const colors = { red: "border-red-300 bg-red-50", orange: "border-orange-300 bg-orange-50", blue: "border-blue-300 bg-blue-50" };
-              const textColors = { red: "text-red-700", orange: "text-orange-700", blue: "text-blue-700" };
+              const colors = {
+                red: "border-[var(--danger-border)] bg-[var(--danger-bg)]",
+                orange: "border-[var(--warn-border)] bg-[var(--warn-bg)]",
+                blue: "border-[var(--info-border)] bg-[var(--info-bg)]"
+              };
+              const textColors = { red: "text-[var(--danger)]", orange: "text-[#7a6010]", blue: "text-[var(--info)]" };
               const done = phase.items.filter(i => i.done).length;
               return (
                 <div key={pi} className={`border rounded-xl p-4 ${colors[phase.color]}`}>
@@ -453,7 +457,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
                     <span className={`text-xs font-semibold ${textColors[phase.color]}`}>{done}/{phase.items.length} concluídos</span>
                   </div>
                   <div className="h-1.5 bg-white/50 rounded-full mb-3 overflow-hidden">
-                    <div className={`h-full rounded-full ${phase.color === 'red' ? 'bg-red-500' : phase.color === 'orange' ? 'bg-orange-500' : 'bg-blue-500'}`}
+                    <div style={{ height: '100%', borderRadius: 4, background: phase.color === 'red' ? 'var(--danger)' : phase.color === 'orange' ? 'var(--warn)' : 'var(--info)' }}
                       style={{ width: `${(done / phase.items.length) * 100}%` }} />
                   </div>
                   <div className="space-y-2">
@@ -488,7 +492,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
                     <span className={`text-xs font-bold ${pct === 100 ? 'text-green-600' : pct >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>{done}/{cat.items.length}</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                    <div className={`h-full rounded-full ${pct === 100 ? 'bg-green-500' : pct >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${pct}%` }} />
+                    <div style={{ height: '100%', borderRadius: 4, width: `${pct}%`, background: pct === 100 ? 'var(--success)' : pct >= 60 ? 'var(--warn)' : 'var(--danger)' }} />
                   </div>
                   <div className="grid md:grid-cols-2 gap-1">
                     {cat.items.map((item, ii) => (
@@ -514,7 +518,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
             </div>
             {DOCUMENTS.map((doc, di) => {
               const Icon = doc.icon;
-              const urgencyColor = doc.urgency === 'critica' ? 'bg-red-100 text-red-700' : doc.urgency === 'alta' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+              const urgencyColor = doc.urgency === 'critica' ? 'badge-error' : doc.urgency === 'alta' ? 'badge-warning' : 'badge-info';
               const urgencyLabel = doc.urgency === 'critica' ? 'Crítico' : doc.urgency === 'alta' ? 'Alta' : 'Médio';
               return (
                 <div key={di} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -527,7 +531,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${urgencyColor}`}>{urgencyLabel}</span>
+                      <span className={`badge ${urgencyColor}`}>{urgencyLabel}</span>
                       <Button size="sm" variant="outline" onClick={() => setActiveDoc(activeDoc === di ? null : di)} className="gap-1 text-xs h-7">
                         {activeDoc === di ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                         Ver Modelo
@@ -608,7 +612,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
         </Section>
 
         {/* Score Projetado */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 text-white">
+        <div style={{ background: 'var(--ink)', borderRadius: 'var(--radius-md)', padding: 24, color: '#fff' }}>
           <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-green-400" /> Score Final Projetado — Após Implementação Completa
           </h2>

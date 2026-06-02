@@ -10,8 +10,6 @@ import {
   Clock,
   AlertTriangle
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 
 const availablePlans = [
   {
@@ -20,7 +18,6 @@ const availablePlans = [
     price: 119.90,
     period: "/mês",
     icon: Zap,
-    color: "blue",
     description: "Renovação automática mensal",
     planType: "monthly"
   },
@@ -31,7 +28,6 @@ const availablePlans = [
     originalPrice: 119.90,
     period: "/mês",
     icon: Crown,
-    color: "purple",
     description: "Economize R$ 240/ano",
     discount: "17% OFF",
     planType: "annual",
@@ -39,47 +35,19 @@ const availablePlans = [
   },
 ];
 
-const colorMap = {
-  blue: {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
-    iconBg: "bg-blue-100",
-    button: "bg-blue-600 hover:bg-blue-700"
-  },
-  purple: {
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    text: "text-purple-700",
-    iconBg: "bg-purple-100",
-    button: "bg-purple-600 hover:bg-purple-700"
-  },
-  amber: {
-    bg: "bg-amber-50",
-    border: "border-amber-200",
-    text: "text-amber-700",
-    iconBg: "bg-amber-100",
-    button: "bg-amber-600 hover:bg-amber-700"
-  }
+const planIdMap = {
+  monthly: 'pro_monthly',
+  annual: 'pro_yearly'
 };
 
 export default function AvailablePlansSection({ 
   subscription, 
-  theme = 'light',
   trialDaysLeft = 0
 }) {
-  const navigate = useNavigate();
-  const isDark = theme === 'dark';
-
   const isInTrial = subscription?.status === 'trial';
   const currentPlanType = subscription?.plan_type;
   const isExpired = subscription?.status === 'expired';
   const isActive = subscription?.status === 'active';
-
-  const planIdMap = {
-    monthly: 'pro_monthly',
-    annual: 'pro_yearly'
-  };
 
   const handleSelectPlan = (planType) => {
     const planId = planIdMap[planType];
@@ -89,26 +57,26 @@ export default function AvailablePlansSection({
   };
 
   return (
-    <Card className={`mt-6 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}`}>
+    <Card className="mt-6">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className={isDark ? 'text-white' : 'text-gray-900'}>
+          <CardTitle>
             {isInTrial ? 'Fazer Upgrade' : isExpired ? 'Escolha um Plano' : 'Planos Disponíveis'}
           </CardTitle>
           {isInTrial && trialDaysLeft > 0 && (
-            <Badge className="bg-blue-100 text-blue-700 border-0">
+            <Badge style={{ background: 'var(--info-bg)', color: 'var(--info)', border: '1px solid var(--info-border)' }}>
               <Clock className="w-3 h-3 mr-1" />
               {trialDaysLeft} dias de teste
             </Badge>
           )}
         </div>
         {isInTrial && (
-          <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
             Assine agora e continue com acesso completo após o período de teste
           </p>
         )}
         {isExpired && (
-          <div className="flex items-center gap-2 text-red-600 text-sm mt-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--danger)', fontSize: 13, marginTop: 8 }}>
             <AlertTriangle className="w-4 h-4" />
             Seu período de teste expirou. Assine para continuar.
           </div>
@@ -118,24 +86,22 @@ export default function AvailablePlansSection({
         <div className="grid md:grid-cols-2 gap-4">
           {availablePlans.map((plan) => {
             const Icon = plan.icon;
-            const colors = colorMap[plan.color];
             const isCurrentPlan = isActive && currentPlanType === plan.planType;
+            const isPopular = plan.popular;
             
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-lg border-2 p-4 transition-all ${
-                  isCurrentPlan 
-                    ? `${colors.border} ${colors.bg}` 
-                    : isDark 
-                      ? 'border-neutral-700 hover:border-neutral-600' 
-                      : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className="relative rounded-lg border-2 p-4 transition-all"
+                style={{
+                  borderColor: isCurrentPlan ? 'var(--accent)' : 'var(--border)',
+                  background: isCurrentPlan ? 'var(--surface)' : 'var(--main-bg)',
+                }}
               >
                 {/* Popular badge */}
-                {plan.popular && !isCurrentPlan && (
+                {isPopular && !isCurrentPlan && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-purple-600 text-white border-0 text-xs">
+                    <Badge style={{ background: 'var(--accent)', color: '#1A1A1A', border: 'none', fontSize: 11 }}>
                       Mais Popular
                     </Badge>
                   </div>
@@ -144,7 +110,7 @@ export default function AvailablePlansSection({
                 {/* Current plan badge */}
                 {isCurrentPlan && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className={`${colors.bg} ${colors.text} border-0 text-xs`}>
+                    <Badge style={{ background: 'var(--accent)', color: '#1A1A1A', border: 'none', fontSize: 11 }}>
                       <Check className="w-3 h-3 mr-1" />
                       Plano Atual
                     </Badge>
@@ -154,7 +120,7 @@ export default function AvailablePlansSection({
                 {/* Discount badge */}
                 {plan.discount && !isCurrentPlan && (
                   <div className="absolute top-2 right-2">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" style={{ fontSize: 11 }}>
                       {plan.discount}
                     </Badge>
                   </div>
@@ -162,47 +128,52 @@ export default function AvailablePlansSection({
 
                 <div className="text-center pt-2">
                   {/* Icon */}
-                  <div className={`w-12 h-12 rounded-lg ${colors.iconBg} flex items-center justify-center mx-auto mb-3`}>
-                    <Icon className={`w-6 h-6 ${colors.text}`} />
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 'var(--radius-md)',
+                    background: 'var(--surface)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 12px'
+                  }}>
+                    <Icon className="w-6 h-6" style={{ color: 'var(--accent)' }} />
                   </div>
 
                   {/* Name */}
-                  <h3 className={`font-semibold text-lg mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 style={{ fontWeight: 600, fontSize: 16, marginBottom: 4, color: 'var(--text-primary)' }}>
                     {plan.name}
                   </h3>
 
                   {/* Price */}
-                  <div className="mb-2">
+                  <div style={{ marginBottom: 8 }}>
                     {plan.originalPrice && (
-                      <span className={`text-sm line-through ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
+                      <span style={{ fontSize: 12, textDecoration: 'line-through', color: 'var(--text-muted)' }}>
                         R$ {plan.originalPrice.toFixed(2).replace('.', ',')}
                       </span>
                     )}
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
                         R$ {plan.price.toFixed(2).replace('.', ',')}
                       </span>
-                      <span className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                         {plan.period}
                       </span>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className={`text-xs mb-4 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 11, marginBottom: 16, color: 'var(--text-secondary)' }}>
                     {plan.description}
                   </p>
 
                   {/* Button */}
                   {isCurrentPlan ? (
-                    <Button disabled className="w-full" variant="outline">
+                    <Button disabled className="w-full btn-secondary" variant="outline">
                       <Check className="w-4 h-4 mr-2" />
                       Plano Ativo
                     </Button>
                   ) : (
                     <Button
                       onClick={() => handleSelectPlan(plan.planType)}
-                      className={`w-full text-white ${colors.button}`}
+                      className="w-full btn-primary"
                     >
                       {isInTrial ? 'Fazer Upgrade' : 'Assinar'}
                       <ArrowRight className="w-4 h-4 ml-2" />
@@ -215,7 +186,7 @@ export default function AvailablePlansSection({
         </div>
 
         {/* Info adicional */}
-        <div className={`mt-4 p-3 rounded-lg text-center text-sm ${isDark ? 'bg-neutral-800 text-neutral-400' : 'bg-gray-50 text-gray-600'}`}>
+        <div style={{ marginTop: 16, padding: 12, borderRadius: 'var(--radius-md)', textAlign: 'center', fontSize: 13, background: 'var(--surface)', color: 'var(--text-secondary)' }}>
           Todos os planos incluem acesso completo a todos os recursos. 
           {isInTrial && " Seu período de teste será substituído pelo plano escolhido."}
         </div>
