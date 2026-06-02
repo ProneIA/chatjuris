@@ -457,8 +457,7 @@ export default function LGPDCompliance({ theme = 'light' }) {
                     <span className={`text-xs font-semibold ${textColors[phase.color]}`}>{done}/{phase.items.length} concluídos</span>
                   </div>
                   <div className="h-1.5 bg-white/50 rounded-full mb-3 overflow-hidden">
-                    <div style={{ height: '100%', borderRadius: 4, background: phase.color === 'red' ? 'var(--danger)' : phase.color === 'orange' ? 'var(--warn)' : 'var(--info)' }}
-                      style={{ width: `${(done / phase.items.length) * 100}%` }} />
+                    <div style={{ height: '100%', borderRadius: 4, background: phase.color === 'red' ? 'var(--danger)' : phase.color === 'orange' ? 'var(--warn)' : 'var(--info)', width: `${(done / phase.items.length) * 100}%` }} />
                   </div>
                   <div className="space-y-2">
                     {phase.items.map((item, ii) => (

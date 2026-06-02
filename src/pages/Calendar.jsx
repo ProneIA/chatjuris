@@ -334,16 +334,17 @@ export default function Calendar({ theme = 'light' }) {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
-      {/* Header */}
-      <div style={{ borderBottom: '1px solid var(--border)', padding: '16px 24px', background: 'var(--main-bg)' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surface)', fontFamily: 'var(--font-sans)' }}>
+      {/* ── Cabeçalho editorial ── */}
+      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "20px 28px 16px", flexShrink: 0 }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>
-                Calendário Inteligente
+              <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 2, letterSpacing: "0.02em" }}>Escritório</p>
+              <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 24, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
+                Calendário
               </h1>
-              <p style={{ fontSize: 13, marginTop: 4, color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: 11, marginTop: 4, color: 'var(--ink-4)' }}>
                 {format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </p>
             </div>
@@ -404,31 +405,21 @@ export default function Calendar({ theme = 'light' }) {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-          {[
-            { label: 'Hoje', value: todayEvents.length, icon: CalendarIcon, color: 'var(--info)', bg: 'var(--info-bg)' },
-            { label: 'Ações', value: `${completedActions}/${todayActions}`, icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-bg)' },
-            { label: 'Pendentes', value: pendingEvents.length, icon: Clock, color: 'var(--warn)', bg: 'var(--warn-bg)' },
-            { label: 'Atrasados', value: overdueEvents, icon: AlertCircle, color: 'var(--danger)', bg: 'var(--danger-bg)' },
-          ].map(({ label, value, icon: Icon, color, bg }) => (
-            <motion.div
-              key={label}
-              whileHover={{ scale: 1.02 }}
-              style={{ padding: 12, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}
-            >
-              <div className="flex items-center gap-2">
-                <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{label}</p>
-                  <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>{value}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+      </div>
+
+      {/* ── KPI Strip ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)", flexShrink: 0 }} className="lg:grid-cols-4 grid-cols-2">
+        {[
+          { label: 'Eventos Hoje', value: todayEvents.length, accent: "var(--ink)" },
+          { label: 'Ações', value: `${completedActions}/${todayActions}`, accent: "var(--ok)" },
+          { label: 'Pendentes', value: pendingEvents.length, accent: "var(--warn)" },
+          { label: 'Atrasados', value: overdueEvents, accent: overdueEvents > 0 ? "var(--danger)" : "var(--ink-5)" },
+        ].map(({ label, value, accent }) => (
+          <div key={label} style={{ background: "var(--white)", padding: "14px 20px 12px", borderBottom: `2px solid ${accent}` }}>
+            <p style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--ink-4)", margin: "0 0 8px" }}>{label}</p>
+            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 28, fontWeight: 600, lineHeight: 1, color: "var(--ink)", letterSpacing: "-0.04em" }}>{value}</span>
+          </div>
+        ))}
       </div>
 
       {/* Filters Panel */}

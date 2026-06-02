@@ -99,6 +99,45 @@ export default function FinancialDashboard() {
 
   return (
     <div style={{ background: "var(--surface)", minHeight: "100vh", fontFamily: "var(--font-sans)" }}>
+
+      {/* ── Cabeçalho editorial ── */}
+      <div style={{ background: "var(--white)", borderBottom: "1px solid var(--ink-6)", padding: "28px 32px 24px" }}>
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <p style={{ fontSize: 11, color: "var(--ink-4)", fontWeight: 400, marginBottom: 4, letterSpacing: "0.02em" }}>Escritório</p>
+            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 600, fontSize: 28, color: "var(--ink)", letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0 }}>
+              Financeiro
+            </h1>
+            <p style={{ marginTop: 6, fontSize: 11, color: "var(--ink-4)" }}>Gestão de honorários, despesas e fluxo de caixa</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", gap: 0, border: "1px solid var(--ink-5)" }}>
+              {PERIOD_OPTIONS.map(o => (
+                <button
+                  key={o.value}
+                  onClick={() => setPeriod(o.value)}
+                  style={{
+                    padding: "7px 14px", border: "none", borderRight: "1px solid var(--ink-5)",
+                    fontSize: 11, fontWeight: period === o.value ? 600 : 400,
+                    cursor: "pointer", fontFamily: "var(--font-sans)",
+                    background: period === o.value ? "var(--ink)" : "var(--white)",
+                    color: period === o.value ? "var(--white)" : "var(--ink-3)",
+                    transition: "all var(--duration)",
+                  }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <button className="btn-primary" onClick={() => setActiveTab("honorarios")}>
+              <Plus size={13} /> Nova Transação
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* GHOST PageHeader removed — layout replaced above */}
+      <div style={{ display: "none" }}>
       <PageHeader
         title="Financeiro"
         sub="Gestão de honorários, despesas e fluxo de caixa"
@@ -128,6 +167,7 @@ export default function FinancialDashboard() {
           </>
         }
       />
+      </div>
 
       {/* KPI Strip */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
