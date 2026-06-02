@@ -271,8 +271,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* ── TOPBAR ── */}
         <header style={{
           position: 'fixed', top: 0, left: 0, right: 0, height: 'var(--header-h)',
-          background: 'var(--white)',
-          borderBottom: '1px solid var(--ink-6)',
+          background: 'var(--card-bg)',
+          borderBottom: '0.5px solid var(--border)',
           zIndex: 50,
           display: 'flex', alignItems: 'center',
           padding: '0 28px 0 0',
@@ -297,25 +297,25 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           {/* Breadcrumb — desktop */}
           <div className="hidden lg:flex items-center" style={{
             flex: 1, paddingLeft: 'calc(var(--sidebar-w) + 28px)',
-            gap: 6, fontSize: 11, color: 'var(--ink-4)',
-            fontFamily: 'var(--font-sans)',
+            gap: 6, fontSize: 12, color: 'var(--text-muted)',
+            fontFamily: 'var(--font-body)',
           }}>
-            <span>Juris.IA</span>
-            <span style={{ color: 'var(--ink-5)' }}>/</span>
-            <span style={{ color: 'var(--ink-2)', fontWeight: 500 }}>{currentPageName}</span>
+            <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontWeight: 400, fontSize: 13 }}>Juris.IA</span>
+            <span style={{ color: 'var(--border-strong)' }}>/</span>
+            <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{currentPageName}</span>
           </div>
 
           {/* Right actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginLeft: 'auto' }}>
             {/* Data */}
             <span className="hidden md:block" style={{
-              fontSize: 11, color: 'var(--ink-4)',
-              fontFamily: 'var(--font-sans)', paddingRight: 16,
+              fontSize: 11, color: 'var(--text-muted)',
+              fontFamily: 'var(--font-body)', paddingRight: 16,
             }}>
               {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
             </span>
             {/* Divisor */}
-            <div className="hidden md:block" style={{ width: 1, height: 20, background: 'var(--ink-6)', marginRight: 12 }} />
+            <div className="hidden md:block" style={{ width: '0.5px', height: 20, background: 'var(--border)', marginRight: 12 }} />
 
             {/* Notifications */}
             {user && (
@@ -334,72 +334,55 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                     background: 'none', border: 'none', cursor: 'pointer',
                     transition: 'opacity var(--duration)',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.75'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                 >
                   <div style={{
-                    width: 30, height: 30,
-                    background: 'var(--ink)',
+                    width: 28, height: 28, borderRadius: 6,
+                    background: 'var(--accent-green)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
-                    <span style={{ color: 'var(--white)', fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-sans)' }}>
+                    <span style={{ color: '#FFFFFF', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)' }}>
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
                     </span>
                   </div>
-                  <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-2)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user?.full_name?.split(' ')[0] || 'Usuário'}
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ width: 220, background: 'var(--white)', border: '1px solid var(--ink-6)', borderRadius: 0, boxShadow: 'none', padding: 0 }}>
-                <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--ink-6)' }}>
-                  <p style={{ fontWeight: 600, fontSize: 12, color: 'var(--ink)', marginBottom: 2, fontFamily: 'var(--font-sans)' }}>{user?.full_name || 'Usuário'}</p>
-                  <p style={{ fontSize: 11, color: 'var(--ink-4)', fontFamily: 'var(--font-sans)' }}>{user?.email}</p>
+              <DropdownMenuContent align="end" style={{ width: 220, background: 'var(--card-bg)', border: '0.5px solid var(--border)', borderRadius: 10, boxShadow: 'none', padding: 0, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 14px 10px', borderBottom: '0.5px solid var(--border)' }}>
+                  <p style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-primary)', marginBottom: 2, fontFamily: 'var(--font-body)' }}>{user?.full_name || 'Usuário'}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>{user?.email}</p>
                 </div>
-                <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Settings")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
-                  >
-                    <Settings size={13} /> Preferências
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("MyData")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
-                  >
-                    <Bookmark size={13} /> Meus Dados
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("Contact")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
-                  >
-                    <MessageSquare size={13} /> Suporte
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={createPageUrl("PrivacyPolicy")} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
-                  >
-                    <Bookmark size={13} /> Privacidade
-                  </Link>
-                </DropdownMenuItem>
-                <div style={{ borderTop: '1px solid var(--ink-6)' }}>
-                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--danger)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration)' }}
+                {[
+                  { to: createPageUrl("Settings"), icon: Settings, label: 'Preferências' },
+                  { to: createPageUrl("MyData"), icon: Bookmark, label: 'Meus Dados' },
+                  { to: createPageUrl("Contact"), icon: MessageSquare, label: 'Suporte' },
+                  { to: createPageUrl("PrivacyPolicy"), icon: Bookmark, label: 'Privacidade' },
+                ].map(({ to, icon: Icon, label }) => (
+                  <DropdownMenuItem key={label} asChild>
+                    <Link to={to} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', color: 'var(--text-secondary)', fontSize: 12, textDecoration: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.12s ease, color 0.12s ease' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                    >
+                      <Icon size={12} /> {label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                <div style={{ borderTop: '0.5px solid var(--border)' }}>
+                  <DropdownMenuItem onClick={() => setShowDeleteAccountDialog(true)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', color: 'var(--danger)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.12s ease' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--danger-bg)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
-                    <Shield size={13} /> Excluir Conta
+                    <Shield size={12} /> Excluir Conta
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', color: 'var(--ink-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-sans)', transition: 'background var(--duration), color var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--ink-7)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                  <DropdownMenuItem onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.12s ease, color 0.12s ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
-                    <LogOut size={13} /> Sair
+                    <LogOut size={12} /> Sair
                   </DropdownMenuItem>
                 </div>
               </DropdownMenuContent>
@@ -435,8 +418,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           style={{
             position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
             width: 'var(--sidebar-w)',
-            background: 'var(--ink)',
-            borderRight: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--sidebar-bg)',
+            borderRight: '0.5px solid rgba(255,255,255,0.06)',
             overflowY: 'auto', overflowX: 'hidden',
             zIndex: 46,
             display: 'flex', flexDirection: 'column',
@@ -451,50 +434,50 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 fontStyle: 'italic',
                 fontWeight: 700,
                 fontSize: 20,
-                color: 'var(--white)',
+                color: '#FFFFFF',
                 letterSpacing: '-0.01em',
                 lineHeight: 1.2,
-              }}>
-                Juris<span style={{ fontStyle: 'normal', fontFamily: "'Inter', system-ui, sans-serif", fontWeight: 600, letterSpacing: 0 }}>.IA</span>
-              </div>
-              <div style={{
+                }}>
+                Juris<span style={{ fontStyle: 'normal', fontFamily: "'DM Sans', system-ui, sans-serif", fontWeight: 700, letterSpacing: 0 }}>.IA</span>
+                </div>
+                <div style={{
                 fontSize: 8, fontWeight: 600, letterSpacing: '0.12em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)',
-                fontFamily: "'Inter', system-ui, sans-serif",
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.20)',
+                fontFamily: "'DM Sans', system-ui, sans-serif",
                 marginTop: 4,
-              }}>
+                }}>
                 O futuro da advocacia
               </div>
             </Link>
           </div>
-          <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '16px 0 8px' }} />
+          <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', margin: '14px 0 4px' }} />
           <div style={{ flex: 1, paddingBottom: 16 }}>
             <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={false} />
           </div>
           {/* User footer */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.07)', padding: '10px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
-                width: 28, height: 28, background: 'rgba(255,255,255,0.1)',
+                width: 26, height: 26, borderRadius: 6, background: 'var(--accent-green)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-sans)' }}>
+                <span style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-body)' }}>
                   {user?.full_name?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.7)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)' }}>
+                <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.75)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
                   {user?.full_name?.split(' ')[0] || 'Usuário'}
                 </p>
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', margin: '2px 0 0', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'var(--font-sans)' }}>
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)', margin: '1px 0 0', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>
                   {user?.role === 'admin' ? 'Administrador' : 'Advogado'}
                 </p>
               </div>
-              <Link to={createPageUrl("Settings")} style={{ color: 'rgba(255,255,255,0.25)', transition: 'color var(--duration)', display: 'flex' }}
+              <Link to={createPageUrl("Settings")} style={{ color: 'rgba(255,255,255,0.25)', transition: 'color 0.12s ease', display: 'flex' }}
                 onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
               >
-                <Settings size={13} />
+                <Settings size={12} />
               </Link>
             </div>
           </div>
@@ -510,17 +493,17 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* ── MAIN ── */}
         <main style={{
           minHeight: '100vh',
-          background: 'var(--surface)',
+          background: 'var(--page-bg)',
           paddingTop: 'var(--header-h)',
-        }} className="lg:pl-[220px] pl-0">
+        }} className="lg:pl-[160px] pl-0">
           {showBackButton && (
-            <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--ink-6)' }}>
-              <div style={{ padding: '10px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ background: 'var(--card-bg)', borderBottom: '0.5px solid var(--border)' }}>
+              <div style={{ padding: '9px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Link
                   to={createPageUrl("Dashboard")}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-4)', textDecoration: 'none', transition: 'color var(--duration)', fontFamily: 'var(--font-sans)' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--ink)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--ink-4)'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.12s ease', fontFamily: 'var(--font-body)' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
                 >
                   <ArrowLeft size={12} />
                   <span>Início</span>
@@ -528,9 +511,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 {currentPageName === "AIAssistant" && (
                   <button
                     onClick={() => window.dispatchEvent(new CustomEvent('openAIHistory'))}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: '1px solid var(--ink-6)', padding: '6px 12px', fontSize: 11, cursor: 'pointer', color: 'var(--ink-3)', fontFamily: 'var(--font-sans)', transition: 'all var(--duration)' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ink-4)'; e.currentTarget.style.color = 'var(--ink)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--ink-6)'; e.currentTarget.style.color = 'var(--ink-3)'; }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: '0.5px solid var(--border)', padding: '5px 12px', fontSize: 11, cursor: 'pointer', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', transition: 'all 0.12s ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   >
                     <HistoryIcon size={12} />
                     <span>Histórico</span>

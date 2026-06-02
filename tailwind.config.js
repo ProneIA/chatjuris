@@ -5,40 +5,46 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			'sans':    ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
+  			'sans':    ['DM Sans', '-apple-system', 'system-ui', 'sans-serif'],
   			'serif':   ['Playfair Display', 'Georgia', 'serif'],
   			'display': ['Playfair Display', 'Georgia', 'serif'],
-  			'heading': ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
-  			'body':    ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
+  			'heading': ['Playfair Display', 'Georgia', 'serif'],
+  			'body':    ['DM Sans', '-apple-system', 'system-ui', 'sans-serif'],
   			'logo':    ['Playfair Display', 'Georgia', 'serif'],
   			'mono':    ['Courier New', 'Courier', 'monospace'],
   		},
   		borderRadius: {
-  			lg:   '8px',
-  			md:   '6px',
-  			sm:   '4px',
-  			xl:   '12px',
-  			'2xl':'16px',
+  			lg:   '12px',
+  			md:   '10px',
+  			sm:   '6px',
+  			xl:   '14px',
+  			'2xl':'18px',
   		},
   		colors: {
-  			background: '#FFFFFF',
-  			foreground: '#1A1A1A',
-  			surface:    '#F7F7F5',
-  			border:     '#E5E5E0',
+  			background: '#F5F4F0',
+  			foreground: '#0D0D0D',
+  			surface:    '#F5F4F0',
+  			border:     '#E0DEDA',
   			gold: {
-  				DEFAULT: '#C8B560',
-  				light:   '#FFFBEA',
-  				deep:    '#A08B30',
-  				border:  'rgba(200,181,96,0.30)',
+  				DEFAULT: '#C4A44A',
+  				light:   '#FFF3E0',
+  				deep:    '#8A6F28',
+  				border:  'rgba(196,164,74,0.35)',
+  			},
+  			accent: {
+  				DEFAULT: '#2D5A27',
+  				hover:   '#4A8C3F',
+  				light:   '#EAF2E8',
+  				foreground: '#FFFFFF',
   			},
   			ink: {
-  				DEFAULT: '#1A1A1A',
-  				2:       '#3A3A3A',
-  				3:       '#6B7280',
+  				DEFAULT: '#0D0D0D',
+  				2:       '#4A4A46',
+  				3:       '#7A7A72',
   				4:       '#9CA3AF',
-  				5:       '#D1D5DB',
-  				6:       '#E5E5E0',
-  				7:       '#F7F7F5',
+  				5:       '#C8C4BE',
+  				6:       '#E0DEDA',
+  				7:       '#F5F4F0',
   			},
   			card: {
   				DEFAULT: 'hsl(var(--card))',
@@ -49,7 +55,7 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: '#1A1A1A',
+  				DEFAULT: '#2D5A27',
   				foreground: '#FFFFFF'
   			},
   			secondary: {
@@ -60,16 +66,12 @@ module.exports = {
   				DEFAULT: 'hsl(var(--muted))',
   				foreground: 'hsl(var(--muted-foreground))'
   			},
-  			accent: {
-  				DEFAULT: '#C8B560',
-  				foreground: '#1A1A1A'
-  			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			input: 'hsl(var(--input))',
-  			ring: '#C8B560',
+  			ring: '#2D5A27',
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
@@ -78,21 +80,21 @@ module.exports = {
   				'5': 'hsl(var(--chart-5))'
   			},
   			sidebar: {
-  				DEFAULT: '#0D0D0D',
-  				foreground: '#FFFFFF',
-  				primary: '#C8B560',
-  				'primary-foreground': '#0D0D0D',
-  				accent: '#2A2A2A',
+  				DEFAULT: '#1A1A1A',
+  				foreground: '#BFBFB0',
+  				primary: '#2D5A27',
+  				'primary-foreground': '#FFFFFF',
+  				accent: 'rgba(255,255,255,0.07)',
   				'accent-foreground': '#FFFFFF',
-  				border: '#1F1F1F',
-  				ring: '#C8B560'
+  				border: 'rgba(255,255,255,0.08)',
+  				ring: '#2D5A27'
   			}
   		},
   		boxShadow: {
-  			'card-hover': '0 2px 8px rgba(0,0,0,0.06)',
-  			'sm':         '0 1px 3px rgba(0,0,0,0.04)',
-  			'md':         '0 2px 8px rgba(0,0,0,0.06)',
-  			'lg':         '0 4px 16px rgba(0,0,0,0.08)',
+  			'card-hover': 'none',
+  			'sm':         'none',
+  			'md':         'none',
+  			'lg':         'none',
   		},
   		keyframes: {
   			'accordion-down': {
