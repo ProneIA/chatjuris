@@ -120,14 +120,14 @@ function NavBadge({ label }) {
   const isDanger = label === "RESTRITO";
   return (
     <span style={{
-      fontSize: 8, fontWeight: 600, padding: "2px 5px",
+      fontSize: 9, fontWeight: 600, padding: "2px 6px",
       border: "1px solid",
-      borderRadius: 0,
-      letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0,
-      color: isDanger ? "rgba(192,57,43,0.8)" : isNew ? "rgba(26,107,60,0.8)" : "rgba(255,255,255,0.35)",
-      borderColor: isDanger ? "rgba(192,57,43,0.3)" : isNew ? "rgba(26,107,60,0.3)" : "rgba(255,255,255,0.15)",
+      borderRadius: 3,
+      letterSpacing: "0.06em", textTransform: "uppercase", flexShrink: 0,
+      color: isDanger ? "#EF4444" : isNew ? "#C8B560" : "rgba(255,255,255,0.40)",
+      borderColor: isDanger ? "rgba(239,68,68,0.35)" : isNew ? "rgba(200,181,96,0.40)" : "rgba(255,255,255,0.15)",
       background: "transparent",
-      fontFamily: "'Inter', system-ui, sans-serif",
+      fontFamily: "'Inter', -apple-system, sans-serif",
     }}>
       {label}
     </span>
@@ -137,33 +137,33 @@ function NavBadge({ label }) {
 // ─── Estilos compartilhados ────────────────────────────────────────────────
 const ITEM_BASE = {
   display: "flex", alignItems: "center", gap: 10,
-  width: "100%", padding: "8px 20px",
+  width: "100%", padding: "8px 16px",
   background: "transparent", border: "none", cursor: "pointer",
   borderLeft: "2px solid transparent",
-  transition: "all 0.12s ease",
-  fontSize: 12, fontWeight: 400,
-  color: "rgba(255,255,255,0.45)",
+  transition: "background 0.1s ease, color 0.1s ease",
+  fontSize: 13, fontWeight: 500,
+  color: "#888888",
   textDecoration: "none",
-  fontFamily: "'Inter', system-ui, sans-serif",
+  fontFamily: "'Inter', -apple-system, sans-serif",
   borderRadius: 0,
   textAlign: "left",
 };
 
 const ITEM_ACTIVE = {
-  background: "rgba(255,255,255,0.06)",
+  background: "#2A2A2A",
   color: "#FFFFFF",
-  fontWeight: 500,
-  borderLeftColor: "#FFFFFF",
+  fontWeight: 600,
+  borderLeftColor: "#C8B560",
 };
 
 // ─── Label de seção ────────────────────────────────────────────────────────
 function SectionLabel({ children }) {
   return (
     <div style={{
-      fontSize: 8, fontWeight: 600, letterSpacing: "0.12em",
-      textTransform: "uppercase", color: "rgba(255,255,255,0.20)",
-      padding: "12px 20px 6px",
-      fontFamily: "'Inter', system-ui, sans-serif",
+      fontSize: 10, fontWeight: 600, letterSpacing: "0.08em",
+      textTransform: "uppercase", color: "#888888",
+      padding: "20px 16px 6px",
+      fontFamily: "'Inter', -apple-system, sans-serif",
     }}>
       {children}
     </div>
@@ -177,11 +177,11 @@ function NavDirectLink({ group, location, onNavigate, subscriptionExpired }) {
     <button
       onClick={() => { onNavigate?.(); window.location.href = group.url; }}
       style={{ ...ITEM_BASE, ...(isActive ? ITEM_ACTIVE : {}) }}
-      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
-      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
-    >
-      <group.icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.5 }} />
-      <span style={{ flex: 1 }}>{group.label}</span>
+      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "#1F1F1F"; e.currentTarget.style.color = "#FFFFFF"; }}}
+        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888888"; }}}
+      >
+        <group.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.5 }} />
+        <span style={{ flex: 1 }}>{group.label}</span>
       {group.id === "assinatura" && subscriptionExpired && (
         <span style={{ width: 6, height: 6, background: "#C0392B", display: "inline-block" }} />
       )}
@@ -225,19 +225,19 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
         onClick={toggle}
         style={{
           ...ITEM_BASE,
-          borderLeftColor: isAdminGroup ? "rgba(192,57,43,0.5)" : "transparent",
-          background: isAdminGroup ? "rgba(192,57,43,0.06)" : "transparent",
-          color: isAdminGroup ? "rgba(192,57,43,0.7)" : "rgba(255,255,255,0.45)",
+          borderLeftColor: isAdminGroup ? "rgba(239,68,68,0.5)" : "transparent",
+          background: isAdminGroup ? "rgba(239,68,68,0.06)" : "transparent",
+          color: isAdminGroup ? "#EF4444" : "#888888",
         }}
-        onMouseEnter={e => { if (!isAdminGroup) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
-        onMouseLeave={e => { if (!isAdminGroup) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
+        onMouseEnter={e => { if (!isAdminGroup) { e.currentTarget.style.background = "#1F1F1F"; e.currentTarget.style.color = "#FFFFFF"; }}}
+        onMouseLeave={e => { if (!isAdminGroup) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888888"; }}}
       >
         <group.icon style={{ width: 14, height: 14, flexShrink: 0, strokeWidth: 1.5 }} />
         <span style={{ flex: 1, textAlign: "left" }}>{group.label}</span>
         {isAdminGroup && <NavBadge label="RESTRITO" />}
         <ChevronDown style={{
           width: 11, height: 11,
-          color: isAdminGroup ? "rgba(192,57,43,0.5)" : "rgba(255,255,255,0.25)",
+          color: isAdminGroup ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.25)",
           transform: open ? "rotate(180deg)" : "rotate(0deg)",
           transition: "transform 0.15s ease",
           flexShrink: 0,
@@ -258,14 +258,14 @@ function NavGroup({ group, isAdmin, location, onNavigate, isMobile }) {
               onClick={onNavigate}
               style={{
                 ...ITEM_BASE,
-                padding: "8px 20px 8px 42px",
-                fontSize: 11,
+                padding: "8px 16px 8px 40px",
+                fontSize: 13,
                 ...(isActive ? ITEM_ACTIVE : {}),
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.color = "rgba(255,255,255,0.80)"; }}}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; }}}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "#1F1F1F"; e.currentTarget.style.color = "#FFFFFF"; }}}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#888888"; }}}
             >
-              <item.icon style={{ width: 13, height: 13, flexShrink: 0, strokeWidth: 1.5 }} />
+              <item.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.5 }} />
               <span style={{ flex: 1 }}>{item.title}</span>
               {item.badge && <NavBadge label={item.badge} />}
             </Link>
@@ -313,7 +313,7 @@ export default function SidebarNav({ user, onNavigate, isMobile = false, subscri
 
       {isAdmin && (
         <>
-          <div style={{ height: 1, background: "rgba(192,57,43,0.2)", margin: "8px 0" }} />
+          <div style={{ height: 1, background: "rgba(239,68,68,0.15)", margin: "8px 0" }} />
           <NavGroup
             group={ADMIN_GROUP}
             isAdmin={isAdmin}
