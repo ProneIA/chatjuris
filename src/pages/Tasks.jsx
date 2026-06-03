@@ -1,713 +1,419 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Search, CheckSquare, Calendar, Plus, X, List, CalendarDays, User, Filter, Briefcase, FileText } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Search, CheckSquare, Calendar, Plus, X, List, CalendarDays,
+  User, Briefcase, Filter, Clock,
+} from "lucide-react";
 import { format, isPast, isToday, isTomorrow, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-import BackNavigation from "../components/common/BackNavigation";
-import { createPageUrl } from "@/utils";
 import { useDebounce } from "@/components/common/useDebounce";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
+import { AppPage, PageHeader, StatCard, KPIGrid, AppCard, AppBadge, EmptyState, SearchBar, SectionHeader, LoadingSpinner } from "@/components/ds";
 
-export default function Tasks({ theme = 'light' }) {
-  const isDark = false;
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const [user, setUser] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    due_date: "",
-    priority: "medium",
-    type: "other",
-    status: "pending",
-    case_id: "",
-    client_id: "",
-    assigned_to: ""
-  });
-  const [viewMode, setViewMode] = useState("list");
+const EMPTY_TASK = {
+  title: "", description: "", due_date: "", priority: "medium",
+  type: "other", status: "pending", case_id: "", client_id: "", assigned_to: "",
+};
+
+const PRIORITY_BADGE = {
+  urgent: "danger", high: "warning", medium: "info", low: "neutral",
+};
+const PRIORITY_LABEL = { urgent: "Urgente", high: "Alta", medium: "Média", low: "Baixa" };
+const TYPE_LABEL = {
+  hearing: "⚖️ Audiência", deadline: "⏰ Prazo", meeting: "👥 Reunião",
+  document: "📄 Documento", research: "🔍 Pesquisa", other: "📌 Outro",
+};
+
+function getUrgency(task) {
+  if (!task.due_date) return null;
+  const d = new Date(task.due_date);
+  if (isPast(d) && !isToday(d)) return "overdue";
+  if (isToday(d))    return "today";
+  if (isTomorrow(d)) return "tomorrow";
+  return "upcoming";
+}
+
+const URGENCY_COLORS = {
+  overdue:  "var(--danger)",
+  today:    "var(--warning)",
+  tomorrow: "var(--accent)",
+  upcoming: "var(--border)",
+};
+
+export default function Tasks() {
+  const [searchTerm, setSearchTerm]     = useState("");
+  const debouncedSearch                 = useDebounce(searchTerm, 300);
+  const [user, setUser]                 = useState(null);
+  const [showForm, setShowForm]         = useState(false);
+  const [newTask, setNewTask]           = useState({ ...EMPTY_TASK });
+  const [viewMode, setViewMode]         = useState("list");
   const [filterPriority, setFilterPriority] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("pending");
+  const [filterStatus, setFilterStatus]     = useState("pending");
   const [filterAssigned, setFilterAssigned] = useState("all");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const queryClient = useQueryClient();
+  const [currentMonth, setCurrentMonth]     = useState(new Date());
+  const queryClient                         = useQueryClient();
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   const { data: tasks = [], isLoading, refetch: refetchTasks } = useQuery({
-    queryKey: ['tasks', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Task.filter({ created_by: user.email }, 'due_date', 200);
-    },
-    enabled: !!user?.email
+    queryKey: ["tasks", user?.email],
+    queryFn: () => base44.entities.Task.filter({ created_by: user.email }, "due_date", 200),
+    enabled: !!user?.email,
   });
-
   const { data: cases = [] } = useQuery({
-    queryKey: ['task-cases', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Case.filter({ created_by: user.email }, '-created_date', 100);
-    },
+    queryKey: ["task-cases", user?.email],
+    queryFn: () => base44.entities.Case.filter({ created_by: user.email }, "-created_date", 100),
     enabled: !!user?.email,
-    initialData: []
+    initialData: [],
   });
-
   const { data: clients = [] } = useQuery({
-    queryKey: ['task-clients', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Client.filter({ created_by: user.email }, '-created_date', 100);
-    },
+    queryKey: ["task-clients", user?.email],
+    queryFn: () => base44.entities.Client.filter({ created_by: user.email }, "-created_date", 100),
     enabled: !!user?.email,
-    initialData: []
+    initialData: [],
   });
-
   const { data: teams = [] } = useQuery({
-    queryKey: ['task-teams', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return [];
-      return base44.entities.Team.filter({ owner_email: user.email }, '-created_date', 50);
-    },
+    queryKey: ["task-teams", user?.email],
+    queryFn: () => base44.entities.Team.filter({ owner_email: user.email }, "-created_date", 50),
     enabled: !!user?.email,
-    initialData: []
+    initialData: [],
   });
 
-  const allTeamMembers = [...new Set(
-    teams.flatMap(t => t.members || [])
-  )];
+  const allTeamMembers = [...new Set(teams.flatMap((t) => t.members || []))];
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Task.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
   });
 
   const createMutation = useMutation({
     mutationFn: async (taskData) => {
-      console.log('🔄 DEBUG - Creating task with data:', taskData);
-      
-      // Validação explícita
-      if (!taskData.title?.trim()) {
-        throw new Error('Título é obrigatório');
-      }
-      if (!taskData.due_date) {
-        throw new Error('Data de vencimento é obrigatória');
-      }
-      
-      const cleanedData = {
+      if (!taskData.title?.trim()) throw new Error("Título é obrigatório");
+      if (!taskData.due_date)      throw new Error("Data de vencimento é obrigatória");
+      return base44.entities.Task.create({
         ...taskData,
         title: taskData.title.trim(),
-        description: taskData.description?.trim() || "",
-        case_id: taskData.case_id && taskData.case_id !== "none" && taskData.case_id !== "" ? taskData.case_id : null,
-        client_id: taskData.client_id && taskData.client_id !== "none" && taskData.client_id !== "" ? taskData.client_id : null,
-        assigned_to: taskData.assigned_to && taskData.assigned_to !== "none" && taskData.assigned_to !== "" ? taskData.assigned_to : null,
-      };
-      
-      console.log('✅ DEBUG - Cleaned data:', cleanedData);
-      
-      const result = await base44.entities.Task.create(cleanedData);
-      console.log('✅ DEBUG - Task created successfully:', result);
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      toast.success("✅ Tarefa criada com sucesso!");
-      setShowForm(false);
-      setNewTask({
-        title: "",
-        description: "",
-        due_date: "",
-        priority: "medium",
-        type: "other",
-        status: "pending",
-        case_id: "",
-        client_id: "",
-        assigned_to: ""
+        case_id:     taskData.case_id     === "none" ? null : taskData.case_id     || null,
+        client_id:   taskData.client_id   === "none" ? null : taskData.client_id   || null,
+        assigned_to: taskData.assigned_to === "none" ? null : taskData.assigned_to || null,
       });
     },
-    onError: (error) => {
-      console.error('❌ DEBUG - Error creating task:', error);
-      toast.error(`Erro ao criar tarefa: ${error.message || 'Tente novamente'}`);
-    }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Tarefa criada!");
+      setShowForm(false);
+      setNewTask({ ...EMPTY_TASK });
+    },
+    onError: (e) => toast.error(`Erro: ${e.message}`),
   });
 
-  const filteredTasks = tasks.filter(task => {
-    const matchSearch = task.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
-    const matchPriority = filterPriority === 'all' || task.priority === filterPriority;
-    const matchStatus = filterStatus === 'all' || task.status === filterStatus;
-    const matchAssigned = filterAssigned === 'all' || task.assigned_to === filterAssigned;
+  const filtered = tasks.filter((t) => {
+    const matchSearch   = t.title?.toLowerCase().includes(debouncedSearch.toLowerCase());
+    const matchPriority = filterPriority === "all" || t.priority === filterPriority;
+    const matchStatus   = filterStatus   === "all" || t.status   === filterStatus;
+    const matchAssigned = filterAssigned === "all" || t.assigned_to === filterAssigned;
     return matchSearch && matchPriority && matchStatus && matchAssigned;
   });
 
-  const pendingTasks = filteredTasks.filter(t => t.status !== 'completed' && t.status !== 'cancelled');
-  const completedTasks = filteredTasks.filter(t => t.status === 'completed');
-  const overdueTasks = pendingTasks.filter(t => t.due_date && isPast(new Date(t.due_date)) && !isToday(new Date(t.due_date)));
+  const pendingTasks   = filtered.filter((t) => t.status !== "completed" && t.status !== "cancelled");
+  const completedTasks = filtered.filter((t) => t.status === "completed");
+  const overdueTasks   = pendingTasks.filter((t) => t.due_date && isPast(new Date(t.due_date)) && !isToday(new Date(t.due_date)));
 
-  const getTaskUrgency = (task) => {
-    if (!task.due_date) return null;
-    const dueDate = new Date(task.due_date);
-    if (isPast(dueDate) && !isToday(dueDate)) return 'overdue';
-    if (isToday(dueDate)) return 'today';
-    if (isTomorrow(dueDate)) return 'tomorrow';
-    return 'upcoming';
-  };
-
-  // Gerar dias do calendário
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  const monthStart   = startOfMonth(currentMonth);
+  const monthEnd     = endOfMonth(currentMonth);
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const tasksInDay   = (date) =>
+    filtered.filter((t) => t.due_date && format(new Date(t.due_date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd"));
 
-  const tasksInDay = (date) => {
-    return filteredTasks.filter(t => {
-      if (!t.due_date) return false;
-      return format(new Date(t.due_date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-    });
+  const handleCreate = async () => {
+    if (!newTask.title?.trim()) { toast.error("Título é obrigatório"); return; }
+    if (!newTask.due_date)      { toast.error("Data de vencimento é obrigatória"); return; }
+    await createMutation.mutateAsync(newTask);
   };
 
   return (
-    <div style={{ minHeight: '100vh', padding: '16px 24px', background: 'var(--surface)' }}>
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        <BackNavigation to={createPageUrl("Dashboard")} theme={theme} />
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Tarefas
-            </h1>
-            <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-secondary)' }} className="hidden sm:block">
-              Gerencie tarefas, prazos e responsabilidades
-            </p>
-          </div>
-          <Button 
-            onClick={() => setShowForm(!showForm)}
-            style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer", flexShrink: 0, minHeight: 44 }}
+    <AppPage>
+      <PageHeader
+        title="Tarefas & Prazos"
+        subtitle="Gerencie tarefas, prazos e responsabilidades"
+        icon={CheckSquare}
+        actions={
+          <button
+            className={showForm ? "btn-outline" : "btn-primary"}
+            onClick={() => setShowForm((s) => !s)}
           >
-            {showForm ? <X className="w-4 h-4 sm:mr-2" /> : <Plus className="w-4 h-4 sm:mr-2" />}
-            <span className="hidden sm:inline">{showForm ? "Cancelar" : "Nova Tarefa"}</span>
-          </Button>
-        </div>
+            {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nova Tarefa</>}
+          </button>
+        }
+      />
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Criar Nova Tarefa</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Título *</Label>
-              <Input
-                placeholder="Ex: Protocolar petição inicial"
-                value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                style={{ fontSize: 16, minHeight: 44 }}
-              />
-            </div>
+      {/* KPI */}
+      <KPIGrid cols={4}>
+        <StatCard icon={Clock}       label="Pendentes"  value={pendingTasks.length}   sub="a fazer"     color="var(--accent)"  loading={isLoading} />
+        <StatCard icon={Clock}       label="Atrasadas"  value={overdueTasks.length}   sub="em atraso"   color="var(--danger)"  loading={isLoading} />
+        <StatCard icon={CheckSquare} label="Concluídas" value={completedTasks.length} sub="finalizadas" color="var(--success)" loading={isLoading} />
+        <StatCard icon={Filter}      label="Total"      value={tasks.length}          sub="tarefas"     color="var(--text-muted)" loading={isLoading} />
+      </KPIGrid>
 
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea
-                placeholder="Detalhes da tarefa..."
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                className="h-20"
-                style={{ fontSize: 16 }}
-              />
-            </div>
+      <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Form */}
+        {showForm && (
+          <AppCard>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.01em" }}>
+              Criar Nova Tarefa
+            </h3>
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Data de Vencimento *</Label>
-                <Input
-                  type="date"
-                  value={newTask.due_date}
-                  onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                />
+                <Label>Título *</Label>
+                <Input placeholder="Ex: Protocolar petição inicial" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} style={{ fontSize: 16, minHeight: 44 }} />
               </div>
-
               <div className="space-y-2">
-                <Label>Prioridade</Label>
-                <Select value={newTask.priority} onValueChange={(v) => setNewTask({ ...newTask, priority: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Descrição</Label>
+                <Textarea placeholder="Detalhes da tarefa..." value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="h-20" style={{ fontSize: 16 }} />
               </div>
-
-              <div className="space-y-2">
-                <Label>Tipo de Tarefa</Label>
-                <Select value={newTask.type} onValueChange={(v) => setNewTask({ ...newTask, type: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hearing">Audiência</SelectItem>
-                    <SelectItem value="deadline">Prazo</SelectItem>
-                    <SelectItem value="meeting">Reunião</SelectItem>
-                    <SelectItem value="document">Documento</SelectItem>
-                    <SelectItem value="research">Pesquisa</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data de Vencimento *</Label>
+                  <Input type="date" value={newTask.due_date} onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })} style={{ minHeight: 44 }} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select value={newTask.priority} onValueChange={(v) => setNewTask({ ...newTask, priority: v })}>
+                    <SelectTrigger style={{ minHeight: 44 }}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo de Tarefa</Label>
+                  <Select value={newTask.type} onValueChange={(v) => setNewTask({ ...newTask, type: v })}>
+                    <SelectTrigger style={{ minHeight: 44 }}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hearing">Audiência</SelectItem>
+                      <SelectItem value="deadline">Prazo</SelectItem>
+                      <SelectItem value="meeting">Reunião</SelectItem>
+                      <SelectItem value="document">Documento</SelectItem>
+                      <SelectItem value="research">Pesquisa</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Atribuir a</Label>
+                  <Select value={newTask.assigned_to} onValueChange={(v) => setNewTask({ ...newTask, assigned_to: v })}>
+                    <SelectTrigger style={{ minHeight: 44 }}><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguém</SelectItem>
+                      {user?.email && <SelectItem value={user.email}>{user.full_name || "Eu"}</SelectItem>}
+                      {allTeamMembers.filter((m) => m !== user?.email).map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Caso Relacionado</Label>
+                  <Select value={newTask.case_id} onValueChange={(v) => setNewTask({ ...newTask, case_id: v })}>
+                    <SelectTrigger style={{ minHeight: 44 }}><SelectValue placeholder="Opcional" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {cases.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Cliente Relacionado</Label>
+                  <Select value={newTask.client_id} onValueChange={(v) => setNewTask({ ...newTask, client_id: v })}>
+                    <SelectTrigger style={{ minHeight: 44 }}><SelectValue placeholder="Opcional" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <Label>Atribuir a</Label>
-                <Select value={newTask.assigned_to} onValueChange={(v) => setNewTask({ ...newTask, assigned_to: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ninguém</SelectItem>
-                    {user?.email && (
-                      <SelectItem value={user.email}>{user.full_name || "Eu"}</SelectItem>
-                    )}
-                    {allTeamMembers.filter(m => m !== user?.email).map(member => (
-                      <SelectItem key={member} value={member}>{member}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Caso Relacionado</Label>
-                <Select value={newTask.case_id} onValueChange={(v) => setNewTask({ ...newTask, case_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Opcional" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {cases.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Cliente Relacionado</Label>
-                <Select value={newTask.client_id} onValueChange={(v) => setNewTask({ ...newTask, client_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Opcional" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {clients.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div style={{ display: "flex", gap: 8, paddingTop: 8 }}>
+                <button className="btn-accent" onClick={handleCreate} disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}>
+                  {createMutation.isPending ? "Criando..." : "Criar Tarefa"}
+                </button>
+                <button className="btn-outline" onClick={() => { setShowForm(false); setNewTask({ ...EMPTY_TASK }); }}>Cancelar</button>
               </div>
             </div>
+          </AppCard>
+        )}
 
-            <div className="flex gap-3 pt-2">
-              <Button
-                onClick={async (e) => {
-                  e.preventDefault();
-                  console.log('🚀 DEBUG - Create button clicked, current data:', newTask);
-                  
-                  // Validação visual
-                  if (!newTask.title?.trim()) {
-                    toast.error("❌ Título é obrigatório");
-                    return;
-                  }
-                  if (!newTask.due_date) {
-                    toast.error("❌ Data de vencimento é obrigatória");
-                    return;
-                  }
-                  
-                  try {
-                    await createMutation.mutateAsync(newTask);
-                  } catch (error) {
-                    console.error('❌ DEBUG - Button handler error:', error);
-                  }
-                }}
-                disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}
-                style={{ background: "#B8963E", color: "#fff", border: "none", borderRadius: "999px", fontWeight: 600, padding: "8px 18px", cursor: "pointer" }}
+        {/* Filters + View Toggle */}
+        <AppCard noPad>
+          <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <SearchBar value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar tarefas..." style={{ flex: 1, minWidth: 200 }} />
+              <button
+                className={viewMode === "list" ? "btn-primary" : "btn-outline"}
+                style={{ padding: "0 12px", minWidth: 44, minHeight: 44 }}
+                onClick={() => setViewMode("list")}
               >
-                {createMutation.isPending ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    Criando...
-                  </>
-                ) : (
-                  "Criar Tarefa"
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowForm(false);
-                  setNewTask({
-                    title: "",
-                    description: "",
-                    due_date: "",
-                    priority: "medium",
-                    type: "other",
-                    status: "pending",
-                    case_id: "",
-                    client_id: "",
-                    assigned_to: ""
-                  });
-                }}
-                disabled={createMutation.isPending}
+                <List size={16} />
+              </button>
+              <button
+                className={viewMode === "calendar" ? "btn-primary" : "btn-outline"}
+                style={{ padding: "0 12px", minWidth: 44, minHeight: 44 }}
+                onClick={() => setViewMode("calendar")}
               >
-                Cancelar
-              </Button>
+                <CalendarDays size={16} />
+              </button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Pendentes</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{pendingTasks.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p style={{ fontSize: 13, color: 'var(--danger)' }}>Atrasadas</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{overdueTasks.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p style={{ fontSize: 13, color: 'var(--success)' }}>Concluídas</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{completedTasks.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Total</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)' }}>{tasks.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros e Busca */}
-      <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : ''}>
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <Input
-                  placeholder="Buscar tarefas..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                  style={{ fontSize: 16, minHeight: 44 }}
-                />
-              </div>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('list')}
-                style={{ minHeight: 44, minWidth: 44 }}
-              >
-                <List className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                size="icon"
-                onClick={() => setViewMode('calendar')}
-                style={{ minHeight: 44, minWidth: 44 }}
-              >
-                <CalendarDays className="w-4 h-4" />
-              </Button>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger style={{ minHeight: 44 }}>
-                  <SelectValue placeholder="Prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas prioridades</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="low">Baixa</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger style={{ minHeight: 44 }}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos status</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                  <SelectItem value="in_progress">Em Andamento</SelectItem>
-                  <SelectItem value="completed">Concluídas</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={filterAssigned} onValueChange={setFilterAssigned}>
-                <SelectTrigger style={{ minHeight: 44 }}>
-                  <SelectValue placeholder="Responsável" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {user?.email && (
-                    <SelectItem value={user.email}>Minhas tarefas</SelectItem>
-                  )}
-                  {allTeamMembers.filter(m => m !== user?.email).map(member => (
-                    <SelectItem key={member} value={member}>{member}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {[
+                { label: "Prioridade", value: filterPriority, onChange: setFilterPriority, options: [["all","Todas prioridades"],["urgent","Urgente"],["high","Alta"],["medium","Média"],["low","Baixa"]] },
+                { label: "Status",     value: filterStatus,   onChange: setFilterStatus,   options: [["all","Todos status"],["pending","Pendentes"],["in_progress","Em Andamento"],["completed","Concluídas"]] },
+                { label: "Responsável",value: filterAssigned, onChange: setFilterAssigned, options: [["all","Todos"],["self","Minhas"]] },
+              ].map(({ label, value, onChange, options }) => (
+                <Select key={label} value={value} onValueChange={onChange}>
+                  <SelectTrigger style={{ minHeight: 40 }}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {options.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                    {label === "Responsável" && user?.email && <SelectItem value={user.email}>{user.full_name || "Eu"}</SelectItem>}
+                  </SelectContent>
+                </Select>
+              ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </AppCard>
 
-      {/* Visualizações */}
-      {viewMode === 'list' ? (
-        <PullToRefresh onRefresh={refetchTasks} isDark={isDark}>
-        <div className="space-y-4">
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
-            Tarefas ({filteredTasks.length})
-          </h2>
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <CheckSquare className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--border)' }} />
-                <p style={{ color: 'var(--text-secondary)' }}>Nenhuma tarefa encontrada</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {filteredTasks.map(task => {
-                const urgency = getTaskUrgency(task);
-                const caseRelated = cases.find(c => c.id === task.case_id);
-                const clientRelated = clients.find(c => c.id === task.client_id);
-                
-                return (
-                  <motion.div
-                    key={task.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <Card
-                      className="cursor-pointer transition-all hover:shadow-md"
+        {/* List View */}
+        {viewMode === "list" ? (
+          <PullToRefresh onRefresh={refetchTasks} isDark={false}>
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : filtered.length === 0 ? (
+              <AppCard>
+                <EmptyState icon={CheckSquare} title="Nenhuma tarefa encontrada" description="Crie uma nova tarefa usando o botão acima" />
+              </AppCard>
+            ) : (
+              <AppCard noPad>
+                {filtered.map((task, i) => {
+                  const urgency       = getUrgency(task);
+                  const caseRelated   = cases.find((c) => c.id === task.case_id);
+                  const clientRelated = clients.find((c) => c.id === task.client_id);
+                  return (
+                    <div
+                      key={task.id}
                       style={{
-                        borderLeft: urgency === 'overdue' ? '4px solid var(--danger)' :
-                                    urgency === 'today' ? '4px solid var(--warn)' :
-                                    urgency === 'tomorrow' ? '4px solid var(--accent)' : undefined
+                        display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 20px",
+                        borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
+                        borderLeft: urgency ? `3px solid ${URGENCY_COLORS[urgency]}` : "3px solid transparent",
+                        transition: "background 0.12s ease",
                       }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                     >
-                      <CardContent className="p-4 sm:p-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3 flex-1">
-                            <input
-                              type="checkbox"
-                              checked={task.status === 'completed'}
-                              onChange={(e) => {
-                                updateMutation.mutate({
-                                  id: task.id,
-                                  data: { ...task, status: e.target.checked ? 'completed' : 'pending' }
-                                });
-                              }}
-                              className="mt-1 w-5 h-5 rounded"
-                              style={{ minWidth: 20, minHeight: 20 }}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h3 style={{ fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)', textDecoration: task.status === 'completed' ? 'line-through' : 'none', opacity: task.status === 'completed' ? 0.6 : 1 }}>
-                                {task.title}
-                              </h3>
-                              {task.description && (
-                                 <p style={{ fontSize: 13, marginBottom: 12, color: 'var(--text-secondary)' }}>
-                                  {task.description}
-                                </p>
-                              )}
-                              
-                              <div className="flex flex-wrap gap-2">
-                                {task.due_date && (
-                                  <Badge variant="outline" className={
-                                    urgency === 'overdue' ? 'border-[var(--danger)] text-[var(--danger)]' :
-                                    urgency === 'today' ? 'border-[var(--warn)] text-[var(--warn)]' :
-                                    urgency === 'tomorrow' ? 'border-[var(--accent)] text-[var(--accent)]' : ''
-                                  }>
-                                    <Calendar className="w-3 h-3 mr-1" />
-                                    {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
-                                    {urgency === 'overdue' && ' • Atrasada'}
-                                    {urgency === 'today' && ' • Hoje'}
-                                    {urgency === 'tomorrow' && ' • Amanhã'}
-                                  </Badge>
-                                )}
-                                {task.assigned_to && (
-                                  <Badge variant="secondary">
-                                    <User className="w-3 h-3 mr-1" />
-                                    {task.assigned_to.split('@')[0]}
-                                  </Badge>
-                                )}
-                                {caseRelated && (
-                                  <Badge variant="outline">
-                                    <Briefcase className="w-3 h-3 mr-1" />
-                                    {caseRelated.title}
-                                  </Badge>
-                                )}
-                                {clientRelated && (
-                                  <Badge variant="outline">
-                                    <User className="w-3 h-3 mr-1" />
-                                    {clientRelated.name}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col gap-2">
-                            <Badge style={{
-                             background: task.priority === 'urgent' ? 'var(--danger)' :
-                                         task.priority === 'high' ? 'var(--warn)' :
-                                         task.priority === 'medium' ? 'var(--accent)' : 'var(--text-muted)',
-                             color: '#fff'
-                            }}>
-                              {task.priority === 'urgent' && 'Urgente'}
-                              {task.priority === 'high' && 'Alta'}
-                              {task.priority === 'medium' && 'Média'}
-                              {task.priority === 'low' && 'Baixa'}
-                            </Badge>
-                            <Badge variant="outline">
-                              {task.type === 'hearing' && '⚖️ Audiência'}
-                              {task.type === 'deadline' && '⏰ Prazo'}
-                              {task.type === 'meeting' && '👥 Reunião'}
-                              {task.type === 'document' && '📄 Documento'}
-                              {task.type === 'research' && '🔍 Pesquisa'}
-                              {task.type === 'other' && '📌 Outro'}
-                            </Badge>
-                          </div>
+                      <input
+                        type="checkbox"
+                        checked={task.status === "completed"}
+                        onChange={(e) => updateMutation.mutate({ id: task.id, data: { ...task, status: e.target.checked ? "completed" : "pending" } })}
+                        style={{ marginTop: 3, width: 18, height: 18, cursor: "pointer", accentColor: "var(--accent)", flexShrink: 0 }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.01em", textDecoration: task.status === "completed" ? "line-through" : "none", opacity: task.status === "completed" ? 0.5 : 1 }}>
+                          {task.title}
+                        </p>
+                        {task.description && (
+                          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 8px" }}>{task.description}</p>
+                        )}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {task.due_date && (
+                            <AppBadge variant={urgency === "overdue" ? "danger" : urgency === "today" ? "warning" : "neutral"}>
+                              <Calendar size={10} />
+                              {format(new Date(task.due_date), "dd/MM/yyyy")}
+                              {urgency === "overdue" && " · Atrasada"}
+                              {urgency === "today" && " · Hoje"}
+                              {urgency === "tomorrow" && " · Amanhã"}
+                            </AppBadge>
+                          )}
+                          {task.assigned_to && (
+                            <AppBadge variant="neutral"><User size={10} /> {task.assigned_to.split("@")[0]}</AppBadge>
+                          )}
+                          {caseRelated && (
+                            <AppBadge variant="neutral"><Briefcase size={10} /> {caseRelated.title}</AppBadge>
+                          )}
+                          {clientRelated && (
+                            <AppBadge variant="neutral"><User size={10} /> {clientRelated.name}</AppBadge>
+                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        </PullToRefresh>
-      ) : (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))}
-                >
-                  ←
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentMonth(new Date())}
-                >
-                  Hoje
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))}
-                >
-                  →
-                </Button>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                        <AppBadge variant={PRIORITY_BADGE[task.priority] || "neutral"}>
+                          {PRIORITY_LABEL[task.priority] || task.priority}
+                        </AppBadge>
+                        <AppBadge variant="neutral">{TYPE_LABEL[task.type] || task.type}</AppBadge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </AppCard>
+            )}
+          </PullToRefresh>
+        ) : (
+          /* Calendar View */
+          <AppCard noPad>
+            <SectionHeader
+              title={format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+              actions={
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button className="btn-outline" style={{ padding: "4px 10px", minHeight: 32 }} onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}>←</button>
+                  <button className="btn-outline" style={{ padding: "4px 10px", minHeight: 32 }} onClick={() => setCurrentMonth(new Date())}>Hoje</button>
+                  <button className="btn-outline" style={{ padding: "4px 10px", minHeight: 32 }} onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}>→</button>
+                </div>
+              }
+            />
+            <div style={{ padding: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
+                {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map((d) => (
+                  <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", padding: "4px 0" }}>{d}</div>
+                ))}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
+                {Array.from({ length: monthStart.getDay() }).map((_, i) => <div key={`e-${i}`} />)}
+                {calendarDays.map((day) => {
+                  const dayTasks = tasksInDay(day);
+                  const isCurrent = isToday(day);
+                  return (
+                    <div key={day.toISOString()} style={{
+                      aspectRatio: "1", border: "1px solid", borderRadius: 10, padding: 6,
+                      borderColor: isCurrent ? "var(--accent)" : "var(--border)",
+                      background: isCurrent ? "var(--accent-light)" : "var(--card)",
+                    }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 3, color: isCurrent ? "var(--accent)" : "var(--text-primary)" }}>
+                        {format(day, "d")}
+                      </div>
+                      {dayTasks.slice(0, 2).map((t) => (
+                        <div key={t.id} style={{
+                          fontSize: 9, padding: "2px 4px", borderRadius: 4, marginBottom: 2,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          background: t.priority === "urgent" ? "var(--danger)" : t.priority === "high" ? "var(--warning)" : "var(--bg)",
+                          color: (t.priority === "urgent" || t.priority === "high") ? "#fff" : "var(--text-secondary)",
+                        }}>{t.title}</div>
+                      ))}
+                      {dayTasks.length > 2 && <div style={{ fontSize: 9, color: "var(--text-muted)" }}>+{dayTasks.length - 2}</div>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-7 gap-2">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
-                <div key={day} style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, padding: 8, color: 'var(--text-secondary)' }}>
-                  {day}
-                </div>
-              ))}
-              
-              {/* Espaços vazios antes do primeiro dia */}
-              {Array.from({ length: monthStart.getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-              
-              {/* Dias do mês */}
-              {calendarDays.map(day => {
-                const dayTasks = tasksInDay(day);
-                const isCurrentDay = isToday(day);
-                
-                return (
-                  <div
-                    key={day.toISOString()}
-                    style={{
-                      aspectRatio: '1', border: '1px solid', borderRadius: 'var(--radius-md)', padding: 8, transition: 'all var(--transition)',
-                      borderColor: isCurrentDay ? 'var(--accent)' : 'var(--border)',
-                      background: isCurrentDay ? 'var(--warn-bg)' : 'var(--main-bg)'
-                    }}
-                  >
-                    <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4, color: isCurrentDay ? 'var(--accent)' : 'var(--text-primary)' }}>
-                      {format(day, 'd')}
-                    </div>
-                    <div className="space-y-1">
-                      {dayTasks.slice(0, 2).map(task => (
-                        <div
-                          key={task.id}
-                          style={{
-                            fontSize: 10, padding: '1px 4px', borderRadius: 'var(--radius-sm)',
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                            background: task.priority === 'urgent' ? 'var(--danger)' :
-                                        task.priority === 'high' ? 'var(--warn)' : 'var(--surface)',
-                            color: task.priority === 'urgent' || task.priority === 'high' ? '#fff' : 'var(--text-secondary)'
-                          }}
-                          title={task.title}
-                        >
-                          {task.title}
-                        </div>
-                      ))}
-                      {dayTasks.length > 2 && (
-                        <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                          +{dayTasks.length - 2} mais
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </AppCard>
+        )}
       </div>
-    </div>
+    </AppPage>
   );
 }
