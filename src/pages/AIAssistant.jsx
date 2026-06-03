@@ -32,31 +32,23 @@ const SUGESTOES = [
   "Pensão alimentícia: como calcular?",
 ];
 
-const S = {
-  bg: "#f5f5f4",
-  card: "#ffffff",
-  border: "#e7e5e4",
-  textPrimary: "#1c1917",
-  textSecondary: "#78716c",
-  accent: "#1a1a1a",
-  accentHover: "#333333",
-  radius: 6,
-};
-
 function TypingIndicator() {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginBottom: 16 }}>
       <div style={{
-        width: 32, height: 32, borderRadius: S.radius,
-        background: S.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+        width: 32, height: 32, borderRadius: "var(--radius-btn)",
+        background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
         <Scale style={{ width: 16, height: 16, color: "#fff" }} />
       </div>
-      <div style={{ padding: "10px 16px", background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius }}>
+      <div style={{
+        padding: "10px 16px", background: "var(--card)",
+        border: "1px solid var(--border)", borderRadius: "var(--radius-btn)",
+      }}>
         <div style={{ display: "flex", gap: 4, alignItems: "center", height: 20 }}>
           {[0, 1, 2].map(i => (
             <span key={i} style={{
-              width: 7, height: 7, borderRadius: "50%", background: S.textSecondary,
+              width: 7, height: 7, borderRadius: "50%", background: "var(--text-secondary)",
               display: "inline-block",
               animation: "lex-bounce 1.2s infinite",
               animationDelay: `${i * 0.2}s`, opacity: 0.6,
@@ -79,12 +71,12 @@ function MessageBubble({ msg }) {
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
         <div style={{ maxWidth: "80%", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
           <div style={{
-            padding: "10px 16px", background: S.accent, color: "#fff",
-            borderRadius: S.radius, fontSize: "0.875rem", lineHeight: 1.6,
+            padding: "10px 16px", background: "var(--primary)", color: "#fff",
+            borderRadius: "var(--radius-btn)", fontSize: 14, lineHeight: 1.6,
           }}>
             {msg.content}
           </div>
-          {time && <span style={{ fontSize: "0.75rem", color: S.textSecondary }}>{time}</span>}
+          {time && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{time}</span>}
         </div>
       </div>
     );
@@ -93,33 +85,34 @@ function MessageBubble({ msg }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginBottom: 16 }}>
       <div style={{
-        width: 32, height: 32, borderRadius: S.radius,
-        background: S.accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        width: 32, height: 32, borderRadius: "var(--radius-btn)",
+        background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
         <Scale style={{ width: 16, height: 16, color: "#fff" }} />
       </div>
       <div style={{ maxWidth: "80%", display: "flex", flexDirection: "column", gap: 4 }}>
         <div style={{
-          padding: "10px 16px", background: S.card, border: `1px solid ${S.border}`,
-          borderRadius: S.radius, fontSize: "0.875rem", lineHeight: 1.6, color: S.textPrimary,
+          padding: "10px 16px", background: "var(--card)",
+          border: "1px solid var(--border)", borderRadius: "var(--radius-btn)",
+          fontSize: 14, lineHeight: 1.6, color: "var(--text-primary)",
         }}>
           <ReactMarkdown
             className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
             components={{
-              p: ({ children }) => <p className="my-1">{children}</p>,
-              ul: ({ children }) => <ul className="my-1 ml-4 list-disc">{children}</ul>,
-              ol: ({ children }) => <ol className="my-1 ml-4 list-decimal">{children}</ol>,
-              li: ({ children }) => <li className="my-0.5">{children}</li>,
+              p:      ({ children }) => <p className="my-1">{children}</p>,
+              ul:     ({ children }) => <ul className="my-1 ml-4 list-disc">{children}</ul>,
+              ol:     ({ children }) => <ol className="my-1 ml-4 list-decimal">{children}</ol>,
+              li:     ({ children }) => <li className="my-0.5">{children}</li>,
               strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-              h1: ({ children }) => <h1 className="text-base font-bold my-2">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-sm font-bold my-1.5">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-sm font-semibold my-1">{children}</h3>,
+              h1:     ({ children }) => <h1 className="text-base font-bold my-2">{children}</h1>,
+              h2:     ({ children }) => <h2 className="text-sm font-bold my-1.5">{children}</h2>,
+              h3:     ({ children }) => <h3 className="text-sm font-semibold my-1">{children}</h3>,
             }}
           >
             {msg.content}
           </ReactMarkdown>
         </div>
-        {time && <span style={{ fontSize: "0.75rem", color: S.textSecondary, marginLeft: 4 }}>{time}</span>}
+        {time && <span style={{ fontSize: 12, color: "var(--text-secondary)", marginLeft: 4 }}>{time}</span>}
       </div>
     </div>
   );
@@ -127,10 +120,10 @@ function MessageBubble({ msg }) {
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [input, setInput]       = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef(null);
-  const textareaRef = useRef(null);
+  const messagesEndRef          = useRef(null);
+  const textareaRef             = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -188,7 +181,7 @@ export default function AIAssistant() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: S.bg, fontFamily: "var(--font-sans)" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--bg)", fontFamily: "var(--font-body)" }}>
       <style>{`
         @keyframes lex-bounce {
           0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -196,8 +189,8 @@ export default function AIAssistant() {
         }
       `}</style>
 
-      {/* Pills de área */}
-      <div style={{ flexShrink: 0, padding: "10px 16px", borderBottom: `1px solid ${S.border}`, background: S.card, overflowX: "auto" }}>
+      {/* Area pills */}
+      <div style={{ flexShrink: 0, padding: "10px 16px", borderBottom: "1px solid var(--border)", background: "var(--card)", overflowX: "auto" }}>
         <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", gap: 8, flexWrap: "nowrap" }}>
           {AREAS.map(area => (
             <button
@@ -205,13 +198,13 @@ export default function AIAssistant() {
               onClick={() => setInput(prev => prev ? `${prev} ${area}` : area)}
               style={{
                 flexShrink: 0, padding: "5px 12px",
-                borderRadius: S.radius, fontSize: "0.75rem", fontWeight: 500,
-                border: `1px solid ${S.border}`, color: S.textSecondary,
-                background: S.bg, cursor: "pointer", transition: "all 0.15s",
-                fontFamily: "var(--font-sans)",
+                borderRadius: "var(--radius-btn)", fontSize: 12, fontWeight: 500,
+                border: "1px solid var(--border)", color: "var(--text-secondary)",
+                background: "var(--bg)", cursor: "pointer", transition: "all 0.15s",
+                fontFamily: "var(--font-body)",
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = S.accent; e.currentTarget.style.color = S.textPrimary; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = S.textSecondary; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
             >
               {area}
             </button>
@@ -219,23 +212,23 @@ export default function AIAssistant() {
         </div>
       </div>
 
-      {/* Mensagens */}
+      {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 16px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
-          {/* Estado vazio */}
+          {/* Empty state */}
           {messages.length === 0 && !isTyping && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 32, paddingBottom: 16 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: S.radius,
-                  background: S.accent, display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 56, height: 56, borderRadius: "var(--radius-btn)",
+                  background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
                   margin: "0 auto 12px",
                 }}>
                   <Scale style={{ width: 28, height: 28, color: "#fff" }} />
                 </div>
-                <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: S.textPrimary, margin: "0 0 6px" }}>Olá, sou o Lex</h2>
-                <p style={{ fontSize: "0.875rem", color: S.textSecondary, margin: 0 }}>Como posso ajudar com sua dúvida jurídica hoje?</p>
+                <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>Olá, sou o Lex</h2>
+                <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>Como posso ajudar com sua dúvida jurídica hoje?</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8, width: "100%", maxWidth: 680 }}>
                 {SUGESTOES.map(s => (
@@ -245,16 +238,16 @@ export default function AIAssistant() {
                     style={{
                       display: "flex", alignItems: "center", gap: 8,
                       textAlign: "left", padding: "12px 16px",
-                      borderRadius: S.radius, border: `1px solid ${S.border}`,
-                      fontSize: "0.875rem", background: S.card, color: S.textPrimary,
+                      borderRadius: "var(--radius-card)", border: "1px solid var(--border)",
+                      fontSize: 14, background: "var(--card)", color: "var(--text-primary)",
                       cursor: "pointer", transition: "all 0.15s",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                      fontFamily: "var(--font-sans)",
+                      boxShadow: "var(--shadow-card)",
+                      fontFamily: "var(--font-body)",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = S.accent; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.10)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "var(--shadow-card)"; }}
                   >
-                    <ChevronRight style={{ width: 14, height: 14, flexShrink: 0, color: S.textSecondary }} />
+                    <ChevronRight style={{ width: 14, height: 14, flexShrink: 0, color: "var(--text-secondary)" }} />
                     {s}
                   </button>
                 ))}
@@ -269,16 +262,16 @@ export default function AIAssistant() {
       </div>
 
       {/* Input */}
-      <div style={{ flexShrink: 0, borderTop: `1px solid ${S.border}`, padding: "16px", background: S.card }}>
+      <div style={{ flexShrink: 0, borderTop: "1px solid var(--border)", padding: "16px", background: "var(--card)" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <div style={{
             display: "flex", alignItems: "flex-end", gap: 8,
-            borderRadius: S.radius, border: `1px solid ${S.border}`,
-            padding: "10px 12px", background: S.bg,
-            transition: "border-color 0.15s",
+            borderRadius: "var(--radius-btn)", border: "1px solid var(--border)",
+            padding: "10px 12px", background: "var(--bg)",
+            transition: "border-color 0.15s, box-shadow 0.15s",
           }}
-            onFocus={e => e.currentTarget.style.borderColor = S.accent}
-            onBlur={e => e.currentTarget.style.borderColor = S.border}
+            onFocusCapture={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,.12)"; }}
+            onBlurCapture={e  => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none"; }}
           >
             <textarea
               ref={textareaRef}
@@ -290,27 +283,27 @@ export default function AIAssistant() {
               disabled={isTyping}
               style={{
                 flex: 1, resize: "none", background: "transparent",
-                fontSize: "0.875rem", outline: "none", lineHeight: 1.6,
-                color: S.textPrimary, maxHeight: 160, overflowY: "auto",
-                fontFamily: "var(--font-sans)", border: "none",
+                fontSize: 14, outline: "none", lineHeight: 1.6,
+                color: "var(--text-primary)", maxHeight: 160, overflowY: "auto",
+                fontFamily: "var(--font-body)", border: "none",
               }}
             />
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || isTyping}
               style={{
-                flexShrink: 0, width: 32, height: 32, borderRadius: S.radius,
+                flexShrink: 0, width: 32, height: 32, borderRadius: "var(--radius-btn)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: !input.trim() || isTyping ? S.border : S.accent,
+                background: !input.trim() || isTyping ? "var(--border)" : "var(--primary)",
                 border: "none",
                 cursor: !input.trim() || isTyping ? "not-allowed" : "pointer",
                 transition: "background 0.15s",
               }}
             >
-              <Send style={{ width: 15, height: 15, color: !input.trim() || isTyping ? S.textSecondary : "#fff" }} />
+              <Send style={{ width: 15, height: 15, color: !input.trim() || isTyping ? "var(--text-secondary)" : "#fff" }} />
             </button>
           </div>
-          <p style={{ textAlign: "center", fontSize: "0.75rem", marginTop: 10, color: S.textSecondary }}>
+          <p style={{ textAlign: "center", fontSize: 12, marginTop: 10, color: "var(--text-secondary)" }}>
             As respostas têm caráter informativo e educacional. Para seu caso específico, consulte um advogado.
           </p>
         </div>
