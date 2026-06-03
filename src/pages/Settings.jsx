@@ -7,7 +7,7 @@ import { User, Bell, Palette, Keyboard, Save, Loader2, Pencil, X, Check, Shield,
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { AppPage, PageHeader, AppCard, AppTabs, SectionHeader } from "@/components/ds";
+import { AppPage, PageHeader, AppCard, AppTabs, SectionHeader, AppContent, AppButton, AppField } from "@/components/ds";
 import { AppTabPanel } from "@/components/ds/AppTabs";
 
 const TABS = [
@@ -81,14 +81,15 @@ export default function Settings() {
   };
 
   const SaveButton = () => (
-    <button
+    <AppButton
+      variant="primary"
+      loading={loading}
+      icon={Save}
       onClick={handleSavePreferences}
-      disabled={loading}
-      className="btn-primary"
       style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
     >
-      {loading ? <><Loader2 style={{ width: 14, height: 14 }} className="animate-spin" /> Salvando...</> : <><Save style={{ width: 14, height: 14 }} /> Salvar Preferências</>}
-    </button>
+      Salvar Preferências
+    </AppButton>
   );
 
   const ToggleRow = ({ label, sub, pref }) => (
@@ -112,7 +113,7 @@ export default function Settings() {
         icon={SettingsIcon}
       />
 
-      <div style={{ padding: "24px 32px", maxWidth: 800 }}>
+      <AppContent narrow>
         <AppTabs tabs={TABS} value={activeTab} onValueChange={setActiveTab}>
 
           {/* Profile */}
@@ -252,7 +253,7 @@ export default function Settings() {
           </AppTabPanel>
 
         </AppTabs>
-      </div>
+      </AppContent>
     </AppPage>
   );
 }

@@ -613,6 +613,25 @@ tbody tr:last-child td { border-bottom: none; }
   button, [role="button"], a, .touch-target { min-height: 44px; min-width: 44px; }
 }
 
+/* ── Page transition ── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-transition {
+  animation: page-enter 0.18s ease;
+}
+
+/* ── Form row helper ── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
 /* ═══════════════════════════════════════════════
    FOCUS / SELECTION
    ═══════════════════════════════════════════════ */

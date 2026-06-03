@@ -6,7 +6,7 @@ import ClientList from "../components/clients/ClientList";
 import ClientForm from "../components/clients/ClientForm";
 import ClientDetails from "../components/clients/ClientDetails";
 import { useDebounce } from "@/components/common/useDebounce";
-import { AppPage, PageHeader, StatCard, KPIGrid, SearchBar } from "@/components/ds";
+import { AppPage, PageHeader, StatCard, KPIGrid, SearchBar, AppContent, AppButton } from "@/components/ds";
 
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,12 +66,9 @@ export default function Clients() {
         subtitle="Gerencie seus clientes"
         icon={Users}
         actions={
-          <button
-            className="btn-primary"
-            onClick={() => { setShowForm(true); setEditingClient(null); setSelectedClient(null); }}
-          >
-            <Plus size={14} /> Novo Cliente
-          </button>
+          <AppButton variant="primary" icon={Plus} onClick={() => { setShowForm(true); setEditingClient(null); setSelectedClient(null); }}>
+            Novo Cliente
+          </AppButton>
         }
       />
 
@@ -82,8 +79,7 @@ export default function Clients() {
         <StatCard icon={Building2}label="Jurídicas"       value={companyClients}    sub="pessoa jurídica"    color="var(--warning)" loading={isLoading} />
       </KPIGrid>
 
-      {/* Content */}
-      <div style={{ padding: "24px 32px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <AppContent style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <SearchBar
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -118,7 +114,7 @@ export default function Clients() {
             />
           )}
         </div>
-      </div>
+      </AppContent>
     </AppPage>
   );
 }

@@ -7,13 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, FolderOpen, Loader2 } from "lucide-react";
+import { Plus, FolderOpen } from "lucide-react";
 import CaseCard from "@/components/cases/CaseCard";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
 import { useDebounce } from "@/components/common/useDebounce";
-import { AppPage, PageHeader, StatCard, KPIGrid, SearchBar, EmptyState, LoadingSpinner } from "@/components/ds";
+import { AppPage, PageHeader, StatCard, KPIGrid, SearchBar, EmptyState, LoadingSpinner, AppContent, AppButton, AppModal, AppField } from "@/components/ds";
 
 export default function Cases() {
   const navigate = useNavigate();
@@ -113,12 +112,9 @@ export default function Cases() {
         subtitle={`${cases.length} processo(s) cadastrado(s)`}
         icon={FolderOpen}
         actions={
-          <button
-            className="btn-primary"
-            onClick={() => { setEditingCase(null); setFormData(emptyForm()); setShowForm(true); }}
-          >
-            <Plus size={14} /> Novo Processo
-          </button>
+          <AppButton variant="primary" icon={Plus} onClick={() => { setEditingCase(null); setFormData(emptyForm()); setShowForm(true); }}>
+            Novo Processo
+          </AppButton>
         }
       />
 
@@ -130,8 +126,7 @@ export default function Cases() {
         <StatCard icon={FolderOpen} label="Concluídos"   value={closedCases}   sub="encerrados"          color="var(--text-muted)" loading={isLoading} />
       </KPIGrid>
 
-      {/* Content */}
-      <div style={{ padding: "24px 32px" }}>
+      <AppContent>
         <SearchBar
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -175,50 +170,46 @@ export default function Cases() {
             </div>
           </PullToRefresh>
         )}
-      </div>
+      </AppContent>
 
       {/* Form Modal */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingCase ? "Editar Processo" : "Novo Processo"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Título *</Label>
-              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: Ação de indenização" style={{ fontSize: 16, minHeight: 44 }} />
-            </div>
-            <div className="space-y-2">
-              <Label>Cliente *</Label>
+      <AppModal open={showForm} onOpenChange={setShowForm} size="lg">
+        <AppModal.Header
+          title={editingCase ? "Editar Processo" : "Novo Processo"}
+          onClose={() => setShowForm(false)}
+        />
+        <AppModal.Body>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <AppField label="Título" required>
+              <input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Ex: Ação de indenização" />
+            </AppField>
+            <AppField label="Cliente" required>
               <Select value={formData.client_id} onValueChange={(v) => setFormData({ ...formData, client_id: v })}>
-                <SelectTrigger style={{ minHeight: 44 }}><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Área *</Label>
+            </AppField>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <AppField label="Área" required>
                 <Select value={formData.area} onValueChange={(v) => setFormData({ ...formData, area: v })}>
-                  <SelectTrigger style={{ minHeight: 44 }}><SelectValue placeholder="Selecione a área" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione a área" /></SelectTrigger>
                   <SelectContent>
                     {["civil","criminal","trabalhista","tributario","familia","empresarial","consumidor","previdenciario","outros"].map((a) => (
                       <SelectItem key={a} value={a}>{a.charAt(0).toUpperCase() + a.slice(1)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Número do Processo</Label>
-                <Input value={formData.case_number} onChange={(e) => setFormData({ ...formData, case_number: e.target.value })} placeholder="0000000-00.0000.0.00.0000" style={{ fontSize: 16, minHeight: 44 }} />
-              </div>
+              </AppField>
+              <AppField label="Número do Processo">
+                <input value={formData.case_number} onChange={(e) => setFormData({ ...formData, case_number: e.target.value })} placeholder="0000000-00.0000.0.00.0000" />
+              </AppField>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Status</Label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <AppField label="Status">
                 <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                  <SelectTrigger style={{ minHeight: 44 }}><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="new">Novo</SelectItem>
                     <SelectItem value="in_progress">Em andamento</SelectItem>
@@ -227,11 +218,10 @@ export default function Cases() {
                     <SelectItem value="archived">Arquivado</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Prioridade</Label>
+              </AppField>
+              <AppField label="Prioridade">
                 <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
-                  <SelectTrigger style={{ minHeight: 44 }}><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Baixa</SelectItem>
                     <SelectItem value="medium">Média</SelectItem>
@@ -239,43 +229,35 @@ export default function Cases() {
                     <SelectItem value="urgent">Urgente</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </AppField>
             </div>
-            <div className="space-y-2">
-              <Label>Vara/Tribunal</Label>
-              <Input value={formData.court} onChange={(e) => setFormData({ ...formData, court: e.target.value })} placeholder="Ex: 1ª Vara Cível de São Paulo" style={{ fontSize: 16, minHeight: 44 }} />
+            <AppField label="Vara/Tribunal">
+              <input value={formData.court} onChange={(e) => setFormData({ ...formData, court: e.target.value })} placeholder="Ex: 1ª Vara Cível de São Paulo" />
+            </AppField>
+            <AppField label="Parte Contrária">
+              <input value={formData.opposing_party} onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })} placeholder="Nome da parte contrária" />
+            </AppField>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <AppField label="Data de Início">
+                <input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} />
+              </AppField>
+              <AppField label="Prazo">
+                <input type="date" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} />
+              </AppField>
             </div>
-            <div className="space-y-2">
-              <Label>Parte Contrária</Label>
-              <Input value={formData.opposing_party} onChange={(e) => setFormData({ ...formData, opposing_party: e.target.value })} placeholder="Nome da parte contrária" style={{ fontSize: 16, minHeight: 44 }} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data de Início</Label>
-                <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} style={{ fontSize: 16, minHeight: 44 }} />
-              </div>
-              <div className="space-y-2">
-                <Label>Prazo</Label>
-                <Input type="date" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} style={{ fontSize: 16, minHeight: 44 }} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Valor da Causa (R$)</Label>
-              <Input type="number" value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} placeholder="0.00" style={{ fontSize: 16, minHeight: 44 }} />
-            </div>
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Detalhes do processo..." rows={4} style={{ fontSize: 16 }} />
-            </div>
-            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-              <button className="btn-outline" onClick={() => setShowForm(false)}>Cancelar</button>
-              <button className="btn-accent" onClick={handleSave} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? <><Loader2 size={14} className="animate-spin" /> Salvando...</> : "Salvar"}
-              </button>
-            </div>
+            <AppField label="Valor da Causa (R$)">
+              <input type="number" value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} placeholder="0.00" />
+            </AppField>
+            <AppField label="Descrição">
+              <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Detalhes do processo..." rows={4} />
+            </AppField>
           </div>
-        </DialogContent>
-      </Dialog>
+        </AppModal.Body>
+        <AppModal.Footer>
+          <AppButton variant="ghost" onClick={() => setShowForm(false)}>Cancelar</AppButton>
+          <AppButton variant="primary" loading={saveMutation.isPending} onClick={handleSave}>Salvar</AppButton>
+        </AppModal.Footer>
+      </AppModal>
     </AppPage>
   );
 }

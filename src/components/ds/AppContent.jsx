@@ -15,7 +15,7 @@ export default function AppContent({
       className={className}
       style={{
         padding:   noPad ? 0 : "24px 32px",
-        maxWidth:  narrow ? 680 : 1400,
+        maxWidth:  narrow ? "680px" : "1400px",
         width:     "100%",
         margin:    "0 auto",
         ...style,

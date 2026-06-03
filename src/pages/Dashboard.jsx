@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { AppPage, PageHeader, StatCard, KPIGrid, AppCard, AppBadge, SectionHeader } from "@/components/ds";
+import { AppPage, PageHeader, StatCard, KPIGrid, AppCard, AppBadge, SectionHeader, AppContent } from "@/components/ds";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -84,22 +84,12 @@ const Dashboard = memo(function Dashboard() {
 
   return (
     <AppPage>
-      {/* Custom greeting header */}
-      <div style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "20px 32px" }}>
-        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>
-          {getGreeting()}, {user?.full_name?.split(" ")[0] || "Advogado"} 👋
-        </p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.025em", margin: 0 }}>
-            Painel de Controle
-          </h1>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-            {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={`${getGreeting()}, ${user?.full_name?.split(" ")[0] || "Advogado"} 👋`}
+        subtitle={format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+      />
 
-      <div style={{ padding: "24px 32px", maxWidth: 1400 }}>
+      <AppContent>
 
         {/* KPI Grid */}
         <KPIGrid cols={4}>
@@ -241,7 +231,7 @@ const Dashboard = memo(function Dashboard() {
             </div>
           ))}
         </div>
-      </div>
+      </AppContent>
     </AppPage>
   );
 });

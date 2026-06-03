@@ -14,7 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { useDebounce } from "@/components/common/useDebounce";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
-import { AppPage, PageHeader, StatCard, KPIGrid, AppCard, AppBadge, EmptyState, SearchBar, SectionHeader, LoadingSpinner } from "@/components/ds";
+import { AppPage, PageHeader, StatCard, KPIGrid, AppCard, AppBadge, EmptyState, SearchBar, SectionHeader, LoadingSpinner, AppContent, AppButton, AppField } from "@/components/ds";
 
 const EMPTY_TASK = {
   title: "", description: "", due_date: "", priority: "medium",
@@ -146,12 +146,13 @@ export default function Tasks() {
         subtitle="Gerencie tarefas, prazos e responsabilidades"
         icon={CheckSquare}
         actions={
-          <button
-            className={showForm ? "btn-outline" : "btn-primary"}
+          <AppButton
+            variant={showForm ? "ghost" : "primary"}
+            icon={showForm ? X : Plus}
             onClick={() => setShowForm((s) => !s)}
           >
-            {showForm ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nova Tarefa</>}
-          </button>
+            {showForm ? "Cancelar" : "Nova Tarefa"}
+          </AppButton>
         }
       />
 
@@ -163,7 +164,7 @@ export default function Tasks() {
         <StatCard icon={Filter}      label="Total"      value={tasks.length}          sub="tarefas"     color="var(--text-muted)" loading={isLoading} />
       </KPIGrid>
 
-      <div style={{ padding: "24px 32px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <AppContent style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
         {/* Form */}
         {showForm && (
@@ -243,11 +244,9 @@ export default function Tasks() {
                   </Select>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8, paddingTop: 8 }}>
-                <button className="btn-accent" onClick={handleCreate} disabled={!newTask.title?.trim() || !newTask.due_date || createMutation.isPending}>
-                  {createMutation.isPending ? "Criando..." : "Criar Tarefa"}
-                </button>
-                <button className="btn-outline" onClick={() => { setShowForm(false); setNewTask({ ...EMPTY_TASK }); }}>Cancelar</button>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
+                <AppButton variant="ghost" onClick={() => { setShowForm(false); setNewTask({ ...EMPTY_TASK }); }}>Cancelar</AppButton>
+                <AppButton variant="primary" loading={createMutation.isPending} onClick={handleCreate}>Criar Tarefa</AppButton>
               </div>
             </div>
           </AppCard>
@@ -258,20 +257,8 @@ export default function Tasks() {
           <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <SearchBar value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar tarefas..." style={{ flex: 1, minWidth: 200 }} />
-              <button
-                className={viewMode === "list" ? "btn-primary" : "btn-outline"}
-                style={{ padding: "0 12px", minWidth: 44, minHeight: 44 }}
-                onClick={() => setViewMode("list")}
-              >
-                <List size={16} />
-              </button>
-              <button
-                className={viewMode === "calendar" ? "btn-primary" : "btn-outline"}
-                style={{ padding: "0 12px", minWidth: 44, minHeight: 44 }}
-                onClick={() => setViewMode("calendar")}
-              >
-                <CalendarDays size={16} />
-              </button>
+              <AppButton variant={viewMode === "list" ? "primary" : "secondary"} icon={List} onClick={() => setViewMode("list")} />
+              <AppButton variant={viewMode === "calendar" ? "primary" : "secondary"} icon={CalendarDays} onClick={() => setViewMode("calendar")} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
@@ -413,7 +400,7 @@ export default function Tasks() {
             </div>
           </AppCard>
         )}
-      </div>
+      </AppContent>
     </AppPage>
   );
 }
