@@ -17,6 +17,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import SidebarNav from "@/components/layout/SidebarNav";
+import Logo from "@/components/common/Logo.jsx";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
 const KeyboardShortcuts = React.lazy(() => import("@/components/common/KeyboardShortcuts"));
@@ -341,8 +342,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 >
                   <div style={{
                     width: 32, height: 32,
-                    background: 'var(--accent)',
-                    borderRadius: 10,
+                    background: '#B8952A',
+                    borderRadius: 4,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
                     <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
@@ -450,31 +451,17 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           <div style={{ padding: '20px 16px 0' }}>
             <Link to={createPageUrl("Dashboard")} style={{ textDecoration: 'none', display: 'block' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 9,
-                  background: '#2563EB',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, fontFamily: "'Inter', sans-serif", letterSpacing: '-0.02em' }}>J</span>
-                </div>
-                <div>
-                  <div style={{
-                    fontFamily: "'Inter', system-ui, sans-serif",
-                    fontWeight: 700, fontSize: 16,
-                    color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.2,
-                  }}>
-                    Juris<span style={{ color: '#2563EB' }}>.IA</span>
-                  </div>
-                  <div style={{
-                    fontSize: 10, fontWeight: 500,
-                    color: 'rgba(255,255,255,0.3)',
-                    fontFamily: "'Inter', system-ui, sans-serif",
-                    letterSpacing: '0.02em',
-                  }}>
-                    Software jurídico
-                  </div>
-                </div>
+                <Logo size="md" variant="light" />
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: 400,
+                color: 'rgba(255,255,255,0.25)',
+                fontFamily: "'Inter', system-ui, sans-serif",
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                marginTop: 4,
+              }}>
+                Software jurídico
               </div>
             </Link>
           </div>
@@ -558,12 +545,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="page-transition"
               style={{
                 minHeight: 'calc(100vh - var(--header-h))',
                 paddingBottom: user && !publicPages.includes(currentPageName) ? 'calc(var(--bottom-nav-h) + 16px)' : 0,
               }}
-              className="lg:pb-0"
             >
               {children}
             </motion.div>

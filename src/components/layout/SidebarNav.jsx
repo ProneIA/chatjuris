@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import Logo from "@/components/common/Logo";
 import {
   LayoutDashboard, Activity, CheckSquare,
   FolderOpen, Users, Globe, FileText, Files,
@@ -83,10 +84,10 @@ function NavBadge({ label }) {
   return (
     <span style={{
       fontSize: 10, fontWeight: 600, padding: "2px 6px",
-      borderRadius: 4,
+      borderRadius: 3,
       letterSpacing: "0.03em",
-      color: isAI ? "#1D4ED8" : isNew ? "#B45309" : "rgba(203,213,225,0.7)",
-      background: isAI ? "rgba(37,99,235,0.12)" : isNew ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
+      color: isAI ? "#B8952A" : isNew ? "#B45309" : "rgba(203,213,225,0.7)",
+      background: isAI ? "rgba(184,149,42,0.15)" : isNew ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
       fontFamily: "'Inter', sans-serif",
       flexShrink: 0,
     }}>
@@ -120,11 +121,11 @@ function NavItem({ item, location, onNavigate }) {
       {isActive && (
         <span style={{
           position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
-          width: 3, height: 18, background: "#2563EB",
+          width: 2, height: 18, background: "#B8952A",
           borderRadius: "0 2px 2px 0",
         }} />
       )}
-      <item.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: isActive ? "#2563EB" : "inherit" }} />
+      <item.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: isActive ? "#B8952A" : "inherit" }} />
       <span style={{ flex: 1, letterSpacing: "-0.01em" }}>{item.title}</span>
       {item.badge && <NavBadge label={item.badge} />}
     </Link>
