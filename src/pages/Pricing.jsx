@@ -168,6 +168,7 @@ const testimonials = [
 // ─── PlanCard ────────────────────────────────────────────────────────────────
 function PlanCard({ plan, onSelect, isCurrent }) {
   const [hovered, setHovered] = useState(false);
+  const isYearly = plan.billingType === "yearly";
 
   return (
     <div
@@ -175,115 +176,242 @@ function PlanCard({ plan, onSelect, isCurrent }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         background: plan.dark ? "#0a0a0a" : "#fff",
-        padding: "2.5rem",
+        padding: "2.5rem 2rem",
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
         borderBottom: plan.popular
           ? "4px solid #C8A84B"
-          : hovered ? "4px solid #C8A84B" : "4px solid transparent",
-        transition: "border-color .2s, box-shadow .2s",
-        boxShadow: hovered ? "0 8px 32px rgba(0,0,0,.12)" : "none",
+          : hovered
+          ? "4px solid #C8A84B"
+          : "4px solid transparent",
+        transition: "border-color .2s, box-shadow .2s, transform .2s",
+        boxShadow: hovered ? "0 12px 40px rgba(0,0,0,.14)" : "none",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
       }}
     >
-      {/* Badge */}
+      {/* ── Faixa MAIS ESCOLHIDO (topo direito) */}
       {plan.badge && (
         <div style={{
           position: "absolute", top: 0, right: 0,
           background: "#C8A84B",
           color: "#000",
-          fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-          fontSize: ".65rem", padding: ".35rem .8rem",
-          textTransform: "uppercase", letterSpacing: ".1em",
+          fontFamily: "'Oswald', sans-serif",
+          fontWeight: 700,
+          fontSize: ".6rem",
+          padding: ".3rem .75rem",
+          textTransform: "uppercase",
+          letterSpacing: ".12em",
         }}>
           {plan.badge}
         </div>
       )}
 
-      {/* Nome e descrição */}
-      <div style={{ marginBottom: "1.5rem", paddingTop: plan.badge ? "1rem" : 0 }}>
+      {/* ── Tag ANUAL (topo esquerdo, só em planos anuais) */}
+      {isYearly && (
+        <div style={{
+          position: "absolute", top: 0, left: 0,
+          background: "#0a0a0a",
+          color: "#C8A84B",
+          fontFamily: "'Oswald', sans-serif",
+          fontWeight: 700,
+          fontSize: ".55rem",
+          padding: ".3rem .65rem",
+          textTransform: "uppercase",
+          letterSpacing: ".12em",
+          display: plan.badge ? "none" : "block",
+        }}>
+          Anual
+        </div>
+      )}
+
+      {/* ── Nome e descrição */}
+      <div style={{ marginBottom: "1.5rem", paddingTop: (plan.badge || isYearly) ? "1.25rem" : 0 }}>
         <h3 style={{
-          fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-          fontSize: "1rem", textTransform: "uppercase", letterSpacing: ".05em",
-          color: plan.dark ? "#fff" : "#0a0a0a", margin: "0 0 .3rem",
-        }}>{plan.name}</h3>
-        <p style={{ fontSize: ".78rem", color: plan.dark ? "rgba(255,255,255,.35)" : "rgba(0,0,0,.4)", margin: 0 }}>
+          fontFamily: "'Oswald', sans-serif",
+          fontWeight: 700,
+          fontSize: "1rem",
+          textTransform: "uppercase",
+          letterSpacing: ".05em",
+          color: plan.dark ? "#fff" : "#0a0a0a",
+          margin: "0 0 .3rem",
+        }}>
+          {plan.name}
+        </h3>
+        <p style={{
+          fontSize: ".78rem",
+          color: plan.dark ? "rgba(255,255,255,.35)" : "rgba(0,0,0,.4)",
+          margin: 0,
+          lineHeight: 1.4,
+        }}>
           {plan.description}
         </p>
       </div>
 
-      {/* Preço */}
-      <div style={{ marginBottom: "1.25rem" }}>
-        {plan.monthlyEq && (
-          <p style={{ color: plan.dark ? "rgba(255,255,255,.3)" : "#bbb", fontSize: ".8rem", margin: "0 0 .2rem", fontFamily: "'Oswald', sans-serif" }}>
-            ~R$ {plan.monthlyEq.toFixed(2).replace(".", ",")}/mês
+      {/* ── Bloco de preço */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        {isYearly && plan.monthlyEq && (
+          <p style={{
+            color: plan.dark ? "rgba(255,255,255,.28)" : "#bbb",
+            fontSize: ".75rem",
+            margin: "0 0 .15rem",
+            fontFamily: "'Oswald', sans-serif",
+            letterSpacing: ".04em",
+          }}>
+            R$ {plan.monthlyEq.toFixed(2).replace(".", ",")}<span style={{ fontWeight: 400 }}>/mês</span>
           </p>
         )}
+
         <div style={{ display: "flex", alignItems: "baseline", gap: ".4rem" }}>
-          <span style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "3rem", lineHeight: 1, color: plan.dark ? "#fff" : "#0a0a0a" }}>
+          <span style={{
+            fontFamily: "'Oswald', sans-serif",
+            fontWeight: 700,
+            fontSize: "2.8rem",
+            lineHeight: 1,
+            color: plan.dark ? "#fff" : "#0a0a0a",
+          }}>
             R$ {plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
           </span>
-          <span style={{ color: plan.dark ? "rgba(255,255,255,.3)" : "#aaa", fontSize: ".85rem" }}>{plan.period}</span>
+          <span style={{
+            color: plan.dark ? "rgba(255,255,255,.3)" : "#aaa",
+            fontSize: ".82rem",
+          }}>
+            {plan.period}
+          </span>
         </div>
-        {plan.savings && (
-          <p style={{ color: "#4ade80", fontSize: ".78rem", fontWeight: 600, margin: ".3rem 0 0", fontFamily: "'Oswald', sans-serif" }}>
-            ✓ Economize {plan.savings}
+
+        {isYearly && plan.savings && (
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: ".3rem",
+            marginTop: ".5rem",
+            background: "rgba(74,222,128,.1)",
+            border: "1px solid rgba(74,222,128,.25)",
+            padding: ".25rem .6rem",
+          }}>
+            <span style={{
+              color: "#4ade80",
+              fontSize: ".68rem",
+              fontWeight: 700,
+              fontFamily: "'Oswald', sans-serif",
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}>
+              ✓ Economize {plan.savings}
+            </span>
+          </div>
+        )}
+
+        {isYearly && (
+          <p style={{
+            color: plan.dark ? "rgba(255,255,255,.3)" : "rgba(0,0,0,.38)",
+            fontSize: ".7rem",
+            margin: ".4rem 0 0",
+            letterSpacing: ".02em",
+          }}>
+            ou em até 12× sem juros no cartão
           </p>
         )}
-        {plan.installments > 1 && (
-          <p style={{ color: plan.dark ? "rgba(255,255,255,.35)" : "rgba(0,0,0,.4)", fontSize: ".72rem", margin: ".2rem 0 0" }}>
-            em até {plan.installments}x sem juros
+
+        {!isYearly && (
+          <p style={{
+            color: plan.dark ? "rgba(255,255,255,.28)" : "rgba(0,0,0,.35)",
+            fontSize: ".7rem",
+            margin: ".4rem 0 0",
+          }}>
+            Renovação mensal automática
           </p>
         )}
       </div>
 
-      {/* Botão */}
+      {/* ── Divisor sutil */}
+      <div style={{
+        height: "1px",
+        background: plan.dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.07)",
+        marginBottom: "1.5rem",
+      }} />
+
+      {/* ── Features */}
+      <div style={{ flex: 1, marginBottom: "1.75rem" }}>
+        <p style={{
+          fontFamily: "'Oswald', sans-serif",
+          fontSize: ".58rem",
+          textTransform: "uppercase",
+          letterSpacing: ".15em",
+          color: plan.dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.28)",
+          marginBottom: ".8rem",
+        }}>
+          Incluído:
+        </p>
+        {plan.features.map((f, idx) => (
+          <div key={idx} style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: ".6rem",
+            marginBottom: ".55rem",
+          }}>
+            <div style={{
+              width: 15,
+              height: 15,
+              flexShrink: 0,
+              marginTop: 2,
+              background: plan.dark ? "rgba(200,168,75,.12)" : "rgba(0,0,0,.04)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <Check style={{ width: 9, height: 9, color: plan.dark ? "#C8A84B" : "#555" }} />
+            </div>
+            <span style={{
+              fontSize: ".8rem",
+              lineHeight: 1.45,
+              fontWeight: f.highlight ? 700 : 400,
+              color: plan.dark
+                ? (f.highlight ? "#fff" : "rgba(255,255,255,.5)")
+                : (f.highlight ? "#0a0a0a" : "#666"),
+            }}>
+              {f.text}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── CTA */}
       <button
         onClick={() => !isCurrent && onSelect(plan)}
         disabled={isCurrent}
         style={{
-          width: "100%", padding: ".9rem", marginBottom: "1.75rem",
-          fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-          fontSize: ".82rem", textTransform: "uppercase", letterSpacing: ".1em",
-          border: "none", cursor: isCurrent ? "not-allowed" : "pointer",
-          transition: "background .2s, color .2s",
+          width: "100%",
+          padding: ".95rem",
+          fontFamily: "'Oswald', sans-serif",
+          fontWeight: 700,
+          fontSize: ".8rem",
+          textTransform: "uppercase",
+          letterSpacing: ".12em",
+          border: "none",
+          cursor: isCurrent ? "not-allowed" : "pointer",
+          transition: "opacity .18s",
           background: isCurrent
             ? (plan.dark ? "#222" : "#e5e5e5")
-            : plan.popular ? "#C8A84B" : (plan.dark ? "#C8A84B" : "#0a0a0a"),
+            : plan.popular
+            ? "#C8A84B"
+            : plan.dark
+            ? "#C8A84B"
+            : "#0a0a0a",
           color: isCurrent
-            ? (plan.dark ? "#555" : "#aaa")
-            : plan.popular ? "#000" : (plan.dark ? "#000" : "#fff"),
+            ? (plan.dark ? "#444" : "#aaa")
+            : plan.popular
+            ? "#000"
+            : plan.dark
+            ? "#000"
+            : "#fff",
         }}
-        onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.opacity = ".85"; }}
+        onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.opacity = ".82"; }}
         onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
       >
-        {isCurrent ? "✓ Plano Atual" : "Assinar Agora →"}
+        {isCurrent ? "✓ Plano Atual" : isYearly ? "Assinar Anual →" : "Assinar Agora →"}
       </button>
-
-      {/* Features */}
-      <div>
-        <p style={{
-          fontFamily: "'Oswald', sans-serif", fontSize: ".6rem", textTransform: "uppercase",
-          letterSpacing: ".15em", color: plan.dark ? "rgba(255,255,255,.2)" : "rgba(0,0,0,.3)",
-          marginBottom: ".75rem",
-        }}>Incluído:</p>
-        {plan.features.map((f, idx) => (
-          <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: ".6rem", marginBottom: ".6rem" }}>
-            <div style={{
-              width: 16, height: 16, flexShrink: 0, marginTop: 2,
-              background: plan.dark ? "rgba(200,168,75,.15)" : "#f0f0f0",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Check style={{ width: 10, height: 10, color: plan.dark ? "#C8A84B" : "#555" }} />
-            </div>
-            <span style={{
-              fontSize: ".8rem", lineHeight: 1.4,
-              fontWeight: f.highlight ? 700 : 400,
-              color: plan.dark
-                ? (f.highlight ? "#fff" : "rgba(255,255,255,.55)")
-                : (f.highlight ? "#0a0a0a" : "#666"),
-            }}>{f.text}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
@@ -291,34 +419,88 @@ function PlanCard({ plan, onSelect, isCurrent }) {
 // ─── Toggle Mensal / Anual ────────────────────────────────────────────────────
 function BillingToggle({ billing, onChange }) {
   return (
-    <div style={{ display: "inline-flex", border: "1px solid #e0e0ea", overflow: "hidden" }}>
-      {["monthly", "yearly"].map((b) => (
-        <button
-          key={b}
-          onClick={() => onChange(b)}
-              style={{
-                padding: ".6rem 1.6rem",
-                background: billing === b ? "#C8A84B" : "#fff",
-                color: billing === b ? "#000" : "#6b6b80",
-            border: "none", cursor: "pointer",
-            fontFamily: "'Oswald', sans-serif", fontWeight: 600,
-            fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em",
-            transition: "background .2s, color .2s",
-            position: "relative",
-          }}
-        >
-          {b === "monthly" ? "Mensal" : "Anual"}
-          {b === "yearly" && (
-            <span style={{
-              marginLeft: ".5rem", background: "#4ade80", color: "#000",
-              fontSize: ".55rem", padding: ".1rem .35rem",
-              fontFamily: "'Oswald', sans-serif", fontWeight: 700, letterSpacing: ".08em",
-            }}>
-              ATÉ -17%
-            </span>
-          )}
-        </button>
-      ))}
+    <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: ".75rem" }}>
+      <div style={{
+        display: "inline-flex",
+        background: "#e8e8ee",
+        padding: "4px",
+        gap: 0,
+        position: "relative",
+      }}>
+        {["monthly", "yearly"].map((b) => (
+          <button
+            key={b}
+            onClick={() => onChange(b)}
+            style={{
+              padding: ".55rem 2rem",
+              background: billing === b ? "#0a0a0a" : "transparent",
+              color: billing === b ? "#fff" : "#6b6b80",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'Oswald', sans-serif",
+              fontWeight: 700,
+              fontSize: ".75rem",
+              textTransform: "uppercase",
+              letterSpacing: ".12em",
+              transition: "background .18s, color .18s",
+              position: "relative",
+              zIndex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: ".5rem",
+            }}
+          >
+            {b === "monthly" ? "Mensal" : "Anual"}
+            {b === "yearly" && (
+              <span style={{
+                background: "#C8A84B",
+                color: "#000",
+                fontSize: ".52rem",
+                fontWeight: 700,
+                padding: ".15rem .45rem",
+                letterSpacing: ".06em",
+                fontFamily: "'Oswald', sans-serif",
+              }}>
+                -20%
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div style={{
+        height: "1.2rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}>
+        {billing === "yearly" && (
+          <p style={{
+            fontSize: ".72rem",
+            color: "#4ade80",
+            fontFamily: "'Oswald', sans-serif",
+            fontWeight: 600,
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+            margin: 0,
+          }}>
+            ✓ Cobrança única anual · parcelável em até 12x sem juros
+          </p>
+        )}
+        {billing === "monthly" && (
+          <p style={{
+            fontSize: ".72rem",
+            color: "rgba(0,0,0,.35)",
+            fontFamily: "'Oswald', sans-serif",
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+            margin: 0,
+          }}>
+            Assine anual e economize até R$ 480/ano
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -468,29 +650,33 @@ export default function Pricing() {
 
       {/* ── PLANOS ───────────────────────────────────────── */}
       <section id="planos" style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ maxWidth: "1160px", margin: "0 auto" }}>
 
-          {/* Toggle Mensal / Anual */}
-          <div style={{ marginBottom: "2.5rem" }}>
+          {/* Cabeçalho + Toggle */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "2rem",
+            marginBottom: "3.5rem",
+          }}>
+            <div>
+              <h2 className="D fu" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#0a0a0a", margin: "0 0 .5rem" }}>
+                Escolha Seu Plano.
+              </h2>
+              <p className="fu d1" style={{ color: "rgba(0,0,0,.45)", lineHeight: 1.6, fontSize: ".88rem", margin: 0 }}>
+                Pagamento seguro via Mercado Pago · Somente cartão de crédito.
+              </p>
+            </div>
             <BillingToggle billing={billing} onChange={setBilling} />
-          </div>
-
-          {/* Título */}
-          <div style={{ marginBottom: "3rem" }}>
-            <h2 className="D fu" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#0a0a0a", margin: "0 0 .5rem" }}>
-              Escolha Seu Plano.
-            </h2>
-            <p className="fu d1" style={{ color: "rgba(0,0,0,.5)", lineHeight: 1.6, fontSize: ".9rem", margin: 0 }}>
-              Pagamento seguro via Mercado Pago · Somente cartão de crédito.
-            </p>
           </div>
 
           {/* Grid de planos */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: `repeat(${plans.length}, 1fr)`,
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: "1px",
-            background: "#e0e0ea",
+            background: "#dddde6",
           }}>
             {plans.map((plan) => (
               <PlanCard
@@ -502,6 +688,30 @@ export default function Pricing() {
             ))}
           </div>
 
+          {/* Rodapé da seção */}
+          <div style={{
+            marginTop: "2rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "1rem",
+          }}>
+            <p style={{
+              fontSize: ".72rem",
+              color: "rgba(0,0,0,.35)",
+              fontFamily: "'Oswald', sans-serif",
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}>
+              {billing === "yearly"
+                ? "✦ Cobrança única anual · Cancele antes da renovação sem custo"
+                : "✦ Sem fidelidade · Cancele quando quiser"}
+            </p>
+            <p style={{ fontSize: ".72rem", color: "rgba(0,0,0,.35)", letterSpacing: ".02em" }}>
+              Todos os planos incluem 7 dias de teste gratuito.
+            </p>
+          </div>
 
         </div>
       </section>
