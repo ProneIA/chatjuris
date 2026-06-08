@@ -11,14 +11,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const PLANS = {
-  basic_monthly:   { name: 'Juris Básico - Mensal',   price:  89.90, durationDays: 30,  description: 'Assinatura mensal Básica — Juris' },
-  adv_monthly:     { name: 'Juris Advogado - Mensal',  price: 119.90, durationDays: 30,  description: 'Assinatura mensal Advogado — Juris' },
-  empresa_monthly: { name: 'Juris Empresas - Mensal',  price: 219.90, durationDays: 30,  description: 'Assinatura mensal Empresas — Juris' },
-  adv_yearly:      { name: 'Juris Advogado - Anual',   price: 1197.00, durationDays: 365, description: 'Assinatura anual Advogado — Juris' },
-  empresa_yearly:  { name: 'Juris Empresas - Anual',   price: 2197.00, durationDays: 365, description: 'Assinatura anual Empresas — Juris' },
-  // Aliases legados
-  pro_monthly:     { name: 'Juris Pro - Plano Mensal', price: 119.90, durationDays: 30,  description: 'Assinatura mensal da plataforma Juris Pro' },
-  pro_yearly:      { name: 'Juris Pro - Plano Anual',  price: 1197.00, durationDays: 365, description: 'Assinatura anual da plataforma Juris Pro' },
+  starter_monthly:    { name: 'ChatJuris Starter - Mensal',       price:  79.00, durationDays: 30,  description: 'Assinatura mensal Starter — ChatJuris' },
+  pro_monthly:        { name: 'ChatJuris Profissional - Mensal',   price: 149.00, durationDays: 30,  description: 'Assinatura mensal Profissional — ChatJuris' },
+  escritorio_monthly: { name: 'ChatJuris Escritório - Mensal',     price: 299.00, durationDays: 30,  description: 'Assinatura mensal Escritório — ChatJuris' },
+  // Aliases legados (compatibilidade com assinaturas antigas)
+  basic_monthly:      { name: 'ChatJuris Starter - Mensal',        price:  79.00, durationDays: 30,  description: 'Assinatura mensal Starter — ChatJuris' },
+  adv_monthly:        { name: 'ChatJuris Profissional - Mensal',   price: 149.00, durationDays: 30,  description: 'Assinatura mensal Profissional — ChatJuris' },
+  empresa_monthly:    { name: 'ChatJuris Escritório - Mensal',     price: 299.00, durationDays: 30,  description: 'Assinatura mensal Escritório — ChatJuris' },
 };
 
 Deno.serve(async (req) => {

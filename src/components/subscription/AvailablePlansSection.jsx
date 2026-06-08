@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Zap, 
   Crown, 
+  Building2,
   Check, 
   ArrowRight,
   Clock,
@@ -13,31 +14,41 @@ import {
 
 const availablePlans = [
   {
-    id: "monthly",
-    name: "Mensal",
-    price: 119.90,
+    id: "starter",
+    name: "Starter",
+    price: 79.00,
     period: "/mês",
     icon: Zap,
-    description: "Renovação automática mensal",
-    planType: "monthly"
+    description: "Para quem está começando",
+    planType: "starter_monthly",
+    popular: false,
   },
   {
-    id: "annual",
-    name: "Anual",
-    price: 99.90,
-    originalPrice: 119.90,
+    id: "profissional",
+    name: "Profissional",
+    price: 149.00,
     period: "/mês",
     icon: Crown,
-    description: "Economize R$ 240/ano",
-    discount: "17% OFF",
-    planType: "annual",
-    popular: true
+    description: "Melhor custo-benefício",
+    planType: "pro_monthly",
+    popular: true,
+  },
+  {
+    id: "escritorio",
+    name: "Escritório",
+    price: 299.00,
+    period: "/mês",
+    icon: Building2,
+    description: "Para equipes e sócios",
+    planType: "escritorio_monthly",
+    popular: false,
   },
 ];
 
 const planIdMap = {
-  monthly: 'pro_monthly',
-  annual: 'pro_yearly'
+  starter_monthly: 'starter_monthly',
+  pro_monthly: 'pro_monthly',
+  escritorio_monthly: 'escritorio_monthly',
 };
 
 export default function AvailablePlansSection({ 
@@ -50,7 +61,7 @@ export default function AvailablePlansSection({
   const isActive = subscription?.status === 'active';
 
   const handleSelectPlan = (planType) => {
-    const planId = planIdMap[planType];
+    const planId = planIdMap[planType] || planType;
     if (planId) {
       window.location.href = `/Checkout?plan=${planId}`;
     }
@@ -83,7 +94,7 @@ export default function AvailablePlansSection({
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           {availablePlans.map((plan) => {
             const Icon = plan.icon;
             const isCurrentPlan = isActive && currentPlanType === plan.planType;

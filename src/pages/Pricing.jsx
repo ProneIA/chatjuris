@@ -9,122 +9,71 @@ import { SITE_CSS, SiteNav, SiteFooter } from "@/components/landing/PublicLayout
 import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 // ─── Planos ─────────────────────────────────────────────────────────────────
-const MONTHLY_PLANS = [
+const PLANS = [
   {
-    id: "basic_monthly",
-    name: "Básico",
-    price: 89.90,
-    amount: 89.90,
+    id: "starter_monthly",
+    name: "Starter",
+    price: 79.00,
+    amount: 79.00,
     period: "/mês",
     billingType: "monthly",
     billingLabel: "Cobrança mensal",
     installments: 1,
-    description: "Ideal para advogados iniciantes",
+    description: "Para quem está começando",
     badge: null,
     popular: false,
     dark: false,
     features: [
-      { text: "30 documentos por mês", highlight: false },
-      { text: "300 créditos de IA", highlight: false },
-      { text: "Gestão de processos", highlight: false },
+      { text: "1 usuário", highlight: false },
+      { text: "50 documentos por mês", highlight: false },
+      { text: "Gestão de clientes", highlight: false },
       { text: "Jurisprudência básica", highlight: false },
       { text: "Suporte por e-mail", highlight: false },
     ],
   },
   {
-    id: "adv_monthly",
-    name: "Advogado",
-    price: 119.90,
-    amount: 119.90,
+    id: "pro_monthly",
+    name: "Profissional",
+    price: 149.00,
+    amount: 149.00,
     period: "/mês",
     billingType: "monthly",
     billingLabel: "Cobrança mensal",
     installments: 1,
-    description: "Melhor custo-benefício",
-    badge: "Mais popular",
+    description: "Para advogados autônomos ativos",
+    badge: "Mais escolhido",
     popular: true,
     dark: true,
     features: [
-      { text: "60 documentos por mês", highlight: true },
-      { text: "600 créditos de IA", highlight: true },
-      { text: "Todos os modos de IA", highlight: false },
+      { text: "Até 3 usuários", highlight: true },
+      { text: "Documentos ilimitados", highlight: true },
+      { text: "Gestão de casos e tarefas", highlight: false },
+      { text: "Portal do cliente", highlight: false },
+      { text: "Controle financeiro", highlight: false },
       { text: "Jurisprudência completa", highlight: false },
-      { text: "Calendário inteligente", highlight: false },
       { text: "Suporte prioritário", highlight: false },
     ],
   },
   {
-    id: "empresa_monthly",
-    name: "Empresas",
-    price: 219.90,
-    amount: 219.90,
+    id: "escritorio_monthly",
+    name: "Escritório",
+    price: 299.00,
+    amount: 299.00,
     period: "/mês",
     billingType: "monthly",
     billingLabel: "Cobrança mensal",
     installments: 1,
-    description: "Para escritórios em crescimento",
+    description: "Para equipes e sócios",
     badge: null,
     popular: false,
     dark: false,
     features: [
-      { text: "Documentos ilimitados", highlight: true },
-      { text: "Créditos de IA ilimitados*", highlight: true },
-      { text: "Prioridade na geração", highlight: true },
-      { text: "Suporte prioritário", highlight: false },
-      { text: "Equipes e workspace", highlight: false },
-      { text: "*política de uso justo", highlight: false },
-    ],
-  },
-];
-
-const ANNUAL_PLANS = [
-  {
-    id: "adv_yearly",
-    name: "Advogado Anual",
-    price: 1197.00,
-    monthlyEq: 99.75,
-    amount: 1197.00,
-    period: "/ano",
-    billingType: "yearly",
-    billingLabel: "Cobrança anual · até 12x sem juros",
-    installments: 12,
-    description: "Economize R$ 241,80 por ano",
-    badge: "Mais escolhido 🔥",
-    savings: "R$ 241,80/ano",
-    popular: true,
-    dark: true,
-    features: [
-      { text: "60 documentos por mês", highlight: true },
-      { text: "600 créditos de IA", highlight: true },
-      { text: "Todos os modos de IA", highlight: false },
-      { text: "Jurisprudência completa", highlight: false },
-      { text: "Prioridade leve na geração", highlight: false },
-      { text: "Calendário inteligente", highlight: false },
-      { text: "Suporte prioritário", highlight: false },
-    ],
-  },
-  {
-    id: "empresa_yearly",
-    name: "Empresas Anual",
-    price: 2197.00,
-    monthlyEq: 183.08,
-    amount: 2197.00,
-    period: "/ano",
-    billingType: "yearly",
-    billingLabel: "Cobrança anual · até 12x sem juros",
-    installments: 12,
-    description: "Para escritórios que escalam",
-    badge: "Para escritórios 🚀",
-    savings: "R$ 441,80/ano",
-    popular: false,
-    dark: false,
-    features: [
-      { text: "Documentos ilimitados", highlight: true },
-      { text: "Créditos de IA ilimitados*", highlight: true },
-      { text: "Prioridade máxima", highlight: true },
-      { text: "Suporte prioritário + rápido", highlight: false },
-      { text: "Equipes e workspace", highlight: false },
-      { text: "*política de uso justo", highlight: false },
+      { text: "Usuários ilimitados", highlight: true },
+      { text: "Tudo do Profissional", highlight: false },
+      { text: "Relatórios avançados", highlight: true },
+      { text: "Conformidade LGPD", highlight: false },
+      { text: "Gerente de conta dedicado", highlight: false },
+      { text: "Onboarding assistido", highlight: false },
     ],
   },
 ];
@@ -312,7 +261,6 @@ const BLOCK_MESSAGES = {
 export default function Pricing() {
   const [user, setUser] = useState(null);
   const [trialDaysLeft, setTrialDaysLeft] = useState(0);
-  const [billing, setBilling] = useState("monthly");
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [blockReason, setBlockReason] = useState(null);
   const obsRef = useRef(null);
@@ -344,7 +292,7 @@ export default function Pricing() {
     );
     document.querySelectorAll(".fu,.fi").forEach((el) => obsRef.current.observe(el));
     return () => obsRef.current?.disconnect();
-  }, [billing]);
+  }, []);
 
   const { data: subscription } = useQuery({
     queryKey: ["subscription", user?.id],
@@ -380,13 +328,12 @@ export default function Pricing() {
     const p = localStorage.getItem("selected_plan");
     if (p) {
       localStorage.removeItem("selected_plan");
-      const allPlans = [...MONTHLY_PLANS, ...ANNUAL_PLANS];
-      const found = allPlans.find(pl => pl.id === p);
+      const found = PLANS.find(pl => pl.id === p);
       if (found) setSelectedPlan(found);
     }
   }, [user?.id]);
 
-  const plans = billing === "monthly" ? MONTHLY_PLANS : ANNUAL_PLANS;
+  const plans = PLANS;
 
   return (
     <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased" }}>
@@ -446,19 +393,14 @@ export default function Pricing() {
       <section id="planos" style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
-          {/* Título + toggle */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-end", marginBottom: "3rem" }}>
-            <div style={{ flex: "1 1 400px" }}>
-              <h2 className="D fu" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#0a0a0a", margin: "0 0 .5rem" }}>
-                Escolha Seu Plano.
-              </h2>
-              <p className="fu d1" style={{ color: "rgba(0,0,0,.5)", lineHeight: 1.6, fontSize: ".9rem", margin: 0 }}>
-                Pagamento seguro via Mercado Pago · Somente cartão de crédito.
-              </p>
-            </div>
-            <div className="fu d2">
-              <BillingToggle billing={billing} onChange={setBilling} />
-            </div>
+          {/* Título */}
+          <div style={{ marginBottom: "3rem" }}>
+            <h2 className="D fu" style={{ fontSize: "clamp(2.5rem,5vw,4rem)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "-0.03em", color: "#0a0a0a", margin: "0 0 .5rem" }}>
+              Escolha Seu Plano.
+            </h2>
+            <p className="fu d1" style={{ color: "rgba(0,0,0,.5)", lineHeight: 1.6, fontSize: ".9rem", margin: 0 }}>
+              Pagamento seguro via Mercado Pago · Somente cartão de crédito.
+            </p>
           </div>
 
           {/* Grid de planos */}
@@ -478,12 +420,7 @@ export default function Pricing() {
             ))}
           </div>
 
-          {/* Nota planos anuais */}
-          {billing === "yearly" && (
-            <p style={{ textAlign: "center", marginTop: "1.5rem", fontSize: ".78rem", color: "rgba(0,0,0,.4)", fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", letterSpacing: ".1em" }}>
-              🔒 Planos anuais: parcelamento em até 12x sem juros — os juros são absorvidos pelo Juris.
-            </p>
-          )}
+
         </div>
       </section>
 
@@ -533,10 +470,10 @@ export default function Pricing() {
             Cancele quando quiser. Sem taxas ocultas.
           </p>
           <button
-            onClick={() => { setBilling("yearly"); document.querySelector("#planos")?.scrollIntoView({ behavior: "smooth" }); }}
+            onClick={() => document.querySelector("#planos")?.scrollIntoView({ behavior: "smooth" })}
             className="btn-gold fu d2"
           >
-            Ver Planos Anuais — Economize até R$ 441 →
+            Ver Planos — Assine Agora →
           </button>
         </div>
       </section>

@@ -16,7 +16,7 @@ export default function PriceSimulator({ onSubscribe }) {
   const currentCost = documentsPerMonth * hoursPerDocument * hourlyRate;
   const timeSaved = documentsPerMonth * hoursPerDocument * timeSavedPercent;
   const moneySaved = currentCost * timeSavedPercent;
-  const proPlanCost = 49.99;
+  const proPlanCost = 149.00;
   const netSavings = moneySaved - proPlanCost;
   const roi = ((netSavings / proPlanCost) * 100).toFixed(0);
 
@@ -169,7 +169,7 @@ export default function PriceSimulator({ onSubscribe }) {
               </div>
               <div>
                 <p className="font-bold text-white">Profissional</p>
-                <p className="text-blue-300 text-sm">R$ 49,99/mês</p>
+                <p className="text-blue-300 text-sm">R$ 149,00/mês</p>
               </div>
             </div>
             <ul className="space-y-2">
