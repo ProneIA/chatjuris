@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 
-const availablePlans = [
+const AVAILABLE_MONTHLY = [
   {
     id: "starter",
     name: "Starter",
@@ -45,6 +45,42 @@ const availablePlans = [
   },
 ];
 
+const AVAILABLE_YEARLY = [
+  {
+    id: "starter_anual",
+    name: "Starter Anual",
+    price: 708.00,
+    monthlyEq: 59.00,
+    period: "/ano",
+    icon: Zap,
+    description: "R$ 59/mês · economize R$ 240",
+    planType: "starter_yearly",
+    popular: false,
+  },
+  {
+    id: "profissional_anual",
+    name: "Profissional Anual",
+    price: 1428.00,
+    monthlyEq: 119.00,
+    period: "/ano",
+    icon: Crown,
+    description: "R$ 119/mês · economize R$ 360",
+    planType: "pro_yearly",
+    popular: true,
+  },
+  {
+    id: "escritorio_anual",
+    name: "Escritório Anual",
+    price: 3108.00,
+    monthlyEq: 259.00,
+    period: "/ano",
+    icon: Building2,
+    description: "R$ 259/mês · economize R$ 480",
+    planType: "escritorio_yearly",
+    popular: false,
+  },
+];
+
 const planIdMap = {
   starter_monthly: 'starter_monthly',
   pro_monthly: 'pro_monthly',
@@ -55,6 +91,9 @@ export default function AvailablePlansSection({
   subscription, 
   trialDaysLeft = 0
 }) {
+  const [billing, setBilling] = useState("monthly");
+  const availablePlans = billing === "yearly" ? AVAILABLE_YEARLY : AVAILABLE_MONTHLY;
+
   const isInTrial = subscription?.status === 'trial';
   const currentPlanType = subscription?.plan_type;
   const isExpired = subscription?.status === 'expired';
@@ -94,6 +133,30 @@ export default function AvailablePlansSection({
         )}
       </CardHeader>
       <CardContent>
+        {/* Toggle Mensal / Anual */}
+        <div style={{ display: "flex", marginBottom: 16, border: "1px solid var(--border)", width: "fit-content" }}>
+          {["monthly", "yearly"].map((b) => (
+            <button
+              key={b}
+              onClick={() => setBilling(b)}
+              style={{
+                padding: "6px 18px",
+                background: billing === b ? "var(--accent)" : "transparent",
+                color: billing === b ? "#1A1A1A" : "var(--text-secondary)",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: 12,
+                textTransform: "uppercase",
+                letterSpacing: ".08em",
+                transition: "background .2s",
+              }}
+            >
+              {b === "monthly" ? "Mensal" : "Anual (-20%)"}
+            </button>
+          ))}
+        </div>
+
         <div className="grid md:grid-cols-3 gap-4">
           {availablePlans.map((plan) => {
             const Icon = plan.icon;

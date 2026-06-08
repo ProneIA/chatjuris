@@ -10,7 +10,7 @@ import { X, Loader2, AlertCircle, CheckCircle2, Lock, CreditCard, Shield } from 
      100% pelo Brick nativo do MP para evitar dessincronização.
    ═══════════════════════════════════════════════════════════ */
 
-const ANNUAL_PLAN_IDS = []; // Não há mais planos anuais
+const ANNUAL_PLAN_IDS = ["starter_yearly", "pro_yearly", "escritorio_yearly"];
 
 async function getMPDeviceId() {
   return new Promise((resolve) => {

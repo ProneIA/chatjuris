@@ -6,8 +6,12 @@ import { Loader2, AlertCircle, CheckCircle2, CreditCard, Smartphone, QrCode, Cop
 
 // ============ CONSTANTS ============
 const PLAN_AMOUNTS = {
-  pro_monthly: 119.90,
-  pro_yearly: 1198.80
+  starter_monthly: 79.00,
+  pro_monthly: 149.00,
+  escritorio_monthly: 299.00,
+  starter_yearly: 708.00,
+  pro_yearly: 1428.00,
+  escritorio_yearly: 3108.00,
 };
 
 // ============ COUPON SECTION ============
@@ -246,7 +250,7 @@ function CardPaymentSection({ planId, payerData, cardType, onSuccess, isDark, fi
   const [installments, setInstallments] = useState(1);
   const isCredit = cardType === 'credit_card';
   const planAmount = finalAmount || PLAN_AMOUNTS[planId];
-  const maxInstallments = planId === 'pro_yearly' ? 12 : 1;
+  const maxInstallments = planId?.endsWith('_yearly') ? 12 : 1;
 
   // Carregar SDK MercadoPago
   useEffect(() => {

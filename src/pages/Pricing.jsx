@@ -9,7 +9,7 @@ import { SITE_CSS, SiteNav, SiteFooter } from "@/components/landing/PublicLayout
 import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 // ─── Planos ─────────────────────────────────────────────────────────────────
-const PLANS = [
+const PLANS_MONTHLY = [
   {
     id: "starter_monthly",
     name: "Starter",
@@ -63,6 +63,81 @@ const PLANS = [
     billingType: "monthly",
     billingLabel: "Cobrança mensal",
     installments: 1,
+    description: "Para equipes e sócios",
+    badge: null,
+    popular: false,
+    dark: false,
+    features: [
+      { text: "Usuários ilimitados", highlight: true },
+      { text: "Tudo do Profissional", highlight: false },
+      { text: "Relatórios avançados", highlight: true },
+      { text: "Conformidade LGPD", highlight: false },
+      { text: "Gerente de conta dedicado", highlight: false },
+      { text: "Onboarding assistido", highlight: false },
+    ],
+  },
+];
+
+const PLANS_YEARLY = [
+  {
+    id: "starter_yearly",
+    name: "Starter",
+    price: 708.00,
+    amount: 708.00,
+    monthlyEq: 59.00,
+    savings: "R$ 240/ano",
+    period: "/ano",
+    billingType: "yearly",
+    billingLabel: "Cobrança anual única",
+    installments: 12,
+    description: "Para quem está começando",
+    badge: null,
+    popular: false,
+    dark: false,
+    features: [
+      { text: "1 usuário", highlight: false },
+      { text: "50 documentos por mês", highlight: false },
+      { text: "Gestão de clientes", highlight: false },
+      { text: "Jurisprudência básica", highlight: false },
+      { text: "Suporte por e-mail", highlight: false },
+    ],
+  },
+  {
+    id: "pro_yearly",
+    name: "Profissional",
+    price: 1428.00,
+    amount: 1428.00,
+    monthlyEq: 119.00,
+    savings: "R$ 360/ano",
+    period: "/ano",
+    billingType: "yearly",
+    billingLabel: "Cobrança anual única",
+    installments: 12,
+    description: "Para advogados autônomos ativos",
+    badge: "Mais escolhido",
+    popular: true,
+    dark: true,
+    features: [
+      { text: "Até 3 usuários", highlight: true },
+      { text: "Documentos ilimitados", highlight: true },
+      { text: "Gestão de casos e tarefas", highlight: false },
+      { text: "Portal do cliente", highlight: false },
+      { text: "Controle financeiro", highlight: false },
+      { text: "Jurisprudência completa", highlight: false },
+      { text: "Suporte prioritário", highlight: false },
+    ],
+  },
+  {
+    id: "escritorio_yearly",
+    name: "Escritório",
+    price: 3108.00,
+    amount: 3108.00,
+    monthlyEq: 259.00,
+    savings: "R$ 480/ano",
+    period: "/ano",
+    billingType: "yearly",
+    billingLabel: "Cobrança anual única",
+    installments: 12,
     description: "Para equipes e sócios",
     badge: null,
     popular: false,
@@ -263,6 +338,7 @@ export default function Pricing() {
   const [trialDaysLeft, setTrialDaysLeft] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [blockReason, setBlockReason] = useState(null);
+  const [billing, setBilling] = useState("monthly");
   const obsRef = useRef(null);
 
   useEffect(() => {
@@ -328,12 +404,13 @@ export default function Pricing() {
     const p = localStorage.getItem("selected_plan");
     if (p) {
       localStorage.removeItem("selected_plan");
-      const found = PLANS.find(pl => pl.id === p);
+      const allPlans = [...PLANS_MONTHLY, ...PLANS_YEARLY];
+      const found = allPlans.find(pl => pl.id === p);
       if (found) setSelectedPlan(found);
     }
   }, [user?.id]);
 
-  const plans = PLANS;
+  const plans = billing === "yearly" ? PLANS_YEARLY : PLANS_MONTHLY;
 
   return (
     <div style={{ overflowX: "hidden", WebkitFontSmoothing: "antialiased" }}>
@@ -392,6 +469,11 @@ export default function Pricing() {
       {/* ── PLANOS ───────────────────────────────────────── */}
       <section id="planos" style={{ padding: "7rem 2.5rem", background: "#f4f4f6" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+
+          {/* Toggle Mensal / Anual */}
+          <div style={{ marginBottom: "2.5rem" }}>
+            <BillingToggle billing={billing} onChange={setBilling} />
+          </div>
 
           {/* Título */}
           <div style={{ marginBottom: "3rem" }}>

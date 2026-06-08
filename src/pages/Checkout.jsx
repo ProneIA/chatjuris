@@ -6,22 +6,66 @@ import { ArrowLeft, Shield, CheckCircle2 } from "lucide-react";
 import TransparentCheckout from "@/components/checkout/TransparentCheckout";
 
 const PLANS = {
+  starter_monthly: {
+    name: "Starter — Mensal",
+    price: 79.00,
+    amount: 79.00,
+    period: "/mês",
+    billingType: "monthly",
+    description: "Acesso à plataforma, renovação mensal",
+    features: ["1 usuário", "50 documentos/mês", "Gestão de clientes", "Suporte por e-mail"],
+  },
   pro_monthly: {
-    name: 'Juris Pro — Mensal',
-    price: 119.90,
-    period: '/mês',
-    description: 'Acesso completo à plataforma, renovação mensal',
-    features: ['Assistente IA ilimitado', 'Pesquisa jurídica', 'Gestão de processos', 'Suporte prioritário']
+    name: "Profissional — Mensal",
+    price: 149.00,
+    amount: 149.00,
+    period: "/mês",
+    billingType: "monthly",
+    description: "Acesso completo à plataforma, renovação mensal",
+    features: ["Até 3 usuários", "Documentos ilimitados", "Portal do cliente", "Suporte prioritário"],
+  },
+  escritorio_monthly: {
+    name: "Escritório — Mensal",
+    price: 299.00,
+    amount: 299.00,
+    period: "/mês",
+    billingType: "monthly",
+    description: "Para equipes e sócios, renovação mensal",
+    features: ["Usuários ilimitados", "Relatórios avançados", "Conformidade LGPD", "Onboarding assistido"],
+  },
+  starter_yearly: {
+    name: "Starter — Anual",
+    price: 708.00,
+    amount: 708.00,
+    pricePerMonth: 59.00,
+    period: "/ano",
+    billingType: "yearly",
+    description: "Cobrança única anual — economize R$ 240",
+    savingsText: "Economize R$ 240/ano vs. mensal",
+    features: ["1 usuário", "50 documentos/mês", "Gestão de clientes", "Parcelamento em até 12x sem juros"],
   },
   pro_yearly: {
-    name: 'Juris Pro — Anual',
-    price: 1198.80,
-    pricePerMonth: 99.90,
-    period: '/ano',
-    description: 'Melhor valor — economize 2 meses por ano',
-    savingsText: 'Economize R$ 240/ano',
-    features: ['Tudo do mensal', 'Parcelamento em até 12x', 'Desconto exclusivo', 'Acesso antecipado a novidades']
-  }
+    name: "Profissional — Anual",
+    price: 1428.00,
+    amount: 1428.00,
+    pricePerMonth: 119.00,
+    period: "/ano",
+    billingType: "yearly",
+    description: "Cobrança única anual — economize R$ 360",
+    savingsText: "Economize R$ 360/ano vs. mensal",
+    features: ["Até 3 usuários", "Documentos ilimitados", "Portal do cliente", "Parcelamento em até 12x sem juros"],
+  },
+  escritorio_yearly: {
+    name: "Escritório — Anual",
+    price: 3108.00,
+    amount: 3108.00,
+    pricePerMonth: 259.00,
+    period: "/ano",
+    billingType: "yearly",
+    description: "Cobrança única anual — economize R$ 480",
+    savingsText: "Economize R$ 480/ano vs. mensal",
+    features: ["Usuários ilimitados", "Relatórios avançados", "Conformidade LGPD", "Parcelamento em até 12x sem juros"],
+  },
 };
 
 export default function Checkout({ theme = 'light' }) {

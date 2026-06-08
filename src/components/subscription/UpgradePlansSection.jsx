@@ -4,7 +4,7 @@ import { Check, Zap, Crown, Building2, Clock, AlertTriangle } from "lucide-react
 import { motion } from "framer-motion";
 import CheckoutModal from "@/components/subscription/CheckoutModal";
 
-const PLANS = [
+const PLANS_MONTHLY = [
   {
     id: "starter_monthly",
     planType: "monthly",
@@ -53,6 +53,58 @@ const PLANS = [
   },
 ];
 
+const PLANS_YEARLY = [
+  {
+    id: "starter_yearly",
+    planType: "yearly",
+    name: "Starter Anual",
+    icon: Zap,
+    price: 708.00,
+    amount: 708.00,
+    monthlyEq: 59.00,
+    period: "/ano",
+    billingLabel: "Cobrança anual única · até 12x",
+    installments: 12,
+    description: "R$ 59/mês — economize R$ 240",
+    features: ["1 usuário", "50 documentos/mês", "Gestão de clientes", "Suporte por e-mail"],
+    color: "blue",
+    popular: false,
+  },
+  {
+    id: "pro_yearly",
+    planType: "yearly",
+    name: "Profissional Anual",
+    icon: Crown,
+    price: 1428.00,
+    amount: 1428.00,
+    monthlyEq: 119.00,
+    period: "/ano",
+    billingLabel: "Cobrança anual única · até 12x",
+    installments: 12,
+    description: "R$ 119/mês — economize R$ 360",
+    features: ["Até 3 usuários", "Documentos ilimitados", "Portal do cliente", "Suporte prioritário"],
+    color: "purple",
+    popular: true,
+    badge: "Mais escolhido",
+  },
+  {
+    id: "escritorio_yearly",
+    planType: "yearly",
+    name: "Escritório Anual",
+    icon: Building2,
+    price: 3108.00,
+    amount: 3108.00,
+    monthlyEq: 259.00,
+    period: "/ano",
+    billingLabel: "Cobrança anual única · até 12x",
+    installments: 12,
+    description: "R$ 259/mês — economize R$ 480",
+    features: ["Usuários ilimitados", "Relatórios avançados", "Conformidade LGPD", "Onboarding assistido"],
+    color: "amber",
+    popular: false,
+  },
+];
+
 const colorClasses = {
   blue:   { border: "border-blue-300",   bg: "bg-blue-50",   icon: "bg-blue-100 text-blue-600",   btn: "bg-blue-700 hover:bg-blue-800" },
   purple: { border: "border-purple-300", bg: "bg-purple-50", icon: "bg-purple-100 text-purple-600", btn: "bg-purple-700 hover:bg-purple-800" },
@@ -62,6 +114,9 @@ const colorClasses = {
 export default function UpgradePlansSection({ subscription, theme = "light" }) {
   const isDark = theme === "dark";
   const [checkoutPlan, setCheckoutPlan] = useState(null);
+  const [billing, setBilling] = useState("monthly");
+
+  const plans = billing === "yearly" ? PLANS_YEARLY : PLANS_MONTHLY;
 
   const isInTrial  = subscription?.status === "trial";
   const isExpired  = subscription?.status === "expired";
@@ -113,8 +168,33 @@ export default function UpgradePlansSection({ subscription, theme = "light" }) {
         </p>
       </div>
 
+      {/* Toggle Mensal / Anual */}
+      <div style={{ display: "flex", gap: 0, marginBottom: "1rem", border: "1px solid #e0e0ea", width: "fit-content" }}>
+        {["monthly", "yearly"].map((b) => (
+          <button
+            key={b}
+            onClick={() => setBilling(b)}
+            style={{
+              padding: ".5rem 1.2rem",
+              background: billing === b ? "#C8A84B" : "transparent",
+              color: billing === b ? "#000" : "#6b6b80",
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "'Oswald', sans-serif",
+              fontWeight: 600,
+              fontSize: ".72rem",
+              textTransform: "uppercase",
+              letterSpacing: ".1em",
+              transition: "background .2s, color .2s",
+            }}
+          >
+            {b === "monthly" ? "Mensal" : <span>Anual <span style={{ marginLeft: 4, background: "#4ade80", color: "#000", fontSize: ".55rem", padding: ".1rem .35rem", fontWeight: 700 }}>-20%</span></span>}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const Icon = plan.icon;
           const colors = colorClasses[plan.color];
           const isCurrent = isCurrentPlan(plan);
@@ -161,6 +241,11 @@ export default function UpgradePlansSection({ subscription, theme = "light" }) {
                   </span>
                   <span className={`text-xs ${isDark ? "text-neutral-400" : "text-gray-500"}`}>{plan.period}</span>
                 </div>
+                {plan.monthlyEq && (
+                  <p style={{ fontSize: ".7rem", color: isDark ? "rgba(255,255,255,.4)" : "#999", marginTop: 2 }}>
+                    ≈ R$ {plan.monthlyEq.toFixed(2).replace(".", ",")}/mês
+                  </p>
+                )}
               </div>
 
               <ul className="mb-4 space-y-1">
