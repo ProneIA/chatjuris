@@ -79,15 +79,15 @@ const ADMIN_ITEMS = [
 
 // ─── Badge ─────────────────────────────────────────────────────────────────
 function NavBadge({ label }) {
-  const isAI   = label === "IA";
-  const isNew  = label === "Novo";
+  const isAI  = label === "IA";
+  const isNew = label === "Novo";
   return (
     <span style={{
-      fontSize: 10, fontWeight: 600, padding: "2px 6px",
-      borderRadius: 3,
+      fontSize: 10, fontWeight: 600, padding: "2px 7px",
+      borderRadius: 9999,
       letterSpacing: "0.03em",
-      color: isAI ? "#B8952A" : isNew ? "#B45309" : "rgba(203,213,225,0.7)",
-      background: isAI ? "rgba(184,149,42,0.15)" : isNew ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.06)",
+      color: isAI ? "#63B3ED" : isNew ? "#68D391" : "rgba(160,174,192,0.8)",
+      background: isAI ? "rgba(99,179,237,0.12)" : isNew ? "rgba(104,211,145,0.12)" : "rgba(255,255,255,0.06)",
       fontFamily: "'Inter', sans-serif",
       flexShrink: 0,
     }}>
@@ -104,29 +104,23 @@ function NavItem({ item, location, onNavigate }) {
       to={item.url}
       onClick={onNavigate}
       style={{
-        display: "flex", alignItems: "center", gap: 9,
-        padding: "7px 12px",
-        borderRadius: 8,
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "8px 16px 8px 13px",
         fontSize: 13.5, fontWeight: isActive ? 500 : 400,
-        color: isActive ? "#FFFFFF" : "#94A3B8",
-        background: isActive ? "#1E293B" : "transparent",
+        color: isActive ? "#FFFFFF" : "#A0AEC0",
+        background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
         textDecoration: "none",
-        transition: "background 0.12s ease, color 0.12s ease",
+        transition: "all 0.15s ease",
         margin: "1px 0",
         position: "relative",
+        borderLeft: isActive ? "3px solid #63B3ED" : "3px solid transparent",
+        borderRadius: "0 6px 6px 0",
       }}
-      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "#1E293B"; e.currentTarget.style.color = "#E2E8F0"; } }}
-      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94A3B8"; } }}
+      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#E2E8F0"; } }}
+      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#A0AEC0"; } }}
     >
-      {isActive && (
-        <span style={{
-          position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
-          width: 2, height: 18, background: "#B8952A",
-          borderRadius: "0 2px 2px 0",
-        }} />
-      )}
-      <item.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: isActive ? "#B8952A" : "inherit" }} />
-      <span style={{ flex: 1, letterSpacing: "-0.01em" }}>{item.title}</span>
+      <item.icon style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: isActive ? "#63B3ED" : "inherit" }} />
+      <span style={{ flex: 1 }}>{item.title}</span>
       {item.badge && <NavBadge label={item.badge} />}
     </Link>
   );
@@ -139,9 +133,9 @@ function NavSection({ section, location, onNavigate, isAdmin }) {
   return (
     <div style={{ marginBottom: 4 }}>
       <div style={{
-        fontSize: 10, fontWeight: 600, letterSpacing: "0.08em",
-        textTransform: "uppercase", color: "#475569",
-        padding: "16px 12px 6px",
+        fontSize: 10, fontWeight: 600, letterSpacing: "0.12em",
+        textTransform: "uppercase", color: "rgba(255,255,255,0.25)",
+        padding: "16px 16px 5px",
         fontFamily: "'Inter', sans-serif",
       }}>
         {section.label}
@@ -160,31 +154,34 @@ function AdminSection({ location, onNavigate }) {
   React.useEffect(() => { if (hasActive) setOpen(true); }, [location.pathname]);
 
   return (
-    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(239,68,68,0.15)" }}>
+    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{
+        fontSize: 10, fontWeight: 600, letterSpacing: "0.12em",
+        textTransform: "uppercase", color: "rgba(229,62,62,0.6)",
+        padding: "8px 16px 5px",
+        fontFamily: "'Inter', sans-serif",
+      }}>
+        Administração
+      </div>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
-          display: "flex", alignItems: "center", gap: 9,
-          width: "100%", padding: "7px 12px",
-          background: "rgba(239,68,68,0.06)", border: "none",
-          borderRadius: 8, cursor: "pointer",
-          fontSize: 13.5, fontWeight: 500, color: "#EF4444",
+          display: "flex", alignItems: "center", gap: 10,
+          width: "100%", padding: "8px 16px 8px 13px",
+          background: "rgba(229,62,62,0.06)", border: "none",
+          borderRadius: "0 6px 6px 0", cursor: "pointer",
+          fontSize: 13.5, fontWeight: 500, color: "rgba(252,129,129,0.9)",
           fontFamily: "'Inter', sans-serif",
-          transition: "background 0.12s ease",
+          transition: "background 0.15s ease",
+          borderLeft: "3px solid rgba(229,62,62,0.4)",
         }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}
-        onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,0.06)"}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(229,62,62,0.1)"}
+        onMouseLeave={e => e.currentTarget.style.background = "rgba(229,62,62,0.06)"}
       >
-        <Lock style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: "#EF4444" }} />
-        <span style={{ flex: 1, textAlign: "left", letterSpacing: "-0.01em" }}>Administração</span>
-        <span style={{
-          fontSize: 9, fontWeight: 600, padding: "2px 5px",
-          borderRadius: 4, color: "#EF4444",
-          background: "rgba(239,68,68,0.12)",
-          letterSpacing: "0.06em",
-        }}>ADMIN</span>
+        <Lock style={{ width: 15, height: 15, flexShrink: 0, strokeWidth: 1.75, color: "rgba(252,129,129,0.8)" }} />
+        <span style={{ flex: 1, textAlign: "left" }}>Painel Admin</span>
         <ChevronRight style={{
-          width: 13, height: 13, color: "rgba(239,68,68,0.5)",
+          width: 13, height: 13, color: "rgba(252,129,129,0.5)",
           transform: open ? "rotate(90deg)" : "rotate(0deg)",
           transition: "transform 0.15s ease", flexShrink: 0,
         }} />

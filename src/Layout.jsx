@@ -272,12 +272,12 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* ── TOPBAR ── */}
         <header style={{
           position: 'fixed', top: 0, left: 0, right: 0, height: 'var(--header-h)',
-          background: 'var(--card)',
+          background: 'var(--topbar-bg, #ffffff)',
           borderBottom: '1px solid var(--border)',
           zIndex: 50,
           display: 'flex', alignItems: 'center',
           padding: '0 28px 0 0',
-          boxShadow: '0 1px 2px rgba(0,0,0,.03)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         }}>
           {/* Mobile hamburger */}
           <button
@@ -342,9 +342,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                 >
                   <div style={{
                     width: 32, height: 32,
-                    background: '#B8952A',
-                    borderRadius: 4,
+                    background: 'linear-gradient(135deg, #2B6CB0 0%, #1A4F8A 100%)',
+                    borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    boxShadow: '0 0 0 2px rgba(43,108,176,0.2)',
                   }}>
                     <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
                       {user?.full_name?.[0]?.toUpperCase() || 'U'}
@@ -355,7 +356,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ width: 228, background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,.10)', padding: 4 }}>
+              <DropdownMenuContent align="end" style={{ width: 240, background: '#FFFFFF', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-xl)', padding: 4 }}>
                 <div style={{ padding: '10px 12px 10px', borderBottom: '1px solid var(--border)', marginBottom: 4 }}>
                   <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', marginBottom: 2, fontFamily: 'var(--font-body)', letterSpacing: '-0.01em' }}>{user?.full_name || 'Usuário'}</p>
                   <p style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>{user?.email}</p>
@@ -439,8 +440,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           style={{
             position: 'fixed', left: 0, top: 'var(--header-h)', bottom: 0,
             width: 'var(--sidebar-w)',
-            background: '#0F172A',
+            background: '#0A0F1E',
             borderRight: '1px solid rgba(255,255,255,0.06)',
+            boxShadow: 'var(--shadow-sidebar)',
             overflowY: 'auto', overflowX: 'hidden',
             zIndex: 46,
             display: 'flex', flexDirection: 'column',
@@ -456,10 +458,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <div style={{
                 fontSize: 10, fontWeight: 400,
                 color: 'rgba(255,255,255,0.25)',
-                fontFamily: "'Inter', system-ui, sans-serif",
-                letterSpacing: '0.06em',
+                fontFamily: 'var(--font-display)',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                marginTop: 4,
+                marginTop: 3,
               }}>
                 Software jurídico
               </div>
@@ -470,28 +472,29 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             <SidebarNav user={user} onNavigate={() => setIsMobileMenuOpen(false)} isMobile={false} />
           </div>
           {/* User footer */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '12px 16px' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
-                width: 32, height: 32, borderRadius: 9, background: '#1E293B',
+                width: 34, height: 34, borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2B6CB0 0%, #1A4F8A 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 0 0 2px rgba(99,179,237,0.2)',
               }}>
-                <span style={{ color: '#CBD5E1', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+                <span style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)' }}>
                   {user?.full_name?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#E2E8F0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)', letterSpacing: '-0.01em' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#E2E8F0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
                   {user?.full_name?.split(' ')[0] || 'Usuário'}
                 </p>
-                <p style={{ fontSize: 11, color: '#475569', margin: '1px 0 0', fontFamily: 'var(--font-body)' }}>
-                  {user?.role === 'admin' ? 'Administrador' : 'Advogado'}
+                <p style={{ fontSize: 11, color: '#4A5568', margin: '1px 0 0', fontFamily: 'var(--font-body)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user?.email || (user?.role === 'admin' ? 'Administrador' : 'Advogado')}
                 </p>
               </div>
-              <Link to={createPageUrl("Settings")} style={{ color: '#475569', transition: 'color var(--duration)', display: 'flex', padding: '4px' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#94A3B8'}
-                onMouseLeave={e => e.currentTarget.style.color = '#475569'}
+              <Link to={createPageUrl("Settings")} style={{ color: '#4A5568', transition: 'color 0.15s', display: 'flex', padding: '4px', borderRadius: 6 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#A0AEC0'}
+                onMouseLeave={e => e.currentTarget.style.color = '#4A5568'}
               >
                 <Settings size={14} />
               </Link>
@@ -511,7 +514,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           minHeight: '100vh',
           background: 'var(--bg)',
           paddingTop: 'var(--header-h)',
-        }} className="lg:pl-[260px] pl-0">
+        }} className="lg:pl-[260px] pl-0 animate-fade-in">
           {showBackButton && (
             <div style={{ background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
               <div style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

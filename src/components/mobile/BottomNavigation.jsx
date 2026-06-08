@@ -54,13 +54,14 @@ export default function BottomNavigation({ user, onLogout }) {
       <nav style={{
         position: "fixed", bottom: 0, left: 0, right: 0,
         height: "var(--bottom-nav-h)",
-        background: "rgba(255,255,255,0.96)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderTop: "1px solid var(--border)",
+        background: "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderTop: "1px solid #E2E8F0",
         display: "flex", alignItems: "stretch",
         zIndex: 50,
         paddingBottom: "env(safe-area-inset-bottom)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
       }}>
         {MAIN_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -76,11 +77,17 @@ export default function BottomNavigation({ user, onLogout }) {
                   alignItems: "center", justifyContent: "center", gap: 3,
                   background: "none", border: "none", cursor: "pointer",
                   padding: "6px 0",
-                  color: showMore ? "var(--gold-deep)" : "var(--text-muted)",
+                  color: showMore ? "#2B6CB0" : "#718096",
                   transition: "color 0.15s",
                 }}
               >
-                <Icon style={{ width: 22, height: 22 }} />
+                <div style={{
+                  padding: "5px", borderRadius: 8,
+                  background: showMore ? "#EBF4FF" : "transparent",
+                  transition: "background 0.15s",
+                }}>
+                  <Icon style={{ width: 20, height: 20 }} />
+                </div>
                 <span style={{ fontSize: 10, fontWeight: 500 }}>Mais</span>
               </button>
             );
@@ -94,33 +101,39 @@ export default function BottomNavigation({ user, onLogout }) {
                 flex: 1, display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center", gap: 3,
                 textDecoration: "none", padding: "6px 0",
-                color: active ? "var(--gold-deep)" : "var(--text-muted)",
+                color: active ? "#2B6CB0" : "#718096",
                 position: "relative", transition: "color 0.15s ease",
               }}
             >
               {active && (
                 <span style={{
                   position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
-                  width: 32, height: 3,
-                  background: "var(--gold)",
+                  width: 28, height: 2.5,
+                  background: "#2B6CB0",
                   borderRadius: "0 0 3px 3px",
                 }} />
               )}
               {item.highlight ? (
                 <div style={{
-                  width: 44, height: 44, borderRadius: 14,
+                  width: 42, height: 42, borderRadius: 12,
                   background: active
-                    ? "linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%)"
-                    : "linear-gradient(135deg, #C9A84C 0%, #9A7228 100%)",
+                    ? "linear-gradient(135deg, #2B6CB0 0%, #1A4F8A 100%)"
+                    : "linear-gradient(135deg, #3182CE 0%, #2B6CB0 100%)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  marginTop: -10, boxShadow: "0 4px 12px rgba(201,168,76,0.35)",
+                  marginTop: -8, boxShadow: "0 4px 14px rgba(43,108,176,0.4)",
                 }}>
-                  <Icon style={{ width: 22, height: 22, color: "#fff" }} />
+                  <Icon style={{ width: 20, height: 20, color: "#fff" }} />
                 </div>
               ) : (
-                <Icon style={{ width: 22, height: 22, color: active ? "var(--gold)" : "var(--text-muted)", transition: "color 0.15s ease" }} />
+                <div style={{
+                  padding: "5px", borderRadius: 8,
+                  background: active ? "#EBF4FF" : "transparent",
+                  transition: "background 0.15s",
+                }}>
+                  <Icon style={{ width: 20, height: 20, color: active ? "#2B6CB0" : "#718096", transition: "color 0.15s ease" }} />
+                </div>
               )}
-              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, letterSpacing: "0.01em", marginTop: item.highlight ? 2 : 0 }}>
+              <span style={{ fontSize: 10, fontWeight: active ? 600 : 500, letterSpacing: "0.01em", marginTop: item.highlight ? 2 : 0 }}>
                 {item.label}
               </span>
             </Link>
@@ -193,13 +206,13 @@ export default function BottomNavigation({ user, onLogout }) {
                         alignItems: "center", justifyContent: "center",
                         gap: 6, padding: "12px 8px",
                         borderRadius: 12, textDecoration: "none",
-                        background: active ? "var(--gold-light)" : "transparent",
-                        color: active ? "var(--gold-deep)" : "var(--text-secondary)",
+                        background: active ? "#EBF4FF" : "transparent",
+                        color: active ? "#1A4F8A" : "var(--text-secondary)",
                         transition: "background 0.15s",
                         minHeight: 70,
                       }}
                     >
-                      <Icon style={{ width: 22, height: 22, color: active ? "var(--gold)" : "var(--text-muted)" }} />
+                      <Icon style={{ width: 22, height: 22, color: active ? "#2B6CB0" : "var(--text-muted)" }} />
                       <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2 }}>
                         {item.label}
                       </span>
