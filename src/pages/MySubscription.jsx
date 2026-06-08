@@ -322,7 +322,7 @@ export default function MySubscription() {
                         {p.created_date ? new Date(p.created_date).toLocaleDateString("pt-BR") : "—"}
                       </td>
                       <td style={{ padding: "0.7rem 1.25rem", fontSize: "0.85rem", color: "#1A1A1A", fontWeight: 500 }}>
-                        {p.plan_type || "Assinatura"}
+                        {p.plan_id || p.plan_type || "Assinatura"}
                       </td>
                       <td style={{ padding: "0.7rem 1.25rem", fontSize: "0.88rem", fontWeight: 700, color: "#1A1A1A" }}>
                         {p.amount ? `R$ ${Number(p.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
