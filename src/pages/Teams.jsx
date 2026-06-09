@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Users, Plus, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  AppPage, PageHeader, AppCard, AppContent, AppButton, EmptyState
+} from "@/components/ds";
 
-export default function Teams({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+export default function Teams() {
   const [user, setUser] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
-  }, []);
+  useEffect(() => { base44.auth.me().then(setUser).catch(() => setUser(null)); }, []);
 
   const { data: myTeams = [], isLoading } = useQuery({
     queryKey: ['my-teams', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Team.filter({ owner_email: user.email }, '-created_date', 100);
+      return base44.entities.Team.filter({ owner_email: user.email }, '-created_date', 100);
     },
     enabled: !!user?.email
   });
@@ -35,11 +35,7 @@ export default function Teams({ theme = 'light' }) {
     mutationFn: async () => {
       if (!user?.email) throw new Error("Usuário não autenticado");
       if (!newTeamName.trim()) throw new Error("Nome obrigatório");
-
-      return await base44.entities.Team.create({
-        name: newTeamName.trim(),
-        owner_email: user.email
-      });
+      return base44.entities.Team.create({ name: newTeamName.trim(), owner_email: user.email });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['my-teams'] });
@@ -48,108 +44,92 @@ export default function Teams({ theme = 'light' }) {
       setNewTeamName("");
       navigate(createPageUrl("TeamDetail") + `?id=${data.id}`);
     },
-    onError: (e) => {
-      toast.error(e.message || "Erro ao criar equipe");
-    }
+    onError: (e) => toast.error(e.message || "Erro ao criar equipe"),
   });
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin" />
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Loader2 style={{ width: 24, height: 24, color: "var(--text-3)", animation: "spin .7s linear infinite" }} />
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen p-8 ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Minhas Equipes
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-              {myTeams.length} equipe(s)
-            </p>
-          </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600">
-            <Plus className="mr-2 w-4 h-4" /> Nova Equipe
-          </Button>
-        </div>
+    <AppPage>
+      <PageHeader
+        title="Minhas Equipes"
+        subtitle={`${myTeams.length} equipe${myTeams.length !== 1 ? "s" : ""}`}
+        icon={Users}
+        actions={
+          <AppButton variant="primary" icon={Plus} onClick={() => setIsCreateOpen(true)}>
+            Nova Equipe
+          </AppButton>
+        }
+      />
 
+      <AppContent>
         {isLoading ? (
-          <div className="text-center py-20">
-            <Loader2 className="animate-spin mx-auto w-8 h-8" />
+          <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+            <Loader2 style={{ width: 28, height: 28, color: "var(--text-3)", animation: "spin .7s linear infinite" }} />
           </div>
         ) : myTeams.length === 0 ? (
-          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
-            <CardContent className="py-20 text-center">
-              <Users className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-neutral-700' : 'text-gray-300'}`} />
-              <p className={`text-lg mb-2 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
-                Nenhuma equipe encontrada
-              </p>
-              <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                Clique em "Nova Equipe" para começar
-              </p>
-            </CardContent>
-          </Card>
+          <AppCard>
+            <EmptyState
+              icon={Users}
+              title="Nenhuma equipe encontrada"
+              description='Clique em "Nova Equipe" para começar'
+            />
+          </AppCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }} className="lg:grid-cols-3 md:grid-cols-2 grid-cols-1">
             {myTeams.map(team => (
-              <Card 
-                key={team.id} 
-                className={`cursor-pointer hover:shadow-lg transition-shadow ${
-                  isDark ? 'bg-neutral-900 border-neutral-800 hover:border-neutral-700' : 'bg-white hover:border-gray-300'
-                }`}
+              <div
+                key={team.id}
                 onClick={() => navigate(createPageUrl("TeamDetail") + `?id=${team.id}`)}
+                style={{
+                  background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)",
+                  padding: "20px 24px", cursor: "pointer", boxShadow: "var(--sh-xs)",
+                  transition: "box-shadow 0.15s, border-color 0.15s, transform 0.15s",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.boxShadow = "var(--sh-md)"; e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.boxShadow = "var(--sh-xs)"; e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
-                <CardHeader>
-                  <CardTitle className={`flex items-center justify-between ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    <span>{team.name}</span>
-                    <ArrowRight className="w-5 h-5 text-indigo-600" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                    Criada em {new Date(team.created_date).toLocaleDateString('pt-BR')}
+                <div>
+                  <p style={{ fontWeight: 600, color: "var(--text-1)", fontSize: 14, margin: "0 0 4px", letterSpacing: "-0.01em" }}>{team.name}</p>
+                  <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>
+                    Criada em {format(new Date(team.created_date), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+                <ArrowRight style={{ width: 18, height: 18, color: "var(--accent)", flexShrink: 0 }} />
+              </div>
             ))}
           </div>
         )}
+      </AppContent>
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
-            <DialogHeader>
-              <DialogTitle className={isDark ? 'text-white' : 'text-gray-900'}>
-                Criar Nova Equipe
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <Input 
-                value={newTeamName} 
-                onChange={e => setNewTeamName(e.target.value)}
-                placeholder="Nome da equipe"
-                className="w-full"
-                onKeyDown={e => e.key === 'Enter' && createMutation.mutate()}
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setIsCreateOpen(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={() => createMutation.mutate()} 
-                disabled={createMutation.isPending || !newTeamName.trim()}
-              >
-                {createMutation.isPending ? "Criando..." : "Criar"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Nova Equipe</DialogTitle>
+          </DialogHeader>
+          <div style={{ padding: "8px 0" }}>
+            <Input
+              value={newTeamName}
+              onChange={e => setNewTeamName(e.target.value)}
+              placeholder="Nome da equipe"
+              onKeyDown={e => e.key === 'Enter' && createMutation.mutate()}
+            />
+          </div>
+          <DialogFooter>
+            <AppButton variant="secondary" onClick={() => setIsCreateOpen(false)}>Cancelar</AppButton>
+            <AppButton variant="primary" onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !newTeamName.trim()}>
+              {createMutation.isPending ? "Criando..." : "Criar"}
+            </AppButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AppPage>
   );
 }

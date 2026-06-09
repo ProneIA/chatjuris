@@ -166,7 +166,7 @@ export default function DiaryMonitor() {
         <StatCard icon={Clock}        label="Hoje"      value={stats.today}   sub="novas hoje"     color="var(--success)" loading={isLoading} />
       </KPIGrid>
 
-      <AppContent style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <AppContent style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 20 }}>
 
         {/* Analyzer */}
         <DiarySearchAnalyzer

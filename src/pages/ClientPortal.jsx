@@ -1,101 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Users,
-  Plus,
-  Search,
-  Mail,
-  Eye,
-  Copy,
-  ExternalLink,
-  MessageSquare,
-  FileText,
-  Bell,
-  Settings,
-  MoreVertical,
-  Send,
-  Paperclip,
-  Check,
-  X,
-  RefreshCw
+  Users, Plus, Search, Mail, Eye, Copy, ExternalLink,
+  MessageSquare, FileText, Bell, Settings, MoreVertical,
+  Send, Check, X, RefreshCw
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import {
+  AppPage, PageHeader, KPIGrid, StatCard, AppCard, AppContent,
+  AppBadge, EmptyState, AppButton
+} from "@/components/ds";
 
-const S = {
-  bg: "#f5f5f4", card: "#ffffff", border: "#e7e5e4",
-  textPrimary: "#1c1917", textSecondary: "#78716c",
-  accent: "#1a1a1a", accentHover: "#333333", radius: 6,
-};
-
-export default function ClientPortal({ theme = 'light' }) {
-  const isDark = false;
+export default function ClientPortal() {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [updateForm, setUpdateForm] = useState({
-    title: "",
-    content: "",
-    update_type: "general",
-    case_id: ""
-  });
+  const [updateForm, setUpdateForm] = useState({ title: "", content: "", update_type: "general", case_id: "" });
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
 
   const { data: portals = [] } = useQuery({
     queryKey: ['client-portals'],
     queryFn: () => base44.entities.ClientPortalAccess.list('-created_date'),
   });
-
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list(),
   });
-
   const { data: cases = [] } = useQuery({
     queryKey: ['cases'],
     queryFn: () => base44.entities.Case.list(),
   });
-
   const { data: messages = [] } = useQuery({
     queryKey: ['client-messages', selectedPortal?.id],
     queryFn: () => base44.entities.ClientMessage.filter({ client_portal_id: selectedPortal.id }, 'created_date'),
     enabled: !!selectedPortal,
   });
-
   const { data: updates = [] } = useQuery({
     queryKey: ['case-updates', selectedPortal?.case_ids],
     queryFn: async () => {
       if (!selectedPortal?.case_ids?.length) return [];
-      const allUpdates = [];
+      const all = [];
       for (const caseId of selectedPortal.case_ids) {
-        const caseUpdates = await base44.entities.CaseUpdate.filter({ case_id: caseId, is_visible_to_client: true });
-        allUpdates.push(...caseUpdates);
+        const u = await base44.entities.CaseUpdate.filter({ case_id: caseId, is_visible_to_client: true });
+        all.push(...u);
       }
-      return allUpdates.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      return all.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: !!selectedPortal?.case_ids?.length,
   });
@@ -104,33 +68,17 @@ export default function ClientPortal({ theme = 'light' }) {
     mutationFn: (data) => base44.entities.ClientPortalAccess.create({
       ...data,
       access_token: crypto.randomUUID(),
-      permissions: {
-        view_documents: true,
-        view_updates: true,
-        send_messages: true,
-        upload_documents: false
-      }
+      permissions: { view_documents: true, view_updates: true, send_messages: true, upload_documents: false }
     }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-portals'] });
-      setShowCreateDialog(false);
-      toast.success("Portal criado com sucesso!");
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['client-portals'] }); setShowCreateDialog(false); toast.success("Portal criado!"); },
   });
 
   const sendMessageMutation = useMutation({
     mutationFn: (content) => base44.entities.ClientMessage.create({
-      case_id: selectedPortal.case_ids[0],
-      client_portal_id: selectedPortal.id,
-      sender_type: "lawyer",
-      sender_name: user?.full_name,
-      sender_email: user?.email,
-      content,
+      case_id: selectedPortal.case_ids[0], client_portal_id: selectedPortal.id,
+      sender_type: "lawyer", sender_name: user?.full_name, sender_email: user?.email, content,
     }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-messages'] });
-      setNewMessage("");
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['client-messages'] }); setNewMessage(""); },
   });
 
   const togglePortalMutation = useMutation({
@@ -140,16 +88,13 @@ export default function ClientPortal({ theme = 'light' }) {
 
   const createUpdateMutation = useMutation({
     mutationFn: (data) => base44.entities.CaseUpdate.create({
-      ...data,
-      author_name: user?.full_name,
-      author_email: user?.email,
-      is_visible_to_client: true
+      ...data, author_name: user?.full_name, author_email: user?.email, is_visible_to_client: true
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['case-updates'] });
       setShowUpdateDialog(false);
       setUpdateForm({ title: "", content: "", update_type: "general", case_id: "" });
-      toast.success("Atualização criada com sucesso!");
+      toast.success("Atualização criada!");
     },
   });
 
@@ -159,109 +104,91 @@ export default function ClientPortal({ theme = 'light' }) {
   );
 
   const copyPortalLink = (portal) => {
-    const link = `${window.location.origin}/ClientAccess?token=${portal.access_token}`;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(`${window.location.origin}/ClientAccess?token=${portal.access_token}`);
     toast.success("Link copiado!");
   };
 
   return (
-    <div style={{ minHeight: "100vh", padding: 24, background: S.bg, fontFamily: "var(--font-sans)" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
-          <div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 600, color: S.textPrimary, margin: 0 }}>Portal do Cliente</h1>
-            <p style={{ fontSize: "0.875rem", color: S.textSecondary, marginTop: 4 }}>Gerencie o acesso dos seus clientes aos casos</p>
-          </div>
-          <button
-            onClick={() => setShowCreateDialog(true)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: S.accent, color: "#fff", border: "none",
-              borderRadius: S.radius, padding: "9px 16px",
-              fontSize: "0.875rem", fontWeight: 500, cursor: "pointer",
-              transition: "background 0.15s", fontFamily: "var(--font-sans)",
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = S.accentHover}
-            onMouseLeave={e => e.currentTarget.style.background = S.accent}
-          >
-            <Plus style={{ width: 16, height: 16 }} />
+    <AppPage>
+      <PageHeader
+        title="Portal do Cliente"
+        subtitle="Gerencie o acesso dos seus clientes aos casos"
+        icon={Users}
+        actions={
+          <AppButton variant="primary" icon={Plus} onClick={() => setShowCreateDialog(true)}>
             Criar Acesso
-          </button>
-        </div>
+          </AppButton>
+        }
+      />
 
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
-          {[
-            { label: "Portais Ativos", value: portals.filter(p => p.is_active).length, icon: Users },
-            { label: "Mensagens", value: messages.length, icon: MessageSquare },
-            { label: "Atualizações", value: updates.length, icon: Bell },
-            { label: "Clientes", value: clients.length, icon: Users },
-          ].map((stat, i) => (
-            <div key={i} style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-              <p style={{ fontSize: "0.75rem", fontWeight: 500, color: S.textSecondary, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px" }}>{stat.label}</p>
-              <p style={{ fontSize: "2rem", fontWeight: 700, color: S.textPrimary, margin: 0, lineHeight: 1 }}>{stat.value}</p>
-            </div>
-          ))}
-        </div>
+      <KPIGrid cols={4}>
+        <StatCard icon={Users}        label="Portais Ativos"  value={portals.filter(p => p.is_active).length} sub="ativos"    color="var(--accent)"  />
+        <StatCard icon={MessageSquare} label="Mensagens"      value={messages.length}                          sub="recebidas" color="var(--success)" />
+        <StatCard icon={Bell}          label="Atualizações"   value={updates.length}                           sub="enviadas"  color="var(--warning)" />
+        <StatCard icon={Users}         label="Clientes"       value={clients.length}                           sub="cadastrados" color="var(--info)"  />
+      </KPIGrid>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }} className="lg:grid-cols-3-auto">
-          {/* Portal List */}
-          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, overflow: "hidden" }}>
-            <div style={{ padding: 16, borderBottom: `1px solid ${S.border}` }}>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
+      <AppContent>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 16 }}>
+          {/* Lista */}
+          <AppCard noPad>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ position: "relative" }}>
+                <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--text-3)" }} />
+                <input
                   placeholder="Buscar cliente..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
+                  style={{ width: "100%", paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 13, border: "1px solid var(--border)", borderRadius: "var(--r-md)", background: "var(--bg)", color: "var(--text-1)", outline: "none" }}
                 />
               </div>
             </div>
-            <div style={{ maxHeight: 600, overflowY: "auto" }}>
-              {filteredPortals.map((portal) => (
+            <div style={{ maxHeight: 560, overflowY: "auto" }}>
+              {filteredPortals.length === 0 ? (
+                <div style={{ padding: 32, textAlign: "center" }}>
+                  <Users style={{ width: 36, height: 36, margin: "0 auto 10px", color: "var(--border)" }} />
+                  <p style={{ fontSize: 13, color: "var(--text-2)" }}>Nenhum portal encontrado</p>
+                </div>
+              ) : filteredPortals.map((portal) => (
                 <div
                   key={portal.id}
                   onClick={() => setSelectedPortal(portal)}
                   style={{
-                    padding: 16, cursor: "pointer",
-                    borderBottom: `1px solid ${S.border}`,
-                    background: selectedPortal?.id === portal.id ? S.bg : S.card,
-                    transition: "background 0.15s",
+                    padding: "14px 16px", cursor: "pointer",
+                    borderBottom: "1px solid var(--border)",
+                    background: selectedPortal?.id === portal.id ? "var(--bg)" : "var(--card)",
+                    transition: "background 0.12s",
                   }}
-                  onMouseEnter={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = S.bg; }}
-                  onMouseLeave={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = S.card; }}
+                  onMouseEnter={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = "var(--bg)"; }}
+                  onMouseLeave={e => { if (selectedPortal?.id !== portal.id) e.currentTarget.style.background = "var(--card)"; }}
                 >
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 500, color: S.textPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 0 2px", fontSize: "0.875rem" }}>
+                      <p style={{ fontWeight: 500, color: "var(--text-1)", fontSize: 13, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {portal.client_name}
                       </p>
-                      <p style={{ fontSize: "0.8rem", color: S.textSecondary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: 0 }}>
+                      <p style={{ fontSize: 12, color: "var(--text-2)", margin: "0 0 6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {portal.client_email}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={portal.is_active ? "default" : "secondary"} className="text-xs">
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <AppBadge variant={portal.is_active ? "success" : "neutral"}>
                           {portal.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
-                        <span className={`text-xs ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>
-                          {portal.case_ids?.length || 0} caso(s)
-                        </span>
+                        </AppBadge>
+                        <span style={{ fontSize: 11, color: "var(--text-3)" }}>{portal.case_ids?.length || 0} caso(s)</span>
                       </div>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
+                        <button style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--text-3)", minHeight: "unset" }}>
+                          <MoreVertical style={{ width: 15, height: 15 }} />
+                        </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => copyPortalLink(portal)}>
-                          <Copy className="w-4 h-4 mr-2" /> Copiar Link
+                          <Copy style={{ width: 14, height: 14, marginRight: 8 }} /> Copiar Link
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => togglePortalMutation.mutate({ id: portal.id, is_active: !portal.is_active })}>
-                          {portal.is_active ? <X className="w-4 h-4 mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                          {portal.is_active ? <X style={{ width: 14, height: 14, marginRight: 8 }} /> : <Check style={{ width: 14, height: 14, marginRight: 8 }} />}
                           {portal.is_active ? "Desativar" : "Ativar"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -269,43 +196,24 @@ export default function ClientPortal({ theme = 'light' }) {
                   </div>
                 </div>
               ))}
-              {filteredPortals.length === 0 && (
-                <div style={{ padding: 32, textAlign: "center" }}>
-                  <Users style={{ width: 40, height: 40, margin: "0 auto 12px", color: S.border }} />
-                  <p style={{ fontSize: "0.875rem", color: S.textSecondary }}>Nenhum portal encontrado</p>
-                </div>
-              )}
             </div>
-          </div>
+          </AppCard>
 
-          {/* Portal Details */}
-          <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, overflow: "hidden" }}>
+          {/* Detalhes */}
+          <AppCard noPad>
             {selectedPortal ? (
               <Tabs defaultValue="messages" className="h-full">
-                <div style={{ padding: 16, borderBottom: `1px solid ${S.border}` }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div>
-                      <h2 style={{ fontWeight: 600, color: S.textPrimary, margin: "0 0 2px", fontSize: "0.95rem" }}>
-                        {selectedPortal.client_name}
-                      </h2>
-                      <p style={{ fontSize: "0.8rem", color: S.textSecondary, margin: 0 }}>
-                        {selectedPortal.client_email}
-                      </p>
+                      <p style={{ fontWeight: 600, color: "var(--text-1)", fontSize: 14, margin: 0 }}>{selectedPortal.client_name}</p>
+                      <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>{selectedPortal.client_email}</p>
                     </div>
                     <button
                       onClick={() => copyPortalLink(selectedPortal)}
-                      style={{
-                        display: "inline-flex", alignItems: "center", gap: 6,
-                        background: "transparent", border: `1px solid ${S.border}`,
-                        borderRadius: S.radius, padding: "7px 12px",
-                        fontSize: "0.8rem", color: S.textPrimary, cursor: "pointer",
-                        transition: "border-color 0.15s", fontFamily: "var(--font-sans)",
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = S.accent}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = S.border}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "6px 12px", fontSize: 12, color: "var(--text-1)", cursor: "pointer", minHeight: "unset" }}
                     >
-                      <ExternalLink style={{ width: 14, height: 14 }} />
-                      Copiar Link
+                      <ExternalLink style={{ width: 12, height: 12 }} /> Copiar Link
                     </button>
                   </div>
                   <TabsList>
@@ -315,294 +223,169 @@ export default function ClientPortal({ theme = 'light' }) {
                   </TabsList>
                 </div>
 
-                <TabsContent value="messages" className="p-0 h-[450px] flex flex-col">
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <TabsContent value="messages" style={{ display: "flex", flexDirection: "column", height: 440, margin: 0 }}>
+                  <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
                     {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.sender_type === 'lawyer' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[70%] rounded-lg p-3 ${
-                          msg.sender_type === 'lawyer'
-                            ? 'bg-blue-600 text-white'
-                            : isDark ? 'bg-neutral-800 text-white' : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <p className="text-sm">{msg.content}</p>
-                          <p className={`text-xs mt-1 ${msg.sender_type === 'lawyer' ? 'text-blue-200' : 'text-gray-400'}`}>
-                            {new Date(msg.created_date).toLocaleString('pt-BR')}
-                          </p>
+                      <div key={msg.id} style={{ display: "flex", justifyContent: msg.sender_type === 'lawyer' ? "flex-end" : "flex-start" }}>
+                        <div style={{ maxWidth: "70%", borderRadius: 10, padding: "10px 14px", background: msg.sender_type === 'lawyer' ? "var(--accent)" : "var(--bg)", color: msg.sender_type === 'lawyer' ? "#fff" : "var(--text-1)" }}>
+                          <p style={{ fontSize: 13, margin: 0 }}>{msg.content}</p>
+                          <p style={{ fontSize: 10, marginTop: 4, opacity: 0.7, margin: 0 }}>{new Date(msg.created_date).toLocaleString('pt-BR')}</p>
                         </div>
                       </div>
                     ))}
                     {messages.length === 0 && (
-                      <div className="h-full flex items-center justify-center">
-                        <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                          Nenhuma mensagem ainda
-                        </p>
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <p style={{ fontSize: 13, color: "var(--text-2)" }}>Nenhuma mensagem ainda</p>
                       </div>
                     )}
                   </div>
-                  <div className={`p-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Digite sua mensagem..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && newMessage.trim() && sendMessageMutation.mutate(newMessage)}
-                      />
-                      <Button
-                        onClick={() => newMessage.trim() && sendMessageMutation.mutate(newMessage)}
-                        disabled={!newMessage.trim()}
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </div>
+                  <div style={{ padding: 12, borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}>
+                    <input
+                      placeholder="Digite sua mensagem..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && newMessage.trim() && sendMessageMutation.mutate(newMessage)}
+                      style={{ flex: 1, padding: "8px 12px", fontSize: 13, border: "1px solid var(--border)", borderRadius: "var(--r-md)", outline: "none", background: "var(--bg)", color: "var(--text-1)" }}
+                    />
+                    <AppButton variant="primary" onClick={() => newMessage.trim() && sendMessageMutation.mutate(newMessage)} disabled={!newMessage.trim()}>
+                      <Send style={{ width: 14, height: 14 }} />
+                    </AppButton>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="updates" className="p-4 max-h-[500px] overflow-y-auto">
-                  <div className="flex justify-end mb-4">
-                    <Button onClick={() => setShowUpdateDialog(true)} size="sm" className="gap-2">
-                      <Plus className="w-4 h-4" />
+                <TabsContent value="updates" style={{ padding: 16, margin: 0, maxHeight: 480, overflowY: "auto" }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+                    <AppButton variant="primary" icon={Plus} onClick={() => setShowUpdateDialog(true)}>
                       Nova Atualização
-                    </Button>
+                    </AppButton>
                   </div>
-                  <div className="space-y-4">
-                    {updates.map((update) => (
-                      <div key={update.id} className={`p-4 rounded-lg border ${isDark ? 'border-neutral-800' : 'border-gray-200'}`}>
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                          <div style={{
-                            width: 32, height: 32, borderRadius: S.radius,
-                            background: S.bg, border: `1px solid ${S.border}`,
-                            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                          }}>
-                            <Bell style={{ width: 14, height: 14, color: S.textSecondary }} />
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <h4 style={{ fontWeight: 500, color: S.textPrimary, margin: "0 0 4px", fontSize: "0.875rem" }}>{update.title}</h4>
-                            <p style={{ fontSize: "0.8rem", color: S.textSecondary, margin: "0 0 6px", lineHeight: 1.5 }}>{update.content}</p>
-                            <p style={{ fontSize: "0.75rem", color: S.textSecondary, margin: 0 }}>
-                              {new Date(update.created_date).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {updates.map((u) => (
+                      <div key={u.id} style={{ padding: "12px 16px", border: "1px solid var(--border)", borderRadius: "var(--r-md)", background: "var(--bg)" }}>
+                        <p style={{ fontWeight: 500, color: "var(--text-1)", fontSize: 13, margin: "0 0 4px" }}>{u.title}</p>
+                        <p style={{ fontSize: 12, color: "var(--text-2)", margin: "0 0 6px", lineHeight: 1.5 }}>{u.content}</p>
+                        <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>{new Date(u.created_date).toLocaleDateString('pt-BR')}</p>
                       </div>
                     ))}
-                    {updates.length === 0 && (
-                      <p className={`text-center py-8 text-sm ${isDark ? 'text-neutral-500' : 'text-gray-500'}`}>
-                        Nenhuma atualização visível ao cliente
-                      </p>
-                    )}
+                    {updates.length === 0 && <p style={{ textAlign: "center", padding: 32, fontSize: 13, color: "var(--text-2)" }}>Nenhuma atualização visível ao cliente</p>}
                   </div>
                 </TabsContent>
 
-                <TabsContent value="settings" className="p-4">
-                  <div className="space-y-4">
-                    <h3 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Permissões</h3>
+                <TabsContent value="settings" style={{ padding: 16, margin: 0 }}>
+                  <p style={{ fontWeight: 500, color: "var(--text-1)", fontSize: 14, marginBottom: 12 }}>Permissões</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {Object.entries(selectedPortal.permissions || {}).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>
+                      <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 13, color: "var(--text-1)" }}>
                           {key === 'view_documents' && 'Visualizar documentos'}
                           {key === 'view_updates' && 'Visualizar atualizações'}
                           {key === 'send_messages' && 'Enviar mensagens'}
                           {key === 'upload_documents' && 'Enviar documentos'}
                         </span>
-                        <Badge variant={value ? "default" : "secondary"}>
-                          {value ? "Permitido" : "Bloqueado"}
-                        </Badge>
+                        <AppBadge variant={value ? "success" : "neutral"}>{value ? "Permitido" : "Bloqueado"}</AppBadge>
                       </div>
                     ))}
                   </div>
                 </TabsContent>
               </Tabs>
             ) : (
-              <div style={{ height: 500, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ textAlign: "center" }}>
-                  <Users style={{ width: 48, height: 48, margin: "0 auto 12px", color: S.border }} />
-                  <p style={{ color: S.textSecondary, fontSize: "0.875rem" }}>Selecione um portal para ver detalhes</p>
-                </div>
+              <div style={{ height: 480, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+                <Users style={{ width: 40, height: 40, color: "var(--border)" }} />
+                <p style={{ fontSize: 13, color: "var(--text-2)" }}>Selecione um portal para ver detalhes</p>
               </div>
             )}
-          </div>
+          </AppCard>
         </div>
-      </div>
+      </AppContent>
 
-      {/* Create Portal Dialog */}
+      {/* Dialogs */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Criar Acesso ao Portal</DialogTitle>
-          </DialogHeader>
-          <CreatePortalForm
-            clients={clients}
-            cases={cases}
-            onSubmit={(data) => createPortalMutation.mutate(data)}
-            onCancel={() => setShowCreateDialog(false)}
-          />
+          <DialogHeader><DialogTitle>Criar Acesso ao Portal</DialogTitle></DialogHeader>
+          <CreatePortalForm clients={clients} cases={cases} onSubmit={(d) => createPortalMutation.mutate(d)} onCancel={() => setShowCreateDialog(false)} />
         </DialogContent>
       </Dialog>
 
-      {/* Create Update Dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Atualização</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
+          <DialogHeader><DialogTitle>Nova Atualização</DialogTitle></DialogHeader>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
             <div>
-              <label className="text-sm font-medium">Caso</label>
-              <select
-                value={updateForm.case_id}
-                onChange={(e) => setUpdateForm({ ...updateForm, case_id: e.target.value })}
-                className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-              >
+              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Caso</label>
+              <select value={updateForm.case_id} onChange={(e) => setUpdateForm({ ...updateForm, case_id: e.target.value })} style={{ width: "100%" }}>
                 <option value="">Selecione um caso</option>
                 {(selectedPortal?.case_ids || []).map(caseId => {
-                  const caseData = cases.find(c => c.id === caseId);
-                  return caseData ? (
-                    <option key={caseId} value={caseId}>{caseData.title}</option>
-                  ) : null;
+                  const c = cases.find(x => x.id === caseId);
+                  return c ? <option key={caseId} value={caseId}>{c.title}</option> : null;
                 })}
               </select>
             </div>
-
             <div>
-              <label className="text-sm font-medium">Tipo</label>
-              <select
-                value={updateForm.update_type}
-                onChange={(e) => setUpdateForm({ ...updateForm, update_type: e.target.value })}
-                className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-              >
-                <option value="general">Geral</option>
-                <option value="status_change">Mudança de Status</option>
-                <option value="document_added">Documento Adicionado</option>
-                <option value="hearing_scheduled">Audiência Agendada</option>
-                <option value="deadline">Prazo Importante</option>
-                <option value="milestone">Marco Importante</option>
-              </select>
+              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Título</label>
+              <Input value={updateForm.title} onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })} placeholder="Ex: Processo avançou para fase de instrução" />
             </div>
-
             <div>
-              <label className="text-sm font-medium">Título</label>
-              <Input
-                value={updateForm.title}
-                onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })}
-                placeholder="Ex: Processo avançou para fase de instrução"
-              />
+              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Descrição</label>
+              <Textarea value={updateForm.content} onChange={(e) => setUpdateForm({ ...updateForm, content: e.target.value })} placeholder="Descreva a atualização..." rows={4} />
             </div>
-
-            <div>
-              <label className="text-sm font-medium">Descrição</label>
-              <Textarea
-                value={updateForm.content}
-                onChange={(e) => setUpdateForm({ ...updateForm, content: e.target.value })}
-                placeholder="Descreva a atualização..."
-                rows={4}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setShowUpdateDialog(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => createUpdateMutation.mutate(updateForm)}
-                disabled={!updateForm.case_id || !updateForm.title || !updateForm.content || createUpdateMutation.isPending}
-              >
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8 }}>
+              <AppButton variant="secondary" onClick={() => setShowUpdateDialog(false)}>Cancelar</AppButton>
+              <AppButton variant="primary" onClick={() => createUpdateMutation.mutate(updateForm)} disabled={!updateForm.case_id || !updateForm.title || !updateForm.content}>
                 Criar Atualização
-              </Button>
+              </AppButton>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppPage>
   );
 }
 
 function CreatePortalForm({ clients, cases, onSubmit, onCancel }) {
-  const [formData, setFormData] = useState({
-    client_id: "",
-    client_email: "",
-    client_name: "",
-    case_ids: []
-  });
-
+  const [formData, setFormData] = useState({ client_id: "", client_email: "", client_name: "", case_ids: [] });
   const selectedClient = clients.find(c => c.id === formData.client_id);
 
   useEffect(() => {
-    if (selectedClient) {
-      setFormData(prev => ({
-        ...prev,
-        client_email: selectedClient.email,
-        client_name: selectedClient.name
-      }));
-    }
+    if (selectedClient) setFormData(p => ({ ...p, client_email: selectedClient.email, client_name: selectedClient.name }));
   }, [selectedClient]);
 
   const clientCases = cases.filter(c => c.client_id === formData.client_id);
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
       <div>
-        <label className="text-sm font-medium">Cliente</label>
-        <select
-          value={formData.client_id}
-          onChange={(e) => setFormData({ ...formData, client_id: e.target.value, case_ids: [] })}
-          className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-        >
+        <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Cliente</label>
+        <select value={formData.client_id} onChange={(e) => setFormData({ ...formData, client_id: e.target.value, case_ids: [] })} style={{ width: "100%" }}>
           <option value="">Selecione um cliente</option>
-          {clients.map(client => (
-            <option key={client.id} value={client.id}>{client.name}</option>
-          ))}
+          {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
-
       {formData.client_id && (
         <>
           <div>
-            <label className="text-sm font-medium">Email de acesso</label>
-            <Input
-              value={formData.client_email}
-              onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-              placeholder="email@cliente.com"
-            />
+            <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Email de acesso</label>
+            <Input value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} placeholder="email@cliente.com" />
           </div>
-
           <div>
-            <label className="text-sm font-medium">Casos com acesso</label>
-            <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+            <label style={{ fontSize: 12, fontWeight: 500, color: "var(--text-1)", display: "block", marginBottom: 6 }}>Casos com acesso</label>
+            <div style={{ maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
               {clientCases.map(c => (
-                <label key={c.id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.case_ids.includes(c.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFormData({ ...formData, case_ids: [...formData.case_ids, c.id] });
-                      } else {
-                        setFormData({ ...formData, case_ids: formData.case_ids.filter(id => id !== c.id) });
-                      }
-                    }}
-                  />
-                  <span className="text-sm">{c.title}</span>
+                <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input type="checkbox" checked={formData.case_ids.includes(c.id)}
+                    onChange={(e) => setFormData({ ...formData, case_ids: e.target.checked ? [...formData.case_ids, c.id] : formData.case_ids.filter(id => id !== c.id) })} />
+                  <span style={{ fontSize: 13, color: "var(--text-1)" }}>{c.title}</span>
                 </label>
               ))}
-              {clientCases.length === 0 && (
-                <p className="text-sm text-gray-500">Nenhum caso encontrado para este cliente</p>
-              )}
+              {clientCases.length === 0 && <p style={{ fontSize: 12, color: "var(--text-2)" }}>Nenhum caso encontrado</p>}
             </div>
           </div>
         </>
       )}
-
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button
-          onClick={() => onSubmit(formData)}
-          disabled={!formData.client_id || !formData.client_email || formData.case_ids.length === 0}
-        >
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 8 }}>
+        <AppButton variant="secondary" onClick={onCancel}>Cancelar</AppButton>
+        <AppButton variant="primary" onClick={() => onSubmit(formData)} disabled={!formData.client_id || !formData.client_email || formData.case_ids.length === 0}>
           Criar Portal
-        </Button>
+        </AppButton>
       </div>
     </div>
   );
