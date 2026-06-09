@@ -392,11 +392,11 @@ export default function LegalResearch({ theme = 'light' }) {
                               onClick={() => setSearchType(type.id)}
                               style={{
                                 padding: 16, borderRadius: 'var(--r-md)', border: `2px solid ${searchType === type.id ? 'var(--accent)' : 'var(--border)'}`,
-                                background: searchType === type.id ? 'var(--warn-bg)' : 'var(--main-bg)',
-                                cursor: 'pointer', textAlign: 'left', transition: 'all var(--transition)'
+                                background: searchType === type.id ? 'var(--accent-light)' : 'var(--card)',
+                                cursor: 'pointer', textAlign: 'left', transition: 'all var(--dur)'
                               }}
                             >
-                              <Icon className="w-5 h-5 mb-2" style={{ color: searchType === type.id ? 'var(--accent)' : 'var(--text-secondary)' }} />
+                              <Icon className="w-5 h-5 mb-2" style={{ color: searchType === type.id ? 'var(--accent)' : 'var(--text-2)' }} />
                               <div style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-1)' }}>{type.label}</div>
                               <div style={{ fontSize: 11, marginTop: 4, color: 'var(--text-3)' }}>{type.description}</div>
                             </button>
@@ -578,7 +578,7 @@ export default function LegalResearch({ theme = 'light' }) {
 
                       {/* Resumo */}
                       {currentResult.summary && (
-                        <div style={{ padding: 16, borderLeft: '4px solid var(--info)', fontSize: 13, background: 'var(--info-bg)', color: 'var(--text-1)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
+                        <div style={{ padding: 16, borderLeft: '4px solid var(--info)', fontSize: 13, background: 'var(--info-bg)', color: 'var(--text-1)', borderRadius: '0 var(--r-sm) var(--r-sm) 0' }}>
                           <div className="font-semibold text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2 text-xs">
                             📋 Resumo da Pesquisa
                             <span className="font-normal text-gray-400">(gerado localmente — sem IA)</span>
@@ -827,7 +827,7 @@ export default function LegalResearch({ theme = 'light' }) {
                         onClick={() => setSelectedSaved(research)}
                         className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                           selectedSaved?.id === research.id
-                            ? 'border-[var(--accent)] bg-[var(--warn-bg)]'
+                            ? 'border-[var(--accent)] bg-[var(--accent-light)]'
                             : 'border-[var(--border)] hover:border-[var(--border-strong)]'
                         }`}
                       >
