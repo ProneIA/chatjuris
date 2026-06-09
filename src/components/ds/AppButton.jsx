@@ -6,52 +6,29 @@ import { Loader2 } from "lucide-react";
  * size: sm | md | lg
  */
 const VARIANTS = {
-  primary: {
-    background: "var(--accent)",
-    color: "#fff",
-    border: "none",
-    "--hover-bg": "var(--accent-hover)",
-  },
-  secondary: {
-    background: "var(--card)",
-    color: "var(--text-primary)",
-    border: "1px solid var(--border)",
-    "--hover-bg": "var(--bg)",
-  },
-  ghost: {
-    background: "transparent",
-    color: "var(--text-secondary)",
-    border: "none",
-    "--hover-bg": "var(--bg)",
-  },
-  danger: {
-    background: "var(--danger-bg)",
-    color: "var(--danger-text)",
-    border: "1px solid var(--danger-border)",
-    "--hover-bg": "var(--danger-bg)",
-  },
+  primary:   { background: "var(--accent)",   color: "#fff",           border: "none",                         boxShadow: "0 1px 2px rgba(0,0,0,.12)" },
+  secondary: { background: "var(--card)",     color: "var(--text-1)",  border: "1px solid var(--border-2)",    boxShadow: "var(--sh-xs)" },
+  ghost:     { background: "transparent",     color: "var(--text-2)",  border: "none",                         boxShadow: "none" },
+  danger:    { background: "var(--red-bg)",   color: "#991b1b",        border: "1px solid var(--red-bd)",      boxShadow: "none" },
+};
+
+const HOVER = {
+  primary:   { background: "var(--accent-hover)", boxShadow: "var(--sh-md)", transform: "translateY(-1px)" },
+  secondary: { background: "var(--surface)",      boxShadow: "var(--sh-sm)", transform: "none" },
+  ghost:     { background: "var(--surface)",      boxShadow: "none",         transform: "none" },
+  danger:    { background: "#fee2e2",             boxShadow: "none",         transform: "none" },
 };
 
 const SIZES = {
-  sm: { padding: "6px 12px", fontSize: 12, height: 32 },
-  md: { padding: "8px 16px", fontSize: 13, height: 38 },
-  lg: { padding: "10px 20px", fontSize: 14, height: 44 },
+  sm: { padding: "6px 12px", fontSize: 12, minHeight: 30 },
+  md: { padding: "8px 16px", fontSize: 13, minHeight: 36 },
+  lg: { padding: "10px 20px",fontSize: 14, minHeight: 42 },
 };
 
-export default function AppButton({
-  children,
-  variant   = "secondary",
-  size      = "md",
-  loading   = false,
-  icon: Icon,
-  onClick,
-  disabled,
-  type      = "button",
-  className = "",
-  style     = {},
-}) {
+export default function AppButton({ children, variant = "secondary", size = "md", loading = false, icon: Icon, onClick, disabled, type = "button", className = "", style = {} }) {
   const v = VARIANTS[variant] || VARIANTS.secondary;
-  const s = SIZES[size] || SIZES.md;
+  const h = HOVER[variant]    || HOVER.secondary;
+  const s = SIZES[size]       || SIZES.md;
 
   return (
     <button
@@ -60,36 +37,32 @@ export default function AppButton({
       onClick={onClick}
       className={className}
       style={{
-        display:        "inline-flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        gap:            6,
-        borderRadius:   "var(--radius-btn)",
-        fontFamily:     "var(--font-body)",
-        fontWeight:     500,
-        letterSpacing:  "-0.01em",
-        whiteSpace:     "nowrap",
-        cursor:         disabled || loading ? "not-allowed" : "pointer",
-        opacity:        disabled || loading ? 0.55 : 1,
-        transition:     "background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
-        boxShadow:      "none",
-        outline:        "none",
-        ...v,
-        ...s,
-        ...style,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        gap: 6, borderRadius: "var(--r-md)",
+        fontFamily: "var(--font-body)", fontWeight: 500, letterSpacing: "-0.01em",
+        whiteSpace: "nowrap",
+        cursor: disabled || loading ? "not-allowed" : "pointer",
+        opacity: disabled || loading ? 0.55 : 1,
+        transition: "all .15s var(--ease)",
+        outline: "none",
+        ...v, ...s, ...style,
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         if (!disabled && !loading) {
-          e.currentTarget.style.boxShadow = "var(--shadow-sm)";
+          Object.assign(e.currentTarget.style, h);
         }
       }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "none";
+      onMouseLeave={e => {
+        if (!disabled && !loading) {
+          e.currentTarget.style.background = v.background;
+          e.currentTarget.style.boxShadow  = v.boxShadow || "none";
+          e.currentTarget.style.transform  = "none";
+        }
       }}
     >
       {loading
-        ? <Loader2 style={{ width: 14, height: 14 }} className="animate-spin" />
-        : Icon && <Icon style={{ width: 14, height: 14 }} />
+        ? <Loader2 size={14} className="animate-spin" />
+        : Icon && <Icon size={14} />
       }
       {children}
     </button>

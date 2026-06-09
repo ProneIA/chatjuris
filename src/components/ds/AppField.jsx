@@ -17,7 +17,7 @@ export default function AppField({
         <label style={{
           fontSize:    12,
           fontWeight:  600,
-          color:       "var(--text-secondary)",
+          color:       "var(--text-2)",
           fontFamily:  "var(--font-body)",
           letterSpacing: "0.01em",
           lineHeight:  1.4,
@@ -31,10 +31,10 @@ export default function AppField({
       )}
       {children}
       {hint && !error && (
-        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>{hint}</p>
+        <p style={{ fontSize: 12, color: "var(--text-3)", margin: 0, lineHeight: 1.5 }}>{hint}</p>
       )}
       {error && (
-        <p style={{ fontSize: 12, color: "var(--danger-text)", margin: 0, lineHeight: 1.5 }}>{error}</p>
+        <p style={{ fontSize: 12, color: "#991b1b", margin: 0, lineHeight: 1.5 }}>{error}</p>
       )}
     </div>
   );

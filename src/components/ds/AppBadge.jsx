@@ -3,56 +3,24 @@
  * variants: default | success | warning | danger | info | neutral
  */
 const VARIANTS = {
-  default: {
-    background: "var(--info-bg)",
-    color: "var(--info-text)",
-    border: "1px solid var(--info-border)",
-  },
-  info: {
-    background: "var(--info-bg)",
-    color: "var(--info-text)",
-    border: "1px solid var(--info-border)",
-  },
-  success: {
-    background: "var(--success-bg)",
-    color: "var(--success-text)",
-    border: "1px solid var(--success-border)",
-  },
-  warning: {
-    background: "var(--warning-bg)",
-    color: "var(--warning-text)",
-    border: "1px solid var(--warning-border)",
-  },
-  danger: {
-    background: "var(--danger-bg)",
-    color: "var(--danger-text)",
-    border: "1px solid var(--danger-border)",
-  },
-  neutral: {
-    background: "var(--bg)",
-    color: "var(--text-secondary)",
-    border: "1px solid var(--border)",
-  },
+  default: { background: "var(--blue-bg)",   color: "#1e40af",       border: "1px solid var(--blue-bd)" },
+  info:    { background: "var(--blue-bg)",   color: "#1e40af",       border: "1px solid var(--blue-bd)" },
+  success: { background: "var(--green-bg)",  color: "#166534",       border: "1px solid var(--green-bd)" },
+  warning: { background: "var(--yellow-bg)", color: "#854d0e",       border: "1px solid var(--yellow-bd)" },
+  danger:  { background: "var(--red-bg)",    color: "#991b1b",       border: "1px solid var(--red-bd)" },
+  neutral: { background: "var(--surface)",   color: "var(--text-2)", border: "1px solid var(--border)" },
 };
 
 export default function AppBadge({ children, variant = "neutral", style = {} }) {
   const v = VARIANTS[variant] || VARIANTS.neutral;
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "3px 8px",
-        borderRadius: 6,
-        fontSize: 11,
-        fontWeight: 500,
-        whiteSpace: "nowrap",
-        letterSpacing: "0.01em",
-        ...v,
-        ...style,
-      }}
-    >
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4,
+      padding: "3px 9px", borderRadius: "var(--r-full)",
+      fontSize: 11.5, fontWeight: 500, whiteSpace: "nowrap",
+      letterSpacing: "0.01em",
+      ...v, ...style,
+    }}>
       {children}
     </span>
   );

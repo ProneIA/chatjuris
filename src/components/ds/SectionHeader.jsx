@@ -19,7 +19,7 @@ export default function SectionHeader({ title, subtitle, actions, border = true 
           style={{
             fontSize: 14,
             fontWeight: 600,
-            color: "var(--text-primary)",
+            color: "var(--text-1)",
             letterSpacing: "-0.01em",
             margin: 0,
             lineHeight: 1.4,
@@ -31,7 +31,7 @@ export default function SectionHeader({ title, subtitle, actions, border = true 
           <p
             style={{
               fontSize: 12,
-              color: "var(--text-secondary)",
+              color: "var(--text-2)",
               margin: "2px 0 0",
             }}
           >

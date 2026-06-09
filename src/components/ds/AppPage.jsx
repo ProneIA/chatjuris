@@ -1,13 +1,15 @@
 /**
  * AppPage — wrapper raiz de todas as páginas do sistema.
- * Garante bg, padding e fonte consistentes.
  */
 export default function AppPage({ children, className = "" }) {
   return (
     <div
-      className={className}
+      className={`anim-fade-up ${className}`}
       style={{
-        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+        minHeight: "100%",
         background: "var(--bg)",
         fontFamily: "var(--font-body)",
       }}

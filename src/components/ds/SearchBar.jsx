@@ -20,7 +20,7 @@ export default function SearchBar({
           transform: "translateY(-50%)",
           width: 15,
           height: 15,
-          color: "var(--text-muted)",
+          color: "var(--text-3)",
           pointerEvents: "none",
         }}
       />
@@ -38,14 +38,14 @@ export default function SearchBar({
           border: "1px solid var(--border)",
           borderRadius: 10,
           fontSize: 13,
-          color: "var(--text-primary)",
+          color: "var(--text-1)",
           fontFamily: "var(--font-body)",
           outline: "none",
           transition: "border-color 0.15s ease, box-shadow 0.15s ease",
         }}
         onFocus={(e) => {
           e.target.style.borderColor = "var(--accent)";
-          e.target.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.12)";
+          e.target.style.boxShadow = "0 0 0 3px var(--accent-glow)";
         }}
         onBlur={(e) => {
           e.target.style.borderColor = "var(--border)";
