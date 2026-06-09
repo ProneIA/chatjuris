@@ -177,21 +177,21 @@ export default function FinancialDashboard() {
             {/* Summary cards */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }} className="md:grid-cols-2 grid-cols-1">
               <AppCard>
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)", margin: "0 0 12px" }}>Contratos Ativos</p>
-                <p style={{ fontSize: 36, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.04em", margin: "0 0 4px" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-2)", margin: "0 0 12px" }}>Contratos Ativos</p>
+                <p style={{ fontSize: 36, fontWeight: 700, color: "var(--text-1)", letterSpacing: "-0.04em", margin: "0 0 4px" }}>
                   {contratos.filter((c) => c.status === "ativo").length}
                 </p>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>Total: {fmt(totalContratado)}</p>
+                <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>Total: {fmt(totalContratado)}</p>
                 <div style={{ background: "var(--border)", height: 3, marginTop: 12, borderRadius: 2 }}>
                   <div style={{ width: `${Math.min(taxaRecebimento, 100)}%`, height: "100%", background: "var(--success)", borderRadius: 2, transition: "width 0.4s" }} />
                 </div>
               </AppCard>
               <AppCard>
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)", margin: "0 0 12px" }}>Taxa de Recebimento</p>
-                <p style={{ fontSize: 36, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.04em", margin: "0 0 4px" }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-2)", margin: "0 0 12px" }}>Taxa de Recebimento</p>
+                <p style={{ fontSize: 36, fontWeight: 700, color: "var(--text-1)", letterSpacing: "-0.04em", margin: "0 0 4px" }}>
                   {taxaRecebimento}%
                 </p>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>do total contratado</p>
+                <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>do total contratado</p>
                 <div style={{ background: "var(--border)", height: 3, marginTop: 12, borderRadius: 2 }}>
                   <div style={{ width: `${Math.min(taxaRecebimento, 100)}%`, height: "100%", background: "var(--warning)", borderRadius: 2, transition: "width 0.4s" }} />
                 </div>

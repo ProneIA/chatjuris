@@ -169,7 +169,7 @@ export default function Tasks() {
         {/* Form */}
         {showForm && (
           <AppCard>
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.01em" }}>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-1)", margin: "0 0 16px", letterSpacing: "-0.01em" }}>
               Criar Nova Tarefa
             </h3>
             <div className="space-y-4">
@@ -312,11 +312,11 @@ export default function Tasks() {
                         style={{ marginTop: 3, width: 18, height: 18, cursor: "pointer", accentColor: "var(--accent)", flexShrink: 0 }}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.01em", textDecoration: task.status === "completed" ? "line-through" : "none", opacity: task.status === "completed" ? 0.5 : 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-1)", margin: "0 0 4px", letterSpacing: "-0.01em", textDecoration: task.status === "completed" ? "line-through" : "none", opacity: task.status === "completed" ? 0.5 : 1 }}>
                           {task.title}
                         </p>
                         {task.description && (
-                          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 8px" }}>{task.description}</p>
+                          <p style={{ fontSize: 12, color: "var(--text-2)", margin: "0 0 8px" }}>{task.description}</p>
                         )}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                           {task.due_date && (
@@ -367,7 +367,7 @@ export default function Tasks() {
             <div style={{ padding: 20 }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
                 {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map((d) => (
-                  <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", padding: "4px 0" }}>{d}</div>
+                  <div key={d} style={{ textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--text-2)", padding: "4px 0" }}>{d}</div>
                 ))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
@@ -392,7 +392,7 @@ export default function Tasks() {
                           color: (t.priority === "urgent" || t.priority === "high") ? "#fff" : "var(--text-secondary)",
                         }}>{t.title}</div>
                       ))}
-                      {dayTasks.length > 2 && <div style={{ fontSize: 9, color: "var(--text-muted)" }}>+{dayTasks.length - 2}</div>}
+                      {dayTasks.length > 2 && <div style={{ fontSize: 9, color: "var(--text-3)" }}>+{dayTasks.length - 2}</div>}
                     </div>
                   );
                 })}

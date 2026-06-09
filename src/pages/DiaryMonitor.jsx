@@ -1,465 +1,318 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Newspaper, 
-  Plus, 
-  Search, 
-  Bell, 
-  Star, 
-  StarOff,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  Filter,
-  Sparkles,
-  FileText,
-  Calendar,
-  Building2,
-  Users,
-  X,
-  Upload,
-  Eye,
-  Loader2,
-  ArrowRight,
-  BookOpen,
-  Gavel,
-  Scale,
-  RefreshCw,
-  SlidersHorizontal
+  Newspaper, Plus, Search, Bell, Star, Clock, AlertTriangle,
+  CheckCircle, Sparkles, FileText, Eye, BookOpen, Gavel, Scale,
+  Users, SlidersHorizontal, RefreshCw
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import DiaryAnalyzer from "@/components/diary/DiaryAnalyzer";
-import PublicationCard from "@/components/diary/PublicationCard";
+import DiarySearchAnalyzer from "@/components/diary/DiarySearchAnalyzer";
 import PublicationAccordion from "@/components/diary/PublicationAccordion";
 import PublicationDetails from "@/components/diary/PublicationDetails";
-import MonitoringSetup from "@/components/diary/MonitoringSetup";
 import MonitoringDashboard from "@/components/diary/MonitoringDashboard";
 import AdvancedSearch from "@/components/diary/AdvancedSearch";
-import DiarySearchAnalyzer from "@/components/diary/DiarySearchAnalyzer";
+
+import {
+  AppPage, PageHeader, KPIGrid, StatCard, AppCard, AppContent,
+  AppBadge, EmptyState, AppButton, SearchBar, AppModal
+} from "@/components/ds";
 
 const categoryLabels = {
-  intimacao: { label: "Intimação", icon: Bell, color: "orange" },
-  sentenca: { label: "Sentença", icon: Gavel, color: "purple" },
-  despacho: { label: "Despacho", icon: FileText, color: "blue" },
-  edital: { label: "Edital", icon: Newspaper, color: "green" },
-  decisao: { label: "Decisão", icon: Scale, color: "red" },
-  acordao: { label: "Acórdão", icon: BookOpen, color: "indigo" },
-  citacao: { label: "Citação", icon: Users, color: "amber" },
-  outros: { label: "Outros", icon: FileText, color: "gray" }
+  intimacao: { label: "Intimação",  icon: Bell,      color: "orange"  },
+  sentenca:  { label: "Sentença",   icon: Gavel,     color: "purple"  },
+  despacho:  { label: "Despacho",   icon: FileText,  color: "blue"    },
+  edital:    { label: "Edital",     icon: Newspaper, color: "green"   },
+  decisao:   { label: "Decisão",    icon: Scale,     color: "red"     },
+  acordao:   { label: "Acórdão",    icon: BookOpen,  color: "indigo"  },
+  citacao:   { label: "Citação",    icon: Users,     color: "amber"   },
+  outros:    { label: "Outros",     icon: FileText,  color: "gray"    },
 };
 
 const urgencyConfig = {
-  alta: { label: "Urgente", color: "red", icon: AlertTriangle },
-  media: { label: "Média", color: "yellow", icon: Clock },
-  baixa: { label: "Baixa", color: "green", icon: CheckCircle }
+  alta:  { label: "Urgente", color: "red",    icon: AlertTriangle },
+  media: { label: "Média",   color: "yellow", icon: Clock         },
+  baixa: { label: "Baixa",   color: "green",  icon: CheckCircle   },
 };
 
-export default function DiaryMonitor({ theme = 'light' }) {
-  const isDark = false;
+export default function DiaryMonitor() {
   const queryClient = useQueryClient();
-  
-  const [activeTab, setActiveTab] = useState("publications");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const [searchTerm,      setSearchTerm]      = useState("");
+  const [selectedCat,     setSelectedCat]     = useState("all");
   const [selectedUrgency, setSelectedUrgency] = useState("all");
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [showUnreadOnly,  setShowUnreadOnly]  = useState(false);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
-  const [selectedPublication, setSelectedPublication] = useState(null);
-  const [showAnalyzer, setShowAnalyzer] = useState(false);
-  const [showSetup, setShowSetup] = useState(false);
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [selectedPub,     setSelectedPub]     = useState(null);
+  const [showDetails,     setShowDetails]     = useState(false);
+  const [showMonitoring,  setShowMonitoring]  = useState(false);
+  const [showAdvSearch,   setShowAdvSearch]   = useState(false);
   const [filteredResults, setFilteredResults] = useState(null);
-  const [activeFilters, setActiveFilters] = useState(null);
-  const [expandedPubId, setExpandedPubId] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showMonitoringDashboard, setShowMonitoringDashboard] = useState(false);
+  const [activeFilters,   setActiveFilters]   = useState(null);
+  const [expandedId,      setExpandedId]      = useState(null);
 
-  const { data: publications = [], isLoading: loadingPubs } = useQuery({
-    queryKey: ['diary-publications'],
-    queryFn: () => base44.entities.DiaryPublication.list('-publication_date'),
+  const { data: publications = [], isLoading } = useQuery({
+    queryKey: ["diary-publications"],
+    queryFn: () => base44.entities.DiaryPublication.list("-publication_date"),
   });
-
-  const { data: monitorings = [], isLoading: loadingMonitorings } = useQuery({
-    queryKey: ['diary-monitorings'],
-    queryFn: () => base44.entities.DiaryMonitoring.list('-created_date'),
+  const { data: monitorings = [] } = useQuery({
+    queryKey: ["diary-monitorings"],
+    queryFn: () => base44.entities.DiaryMonitoring.list("-created_date"),
   });
-
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => base44.entities.Client.list('name'),
+    queryKey: ["clients"],
+    queryFn: () => base44.entities.Client.list("name"),
   });
 
-  const updatePublicationMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DiaryPublication.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['diary-publications'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["diary-publications"] }),
   });
 
-  // Função de busca precisa com sinônimos
+  // Search with synonyms
   const searchWithSynonyms = (text, term) => {
     if (!text || !term) return false;
-    const lowerText = text.toLowerCase();
-    const lowerTerm = term.toLowerCase().trim();
-    
-    // Busca direta
-    if (lowerText.includes(lowerTerm)) return true;
-    
-    // Dicionário de sinônimos jurídicos
-    const synonyms = {
-      'intimação': ['intimado', 'intimando', 'intimar', 'intimações'],
-      'sentença': ['sentenças', 'sentenciado', 'sentenciar', 'julgamento', 'decisão'],
-      'despacho': ['despachos', 'despachado', 'despachar'],
-      'citação': ['citado', 'citar', 'citações', 'citando'],
-      'recurso': ['recursos', 'recorrer', 'recorrido', 'recorrente', 'apelação', 'agravo'],
-      'prazo': ['prazos', 'termo', 'vencimento', 'dias'],
-      'pagamento': ['pagar', 'pago', 'pagamentos', 'quitação', 'adimplemento'],
-      'precatório': ['precatórios', 'requisição', 'rqo', 'requisitório'],
-      'execução': ['executar', 'executado', 'execuções', 'executivo'],
-      'audiência': ['audiências', 'sessão', 'sessões'],
-      'autor': ['autora', 'autores', 'requerente', 'demandante', 'exequente'],
-      'réu': ['ré', 'réus', 'requerido', 'demandado', 'executado'],
-      'advogado': ['advogados', 'advogada', 'oab', 'patrono', 'procurador'],
-      'multa': ['multas', 'astreintes', 'penalidade'],
-      'embargo': ['embargos', 'embargar', 'embargado'],
-      'tutela': ['tutelas', 'liminar', 'antecipação', 'cautelar'],
-      'urgência': ['urgente', 'urgentes', 'emergência', 'emergencial'],
-      'trânsito': ['transitado', 'transitar', 'trânsito em julgado'],
-      'arquivamento': ['arquivado', 'arquivar', 'arquivo'],
-      'petição': ['petições', 'peticionar', 'peticionado', 'manifestação'],
-      'contestação': ['contestar', 'contestado', 'defesa'],
-      'apelação': ['apelar', 'apelado', 'apelante'],
-      'agravo': ['agravos', 'agravar', 'agravante', 'agravado'],
+    const t = text.toLowerCase(), q = term.toLowerCase().trim();
+    if (t.includes(q)) return true;
+    const dict = {
+      intimação: ["intimado","intimando","intimar"],
+      sentença:  ["sentenças","julgamento","decisão"],
+      recurso:   ["recursos","apelação","agravo"],
+      audiência: ["audiências","sessão"],
     };
-    
-    // Verifica sinônimos
-    for (const [key, syns] of Object.entries(synonyms)) {
-      if (key.includes(lowerTerm) || lowerTerm.includes(key)) {
-        for (const syn of syns) {
-          if (lowerText.includes(syn)) return true;
-        }
-      }
-      if (syns.some(s => s.includes(lowerTerm) || lowerTerm.includes(s))) {
-        if (lowerText.includes(key)) return true;
-        for (const syn of syns) {
-          if (lowerText.includes(syn)) return true;
-        }
+    for (const [key, syns] of Object.entries(dict)) {
+      if (key.includes(q) || q.includes(key)) {
+        if (syns.some(s => t.includes(s))) return true;
       }
     }
-    
     return false;
   };
-  
-  // Extrai termos de busca ativos
-  const getActiveSearchTerms = () => {
-    const terms = [];
-    if (searchTerm) {
-      terms.push(...searchTerm.split(/\s+/).filter(t => t.length > 1));
-    }
-    if (activeFilters?.query) {
-      terms.push(...activeFilters.query.split(/\s+/).filter(t => t.length > 1));
-    }
-    return [...new Set(terms)];
-  };
 
-  const basePublications = filteredResults || publications;
-  
-  const filteredPublications = basePublications.filter(pub => {
-    // Busca completa em todos os campos
-    const searchableFields = [
-      pub.title,
-      pub.content,
-      pub.original_content,
-      pub.ai_summary,
-      pub.ai_analysis,
-      pub.case_number,
-      pub.court,
-      pub.source,
-      ...(pub.parties_involved || []),
-      ...(pub.keywords_matched || [])
-    ].filter(Boolean).join(' ');
-    
-    // Aplica busca com sinônimos para cada termo
-    const matchesSearch = !searchTerm || searchTerm.split(/\s+/).every(term => 
-      term.length < 2 || searchWithSynonyms(searchableFields, term)
-    );
-    
-    const matchesCategory = selectedCategory === "all" || pub.category === selectedCategory;
-    const matchesUrgency = selectedUrgency === "all" || pub.urgency === selectedUrgency;
-    const matchesUnread = !showUnreadOnly || !pub.is_read;
-    const matchesStarred = !showStarredOnly || pub.is_starred;
-    
-    return matchesSearch && matchesCategory && matchesUrgency && matchesUnread && matchesStarred;
+  const baseList = filteredResults || publications;
+  const filtered = baseList.filter((pub) => {
+    const fields = [pub.title, pub.content, pub.case_number, pub.court, pub.source,
+      ...(pub.parties_involved || [])].filter(Boolean).join(" ");
+    const matchSearch   = !searchTerm || searchTerm.split(/\s+/).every(t => t.length < 2 || searchWithSynonyms(fields, t));
+    const matchCat      = selectedCat     === "all" || pub.category === selectedCat;
+    const matchUrgency  = selectedUrgency === "all" || pub.urgency  === selectedUrgency;
+    const matchUnread   = !showUnreadOnly  || !pub.is_read;
+    const matchStarred  = !showStarredOnly || pub.is_starred;
+    return matchSearch && matchCat && matchUrgency && matchUnread && matchStarred;
   });
 
   const stats = {
-    total: publications.length,
-    unread: publications.filter(p => !p.is_read).length,
-    urgent: publications.filter(p => p.urgency === 'alta').length,
-    starred: publications.filter(p => p.is_starred).length
+    total:   publications.length,
+    unread:  publications.filter(p => !p.is_read).length,
+    starred: publications.filter(p => p.is_starred).length,
+    today:   publications.filter(p => {
+      if (!p.publication_date) return false;
+      return format(new Date(p.publication_date), "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+    }).length,
   };
 
-  const toggleStar = (pub) => {
-    updatePublicationMutation.mutate({
-      id: pub.id,
-      data: { is_starred: !pub.is_starred }
-    });
-  };
+  const toggleStar   = (pub) => updateMutation.mutate({ id: pub.id, data: { is_starred: !pub.is_starred } });
+  const markAsRead   = (pub) => { if (!pub.is_read) updateMutation.mutate({ id: pub.id, data: { is_read: true } }); };
 
-  const markAsRead = (pub) => {
-    if (!pub.is_read) {
-      updatePublicationMutation.mutate({
-        id: pub.id,
-        data: { is_read: true }
-      });
-    }
+  const getSearchTerms = () => {
+    const terms = [];
+    if (searchTerm)          terms.push(...searchTerm.split(/\s+/).filter(t => t.length > 1));
+    if (activeFilters?.query) terms.push(...activeFilters.query.split(/\s+/).filter(t => t.length > 1));
+    return [...new Set(terms)];
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
-      <div className="max-w-7xl mx-auto p-6 md:p-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>
-              Monitor de <span style={{ fontWeight: 600 }}>Diários Oficiais</span>
-            </h1>
-            <p style={{ marginTop: 4, color: 'var(--text-secondary)', fontSize: 13 }}>
-              Acompanhamento inteligente de publicações com IA
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+    <AppPage>
+      <PageHeader
+        title="Monitor de Diários"
+        subtitle="Monitoramento inteligente de publicações oficiais"
+        icon={Newspaper}
+        actions={
+          <div style={{ display: "flex", gap: 8 }}>
+            <AppButton
+              variant={showAdvSearch ? "primary" : "secondary"}
+              icon={SlidersHorizontal}
+              onClick={() => setShowAdvSearch(!showAdvSearch)}
             >
-              <Filter className="w-4 h-4 mr-2" />
               Filtros
-            </Button>
-            <Button
-              variant={showMonitoringDashboard ? "default" : "outline"}
-              onClick={() => setShowMonitoringDashboard(!showMonitoringDashboard)}
+            </AppButton>
+            <AppButton
+              variant={showMonitoring ? "primary" : "secondary"}
+              icon={Bell}
+              onClick={() => setShowMonitoring(!showMonitoring)}
             >
-              <Bell className="w-4 h-4 mr-2" />
-              Monitoramentos
-            </Button>
+              Alertas
+            </AppButton>
+            <AppButton
+              variant="primary"
+              icon={Plus}
+              onClick={() => {}}
+            >
+              Adicionar Publicação
+            </AppButton>
           </div>
-        </div>
+        }
+      />
 
-        {/* Unified Search & Analyzer Panel */}
-        <div className="mb-6">
-          <DiarySearchAnalyzer
-            isDark={isDark}
+      {/* KPIs */}
+      <KPIGrid cols={4}>
+        <StatCard icon={FileText}     label="Total"     value={stats.total}   sub="publicações"    color="var(--accent)"  loading={isLoading} />
+        <StatCard icon={Eye}          label="Não Lidas" value={stats.unread}  sub="pendentes"      color="var(--warning)" loading={isLoading} />
+        <StatCard icon={Star}         label="Favoritas" value={stats.starred} sub="marcadas"       color="var(--yellow)"  loading={isLoading} />
+        <StatCard icon={Clock}        label="Hoje"      value={stats.today}   sub="novas hoje"     color="var(--success)" loading={isLoading} />
+      </KPIGrid>
+
+      <AppContent style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+        {/* Analyzer */}
+        <DiarySearchAnalyzer
+          isDark={false}
+          monitorings={monitorings}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["diary-publications"] })}
+        />
+
+        {/* Monitoring panel */}
+        {showMonitoring && (
+          <MonitoringDashboard
+            isDark={false}
             monitorings={monitorings}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ['diary-publications'] });
-            }}
+            publications={publications}
+            clients={clients}
+            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["diary-monitorings"] })}
           />
-        </div>
-
-        {/* Monitoring Dashboard Panel */}
-        {showMonitoringDashboard && (
-          <div className="mb-6">
-            <MonitoringDashboard
-              isDark={isDark}
-              monitorings={monitorings}
-              publications={publications}
-              clients={clients}
-              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['diary-monitorings'] })}
-            />
-          </div>
         )}
 
-        {/* Advanced Search Panel */}
-        {showAdvancedSearch && (
+        {/* Advanced Search */}
+        {showAdvSearch && (
           <AdvancedSearch
-            isDark={isDark}
+            isDark={false}
             publications={publications}
-            onSearch={(results) => setFilteredResults(results)}
+            onSearch={setFilteredResults}
             activeFilters={activeFilters}
             setActiveFilters={setActiveFilters}
           />
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
-            { label: "Total", value: stats.total, icon: Newspaper, iconColor: 'var(--info)' },
-            { label: "Não Lidas", value: stats.unread, icon: Eye, iconColor: 'var(--warn)' },
-            { label: "Urgentes", value: stats.urgent, icon: AlertTriangle, iconColor: 'var(--danger)' },
-            { label: "Favoritas", value: stats.starred, icon: Star, iconColor: 'var(--accent)' }
-          ].map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={i}
-                style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}
-              >
-                <div className="flex items-center gap-3">
-                  <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)' }}>
-                    <Icon className="w-5 h-5" style={{ color: stat.iconColor }} />
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>{stat.value}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{stat.label}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* Filters bar */}
+        <AppCard noPad>
+          <div style={{ padding: "14px 20px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+            <SearchBar
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar por título, processo, partes..."
+              style={{ flex: 1, minWidth: 200 }}
+            />
 
-        {/* Filters */}
-        <div style={{ padding: 16, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginBottom: 24, background: 'var(--main-bg)' }}>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-              <Input
-                placeholder="Buscar por título, conteúdo ou número do processo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {Object.entries(categoryLabels).map(([key, val]) => (
-                    <SelectItem key={key} value={key}>{val.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Select value={selectedCat} onValueChange={setSelectedCat}>
+              <SelectTrigger style={{ width: 150, minHeight: 38, fontSize: 13 }}>
+                <SelectValue placeholder="Todas Fontes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Fontes</SelectItem>
+                {Object.entries(categoryLabels).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              <Select value={selectedUrgency} onValueChange={setSelectedUrgency}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Urgência" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="alta">Urgente</SelectItem>
-                  <SelectItem value="media">Média</SelectItem>
-                  <SelectItem value="baixa">Baixa</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select value={selectedCat} onValueChange={setSelectedCat}>
+              <SelectTrigger style={{ width: 150, minHeight: 38, fontSize: 13 }}>
+                <SelectValue placeholder="Todas Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Categoria</SelectItem>
+                {Object.entries(categoryLabels).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              <Button
-                variant={showUnreadOnly ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowUnreadOnly(!showUnreadOnly)}
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                Não lidas
-              </Button>
+            <Select value={selectedUrgency} onValueChange={setSelectedUrgency}>
+              <SelectTrigger style={{ width: 130, minHeight: 38, fontSize: 13 }}>
+                <SelectValue placeholder="Todas Áreas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Áreas</SelectItem>
+                <SelectItem value="alta">Urgente</SelectItem>
+                <SelectItem value="media">Média</SelectItem>
+                <SelectItem value="baixa">Baixa</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Button
-                variant={showStarredOnly ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowStarredOnly(!showStarredOnly)}
-              >
-                <Star className="w-4 h-4 mr-1" />
-                Favoritas
-              </Button>
-            </div>
+            <Select value={showUnreadOnly ? "unread" : showStarredOnly ? "starred" : "all"} onValueChange={v => {
+              setShowUnreadOnly(v === "unread");
+              setShowStarredOnly(v === "starred");
+            }}>
+              <SelectTrigger style={{ width: 110, minHeight: 38, fontSize: 13 }}>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="unread">Não lidos</SelectItem>
+                <SelectItem value="starred">Favoritos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
+        </AppCard>
 
-        {/* Publications List - Accordion Style */}
-        <div className="space-y-3">
-          {loadingPubs ? (
-            Array(5).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-32 rounded-xl" />
+        {/* Publications list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {isLoading ? (
+            Array(4).fill(0).map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 80, borderRadius: "var(--r-lg)" }} />
             ))
-          ) : filteredPublications.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '64px 0', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--main-bg)' }}>
-              <Newspaper className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--border)' }} />
-              <h3 style={{ fontSize: 16, fontWeight: 500, marginBottom: 8, color: 'var(--text-primary)' }}>
-                Nenhuma publicação encontrada
-              </h3>
-              <p style={{ fontSize: 13, marginBottom: 16, color: 'var(--text-secondary)' }}>
-                Analise um diário oficial para começar
-              </p>
-              <Button onClick={() => setShowAnalyzer(true)} className="gap-2">
-                <Sparkles className="w-4 h-4" />
-                Analisar Diário
-              </Button>
-            </div>
+          ) : filtered.length === 0 ? (
+            <AppCard>
+              <EmptyState
+                icon={Newspaper}
+                title="Nenhuma publicação encontrada"
+                description="Adicione publicações para começar o monitoramento"
+              />
+            </AppCard>
           ) : (
             <AnimatePresence>
-              {filteredPublications.map((pub, index) => (
+              {filtered.map((pub, index) => (
                 <PublicationAccordion
                   key={pub.id}
                   publication={pub}
-                  isDark={isDark}
+                  isDark={false}
                   categoryLabels={categoryLabels}
                   urgencyConfig={urgencyConfig}
-                  isExpanded={expandedPubId === pub.id}
-                  onToggleExpand={() => setExpandedPubId(expandedPubId === pub.id ? null : pub.id)}
+                  isExpanded={expandedId === pub.id}
+                  onToggleExpand={() => setExpandedId(expandedId === pub.id ? null : pub.id)}
                   onToggleStar={() => toggleStar(pub)}
                   onMarkAsRead={() => markAsRead(pub)}
-                  onViewDetails={() => {
-                    setSelectedPublication(pub);
-                    setShowDetailsModal(true);
-                  }}
-                  searchTerms={getActiveSearchTerms()}
+                  onViewDetails={() => { setSelectedPub(pub); setShowDetails(true); }}
+                  searchTerms={getSearchTerms()}
                   index={index}
                 />
               ))}
             </AnimatePresence>
           )}
         </div>
-      </div>
+      </AppContent>
 
-      {/* Diary Analyzer Modal - Removed, now integrated */}
-
-      {/* MonitoringSetup removed - now using MonitoringDashboard inline */}
-
-      {/* Publication Details Modal */}
-      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Detalhes da Publicação
-            </DialogTitle>
-          </DialogHeader>
-          {selectedPublication && (
+      {/* Details modal */}
+      <AppModal open={showDetails} onOpenChange={setShowDetails} size="lg">
+        <AppModal.Header title="Detalhes da Publicação" onClose={() => setShowDetails(false)} />
+        <AppModal.Body>
+          {selectedPub && (
             <PublicationDetails
-              publication={selectedPublication}
-              isDark={isDark}
+              publication={selectedPub}
+              isDark={false}
               categoryLabels={categoryLabels}
               urgencyConfig={urgencyConfig}
-              onClose={() => setShowDetailsModal(false)}
-              onToggleStar={() => toggleStar(selectedPublication)}
+              onClose={() => setShowDetails(false)}
+              onToggleStar={() => toggleStar(selectedPub)}
               isModal
             />
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
+        </AppModal.Body>
+      </AppModal>
+    </AppPage>
   );
 }

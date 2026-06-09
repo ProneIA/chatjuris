@@ -95,8 +95,8 @@ export default function Settings() {
   const ToggleRow = ({ label, sub, pref }) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid var(--border)" }}>
       <div>
-        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "2px 0 0" }}>{sub}</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-1)", margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 12, color: "var(--text-2)", margin: "2px 0 0" }}>{sub}</p>
       </div>
       <Switch
         checked={preferences[pref]}
@@ -122,13 +122,13 @@ export default function Settings() {
               <SectionHeader title="Informações do Perfil" subtitle="Seus dados pessoais" />
               <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 8 }}>
                 <div>
-                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Nome Completo</Label>
+                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, display: "block" }}>Nome Completo</Label>
                   {editingName ? (
                     <div style={{ display: "flex", gap: 8 }}>
                       <input
                         value={newName}
                         onChange={e => setNewName(e.target.value)}
-                        style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-primary)" }}
+                        style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-1)" }}
                         placeholder="Digite seu nome"
                       />
                       <button onClick={handleSaveName} disabled={loading} className="btn-primary" style={{ padding: "0 12px" }}>
@@ -140,7 +140,7 @@ export default function Settings() {
                     </div>
                   ) : (
                     <div style={{ display: "flex", gap: 8 }}>
-                      <input value={user?.full_name || ""} disabled style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-primary)", background: "var(--bg)" }} />
+                      <input value={user?.full_name || ""} disabled style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-1)", background: "var(--bg)" }} />
                       <button onClick={() => setEditingName(true)} className="btn-outline" style={{ padding: "0 12px" }}>
                         <Pencil style={{ width: 14, height: 14 }} />
                       </button>
@@ -148,12 +148,12 @@ export default function Settings() {
                   )}
                 </div>
                 <div>
-                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Email</Label>
-                  <input type="email" value={user?.email || ""} disabled style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-primary)", background: "var(--bg)" }} />
+                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, display: "block" }}>Email</Label>
+                  <input type="email" value={user?.email || ""} disabled style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-1)", background: "var(--bg)" }} />
                 </div>
                 <div>
-                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>Função</Label>
-                  <input value={user?.role === "admin" ? "Administrador" : "Usuário"} disabled style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-primary)", background: "var(--bg)" }} />
+                  <Label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, display: "block" }}>Função</Label>
+                  <input value={user?.role === "admin" ? "Administrador" : "Usuário"} disabled style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 10, fontSize: 14, fontFamily: "var(--font-body)", color: "var(--text-1)", background: "var(--bg)" }} />
                 </div>
               </div>
             </AppCard>
@@ -176,14 +176,14 @@ export default function Settings() {
             <AppCard>
               <SectionHeader title="Preferências de Aparência" subtitle="Personalize a interface do sistema" />
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>Tema</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 8 }}>Tema</p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[{ value: "light", label: "Claro", sub: "Padrão" }, { value: "dark", label: "Escuro", sub: "Em breve" }].map(t => (
                     <button key={t.value} onClick={() => setPreferences(p => ({ ...p, theme: t.value }))}
                       style={{ padding: "16px", borderRadius: 12, border: `2px solid ${preferences.theme === t.value ? "var(--accent)" : "var(--border)"}`, background: preferences.theme === t.value ? "var(--accent-light)" : "var(--card)", cursor: "pointer", textAlign: "left", transition: "all 0.15s ease" }}
                     >
-                      <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 2px" }}>{t.label}</p>
-                      <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>{t.sub}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", margin: "0 0 2px" }}>{t.label}</p>
+                      <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>{t.sub}</p>
                     </button>
                   ))}
                 </div>
@@ -202,12 +202,12 @@ export default function Settings() {
               <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8, opacity: preferences.keyboard_shortcuts_enabled ? 1 : 0.4, pointerEvents: preferences.keyboard_shortcuts_enabled ? "all" : "none" }}>
                 {shortcuts.map((s, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", border: "1px solid var(--border)", borderRadius: 10, background: "var(--bg)" }}>
-                    <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{s.action}</span>
+                    <span style={{ fontSize: 13, color: "var(--text-2)" }}>{s.action}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       {s.keys.map((k, j) => (
                         <React.Fragment key={j}>
-                          <kbd style={{ padding: "2px 8px", fontSize: 11, fontWeight: 600, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-primary)", fontFamily: "var(--font-mono)" }}>{k}</kbd>
-                          {j < s.keys.length - 1 && <span style={{ color: "var(--text-muted)", fontSize: 11 }}>+</span>}
+                          <kbd style={{ padding: "2px 8px", fontSize: 11, fontWeight: 600, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-1)", fontFamily: "var(--font-mono)" }}>{k}</kbd>
+                          {j < s.keys.length - 1 && <span style={{ color: "var(--text-3)", fontSize: 11 }}>+</span>}
                         </React.Fragment>
                       ))}
                     </div>
@@ -215,8 +215,8 @@ export default function Settings() {
                 ))}
               </div>
               <div style={{ marginTop: 16, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10 }}>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
-                  <strong style={{ color: "var(--text-primary)" }}>Dica:</strong> Pressione{" "}
+                <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>
+                  <strong style={{ color: "var(--text-1)" }}>Dica:</strong> Pressione{" "}
                   <kbd style={{ padding: "2px 6px", fontSize: 11, background: "var(--card)", border: "1px solid var(--border)", borderRadius: 4 }}>?</kbd>{" "}
                   em qualquer página para ver os atalhos disponíveis.
                 </p>
@@ -229,7 +229,7 @@ export default function Settings() {
           <AppTabPanel value="privacy">
             <AppCard>
               <SectionHeader title="Privacidade e LGPD" subtitle="Gerencie seus dados pessoais e consentimentos" />
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, margin: "8px 0 16px" }}>
+              <p style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.7, margin: "8px 0 16px" }}>
                 Seus dados são protegidos conforme a Lei Geral de Proteção de Dados Pessoais (LGPD). Você tem direitos sobre seus dados pessoais, incluindo acesso, correção e exclusão.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -245,8 +245,8 @@ export default function Settings() {
                 </Link>
               </div>
               <div style={{ marginTop: 16, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10 }}>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
-                  <strong style={{ color: "var(--text-primary)" }}>Encarregado de Dados (DPO):</strong> dpo@juris.app
+                <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>
+                  <strong style={{ color: "var(--text-1)" }}>Encarregado de Dados (DPO):</strong> dpo@juris.app
                 </p>
               </div>
             </AppCard>

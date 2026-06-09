@@ -48,17 +48,16 @@
   --ease: cubic-bezier(0.4,0,0.2,1);
   --spring: cubic-bezier(0.34,1.56,0.64,1);
 
-  /* shadcn tokens — NÃO REMOVER */
+  /* shadcn tokens — NÃO REMOVER (mantém compatibilidade com componentes shadcn) */
   --background: 0 0% 100%; --foreground: 222 47% 11%;
-  --card: 0 0% 100%; --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%; --popover-foreground: 222 47% 11%;
   --primary: 217 91% 60%; --primary-foreground: 0 0% 100%;
   --secondary: 210 40% 96%; --secondary-foreground: 222 47% 11%;
   --muted: 210 40% 96%; --muted-foreground: 215 16% 47%;
-  --accent: 217 91% 60%; --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%; --destructive-foreground: 0 0% 100%;
-  --border: 214 32% 91%; --input: 214 32% 91%; --ring: 217 91% 60%;
+  --input: 214 32% 91%; --ring: 217 91% 60%;
   --radius: 0.625rem;
+  /* NOTE: --card, --border, --accent são definidos acima como hex e prevalecem */
 
   /* backward compat aliases */
   --text-primary:   #0F172A;

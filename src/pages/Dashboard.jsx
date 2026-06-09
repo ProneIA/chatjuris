@@ -21,14 +21,14 @@ function getGreeting() {
 }
 
 function getTaskUrgency(task) {
-  if (!task.due_date) return { label: "Sem prazo", color: "var(--text-muted)", variant: "neutral" };
+  if (!task.due_date) return { label: "Sem prazo", color: "var(--text-3)", variant: "neutral" };
   const d = new Date(task.due_date);
   if (isPast(d) && !isToday(d)) return { label: "Atrasado", color: "var(--danger)",  variant: "danger"  };
   if (isToday(d))                return { label: "Hoje",    color: "var(--danger)",  variant: "danger"  };
   if (isTomorrow(d))             return { label: "Amanhã",  color: "var(--warning)", variant: "warning" };
   const days = differenceInDays(d, new Date());
   if (days <= 7) return { label: `${days}d`, color: "var(--warning)", variant: "warning" };
-  return { label: format(d, "dd/MM"), color: "var(--text-muted)", variant: "neutral" };
+  return { label: format(d, "dd/MM"), color: "var(--text-3)", variant: "neutral" };
 }
 
 const STATUS_MAP = {
@@ -118,8 +118,8 @@ const Dashboard = memo(function Dashboard() {
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: `${action.color}14`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
                     <action.icon style={{ width: 19, height: 19, color: action.color, strokeWidth: 1.75 }} />
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{action.title}</p>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{action.sub}</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{action.title}</p>
+                  <p style={{ fontSize: 11, color: "var(--text-2)", margin: 0 }}>{action.sub}</p>
                 </div>
               </Link>
             ))}
@@ -136,7 +136,7 @@ const Dashboard = memo(function Dashboard() {
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(239,68,68,0.10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Clock style={{ width: 14, height: 14, color: "var(--danger)", strokeWidth: 2 }} />
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>Prazos & Tarefas</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.01em" }}>Prazos & Tarefas</span>
                 {urgentTasks > 0 && <AppBadge variant="danger">{urgentTasks} urgente{urgentTasks > 1 ? "s" : ""}</AppBadge>}
               </div>
               <Link to={createPageUrl("Tasks")} style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, fontWeight: 500 }}>
@@ -150,8 +150,8 @@ const Dashboard = memo(function Dashboard() {
             ) : upcomingTasks.length === 0 ? (
               <div style={{ padding: "40px 20px", textAlign: "center" }}>
                 <CheckCircle2 style={{ width: 32, height: 32, color: "var(--success)", margin: "0 auto 12px", opacity: 0.6 }} />
-                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 4px" }}>Em dia!</p>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>Nenhuma tarefa pendente</p>
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-1)", margin: "0 0 4px" }}>Em dia!</p>
+                <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>Nenhuma tarefa pendente</p>
               </div>
             ) : upcomingTasks.map((task, i) => {
               const urg = getTaskUrgency(task);
@@ -161,7 +161,7 @@ const Dashboard = memo(function Dashboard() {
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                 >
                   <div style={{ width: 3, height: 32, background: urg.color, borderRadius: 2, flexShrink: 0 }} />
-                  <p style={{ flex: 1, fontSize: 13, color: "var(--text-primary)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500, letterSpacing: "-0.01em" }}>
+                  <p style={{ flex: 1, fontSize: 13, color: "var(--text-1)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500, letterSpacing: "-0.01em" }}>
                     {task.title}
                   </p>
                   <AppBadge variant={urg.variant}>{urg.label}</AppBadge>
@@ -177,7 +177,7 @@ const Dashboard = memo(function Dashboard() {
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(37,99,235,0.10)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <FolderOpen style={{ width: 14, height: 14, color: "var(--accent)", strokeWidth: 2 }} />
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>Processos Recentes</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", letterSpacing: "-0.01em" }}>Processos Recentes</span>
               </div>
               <Link to={createPageUrl("Cases")} style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 4, fontWeight: 500 }}>
                 Ver todos <ArrowRight style={{ width: 13, height: 13 }} />
@@ -189,9 +189,9 @@ const Dashboard = memo(function Dashboard() {
               </div>
             ) : recentCases.length === 0 ? (
               <div style={{ padding: "40px 20px", textAlign: "center" }}>
-                <FolderOpen style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 4px" }}>Sem processos</p>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 16px" }}>Nenhum processo cadastrado ainda</p>
+                <FolderOpen style={{ width: 32, height: 32, color: "var(--text-3)", margin: "0 auto 12px" }} />
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-1)", margin: "0 0 4px" }}>Sem processos</p>
+                <p style={{ fontSize: 12, color: "var(--text-2)", margin: "0 0 16px" }}>Nenhum processo cadastrado ainda</p>
                 <Link to={createPageUrl("Cases")} className="btn-accent" style={{ textDecoration: "none" }}>+ Criar processo</Link>
               </div>
             ) : recentCases.map((c, i) => {
@@ -202,12 +202,12 @@ const Dashboard = memo(function Dashboard() {
                     onMouseEnter={e => e.currentTarget.style.background = "var(--bg)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", flexShrink: 0, fontFamily: "var(--font-mono)" }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, color: "var(--text-2)", flexShrink: 0, fontFamily: "var(--font-mono)" }}>
                       {String(i + 1).padStart(2, "0")}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{c.title}</p>
-                      <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "2px 0 0" }}>{c.client_name}</p>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-1)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{c.title}</p>
+                      <p style={{ fontSize: 12, color: "var(--text-2)", margin: "2px 0 0" }}>{c.client_name}</p>
                     </div>
                     <AppBadge variant={s.variant}>{s.label}</AppBadge>
                   </div>
@@ -226,8 +226,8 @@ const Dashboard = memo(function Dashboard() {
           ].map((item, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10 }}>
               <span style={{ fontSize: 13 }}>{item.icon}</span>
-              <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{item.label}:</span>
-              <span style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 500 }}>{item.value}</span>
+              <span style={{ fontSize: 12, color: "var(--text-2)" }}>{item.label}:</span>
+              <span style={{ fontSize: 12, color: "var(--text-1)", fontWeight: 500 }}>{item.value}</span>
             </div>
           ))}
         </div>
