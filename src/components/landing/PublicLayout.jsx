@@ -1,45 +1,70 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-// Re-exportado para compatibilidade com páginas que ainda o importam
-export const SITE_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  .fu { opacity: 0; transform: translateY(2rem); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
-  .fi { opacity: 0; transition: opacity 1.2s ease; }
-  .fu.v, .fi.v { opacity: 1; transform: translateY(0); }
-  .d1 { transition-delay: 80ms; } .d2 { transition-delay: 160ms; } .d3 { transition-delay: 240ms; } .d4 { transition-delay: 320ms; }
-  .D { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
-  .lbl { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 600; color: rgba(0,0,0,.4); letter-spacing: .08em; text-transform: uppercase; }
-  .outline-w { -webkit-text-stroke: 2px #fff; color: transparent; }
-  .grid-bg { background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px); background-size: 60px 60px; }
-  .pillar { border: 1.5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.02); border-radius: 4px; padding: 2.5rem; transition: all .35s ease; cursor: default; }
-  .pillar:hover { background: #C9A84C; border-color: #C9A84C; }
-  .p-num { font-size:3rem; font-weight:800; color:rgba(255,255,255,.1); line-height:1; margin-bottom:.5rem; transition:color .3s; }
-  .p-title { font-size:1rem; font-weight:700; color:#fff; margin-bottom:.6rem; }
-  .p-txt { font-size:.875rem; color:rgba(255,255,255,.45); line-height:1.7; transition:color .3s; }
-  .pillar:hover .p-num, .pillar:hover .p-txt { color:rgba(255,255,255,.85); }
-  .btn-white { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 2rem; background:#fff; color:#111; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:.9rem; border:none; cursor:pointer; border-radius:0; text-decoration:none; transition:opacity .2s; }
-  .btn-white:hover { opacity:.9; }
-  .btn-gold { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 2rem; background:var(--ink); color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:.9rem; border:none; cursor:pointer; border-radius:0; text-decoration:none; transition:background .2s; }
-  .btn-gold:hover { background:var(--ink-2); }
-  .btn-outline-w { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 2rem; background:transparent; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:.9rem; border:1.5px solid rgba(255,255,255,.4); cursor:pointer; border-radius:0; text-decoration:none; transition:background .2s; }
-  .btn-outline-w:hover { background:rgba(255,255,255,.1); }
-  .btn-outline-gold { display:inline-flex; align-items:center; gap:.5rem; padding:.75rem 1.5rem; background:var(--ink); color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:.875rem; border:1px solid var(--ink); cursor:pointer; border-radius:0; text-decoration:none; transition:background .2s; }
-  .btn-outline-gold:hover { background:var(--ink-2); }
-  :root { --gold: var(--warn); }
-  .sticky-panel { height: 100vh !important; }
-  @media(max-width:1023px){ .sticky-panel{ position:relative !important; height:60vw !important; } }
-`;
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   Menu, X, Scale, FileText, Search, DollarSign,
-  MessageCircle, Users, Star, ArrowRight, CheckCircle, Zap
+  MessageCircle, Users, Star, ArrowRight, CheckCircle, Zap,
 } from "lucide-react";
 
-const LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/render/image/public/base44-prod/public/690e408daf48e0f633c6cf3a/5c0116596_LOGO2.png";
+export const SITE_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  :root {
+    --navy: #0B1120; --navy2: #141E35; --navy3: #1E2D4A;
+    --accent: #3B82F6; --accent2: #2563EB;
+    --white: #ffffff; --gray: #F1F5F9; --text: #0F172A; --text2: #475569; --text3: #94A3B8;
+    --border: #E2E8F0; --r: 12px;
+    --sh: 0 4px 24px rgba(0,0,0,.08);
+  }
+
+  @keyframes pulseBlue { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  .fu { opacity:0; transform:translateY(20px); transition:opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
+  .fu.v { opacity:1; transform:translateY(0); }
+  .d1{transition-delay:80ms} .d2{transition-delay:160ms} .d3{transition-delay:240ms} .d4{transition-delay:320ms}
+
+  .grid-dots {
+    background-image: radial-gradient(circle, rgba(255,255,255,.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .lp-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:13px 28px; border-radius:8px; font-family:'Inter',sans-serif;
+    font-size:15px; font-weight:600; cursor:pointer; border:none;
+    text-decoration:none; transition:all .2s ease; white-space:nowrap; min-height:unset;
+  }
+  .lp-btn-primary { background:var(--accent); color:#fff; box-shadow:0 2px 8px rgba(59,130,246,.4); }
+  .lp-btn-primary:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 6px 20px rgba(59,130,246,.4); }
+  .lp-btn-outline { background:rgba(255,255,255,.08); color:#fff; border:1.5px solid rgba(255,255,255,.2); }
+  .lp-btn-outline:hover { background:rgba(255,255,255,.14); }
+  .lp-btn-dark { background:var(--navy); color:#fff; }
+  .lp-btn-dark:hover { background:var(--navy2); transform:translateY(-1px); box-shadow:var(--sh); }
+
+  .feature-card {
+    background:#fff; border:1px solid var(--border); border-radius:var(--r);
+    padding:28px; transition:all .25s ease;
+  }
+  .feature-card:hover { box-shadow:0 8px 32px rgba(0,0,0,.1); transform:translateY(-3px); border-color:rgba(59,130,246,.3); }
+
+  .pricing-card {
+    background:#fff; border:1.5px solid var(--border); border-radius:16px;
+    padding:32px; transition:all .25s ease; position:relative;
+  }
+  .pricing-card.featured { border-color:var(--accent); box-shadow:0 0 0 4px rgba(59,130,246,.08); }
+  .pricing-card:hover { box-shadow:0 12px 40px rgba(0,0,0,.1); }
+
+  .stat-num { font-family:'Syne',sans-serif; font-size:42px; font-weight:800; color:#fff; letter-spacing:-0.04em; line-height:1; }
+  .stat-label { font-size:14px; color:rgba(255,255,255,.5); margin-top:6px; }
+
+  @media(max-width:767px){ .hide-mobile-nav{display:none!important} }
+  @media(min-width:768px){ .show-mobile-nav{display:none!important} }
+`;
 
 /* ─── NAVBAR ─────────────────────────────────────────────── */
 export function SiteNav() {
@@ -64,65 +89,48 @@ export function SiteNav() {
     <>
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "var(--white)",
-        borderBottom: `1px solid ${scrolled ? "var(--ink-6)" : "transparent"}`,
-        transition: "border-color 0.2s",
-        padding: "0 5%",
-        height: 56,
+        background: scrolled ? "rgba(11,17,32,.95)" : "transparent",
+        backdropFilter: scrolled ? "blur(16px)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(255,255,255,.08)" : "none",
+        padding: "0 6%", height: 60,
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        fontFamily: "var(--font-sans)",
+        transition: "all .3s ease",
+        fontFamily: "'Inter', system-ui, sans-serif",
       }}>
-        {/* Logo text */}
-        <Link to={createPageUrl("LandingPage")} style={{ display: "flex", alignItems: "center", textDecoration: "none", gap: 8 }}>
-          <span style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontStyle: "italic", fontWeight: 700, fontSize: 20,
-            color: "var(--ink)", letterSpacing: "-0.01em", lineHeight: 1.2,
-          }}>
-            Juris<span style={{ fontStyle: "normal", fontFamily: "var(--font-sans)", fontWeight: 600 }}>.IA</span>
+        {/* Logo */}
+        <Link to={createPageUrl("LandingPage")} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <div style={{ width: 30, height: 30, borderRadius: 7, background: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Scale size={16} color="#fff" />
+          </div>
+          <span style={{ fontFamily: "'Syne', 'Inter', sans-serif", fontWeight: 800, fontSize: 18, color: "#fff", letterSpacing: "-0.03em" }}>
+            Juris<span style={{ color: "#3B82F6" }}>.IA</span>
           </span>
         </Link>
 
         {/* Desktop Links */}
-        <div style={{ display: "flex", alignItems: "center", gap: 32, position: "absolute", left: "50%", transform: "translateX(-50%)" }}
-          className="hide-mobile-nav">
+        <div style={{ display: "flex", alignItems: "center", gap: 32, position: "absolute", left: "50%", transform: "translateX(-50%)" }} className="hide-mobile-nav">
           {navLinks.map(({ label, to }) => (
-            <Link key={label} to={to} style={{
-              color: "var(--ink-3)", fontSize: 13, fontWeight: 400, textDecoration: "none",
-              fontFamily: "var(--font-sans)", transition: "color var(--duration)",
-            }}
-              onMouseEnter={e => e.target.style.color = "var(--ink)"}
-              onMouseLeave={e => e.target.style.color = "var(--ink-3)"}
+            <Link key={label} to={to} style={{ color: "rgba(255,255,255,.65)", fontSize: 14, fontWeight: 400, textDecoration: "none", transition: "color .2s" }}
+              onMouseEnter={e => e.target.style.color = "#fff"}
+              onMouseLeave={e => e.target.style.color = "rgba(255,255,255,.65)"}
             >{label}</Link>
           ))}
         </div>
 
         {/* Desktop CTAs */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }} className="hide-mobile-nav">
-          <button onClick={login} style={{
-            background: "none", border: "none", cursor: "pointer",
-            fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 400, color: "var(--ink-3)",
-            padding: "8px 16px", transition: "color var(--duration)",
-          }}
-            onMouseEnter={e => e.currentTarget.style.color = "var(--ink)"}
-            onMouseLeave={e => e.currentTarget.style.color = "var(--ink-3)"}
+          <button onClick={login} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,.65)", fontSize: 14, padding: "8px 16px", transition: "color .2s", minHeight: "unset" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,.65)"}
           >Entrar</button>
-          <button onClick={login} style={{
-            background: "var(--ink)", color: "var(--white)", border: "none", cursor: "pointer",
-            fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
-            padding: "9px 20px", borderRadius: 0,
-            transition: "background var(--duration)",
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = "var(--ink-2)"}
-            onMouseLeave={e => e.currentTarget.style.background = "var(--ink)"}
-          >Começar grátis</button>
+          <button onClick={login} className="lp-btn lp-btn-primary" style={{ padding: "9px 20px", fontSize: 14 }}>
+            Começar grátis
+          </button>
         </div>
 
         {/* Mobile hamburger */}
-        <button onClick={() => setOpen(!open)} className="show-mobile-nav" style={{
-          background: "none", border: "none", cursor: "pointer", padding: 8, color: "var(--ink)",
-        }}>
-          {open ? <X size={20} /> : <Menu size={20} />}
+        <button onClick={() => setOpen(!open)} className="show-mobile-nav" style={{ background: "none", border: "none", cursor: "pointer", padding: 8, color: "#fff", minHeight: "unset" }}>
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </nav>
 
@@ -130,35 +138,19 @@ export function SiteNav() {
       {open && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 99,
-          background: "var(--white)",
-          borderTop: "1px solid var(--ink-6)",
+          background: "#0B1120",
           display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center", gap: 24,
-          paddingTop: 56,
-          fontFamily: "var(--font-sans)",
+          paddingTop: 60,
+          fontFamily: "'Inter', system-ui, sans-serif",
         }}>
           {navLinks.map(({ label, to }) => (
-            <Link key={label} to={to} onClick={() => setOpen(false)} style={{
-              color: "var(--ink)", fontSize: "1.4rem", fontWeight: 600,
-              textDecoration: "none", fontFamily: "var(--font-sans)",
-            }}>{label}</Link>
+            <Link key={label} to={to} onClick={() => setOpen(false)} style={{ color: "#fff", fontSize: "1.4rem", fontWeight: 600, textDecoration: "none" }}>{label}</Link>
           ))}
-          <button onClick={login} style={{
-            color: "var(--ink-3)", background: "none", border: "none",
-            fontSize: "1rem", cursor: "pointer", fontFamily: "var(--font-sans)", fontWeight: 400,
-          }}>Entrar</button>
-          <button onClick={login} style={{
-            background: "var(--ink)", color: "var(--white)", border: "none", cursor: "pointer",
-            fontFamily: "var(--font-sans)", fontSize: "1rem", fontWeight: 500,
-            padding: "12px 32px", borderRadius: 0,
-          }}>Começar grátis</button>
+          <button onClick={login} style={{ color: "rgba(255,255,255,.6)", background: "none", border: "none", fontSize: "1rem", cursor: "pointer", minHeight: "unset" }}>Entrar</button>
+          <button onClick={login} className="lp-btn lp-btn-primary">Começar grátis</button>
         </div>
       )}
-
-      <style>{`
-        @media (max-width: 767px) { .hide-mobile-nav { display: none !important; } }
-        @media (min-width: 768px) { .show-mobile-nav { display: none !important; } }
-      `}</style>
     </>
   );
 }
@@ -179,44 +171,38 @@ export function SiteFooter() {
   };
 
   return (
-    <footer style={{ background: "var(--ink)", padding: "48px 5% 28px", fontFamily: "var(--font-sans)" }}>
+    <footer style={{ background: "#0B1120", padding: "48px 6% 28px", fontFamily: "'Inter', system-ui, sans-serif" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          gap: "3rem", marginBottom: "3rem",
-        }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "3rem", marginBottom: "3rem" }}>
           <div style={{ gridColumn: "span 2" }}>
-            <div style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontStyle: "italic", fontWeight: 700, fontSize: 20,
-              color: "var(--white)", marginBottom: "1rem", lineHeight: 1.2,
-            }}>
-              Juris<span style={{ fontStyle: "normal", fontFamily: "var(--font-sans)", fontWeight: 600 }}>.IA</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Scale size={14} color="#fff" />
+              </div>
+              <span style={{ fontFamily: "'Syne','Inter',sans-serif", fontWeight: 800, fontSize: 16, color: "#fff", letterSpacing: "-0.02em" }}>
+                Juris<span style={{ color: "#3B82F6" }}>.IA</span>
+              </span>
             </div>
-            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, lineHeight: 1.7, maxWidth: 260 }}>
+            <p style={{ color: "rgba(255,255,255,.35)", fontSize: 13, lineHeight: 1.7, maxWidth: 260 }}>
               A plataforma jurídica com inteligência artificial para advogados e escritórios modernos.
             </p>
           </div>
           {Object.entries(cols).map(([title, items]) => (
             <div key={title}>
-              <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "1.25rem" }}>{title}</p>
+              <p style={{ color: "rgba(255,255,255,.25)", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "1.25rem" }}>{title}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {items.map(({ label, to }) => (
-                  <Link key={label} to={createPageUrl(to)} style={{
-                    color: "rgba(255,255,255,0.4)", fontSize: 13, textDecoration: "none",
-                    transition: "color var(--duration)",
-                  }}
-                    onMouseEnter={e => e.target.style.color = "rgba(255,255,255,0.85)"}
-                    onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.4)"}
+                  <Link key={label} to={createPageUrl(to)} style={{ color: "rgba(255,255,255,.4)", fontSize: 13, textDecoration: "none", transition: "color .2s" }}
+                    onMouseEnter={e => e.target.style.color = "rgba(255,255,255,.85)"}
+                    onMouseLeave={e => e.target.style.color = "rgba(255,255,255,.4)"}
                   >{label}</Link>
                 ))}
               </div>
             </div>
           ))}
         </div>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.25rem", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, margin: 0 }}>© 2025 Juris.IA. Todos os direitos reservados.</p>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: "1.25rem", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ color: "rgba(255,255,255,.2)", fontSize: 11, margin: 0 }}>© 2025 Juris.IA. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
@@ -228,19 +214,19 @@ export default function LandingPageLayout() {
   const login = () => base44.auth.redirectToLogin(createPageUrl("Dashboard"));
 
   const features = [
-    { icon: Scale, title: "Gestão de Processos", desc: "Acompanhe todos os seus casos em um único painel, com prazos, movimentações e alertas automáticos." },
-    { icon: FileText, title: "Gerador de Peças com IA", desc: "Gere petições, contratos e documentos jurídicos em segundos com inteligência artificial especializada." },
-    { icon: Search, title: "Pesquisa Jurídica", desc: "Pesquise jurisprudência e legislação com precisão, em tribunais superiores e regionais." },
-    { icon: DollarSign, title: "Controle Financeiro", desc: "Controle honorários, despesas e fluxo de caixa do escritório com relatórios detalhados." },
-    { icon: MessageCircle, title: "WhatsApp Jurídico", desc: "Atendimento automatizado de clientes pelo WhatsApp com agente de IA configurável." },
-    { icon: Users, title: "Gestão de Equipe", desc: "Distribua tarefas, colabore em documentos e gerencie toda a equipe em tempo real." },
+    { icon: Scale,         title: "Gestão de Processos",    desc: "Acompanhe todos os seus casos em um único painel, com prazos, movimentações e alertas automáticos." },
+    { icon: FileText,      title: "Gerador de Peças com IA", desc: "Gere petições, contratos e documentos jurídicos em segundos com inteligência artificial especializada." },
+    { icon: Search,        title: "Pesquisa Jurídica",       desc: "Pesquise jurisprudência e legislação com precisão, em tribunais superiores e regionais." },
+    { icon: DollarSign,    title: "Controle Financeiro",     desc: "Controle honorários, despesas e fluxo de caixa do escritório com relatórios detalhados." },
+    { icon: MessageCircle, title: "WhatsApp Jurídico",       desc: "Atendimento automatizado de clientes pelo WhatsApp com agente de IA configurável." },
+    { icon: Users,         title: "Gestão de Equipe",        desc: "Distribua tarefas, colabore em documentos e gerencie toda a equipe em tempo real." },
   ];
 
   const metrics = [
     { value: "+500", label: "Advogados Ativos" },
     { value: "+10K", label: "Documentos Gerados" },
-    { value: "98%", label: "Satisfação" },
-    { value: "3×", label: "Mais Produtividade" },
+    { value: "98%",  label: "Satisfação" },
+    { value: "3×",   label: "Mais Produtividade" },
   ];
 
   const testimonials = [
@@ -250,83 +236,53 @@ export default function LandingPageLayout() {
   ];
 
   return (
-    <div style={{ fontFamily: "var(--font-sans)", background: "var(--surface)", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#F1F5F9", overflowX: "hidden" }}>
+      <style>{SITE_CSS}</style>
       <SiteNav />
 
-      {/* ── HERO ──────────────────────────────────── */}
+      {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section style={{
-        minHeight: "100vh",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "120px 5% 80px",
-        background: "var(--white)",
-        borderBottom: "1px solid var(--ink-6)",
-        textAlign: "center",
+        background: "#0B1120", minHeight: "100vh",
+        display: "flex", alignItems: "center",
+        position: "relative", overflow: "hidden", paddingTop: 60,
       }}>
-        <div style={{ maxWidth: 680, position: "relative" }}>
+        {/* Dots pattern */}
+        <div className="grid-dots" style={{ position: "absolute", inset: 0, opacity: .5 }} />
+        {/* Glow */}
+        <div style={{ position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)", width: 600, height: 600, background: "radial-gradient(circle, rgba(59,130,246,.15) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-          {/* Label */}
-          <p style={{
-            fontSize: 9, fontWeight: 600, letterSpacing: "0.12em",
-            textTransform: "uppercase", color: "var(--ink-4)",
-            marginBottom: 24, fontFamily: "var(--font-sans)",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          }}>
-            <Zap size={11} style={{ color: "var(--ink-4)" }} />
-            Plataforma Jurídica com IA
-          </p>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "80px 6%", textAlign: "center", position: "relative", zIndex: 1 }}>
+          {/* Pill badge */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59,130,246,.12)", border: "1px solid rgba(59,130,246,.3)", borderRadius: 99, padding: "6px 16px", marginBottom: 28 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6", animation: "pulseBlue 2s infinite" }} />
+            <span style={{ fontSize: 12.5, fontWeight: 500, color: "#93C5FD", letterSpacing: ".03em" }}>Software Jurídico com IA</span>
+          </div>
 
-          {/* Headline */}
-          <h1 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "clamp(2.2rem, 5vw, 3.75rem)",
-            fontWeight: 700, lineHeight: 1.12, margin: "0 0 24px",
-            letterSpacing: "-0.03em", color: "var(--ink)",
-          }}>
-            Advocacia mais inteligente.<br />
-            <span style={{ fontStyle: "italic", fontWeight: 400 }}>Resultados que impressionam.</span>
+          <h1 style={{ fontFamily: "'Syne','Inter',sans-serif", fontSize: "clamp(36px,6vw,68px)", fontWeight: 800, color: "#fff", lineHeight: 1.08, letterSpacing: "-0.04em", marginBottom: 24 }}>
+            Advocacia mais<br />
+            <span style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              inteligente
+            </span>
           </h1>
 
-          <p style={{
-            fontSize: "clamp(0.9rem, 1.8vw, 1.05rem)", color: "var(--ink-3)",
-            lineHeight: 1.7, margin: "0 auto 44px", maxWidth: 520,
-            fontFamily: "var(--font-sans)",
-          }}>
-            Gerencie processos, gere documentos com IA e pesquise jurisprudência — tudo em uma única plataforma.
+          <p style={{ fontSize: "clamp(15px,2vw,19px)", color: "rgba(255,255,255,.55)", maxWidth: 560, margin: "0 auto 40px", lineHeight: 1.7 }}>
+            IA para pesquisa jurídica, geração de peças, cálculos processuais e gestão do seu escritório.
           </p>
 
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={login} style={{
-              background: "var(--ink)", color: "var(--white)", border: "none", cursor: "pointer",
-              fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
-              padding: "12px 28px", borderRadius: 0,
-              display: "inline-flex", alignItems: "center", gap: 8,
-              transition: "background var(--duration)",
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--ink-2)"}
-              onMouseLeave={e => e.currentTarget.style.background = "var(--ink)"}
-            >
-              Começar grátis <ArrowRight size={14} />
+            <button onClick={login} className="lp-btn lp-btn-primary">
+              Começar 7 dias grátis <ArrowRight size={16} />
             </button>
-            <Link to={createPageUrl("Funcionalidades")} style={{
-              background: "transparent", color: "var(--ink-2)", textDecoration: "none",
-              fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 400,
-              padding: "11px 24px", borderRadius: 0,
-              border: "1px solid var(--ink-5)",
-              display: "inline-flex", alignItems: "center", gap: 8,
-              transition: "border-color var(--duration), color var(--duration)",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink-3)"; e.currentTarget.style.color = "var(--ink)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--ink-5)"; e.currentTarget.style.color = "var(--ink-2)"; }}
-            >
+            <Link to={createPageUrl("Funcionalidades")} className="lp-btn lp-btn-outline">
               Ver demonstração
             </Link>
           </div>
 
           {/* Trust indicators */}
           <div style={{ marginTop: 48, display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-            {["Sem cartão de crédito", "7 dias grátis", "Cancele quando quiser"].map((item, i) => (
-              <span key={item} style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--ink-4)", fontSize: 12 }}>
-                <CheckCircle size={12} color="var(--ok)" />
+            {["Sem cartão de crédito", "7 dias grátis", "Cancele quando quiser"].map(item => (
+              <span key={item} style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,.4)", fontSize: 12 }}>
+                <CheckCircle size={12} color="#22C55E" />
                 {item}
               </span>
             ))}
@@ -334,118 +290,65 @@ export default function LandingPageLayout() {
         </div>
       </section>
 
-      {/* ── MÉTRICAS ──────────────────────────────── */}
-      <section style={{ background: "var(--ink)", padding: "0 5%" }}>
+      {/* ── MÉTRICAS ──────────────────────────────────────────────────── */}
+      <section style={{ background: "#141E35", padding: "0 6%" }}>
         <div style={{
           maxWidth: 1100, margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          background: "rgba(255,255,255,0.04)",
-          gap: 1,
+          display: "grid", gridTemplateColumns: "repeat(4,1fr)",
         }}>
           {metrics.map(({ value, label }, i) => (
             <div key={label} style={{
-              padding: "40px 24px",
-              textAlign: "center",
-              borderRight: i < 3 ? "1px solid rgba(255,255,255,0.08)" : "none",
+              padding: "40px 24px", textAlign: "center",
+              borderRight: i < 3 ? "1px solid rgba(255,255,255,.06)" : "none",
             }}>
-              <div style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(2rem, 3.5vw, 2.75rem)", fontWeight: 600,
-                color: "var(--white)", lineHeight: 1, marginBottom: 8,
-                letterSpacing: "-0.03em",
-              }}>{value}</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                {label}
-              </div>
+              <div className="stat-num">{value}</div>
+              <div className="stat-label">{label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── FUNCIONALIDADES ───────────────────────── */}
-      <section style={{ padding: "80px 5%", background: "var(--surface)" }}>
+      {/* ── FUNCIONALIDADES ───────────────────────────────────────────── */}
+      <section style={{ padding: "80px 6%", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ marginBottom: 48 }}>
-            <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-4)", marginBottom: 12, fontFamily: "var(--font-sans)" }}>Funcionalidades</p>
-            <h2 style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(1.6rem, 3vw, 2.5rem)", fontWeight: 600,
-              color: "var(--ink)", margin: 0, maxWidth: 540, lineHeight: 1.2, letterSpacing: "-0.02em",
-            }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 12 }}>Funcionalidades</p>
+            <h2 style={{ fontFamily: "'Syne','Inter',sans-serif", fontSize: "clamp(1.6rem,3vw,2.5rem)", fontWeight: 800, color: "#0F172A", margin: 0, maxWidth: 540, lineHeight: 1.15, letterSpacing: "-0.03em" }}>
               Para cada desafio jurídico, uma solução inteligente
             </h2>
           </div>
-
-          {/* Grid with 1px gap (Dashboard style) */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 1, background: "var(--ink-6)",
-            border: "1px solid var(--ink-6)",
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 16 }}>
             {features.map(({ icon: Icon, title, desc }) => (
-              <div key={title} style={{
-                background: "var(--white)",
-                padding: "28px 24px",
-                transition: "background var(--duration)",
-                cursor: "default",
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--white)"}
-              >
-                <div style={{
-                  width: 36, height: 36,
-                  background: "var(--ink-7)", border: "1px solid var(--ink-6)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 16,
-                }}>
-                  <Icon size={16} color="var(--ink-3)" strokeWidth={1.5} />
+              <div key={title} className="feature-card">
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                  <Icon size={18} color="#3B82F6" strokeWidth={1.75} />
                 </div>
-                <h3 style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 8px", fontFamily: "var(--font-sans)" }}>{title}</h3>
-                <p style={{ fontSize: 12, color: "var(--ink-3)", lineHeight: 1.65, margin: 0, fontFamily: "var(--font-sans)" }}>{desc}</p>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: "#0F172A", margin: "0 0 8px" }}>{title}</h3>
+                <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.65, margin: 0 }}>{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── DEPOIMENTOS ───────────────────────────── */}
-      <section style={{ padding: "80px 5%", background: "var(--white)", borderTop: "1px solid var(--ink-6)", borderBottom: "1px solid var(--ink-6)" }}>
+      {/* ── DEPOIMENTOS ───────────────────────────────────────────────── */}
+      <section style={{ padding: "80px 6%", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ marginBottom: 48 }}>
-            <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--ink-4)", marginBottom: 12 }}>Depoimentos</p>
-            <h2 style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(1.6rem, 3vw, 2.5rem)", fontWeight: 600,
-              color: "var(--ink)", margin: 0, lineHeight: 1.2, letterSpacing: "-0.02em",
-            }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 12 }}>Depoimentos</p>
+            <h2 style={{ fontFamily: "'Syne','Inter',sans-serif", fontSize: "clamp(1.6rem,3vw,2.5rem)", fontWeight: 800, color: "#0F172A", margin: 0, lineHeight: 1.15, letterSpacing: "-0.03em" }}>
               O que nossos usuários dizem
             </h2>
           </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 1, background: "var(--ink-6)",
-            border: "1px solid var(--ink-6)",
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 16 }}>
             {testimonials.map(({ text, name }) => (
-              <div key={name} style={{
-                background: "var(--white)", padding: "28px 24px",
-                transition: "background var(--duration)",
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
-                onMouseLeave={e => e.currentTarget.style.background = "var(--white)"}
-              >
+              <div key={name} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 14, padding: "28px 24px" }}>
                 <div style={{ display: "flex", gap: 2, marginBottom: 16 }}>
-                  {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="var(--warn)" color="var(--warn)" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} size={13} fill="#EAB308" color="#EAB308" />)}
                 </div>
-                <p style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.7, margin: "0 0 20px", fontFamily: "var(--font-sans)", fontStyle: "italic" }}>
-                  "{text}"
-                </p>
-                <div style={{ borderTop: "1px solid var(--ink-6)", paddingTop: 14 }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px" }}>{name}</p>
+                <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.7, margin: "0 0 20px", fontStyle: "italic" }}>"{text}"</p>
+                <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 14 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", margin: 0 }}>{name}</p>
                 </div>
               </div>
             ))}
@@ -453,36 +356,19 @@ export default function LandingPageLayout() {
         </div>
       </section>
 
-      {/* ── CTA FINAL ─────────────────────────────── */}
-      <section style={{
-        padding: "80px 5%",
-        background: "var(--ink)",
-        textAlign: "center",
-        fontFamily: "var(--font-sans)",
-      }}>
-        <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 20 }}>Comece agora</p>
-          <h2 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "clamp(1.6rem, 3vw, 2.5rem)", fontWeight: 600,
-            color: "var(--white)", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-0.02em",
-          }}>
+      {/* ── CTA FINAL ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "80px 6%", background: "#0B1120", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 400, height: 400, background: "radial-gradient(circle,rgba(59,130,246,.12) 0%,transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 560, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: 20 }}>Comece agora</p>
+          <h2 style={{ fontFamily: "'Syne','Inter',sans-serif", fontSize: "clamp(1.6rem,3vw,2.5rem)", fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-0.03em" }}>
             Pronto para transformar seu escritório?
           </h2>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", margin: "0 0 36px", lineHeight: 1.7 }}>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,.45)", margin: "0 0 36px", lineHeight: 1.7 }}>
             Comece hoje mesmo com 7 dias de acesso completo. Sem cartão de crédito.
           </p>
-          <button onClick={login} style={{
-            background: "var(--white)", color: "var(--ink)", border: "none", cursor: "pointer",
-            fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500,
-            padding: "12px 32px", borderRadius: 0,
-            display: "inline-flex", alignItems: "center", gap: 8,
-            transition: "opacity var(--duration)",
-          }}
-            onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
-            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-          >
-            Começar agora — é grátis <ArrowRight size={14} />
+          <button onClick={login} className="lp-btn lp-btn-primary">
+            Começar agora — é grátis <ArrowRight size={16} />
           </button>
         </div>
       </section>
