@@ -8,18 +8,9 @@ import {
 } from "lucide-react";
 
 export const SITE_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; }
   html { scroll-behavior: smooth; }
   body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-
-  :root {
-    --navy: #0B1120; --navy2: #141E35; --navy3: #1E2D4A;
-    --accent: #3B82F6; --accent2: #2563EB;
-    --white: #ffffff; --gray: #F1F5F9; --text: #0F172A; --text2: #475569; --text3: #94A3B8;
-    --border: #E2E8F0; --r: 12px;
-    --sh: 0 4px 24px rgba(0,0,0,.08);
-  }
 
   @keyframes pulseBlue { 0%,100%{opacity:1} 50%{opacity:.4} }
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }

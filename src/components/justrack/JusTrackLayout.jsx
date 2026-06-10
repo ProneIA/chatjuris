@@ -24,10 +24,6 @@ function parseRelativeTime(dt) {
   return `há ${Math.floor(hrs / 24)}d`;
 }
 
-const FONTS = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-`;
-
 export default function JusTrackLayout({ children }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,8 +37,6 @@ export default function JusTrackLayout({ children }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0d1117", color: "#e8eaf0", fontFamily: "'IBM Plex Sans', sans-serif" }}>
-      <style>{FONTS}</style>
-
       {/* Sidebar Desktop */}
       <aside style={{ position: "fixed", top: 0, left: 0, bottom: 0, width: 220, background: "#0d1117", borderRight: "1px solid #1e2740", zIndex: 40, display: "flex", flexDirection: "column" }}
         className="hidden lg:flex">

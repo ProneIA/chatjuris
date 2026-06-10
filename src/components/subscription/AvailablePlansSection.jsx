@@ -14,7 +14,7 @@ import {
 
 const AVAILABLE_MONTHLY = [
   {
-    id: "starter",
+    id: "starter_monthly",
     name: "Starter",
     price: 79.00,
     period: "/mês",
@@ -24,7 +24,7 @@ const AVAILABLE_MONTHLY = [
     popular: false,
   },
   {
-    id: "profissional",
+    id: "pro_monthly",
     name: "Profissional",
     price: 149.00,
     period: "/mês",
@@ -34,7 +34,7 @@ const AVAILABLE_MONTHLY = [
     popular: true,
   },
   {
-    id: "escritorio",
+    id: "escritorio_monthly",
     name: "Escritório",
     price: 299.00,
     period: "/mês",
@@ -47,7 +47,7 @@ const AVAILABLE_MONTHLY = [
 
 const AVAILABLE_YEARLY = [
   {
-    id: "starter_anual",
+    id: "starter_yearly",
     name: "Starter Anual",
     price: 708.00,
     monthlyEq: 59.00,
@@ -58,7 +58,7 @@ const AVAILABLE_YEARLY = [
     popular: false,
   },
   {
-    id: "profissional_anual",
+    id: "pro_yearly",
     name: "Profissional Anual",
     price: 1428.00,
     monthlyEq: 119.00,
@@ -69,7 +69,7 @@ const AVAILABLE_YEARLY = [
     popular: true,
   },
   {
-    id: "escritorio_anual",
+    id: "escritorio_yearly",
     name: "Escritório Anual",
     price: 3108.00,
     monthlyEq: 259.00,
@@ -80,12 +80,6 @@ const AVAILABLE_YEARLY = [
     popular: false,
   },
 ];
-
-const planIdMap = {
-  starter_monthly: 'starter_monthly',
-  pro_monthly: 'pro_monthly',
-  escritorio_monthly: 'escritorio_monthly',
-};
 
 export default function AvailablePlansSection({ 
   subscription, 
@@ -99,8 +93,7 @@ export default function AvailablePlansSection({
   const isExpired = subscription?.status === 'expired';
   const isActive = subscription?.status === 'active';
 
-  const handleSelectPlan = (planType) => {
-    const planId = planIdMap[planType] || planType;
+  const handleSelectPlan = (planId) => {
     if (planId) {
       window.location.href = `/Checkout?plan=${planId}`;
     }
@@ -160,7 +153,7 @@ export default function AvailablePlansSection({
         <div className="grid md:grid-cols-3 gap-4">
           {availablePlans.map((plan) => {
             const Icon = plan.icon;
-            const isCurrentPlan = isActive && currentPlanType === plan.planType;
+            const isCurrentPlan = isActive && currentPlanType === plan.id;
             const isPopular = plan.popular;
             
             return (
@@ -246,7 +239,7 @@ export default function AvailablePlansSection({
                     </Button>
                   ) : (
                     <Button
-                      onClick={() => handleSelectPlan(plan.planType)}
+                      onClick={() => handleSelectPlan(plan.id)}
                       className="w-full btn-primary"
                     >
                       {isInTrial ? 'Fazer Upgrade' : 'Assinar'}

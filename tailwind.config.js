@@ -9,6 +9,7 @@ module.exports = {
         display: ['Syne', 'Inter', 'sans-serif'],
         heading: ['Syne', 'Inter', 'sans-serif'],
         mono:    ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        oswald:  ['Oswald', 'sans-serif'],
       },
       colors: {
         navy:    { DEFAULT:'#0B1120', 2:'#141E35', 3:'#1E2D4A' },
@@ -46,7 +47,7 @@ module.exports = {
           6: '#E2E8F0',
           7: '#F8FAFC',
         },
-        gold: { DEFAULT:'#3B82F6', light:'#EFF6FF', deep:'#2563EB', border:'#BFDBFE', text:'#1e40af' },
+        gold: { DEFAULT:'#C8A84B', light:'#FDF9EC', deep:'#A8882B', border:'#E8D48B', text:'#7A6020' },
       },
       boxShadow: {
         'xs':         '0 1px 2px rgba(0,0,0,.06)',

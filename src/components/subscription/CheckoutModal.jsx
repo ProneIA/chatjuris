@@ -109,7 +109,7 @@ export default function CheckoutModal({ plan, onClose }) {
           visual: {
             style: {
               theme: "default",
-              customVariables: { baseColor: "#191970" },
+              customVariables: { baseColor: "#0B1120" },
             },
             hideFormTitle: true,
           },
@@ -219,7 +219,7 @@ export default function CheckoutModal({ plan, onClose }) {
         {/* Header */}
         <div style={{ padding: "1.25rem 1.5rem 1rem", borderBottom: "1px solid #e0e0ea", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".6rem", textTransform: "uppercase", letterSpacing: ".15em", color: "#191970", margin: "0 0 .15rem" }}>
+            <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".6rem", textTransform: "uppercase", letterSpacing: ".15em", color: "#0B1120", margin: "0 0 .15rem" }}>
               Assinar Plano
             </p>
             <h2 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.1rem", color: "#0a0a0a", margin: "0 0 .15rem", textTransform: "uppercase" }}>
@@ -231,7 +231,7 @@ export default function CheckoutModal({ plan, onClose }) {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: ".75rem", flexShrink: 0 }}>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.35rem", color: "#191970", margin: 0, lineHeight: 1 }}>
+              <p style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.35rem", color: "#0B1120", margin: 0, lineHeight: 1 }}>
                 R$ {fmt(plan.amount)}
               </p>
               <p style={{ fontSize: ".65rem", color: "#aaa", margin: ".1rem 0 0" }}>{plan.period || "/mês"}</p>
@@ -266,7 +266,7 @@ export default function CheckoutModal({ plan, onClose }) {
               </span>
             </div>
             {isAnnual && (
-              <p style={{ fontSize: ".72rem", color: "#191970", margin: ".4rem 0 0", fontWeight: 600 }}>
+              <p style={{ fontSize: ".72rem", color: "#0B1120", margin: ".4rem 0 0", fontWeight: 600 }}>
                 Parcelamento em até 12x sem juros — selecione no formulário abaixo.
               </p>
             )}
@@ -279,7 +279,7 @@ export default function CheckoutModal({ plan, onClose }) {
           {/* Loading */}
           {status === "loading" && (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
-              <Loader2 style={{ width: 28, height: 28, color: "#191970", margin: "0 auto .75rem", animation: "spin 1s linear infinite" }} />
+              <Loader2 style={{ width: 28, height: 28, color: "#0B1120", margin: "0 auto .75rem", animation: "spin 1s linear infinite" }} />
               <p style={{ color: "#6b6b80", fontSize: ".82rem" }}>Carregando formulário de pagamento seguro...</p>
               <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
             </div>
@@ -288,7 +288,7 @@ export default function CheckoutModal({ plan, onClose }) {
           {/* Processing */}
           {status === "processing" && (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
-              <Loader2 style={{ width: 32, height: 32, color: "#191970", margin: "0 auto 1rem", animation: "spin 1s linear infinite" }} />
+              <Loader2 style={{ width: 32, height: 32, color: "#0B1120", margin: "0 auto 1rem", animation: "spin 1s linear infinite" }} />
               <p style={{ color: "#0a0a0a", fontWeight: 700, fontFamily: "'Oswald', sans-serif", textTransform: "uppercase", marginBottom: ".5rem" }}>Processando Pagamento</p>
               <p style={{ color: "#6b6b80", fontSize: ".8rem" }}>Por favor, aguarde. Não feche esta janela.</p>
             </div>
@@ -314,7 +314,7 @@ export default function CheckoutModal({ plan, onClose }) {
               <p style={{ fontSize: ".75rem", color: "#aaa", marginBottom: "1.5rem" }}>Redirecionando para o painel em instantes...</p>
               <button
                 onClick={() => window.location.href = "/Dashboard"}
-                style={{ background: "#191970", color: "#fff", border: "none", padding: ".9rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em" }}
+                style={{ background: "#0B1120", color: "#fff", border: "none", padding: ".9rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em" }}
               >
                 Acessar Painel →
               </button>
@@ -338,7 +338,7 @@ export default function CheckoutModal({ plan, onClose }) {
               )}
               <button
                 onClick={handleRetry}
-                style={{ background: "#191970", color: "#fff", border: "none", padding: ".9rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", width: "100%" }}
+                style={{ background: "#0B1120", color: "#fff", border: "none", padding: ".9rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", width: "100%" }}
               >
                 Tentar Novamente
               </button>
