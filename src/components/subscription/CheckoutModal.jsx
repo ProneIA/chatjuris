@@ -71,11 +71,17 @@ export default function CheckoutModal({ plan, onClose }) {
       const bricksBuilder = mp.bricks();
 
       setStatus("ready");
-      await new Promise(resolve => setTimeout(resolve, 350));
+      // Aguarda o React re-renderizar o container antes de montar o Brick
+      await new Promise((resolve) => setTimeout(resolve, 800));
       if (!mountedRef.current) return;
 
-      const container = document.getElementById(containerId);
-      if (!container) throw new Error("Container do Brick não encontrado");
+      let container = document.getElementById(containerId);
+      if (!container) {
+        // Tenta mais uma vez após 500ms
+        await new Promise((r) => setTimeout(r, 500));
+        container = document.getElementById(containerId);
+      }
+      if (!container) throw new Error("Container do formulário não encontrado.");
 
       // 5. Desmontar brick anterior se existir
       if (brickRef.current) {
@@ -109,7 +115,10 @@ export default function CheckoutModal({ plan, onClose }) {
           },
         },
         callbacks: {
-          onReady: () => {},
+          onReady: () => {
+            // Garante que o status seja "ready" quando o Brick confirmar que está pronto
+            if (mountedRef.current) setStatus("ready");
+          },
           onSubmit: async ({ formData }) => {
             if (!mountedRef.current || processingRef.current) return;
             processingRef.current = true;
@@ -336,10 +345,13 @@ export default function CheckoutModal({ plan, onClose }) {
             </div>
           )}
 
-          {/* Container do Brick — sempre no DOM, oculto nos outros estados */}
+          {/* Container do Brick — sempre no DOM desde o primeiro render */}
           <div
             id={containerId}
-            style={{ display: (status === "ready") ? "block" : "none" }}
+            style={{
+              display: (status === "ready" || status === "processing") ? "block" : "none",
+              minHeight: status === "ready" ? "300px" : "0",
+            }}
           />
 
           {/* Badge de segurança */}
