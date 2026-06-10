@@ -123,13 +123,11 @@ export default function CheckoutModal({ plan, onClose }) {
                 ? (Number(formData.installments) || 1)
                 : 1;
 
-              const response = await base44.functions.invoke("lexiaProcessPayment", {
+              const response = await base44.functions.invoke("processPayment", {
                 token: formData.token,
                 installments: installmentsToSend,
                 payment_method_id: formData.payment_method_id,
                 issuer_id: formData.issuer_id || null,
-                transaction_amount: plan.amount,
-                description: plan.name,
                 plan_id: plan.id,
                 payer: formData.payer,
                 device_id: deviceIdRef.current || window.MP_DEVICE_SESSION_ID || null,

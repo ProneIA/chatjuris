@@ -1,24 +1,26 @@
 /**
  * POST /api/functions/mercadoPagoWebhook
- * Webhook do Mercado Pago com validação HMAC
- * Inclui processamento de comissões de afiliados após pagamento aprovado
+ * Webhook do Mercado Pago — suporta Orders API + legado v1/payments
+ * Validação HMAC, idempotência, comissões de afiliados.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const PLANS = {
-  // Planos mensais
-  basic_monthly:   { price:  89.90, durationDays: 30 },
-  adv_monthly:     { price: 119.90, durationDays: 30 },
-  empresa_monthly: { price: 219.90, durationDays: 30 },
-  // Planos anuais
-  adv_yearly:      { price: 1197.00, durationDays: 365 },
-  empresa_yearly:  { price: 2197.00, durationDays: 365 },
+  starter_monthly:   { name: "Starter Mensal",     amount: 79.00,   durationDays: 30  },
+  pro_monthly:       { name: "Profissional Mensal", amount: 149.00,  durationDays: 30  },
+  escritorio_monthly:{ name: "Escritório Mensal",   amount: 299.00,  durationDays: 30  },
+  starter_yearly:    { name: "Starter Anual",       amount: 708.00,  durationDays: 365 },
+  pro_yearly:        { name: "Profissional Anual",  amount: 1428.00, durationDays: 365 },
+  escritorio_yearly: { name: "Escritório Anual",    amount: 3108.00, durationDays: 365 },
   // Aliases legados
-  pro_monthly:     { price: 119.90, durationDays: 30 },
-  pro_yearly:      { price: 1197.00, durationDays: 365 },
+  basic_monthly:     { name: "Básico Mensal",       amount: 79.00,   durationDays: 30  },
+  adv_monthly:       { name: "Avançado Mensal",     amount: 149.00,  durationDays: 30  },
+  empresa_monthly:   { name: "Empresa Mensal",      amount: 299.00,  durationDays: 30  },
+  adv_yearly:        { name: "Avançado Anual",      amount: 1428.00, durationDays: 365 },
+  empresa_yearly:    { name: "Empresa Anual",       amount: 3108.00, durationDays: 365 },
 };
 
-async function validateMPSignature(req, body) {
+async function validateMPSignature(req, rawBody) {
   try {
     const secret = Deno.env.get('MP_WEBHOOK_SECRET');
     if (!secret) {
@@ -49,7 +51,7 @@ async function validateMPSignature(req, body) {
     }
 
     const url = new URL(req.url);
-    const dataId = new URLSearchParams(url.search).get('data.id') || '';
+    const dataId = url.searchParams.get('data.id') || '';
 
     let manifest = '';
     if (dataId) manifest += `id:${dataId};`;
@@ -57,24 +59,17 @@ async function validateMPSignature(req, body) {
     manifest += `ts:${ts};`;
 
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
-    const msgData = encoder.encode(manifest);
-
     const cryptoKey = await crypto.subtle.importKey(
-      'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      'raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
     );
-
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+    const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(manifest));
     const hashHex = Array.from(new Uint8Array(signature))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
     const isValid = hashHex === v1;
-    if (!isValid) {
-      console.warn('[MP Webhook] Assinatura HMAC inválida', { expected: v1, got: hashHex });
-    }
+    if (!isValid) console.warn('[MP Webhook] Assinatura HMAC inválida');
     return isValid;
-
   } catch (e) {
     console.error('[MP Webhook] Erro na validação HMAC:', e.message);
     return false;
@@ -94,18 +89,19 @@ Deno.serve(async (req) => {
 
     const signatureValid = await validateMPSignature(req, rawBody);
 
-    const topic = queryParams.get('topic') || body.type || body.action;
-    const paymentId = body.data?.id || queryParams.get('id') || queryParams.get('data.id');
+    const topic = queryParams.get('topic') || body.type || body.action || '';
+    const resourceId = body.data?.id || queryParams.get('id') || queryParams.get('data.id');
 
+    // Registrar evento
     try {
       await base44.asServiceRole.entities.WebhookEvent.create({
-        event_id: paymentId ? String(paymentId) : `NO_ID_${Date.now()}`,
+        event_id: resourceId ? String(resourceId) : `NO_ID_${Date.now()}`,
         event_type: topic || 'unknown',
-        mp_payment_id: paymentId ? String(paymentId) : null,
+        mp_payment_id: resourceId ? String(resourceId) : null,
         payload_json: rawBody,
         processed: false,
         signature_valid: signatureValid,
-        error: !signatureValid ? 'Assinatura HMAC inválida' : null
+        error: !signatureValid ? 'Assinatura HMAC inválida' : null,
       });
     } catch (e) {
       console.error('[MP Webhook] Erro ao registrar evento:', e.message);
@@ -116,24 +112,24 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    if (!paymentId) {
-      console.warn('[MP Webhook] Sem payment_id, ignorando');
+    if (!resourceId) {
+      console.warn('[MP Webhook] Sem resource_id, ignorando');
       return Response.json({ message: 'OK' }, { status: 200 });
     }
 
-    const isPaymentEvent = topic === 'payment' ||
-                           topic === 'payment.created' ||
-                           topic === 'payment.updated' ||
-                           body.action === 'payment.created' ||
-                           body.action === 'payment.updated';
+    // Detectar tipo de evento
+    const isOrderEvent = topic === 'order' || topic === 'order.created' ||
+                         topic === 'order.updated' || body.action?.startsWith('order.');
+    const isPaymentEvent = topic === 'payment' || topic === 'payment.created' ||
+                           topic === 'payment.updated' || body.action?.startsWith('payment.');
 
-    if (!isPaymentEvent) {
+    if (isOrderEvent) {
+      processOrderAsync(base44, resourceId);
+    } else if (isPaymentEvent) {
+      processPaymentAsync(base44, resourceId);
+    } else {
       console.log('[MP Webhook] Topic ignorado:', topic);
-      return Response.json({ message: 'OK' }, { status: 200 });
     }
-
-    // Retornar 200 imediatamente e processar async
-    scheduleProcessing(base44, paymentId);
 
     return Response.json({ message: 'OK' }, { status: 200 });
 
@@ -143,125 +139,273 @@ Deno.serve(async (req) => {
   }
 });
 
-async function scheduleProcessing(base44, paymentId) {
+// ─── Orders API ──────────────────────────────────────────────────────────────
+
+async function processOrderAsync(base44, orderId) {
   try {
     const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
-    if (!accessToken) {
-      console.error('[MP] Access token não configurado');
-      return;
-    }
+    if (!accessToken) return;
 
-    const mpResponse = await fetch(
-      `https://api.mercadopago.com/v1/payments/${paymentId}`,
-      { headers: { 'Authorization': `Bearer ${accessToken}` } }
-    );
-
-    if (!mpResponse.ok) {
-      console.error('[MP] Erro ao consultar pagamento:', mpResponse.status);
-      return;
-    }
-
-    const payment = await mpResponse.json();
-
-    console.log('[MP] Pagamento consultado:', {
-      id: payment.id,
-      status: payment.status,
-      external_reference: payment.external_reference
+    const res = await fetch(`https://api.mercadopago.com/v1/orders/${orderId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
     });
 
-    if (!payment.external_reference) {
-      console.warn('[MP] Sem external_reference');
+    if (!res.ok) {
+      console.error('[MP Order] Erro ao consultar order:', res.status);
       return;
     }
 
-    // Idempotência
-    const existingPayment = await base44.asServiceRole.entities.Payment.filter({
-      mp_payment_id: String(paymentId)
+    const order = await res.json();
+    console.log('[MP Order] Consultado:', { id: order.id, status: order.status, status_detail: order.status_detail });
+
+    const isApproved = order.status === 'processed' && order.status_detail === 'accredited';
+
+    if (!isApproved) {
+      console.log('[MP Order] Não aprovado, status:', order.status, order.status_detail);
+      return;
+    }
+
+    const userId = order.external_reference;
+    const planId = order.metadata?.plan_id;
+
+    if (!userId || !planId) {
+      console.warn('[MP Order] Sem external_reference ou plan_id');
+      return;
+    }
+
+    // Idempotência: verificar se já processado
+    const existing = await base44.asServiceRole.entities.Payment.filter({
+      mp_payment_id: String(orderId),
     });
-
-    if (existingPayment.length > 0 && existingPayment[0].status === 'approved') {
-      console.log('[MP] Pagamento já processado, ignorando');
+    if (existing.length > 0 && existing[0].status === 'approved') {
+      console.log('[MP Order] Já processado, ignorando');
       return;
     }
 
-    if (payment.status === 'approved') {
-      await activateSubscription(base44, payment);
-      // ✅ Processar comissão de afiliado após pagamento via webhook
-      await processAffiliateCommissionFromWebhook(base44, payment, existingPayment[0] || null);
-    } else {
-      await updatePaymentStatus(base44, payment);
+    const plan = PLANS[planId];
+    if (!plan) {
+      console.error('[MP Order] Plano não encontrado:', planId);
+      return;
     }
 
+    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+    if (users.length === 0) {
+      console.error('[MP Order] Usuário não encontrado:', userId);
+      return;
+    }
+
+    const user = users[0];
+    await activateUserSubscription(base44, user, planId, plan, String(orderId));
+
+    // Actualizar WebhookEvent
     try {
-      const webhookEvents = await base44.asServiceRole.entities.WebhookEvent.filter({
-        mp_payment_id: String(paymentId)
-      });
-      if (webhookEvents.length > 0) {
-        await base44.asServiceRole.entities.WebhookEvent.update(webhookEvents[0].id, {
-          processed: payment.status === 'approved',
+      const events = await base44.asServiceRole.entities.WebhookEvent.filter({ mp_payment_id: String(orderId) });
+      if (events.length > 0) {
+        await base44.asServiceRole.entities.WebhookEvent.update(events[0].id, {
+          processed: true,
           processed_at: new Date().toISOString(),
-          mp_status: payment.status,
-          error: payment.status !== 'approved' ? `Status: ${payment.status}` : null
+          mp_status: order.status,
         });
       }
-    } catch (e) {
-      console.error('[MP Webhook] Erro ao atualizar evento:', e.message);
-    }
+    } catch (e) { /* ignorar */ }
 
   } catch (error) {
-    console.error('[scheduleProcessing] Erro:', error.message);
+    console.error('[processOrderAsync] Erro:', error.message);
   }
 }
 
-async function processAffiliateCommissionFromWebhook(base44, payment, paymentRecord) {
+// ─── Legacy v1/payments ───────────────────────────────────────────────────────
+
+async function processPaymentAsync(base44, paymentId) {
   try {
-    // Buscar o registro de Payment no banco para pegar coupon_code e affiliate_id
-    let couponCode = payment.metadata?.coupon_code;
-    let affiliateId = payment.metadata?.affiliate_id;
+    const accessToken = Deno.env.get('MP_ACCESS_TOKEN');
+    if (!accessToken) return;
 
-    // Fallback: buscar no registro do Payment
-    if (!couponCode && paymentRecord) {
-      couponCode = paymentRecord.coupon_code;
-      affiliateId = paymentRecord.affiliate_id;
-    }
-
-    if (!couponCode) {
-      console.log('[Affiliate] Nenhum cupom de afiliado neste pagamento');
-      return;
-    }
-
-    // Verificar se já existe comissão para evitar duplicatas
-    const existingCommissions = await base44.asServiceRole.entities.AffiliateCommission.filter({
-      subscription_id: paymentRecord?.id || String(payment.id)
+    const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
     });
 
-    if (existingCommissions.length > 0) {
-      console.log('[Affiliate] Comissão já processada para este pagamento');
+    if (!res.ok) {
+      console.error('[MP Payment] Erro ao consultar pagamento:', res.status);
       return;
     }
 
-    // Buscar afiliado pelo código
-    let affiliate = null;
-    if (affiliateId) {
-      const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ id: affiliateId, status: 'active' });
-      if (affiliates.length > 0) affiliate = affiliates[0];
-    }
+    const payment = await res.json();
+    console.log('[MP Payment] Consultado:', { id: payment.id, status: payment.status });
 
-    if (!affiliate) {
-      const affiliates = await base44.asServiceRole.entities.Affiliate.filter({ affiliate_code: couponCode.toLowerCase(), status: 'active' });
-      if (affiliates.length > 0) affiliate = affiliates[0];
-    }
-
-    if (!affiliate) {
-      console.log('[Affiliate] Afiliado não encontrado para cupom:', couponCode);
+    // Idempotência
+    const existing = await base44.asServiceRole.entities.Payment.filter({
+      mp_payment_id: String(paymentId),
+    });
+    if (existing.length > 0 && existing[0].status === 'approved') {
+      console.log('[MP Payment] Já processado, ignorando');
       return;
     }
 
-    // Usar o valor original do plano (sem desconto) para calcular a comissão
+    if (payment.status !== 'approved') {
+      if (existing.length > 0) {
+        await base44.asServiceRole.entities.Payment.update(existing[0].id, {
+          status: payment.status === 'rejected' ? 'rejected' : 'pending',
+          status_detail: payment.status_detail,
+        });
+      }
+      return;
+    }
+
+    const userId = payment.external_reference;
     const planId = payment.metadata?.plan_id;
-    const plan = PLANS[planId];
-    const subscriptionValue = plan ? plan.price : payment.transaction_amount;
 
+    if (!userId || !planId) {
+      console.warn('[MP Payment] Sem external_reference ou plan_id');
+      return;
+    }
+
+    const plan = PLANS[planId];
+    if (!plan) {
+      console.error('[MP Payment] Plano não encontrado:', planId);
+      return;
+    }
+
+    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+    if (users.length === 0) {
+      console.error('[MP Payment] Usuário não encontrado:', userId);
+      return;
+    }
+
+    const user = users[0];
+    await activateUserSubscription(base44, user, planId, plan, String(payment.id));
+    await processAffiliateCommission(base44, payment, planId, plan, existing[0] || null);
+
+    try {
+      const events = await base44.asServiceRole.entities.WebhookEvent.filter({ mp_payment_id: String(paymentId) });
+      if (events.length > 0) {
+        await base44.asServiceRole.entities.WebhookEvent.update(events[0].id, {
+          processed: true,
+          processed_at: new Date().toISOString(),
+          mp_status: payment.status,
+        });
+      }
+    } catch (e) { /* ignorar */ }
+
+  } catch (error) {
+    console.error('[processPaymentAsync] Erro:', error.message);
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function activateUserSubscription(base44, user, planId, plan, externalId) {
+  try {
+    const startDate = new Date();
+    const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+    const isYearly = plan.durationDays >= 365;
+
+    const subData = {
+      user_id: user.id,
+      plan_type: isYearly ? 'yearly' : 'monthly',
+      status: 'active',
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      price: plan.amount,
+      payment_method: 'mercado_pago',
+      payment_external_id: externalId,
+    };
+
+    const existing = await base44.asServiceRole.entities.Subscription.filter(
+      { user_id: user.id }, '-created_date', 1
+    );
+
+    if (existing.length > 0) {
+      await base44.asServiceRole.entities.Subscription.update(existing[0].id, subData);
+    } else {
+      await base44.asServiceRole.entities.Subscription.create(subData);
+    }
+
+    await base44.asServiceRole.entities.User.update(user.id, {
+      subscription_status: 'active',
+      subscription_type: isYearly ? 'yearly' : 'monthly',
+      subscription_start_date: startDate.toISOString(),
+      subscription_end_date: endDate.toISOString(),
+      subscription_expires_at: endDate.toISOString(),
+      payment_reference: externalId,
+      blocked_at: null,
+      email_locked: false,
+    });
+
+    const paymentExists = await base44.asServiceRole.entities.Payment.filter({ mp_payment_id: externalId });
+    if (paymentExists.length === 0) {
+      await base44.asServiceRole.entities.Payment.create({
+        user_id: user.id,
+        user_email: user.email,
+        plan_id: planId,
+        payment_type: 'orders_api',
+        amount: plan.amount,
+        status: 'approved',
+        mp_payment_id: externalId,
+        webhook_received_at: new Date().toISOString(),
+      });
+    } else {
+      await base44.asServiceRole.entities.Payment.update(paymentExists[0].id, {
+        status: 'approved',
+        webhook_received_at: new Date().toISOString(),
+      });
+    }
+
+    // E-mail
+    try {
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: user.email,
+        subject: '✅ Assinatura Juris.IA Ativada',
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e40af;">Bem-vindo ao Juris.IA!</h2>
+            <p>Sua assinatura foi ativada com sucesso.</p>
+            <p><strong>Plano:</strong> ${plan.name}</p>
+            <p><strong>Valor:</strong> R$ ${plan.amount.toFixed(2).replace('.', ',')}</p>
+            <p><strong>Válido até:</strong> ${endDate.toLocaleDateString('pt-BR')}</p>
+            <p style="margin-top: 24px;">
+              <a href="${Deno.env.get('PUBLIC_URL') || ''}/Dashboard"
+                 style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                Acessar a Plataforma →
+              </a>
+            </p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      console.error('[activateUserSubscription] Erro ao enviar e-mail:', e.message);
+    }
+
+    console.log('[Webhook] ✅ Assinatura ativada para:', user.email, 'plano:', planId);
+  } catch (error) {
+    console.error('[activateUserSubscription] Erro:', error.message);
+    throw error;
+  }
+}
+
+async function processAffiliateCommission(base44, payment, planId, plan, paymentRecord) {
+  try {
+    const couponCode = payment.metadata?.coupon_code || paymentRecord?.coupon_code;
+    if (!couponCode) return;
+
+    const existingCommissions = await base44.asServiceRole.entities.AffiliateCommission.filter({
+      subscription_id: paymentRecord?.id || String(payment.id),
+    });
+    if (existingCommissions.length > 0) return;
+
+    let affiliate = null;
+    const affiliateId = payment.metadata?.affiliate_id || paymentRecord?.affiliate_id;
+    if (affiliateId) {
+      const list = await base44.asServiceRole.entities.Affiliate.filter({ id: affiliateId, status: 'active' });
+      if (list.length > 0) affiliate = list[0];
+    }
+    if (!affiliate) {
+      const list = await base44.asServiceRole.entities.Affiliate.filter({ affiliate_code: couponCode.toLowerCase(), status: 'active' });
+      if (list.length > 0) affiliate = list[0];
+    }
+    if (!affiliate) return;
+
+    const subscriptionValue = plan.amount;
     const commissionAmount = parseFloat(((subscriptionValue * affiliate.commission_rate) / 100).toFixed(2));
     const userId = payment.external_reference;
     const users = await base44.asServiceRole.entities.User.filter({ id: userId });
@@ -275,136 +419,16 @@ async function processAffiliateCommissionFromWebhook(base44, payment, paymentRec
       subscription_value: subscriptionValue,
       commission_rate: affiliate.commission_rate,
       commission_amount: commissionAmount,
-      status: 'pending'
+      status: 'pending',
     });
 
     await base44.asServiceRole.entities.Affiliate.update(affiliate.id, {
       total_sales: (affiliate.total_sales || 0) + 1,
-      total_commission: parseFloat(((affiliate.total_commission || 0) + commissionAmount).toFixed(2))
+      total_commission: parseFloat(((affiliate.total_commission || 0) + commissionAmount).toFixed(2)),
     });
 
-    // Confirmar affiliate_id no Payment
-    if (paymentRecord?.id) {
-      await base44.asServiceRole.entities.Payment.update(paymentRecord.id, {
-        affiliate_id: affiliate.id
-      });
-    }
-
-    console.log(`[Affiliate] ✅ Comissão R$ ${commissionAmount} criada para ${affiliate.name} via webhook`);
+    console.log(`[Affiliate] ✅ Comissão R$ ${commissionAmount} criada para ${affiliate.name}`);
   } catch (error) {
-    console.error('[processAffiliateCommissionFromWebhook] Erro:', error.message);
-  }
-}
-
-async function activateSubscription(base44, payment) {
-  try {
-    const userId = payment.external_reference;
-    const planId = payment.metadata?.plan_id;
-    const plan = PLANS[planId];
-
-    if (!plan) {
-      console.error('[MP] Plano não encontrado:', planId);
-      return;
-    }
-
-    const users = await base44.asServiceRole.entities.User.filter({ id: userId });
-    if (users.length === 0) {
-      console.error('[MP] Usuário não encontrado:', userId);
-      return;
-    }
-
-    const user = users[0];
-    const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
-
-    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_id: userId }, '-created_date', 1);
-
-    const subData = {
-      user_id: userId,
-      plan_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
-      status: 'active',
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
-      price: plan.price,
-      payment_method: 'mercado_pago',
-      payment_external_id: String(payment.id)
-    };
-
-    if (subscriptions.length > 0) {
-      await base44.asServiceRole.entities.Subscription.update(subscriptions[0].id, subData);
-    } else {
-      await base44.asServiceRole.entities.Subscription.create(subData);
-    }
-
-    await base44.asServiceRole.entities.User.update(userId, {
-      subscription_status: 'active',
-      subscription_type: planId === 'pro_yearly' ? 'yearly' : 'monthly',
-      subscription_start_date: startDate.toISOString(),
-      subscription_end_date: endDate.toISOString(),
-      subscription_expires_at: endDate.toISOString(),
-      payment_reference: String(payment.id),
-      blocked_at: null,
-      email_locked: false
-    });
-
-    const payments = await base44.asServiceRole.entities.Payment.filter({ mp_payment_id: String(payment.id) });
-    if (payments.length > 0) {
-      await base44.asServiceRole.entities.Payment.update(payments[0].id, {
-        status: 'approved',
-        webhook_received_at: new Date().toISOString()
-      });
-    } else {
-      await base44.asServiceRole.entities.Payment.create({
-        user_id: userId,
-        user_email: user.email,
-        plan_id: planId,
-        payment_type: 'checkout_pro',
-        amount: plan.price,
-        status: 'approved',
-        mp_payment_id: String(payment.id),
-        webhook_received_at: new Date().toISOString()
-      });
-    }
-
-    console.log('[MP] ✅ Assinatura ativada para:', user.email);
-
-    try {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: user.email,
-        subject: '✅ Assinatura Juris Pro Ativada',
-        body: `
-          <div style="font-family: Arial; max-width: 600px;">
-            <h2>Bem-vindo ao Juris Pro!</h2>
-            <p>Sua assinatura foi ativada com sucesso.</p>
-            <p><strong>Plano:</strong> ${planId === 'pro_yearly' ? 'Anual' : 'Mensal'}</p>
-            <p><strong>Valor:</strong> R$ ${plan.price.toFixed(2)}</p>
-            <p><strong>Válido até:</strong> ${endDate.toLocaleDateString('pt-BR')}</p>
-            <p>Acesse agora: <a href="${Deno.env.get('PUBLIC_URL')}/Dashboard">Plataforma Juris</a></p>
-          </div>
-        `
-      });
-    } catch (e) {
-      console.error('[MP] Erro ao enviar email:', e.message);
-    }
-
-  } catch (error) {
-    console.error('[activateSubscription] Erro:', error.message);
-  }
-}
-
-async function updatePaymentStatus(base44, payment) {
-  try {
-    const payments = await base44.asServiceRole.entities.Payment.filter({
-      mp_payment_id: String(payment.id)
-    });
-
-    if (payments.length > 0) {
-      await base44.asServiceRole.entities.Payment.update(payments[0].id, {
-        status: payment.status === 'rejected' ? 'rejected' : 'pending',
-        status_detail: payment.status_detail
-      });
-    }
-  } catch (error) {
-    console.error('[updatePaymentStatus] Erro:', error.message);
+    console.error('[processAffiliateCommission] Erro:', error.message);
   }
 }

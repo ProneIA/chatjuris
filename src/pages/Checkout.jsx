@@ -3,10 +3,11 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, Shield, CheckCircle2 } from "lucide-react";
-import TransparentCheckout from "@/components/checkout/TransparentCheckout";
+import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 const PLANS = {
   starter_monthly: {
+    id: "starter_monthly",
     name: "Starter — Mensal",
     price: 79.00,
     amount: 79.00,
@@ -16,6 +17,7 @@ const PLANS = {
     features: ["1 usuário", "50 documentos/mês", "Gestão de clientes", "Suporte por e-mail"],
   },
   pro_monthly: {
+    id: "pro_monthly",
     name: "Profissional — Mensal",
     price: 149.00,
     amount: 149.00,
@@ -25,6 +27,7 @@ const PLANS = {
     features: ["Até 3 usuários", "Documentos ilimitados", "Portal do cliente", "Suporte prioritário"],
   },
   escritorio_monthly: {
+    id: "escritorio_monthly",
     name: "Escritório — Mensal",
     price: 299.00,
     amount: 299.00,
@@ -34,6 +37,7 @@ const PLANS = {
     features: ["Usuários ilimitados", "Relatórios avançados", "Conformidade LGPD", "Onboarding assistido"],
   },
   starter_yearly: {
+    id: "starter_yearly",
     name: "Starter — Anual",
     price: 708.00,
     amount: 708.00,
@@ -45,6 +49,7 @@ const PLANS = {
     features: ["1 usuário", "50 documentos/mês", "Gestão de clientes", "Parcelamento em até 12x sem juros"],
   },
   pro_yearly: {
+    id: "pro_yearly",
     name: "Profissional — Anual",
     price: 1428.00,
     amount: 1428.00,
@@ -56,6 +61,7 @@ const PLANS = {
     features: ["Até 3 usuários", "Documentos ilimitados", "Portal do cliente", "Parcelamento em até 12x sem juros"],
   },
   escritorio_yearly: {
+    id: "escritorio_yearly",
     name: "Escritório — Anual",
     price: 3108.00,
     amount: 3108.00,
@@ -68,11 +74,12 @@ const PLANS = {
   },
 };
 
-export default function Checkout({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+export default function Checkout() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
   const planId = searchParams.get('plan');
   const plan = PLANS[planId];
 
@@ -90,91 +97,139 @@ export default function Checkout({ theme = 'light' }) {
 
   if (!user || !plan) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
+        <div style={{ width: 32, height: 32, border: "3px solid #e2e8f0", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin .7s linear infinite" }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-neutral-950' : 'bg-gray-50'}`}>
-      <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-        {/* Back */}
+    <div style={{ minHeight: "100vh", background: "#f8fafc" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 16px 48px" }}>
+
+        {/* Voltar */}
         <button
           onClick={() => navigate(createPageUrl('Pricing'))}
-          className={`inline-flex items-center gap-2 mb-8 text-sm transition-colors ${isDark ? 'text-neutral-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 28, fontSize: 13, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft style={{ width: 15, height: 15 }} />
           Voltar aos Planos
         </button>
 
-        <div className="grid md:grid-cols-5 gap-8">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 24 }} className="md:grid-cols-[1fr_1.5fr] grid-cols-1">
 
-          {/* Coluna esquerda — resumo do plano */}
-          <div className="md:col-span-2 space-y-4">
-            <div className={`p-5 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${isDark ? 'text-neutral-500' : 'text-gray-400'}`}>Você está assinando</p>
-              <h2 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h2>
-              <p className={`text-sm mb-4 ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>{plan.description}</p>
+          {/* Coluna esquerda — resumo */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {/* Card do plano */}
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "20px 20px" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: "#94a3b8", margin: "0 0 4px" }}>
+                Você está assinando
+              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+                {plan.name}
+              </h2>
+              <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px" }}>{plan.description}</p>
 
               {plan.savingsText && (
-                <div className="mb-4 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
-                  <p className="text-xs font-medium text-green-500">{plan.savingsText}</p>
+                <div style={{ marginBottom: 14, padding: "6px 10px", borderRadius: 8, background: "#f0fdf4", border: "1px solid #86efac" }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "#166534", margin: 0 }}>{plan.savingsText}</p>
                 </div>
               )}
 
-              <div className={`pt-4 border-t ${isDark ? 'border-neutral-800' : 'border-gray-100'}`}>
+              <div style={{ paddingTop: 14, borderTop: "1px solid #f1f5f9" }}>
                 {plan.pricePerMonth && (
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
+                  <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 4px" }}>
                     R$ {plan.pricePerMonth.toFixed(2).replace('.', ',')} /mês
                   </p>
                 )}
-                <div className="flex items-end gap-2">
-                  <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
+                  <span style={{ fontSize: 30, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.03em", lineHeight: 1 }}>
                     R$ {plan.price.toFixed(2).replace('.', ',')}
                   </span>
-                  <span className={`text-sm mb-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>{plan.period}</span>
+                  <span style={{ fontSize: 13, color: "#94a3b8", marginBottom: 2 }}>{plan.period}</span>
                 </div>
               </div>
             </div>
 
             {/* Features */}
-            <div className={`p-5 rounded-xl border ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-gray-200'}`}>
-              <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>Incluído no plano:</p>
-              <ul className="space-y-2">
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "16px 20px" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#334155", margin: "0 0 12px" }}>Incluído no plano:</p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                 {plan.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                    <span className={`text-sm ${isDark ? 'text-neutral-300' : 'text-gray-700'}`}>{f}</span>
+                  <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <CheckCircle2 style={{ width: 15, height: 15, color: "#22c55e", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#475569" }}>{f}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Segurança */}
-            <div className={`flex items-center gap-2 p-3 rounded-lg ${isDark ? 'bg-neutral-900 border border-neutral-800' : 'bg-gray-50 border border-gray-200'}`}>
-              <Shield className="w-4 h-4 text-green-500" />
-              <p className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-600'}`}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
+              <Shield style={{ width: 14, height: 14, color: "#22c55e", flexShrink: 0 }} />
+              <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
                 Pagamento 100% seguro via Mercado Pago · SSL · Antifraude
               </p>
             </div>
           </div>
 
-          {/* Coluna direita — checkout transparente */}
-          <div className="md:col-span-3">
-            <h1 className={`text-xl font-bold mb-5 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Completar Pagamento
-            </h1>
-            <TransparentCheckout
-              planId={planId}
-              user={user}
-              theme={theme}
-              onSuccess={() => navigate(createPageUrl('CheckoutSuccess'))}
-            />
-          </div>
+          {/* Coluna direita — CTA */}
+          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "28px 28px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 20, textAlign: "center" }}>
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: "#0f172a", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+                Completar Pagamento
+              </h1>
+              <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
+                {plan.billingType === "yearly"
+                  ? "Cobrança única anual — parcelamento em até 12x sem juros"
+                  : "Cobrança mensal — cartão de crédito"}
+              </p>
+            </div>
 
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "16px 20px", width: "100%" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 13, color: "#475569" }}>{plan.name}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>
+                  R$ {plan.price.toFixed(2).replace('.', ',')}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>Período</span>
+                <span style={{ fontSize: 12, color: "#64748b" }}>{plan.period}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowModal(true)}
+              style={{
+                width: "100%", padding: "14px 0",
+                background: "#1d4ed8", color: "#fff",
+                border: "none", borderRadius: 10,
+                fontSize: 15, fontWeight: 700, cursor: "pointer",
+                letterSpacing: "-0.01em",
+                transition: "background .15s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "#1e40af"}
+              onMouseLeave={e => e.currentTarget.style.background = "#1d4ed8"}
+            >
+              💳 Pagar com Cartão de Crédito
+            </button>
+
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>
+              Seus dados de cartão são protegidos e processados diretamente pelo Mercado Pago.
+            </p>
+          </div>
         </div>
       </div>
+
+      {showModal && (
+        <CheckoutModal
+          plan={plan}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

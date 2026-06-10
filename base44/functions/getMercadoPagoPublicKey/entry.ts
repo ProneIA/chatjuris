@@ -1,8 +1,9 @@
 /**
  * GET /api/functions/getMercadoPagoPublicKey
- * Retorna a chave pública do MP para o frontend (sem expor access token)
+ * Retorna a chave pública do Mercado Pago para o frontend.
+ * Nunca expõe o MP_ACCESS_TOKEN.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -15,11 +16,13 @@ Deno.serve(async (req) => {
 
     const publicKey = Deno.env.get('MP_PUBLIC_KEY');
     if (!publicKey) {
+      console.error('[getMercadoPagoPublicKey] MP_PUBLIC_KEY não configurada');
       return Response.json({ error: 'Chave pública não configurada' }, { status: 500 });
     }
 
     return Response.json({ public_key: publicKey });
   } catch (error) {
+    console.error('[getMercadoPagoPublicKey] Erro:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
