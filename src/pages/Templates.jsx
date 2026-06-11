@@ -89,34 +89,34 @@ export default function Templates() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg)' }}>
       <div className="flex-1 flex flex-col">
-        <div style={{ borderBottom: '1px solid var(--border)', padding: '18px 28px', background: 'var(--card)' }}>
-          <div className="flex items-center justify-between mb-6">
+        {/* Header */}
+        <div style={{ borderBottom: '1px solid var(--border)', padding: '20px 28px', background: 'var(--card)', boxShadow: 'var(--sh-xs)' }}>
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>Modelos de Peças</h1>
-              <p style={{ marginTop: 4, color: 'var(--text-2)', fontSize: 13 }}>Modelos de documentos jurídicos</p>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)', margin: 0 }}>Modelos de Peças</h1>
+              <p style={{ marginTop: 4, color: 'var(--text-2)', fontSize: 13, margin: '4px 0 0' }}>Modelos de documentos jurídicos</p>
             </div>
             <button
               onClick={() => { setShowForm(true); setEditingTemplate(null); setSelectedTemplate(null); }}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--r-md)", padding: "9px 16px", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--accent-hover)"}
-              onMouseLeave={e => e.currentTarget.style.background = "var(--accent)"}
+              className="btn btn-primary"
             >
               <Plus style={{ width: 15, height: 15 }} />
               Novo Modelo
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, background: 'var(--card)', borderBottom: '3px solid var(--info)' }}>
-              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-2)' }}>Total de Modelos</p>
-              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-1)', marginTop: 4 }}>{templates.length}</p>
+          {/* KPI cards */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="app-card" style={{ padding: 14 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)', margin: '0 0 6px' }}>Total de Modelos</p>
+              <p style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>{templates.length}</p>
             </div>
-            <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, background: 'var(--card)', borderBottom: '3px solid var(--accent)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <Star style={{ width: 15, height: 15, color: 'var(--accent)', fill: 'var(--accent)' }} />
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-2)' }}>Favoritos</p>
+            <div className="app-card" style={{ padding: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <Star style={{ width: 14, height: 14, color: '#EAB308', fill: '#EAB308' }} />
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)', margin: 0 }}>Favoritos</p>
               </div>
-              <p style={{ fontSize: 34, fontWeight: 700, color: 'var(--text-1)' }}>{favoriteTemplates}</p>
+              <p style={{ fontSize: 30, fontWeight: 700, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>{favoriteTemplates}</p>
             </div>
           </div>
 

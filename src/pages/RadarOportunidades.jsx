@@ -220,9 +220,9 @@ REGRAS: Nunca sugerir contato direto com partes; focar em posicionamento informa
                 padding: "6px 14px", borderRadius: 8, border: "1px solid",
                 fontSize: 12, fontWeight: 500, cursor: "pointer",
                 fontFamily: "var(--font-body)", letterSpacing: "-0.01em",
-                background: selectedArea === "all" ? "var(--primary)" : "var(--card)",
-                color:      selectedArea === "all" ? "#fff" : "var(--text-secondary)",
-                borderColor: selectedArea === "all" ? "var(--primary)" : "var(--border)",
+                background: selectedArea === "all" ? "var(--accent)" : "var(--card)",
+                color:      selectedArea === "all" ? "#fff" : "var(--text-2)",
+                borderColor: selectedArea === "all" ? "var(--accent)" : "var(--border)",
                 transition: "all 0.15s ease",
               }}
             >
@@ -236,9 +236,9 @@ REGRAS: Nunca sugerir contato direto com partes; focar em posicionamento informa
                   padding: "6px 14px", borderRadius: 8, border: "1px solid",
                   fontSize: 12, fontWeight: 500, cursor: "pointer",
                   fontFamily: "var(--font-body)", letterSpacing: "-0.01em",
-                  background: selectedArea === area.id ? "var(--primary)" : "var(--card)",
-                  color:      selectedArea === area.id ? "#fff" : "var(--text-secondary)",
-                  borderColor: selectedArea === area.id ? "var(--primary)" : "var(--border)",
+                  background: selectedArea === area.id ? "var(--accent)" : "var(--card)",
+                  color:      selectedArea === area.id ? "#fff" : "var(--text-2)",
+                  borderColor: selectedArea === area.id ? "var(--accent)" : "var(--border)",
                   transition: "all 0.15s ease",
                 }}
               >

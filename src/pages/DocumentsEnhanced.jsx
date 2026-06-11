@@ -62,7 +62,7 @@ const tagColors = {
 };
 
 export default function DocumentsEnhanced({ theme = 'light' }) {
-  const isDark = theme === 'dark';
+  const isDark = false;
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -298,7 +298,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font-sans)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-body)" }}>
       <PageHeader
         title="Documentos"
         sub="Gerencie seus documentos jurídicos"
@@ -315,7 +315,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
       />
 
       {/* KPI Strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--ink-6)", gap: 1, borderBottom: "1px solid var(--ink-6)" }} className="lg:grid-cols-4 grid-cols-2">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--border)", gap: 1, borderBottom: "1px solid var(--border)" }} className="lg:grid-cols-4 grid-cols-2">
         <StatCard title="Total" value={documents.length} sub="documentos" accentColor="ink" loading={userLoading || docsLoading} />
         <StatCard title="Rascunhos" value={documents.filter(d => d.status === 'draft').length} sub="pendentes" accentColor={documents.filter(d=>d.status==='draft').length > 0 ? "warn" : "neutral"} loading={userLoading || docsLoading} />
         <StatCard title="Indexados" value={documents.filter(d => d.ocr_content).length} sub="com OCR" accentColor="ok" loading={userLoading || docsLoading} />
@@ -324,15 +324,15 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
 
       <div style={{ padding: "24px 28px" }}>
         {/* Filters & Search */}
-        <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)", padding: "14px 16px", marginBottom: 16 }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", padding: "14px 16px", marginBottom: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ position: "relative" }}>
-              <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--ink-4)" }} />
+              <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 13, height: 13, color: "var(--text-3)" }} />
               <input
                 placeholder="Buscar em títulos, conteúdo e documentos indexados..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: "100%", paddingLeft: 32, border: "1px solid var(--ink-5)", fontSize: 12, fontFamily: "var(--font-sans)", background: "var(--surface)", paddingTop: 8, paddingBottom: 8, paddingRight: 12, outline: "none", color: "var(--ink)" }}
+                style={{ width: "100%", paddingLeft: 32, border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", fontSize: 13, fontFamily: "var(--font-body)", background: "var(--card)", paddingTop: 8, paddingBottom: 8, paddingRight: 12, outline: "none", color: "var(--text-1)" }}
               />
             </div>
             {filterTags.length > 0 && (
@@ -352,7 +352,7 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                style={{ flex: 1, padding: "8px 10px", border: "1px solid var(--ink-5)", fontSize: 12, fontFamily: "var(--font-sans)", background: "var(--white)", color: "var(--ink)", outline: "none" }}
+                style={{ flex: 1, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: "var(--r-md)", fontSize: 13, fontFamily: "var(--font-body)", background: "var(--card)", color: "var(--text-1)", outline: "none" }}
               >
                 <option value="all">Todos os tipos</option>
                 {docTypes.map(type => (
@@ -360,10 +360,10 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                 ))}
               </select>
               <div style={{ display: "flex", gap: 4 }}>
-                <button onClick={() => setViewMode("grid")} style={{ padding: "7px 10px", border: "1px solid var(--ink-5)", background: viewMode === "grid" ? "var(--ink)" : "var(--white)", color: viewMode === "grid" ? "var(--white)" : "var(--ink-3)", cursor: "pointer", transition: "all var(--duration)" }}>
+                <button onClick={() => setViewMode("grid")} style={{ padding: "7px 10px", border: "1.5px solid var(--border)", borderRadius: "var(--r-sm)", background: viewMode === "grid" ? "var(--accent)" : "var(--card)", color: viewMode === "grid" ? "#fff" : "var(--text-2)", cursor: "pointer", transition: "all 0.15s" }}>
                   <Grid size={13} />
                 </button>
-                <button onClick={() => setViewMode("list")} style={{ padding: "7px 10px", border: "1px solid var(--ink-5)", background: viewMode === "list" ? "var(--ink)" : "var(--white)", color: viewMode === "list" ? "var(--white)" : "var(--ink-3)", cursor: "pointer", transition: "all var(--duration)" }}>
+                <button onClick={() => setViewMode("list")} style={{ padding: "7px 10px", border: "1.5px solid var(--border)", borderRadius: "var(--r-sm)", background: viewMode === "list" ? "var(--accent)" : "var(--card)", color: viewMode === "list" ? "#fff" : "var(--text-2)", cursor: "pointer", transition: "all 0.15s" }}>
                   <List size={13} />
                 </button>
               </div>
@@ -374,29 +374,30 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
         {/* Document List */}
         <div>
           {viewMode === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 1, background: "var(--ink-6)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
               {filteredDocs.map((doc) => {
                 const statusLabel = { draft: "Rascunho", review: "Revisão", approved: "Aprovado", sent: "Enviado", archived: "Arquivado" }[doc.status] || doc.status;
                 return (
                   <div
                     key={doc.id}
                     onClick={() => handleSelectDoc(doc)}
-                    style={{ background: selectedDoc?.id === doc.id ? "var(--ink-7)" : "var(--white)", padding: "16px 18px", cursor: "pointer", transition: "background var(--duration)", borderLeft: selectedDoc?.id === doc.id ? "2px solid var(--ink)" : "2px solid transparent" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
-                    onMouseLeave={e => e.currentTarget.style.background = selectedDoc?.id === doc.id ? "var(--ink-7)" : "var(--white)"}
+                    className="card"
+                    style={{ padding: "16px 18px", cursor: "pointer", borderLeft: selectedDoc?.id === doc.id ? "3px solid var(--accent)" : "3px solid transparent" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "var(--card)"}
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-                      <FileText style={{ width: 16, height: 16, color: "var(--ink-4)", strokeWidth: 1.5 }} />
+                      <FileText style={{ width: 16, height: 16, color: "var(--text-3)", strokeWidth: 1.5 }} />
                       <span className="badge badge-neutral">{statusLabel}</span>
                     </div>
-                    <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
-                    <p style={{ fontSize: 10, color: "var(--ink-4)", margin: 0 }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-1)", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
+                    <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <div style={{ background: "var(--white)", border: "1px solid var(--ink-6)" }}>
+            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", overflow: "hidden" }}>
               {filteredDocs.map((doc, i) => {
                 const statusLabel = { draft: "Rascunho", review: "Revisão", approved: "Aprovado", sent: "Enviado", archived: "Arquivado" }[doc.status] || doc.status;
                 return (
@@ -405,21 +406,22 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                     onClick={() => handleSelectDoc(doc)}
                     style={{
                       display: "flex", alignItems: "center", gap: 12,
-                      padding: "10px 16px",
-                      borderBottom: i < filteredDocs.length - 1 ? "1px solid var(--ink-7)" : "none",
-                      cursor: "pointer", transition: "background var(--duration)",
-                      background: selectedDoc?.id === doc.id ? "var(--ink-7)" : "transparent",
+                      padding: "12px 16px",
+                      borderBottom: i < filteredDocs.length - 1 ? "1px solid var(--border)" : "none",
+                      cursor: "pointer", transition: "background 0.15s",
+                      background: selectedDoc?.id === doc.id ? "var(--accent-light)" : "transparent",
+                      borderLeft: selectedDoc?.id === doc.id ? "3px solid var(--accent)" : "3px solid transparent",
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--ink-7)"}
-                    onMouseLeave={e => e.currentTarget.style.background = selectedDoc?.id === doc.id ? "var(--ink-7)" : "transparent"}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--surface)"}
+                    onMouseLeave={e => e.currentTarget.style.background = selectedDoc?.id === doc.id ? "var(--accent-light)" : "transparent"}
                   >
-                    <FileText style={{ width: 14, height: 14, color: "var(--ink-4)", flexShrink: 0, strokeWidth: 1.5 }} />
+                    <FileText style={{ width: 15, height: 15, color: "var(--text-3)", flexShrink: 0, strokeWidth: 1.5 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-2)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
-                      <p style={{ fontSize: 10, color: "var(--ink-4)", margin: "2px 0 0" }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-1)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.title}</p>
+                      <p style={{ fontSize: 11, color: "var(--text-3)", margin: "2px 0 0" }}>{doc.type} · {new Date(doc.created_date).toLocaleDateString("pt-BR")}</p>
                     </div>
                     <span className="badge badge-neutral">{statusLabel}</span>
-                    <ChevronRight style={{ width: 13, height: 13, color: "var(--ink-5)", flexShrink: 0 }} />
+                    <ChevronRight style={{ width: 13, height: 13, color: "var(--text-3)", flexShrink: 0 }} />
                   </div>
                 );
               })}
@@ -427,9 +429,9 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
           )}
 
           {filteredDocs.length === 0 && (
-            <div style={{ textAlign: "center", padding: "48px 20px", border: "1px solid var(--ink-6)", background: "var(--white)" }}>
-              <FileText style={{ width: 32, height: 32, color: "var(--ink-5)", margin: "0 auto 10px" }} />
-              <p style={{ fontSize: 12, color: "var(--ink-4)" }}>Nenhum documento encontrado</p>
+            <div style={{ textAlign: "center", padding: "48px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", background: "var(--card)" }}>
+              <FileText style={{ width: 32, height: 32, color: "var(--text-3)", margin: "0 auto 10px" }} />
+              <p style={{ fontSize: 13, color: "var(--text-2)" }}>Nenhum documento encontrado</p>
             </div>
           )}
         </div>

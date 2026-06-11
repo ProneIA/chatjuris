@@ -162,7 +162,7 @@ export default function DiaryMonitor() {
       <KPIGrid cols={4}>
         <StatCard icon={FileText}     label="Total"     value={stats.total}   sub="publicações"    color="var(--accent)"  loading={isLoading} />
         <StatCard icon={Eye}          label="Não Lidas" value={stats.unread}  sub="pendentes"      color="var(--warning)" loading={isLoading} />
-        <StatCard icon={Star}         label="Favoritas" value={stats.starred} sub="marcadas"       color="var(--yellow)"  loading={isLoading} />
+        <StatCard icon={Star}         label="Favoritas" value={stats.starred} sub="marcadas"       color="var(--warning)" loading={isLoading} />
         <StatCard icon={Clock}        label="Hoje"      value={stats.today}   sub="novas hoje"     color="var(--success)" loading={isLoading} />
       </KPIGrid>
 

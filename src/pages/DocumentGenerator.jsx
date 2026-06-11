@@ -275,7 +275,7 @@ function Stepper({ step }) {
                 fontSize: 13, fontWeight: 700, transition: 'all var(--transition)',
                 background: done || active ? 'var(--ink)' : 'var(--border)',
                 color: done || active ? '#fff' : 'var(--text-secondary)',
-                outline: active ? '3px solid rgba(200,181,96,0.3)' : 'none', outlineOffset: 2
+                outline: active ? '3px solid var(--accent-glow)' : 'none', outlineOffset: 2
               }}>
                 {done ? <Check className="w-4 h-4" /> : idx}
               </div>
@@ -409,12 +409,12 @@ export default function DocumentGenerator() {
                     key={area.id}
                     onClick={() => selecionarArea(area.id)}
                     className="flex flex-col items-center gap-2 p-4 transition-all group"
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--warn-bg)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
                     style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
                   >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all" style={{ background: "var(--border)" }}>
-                      <Icon className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center transition-all" style={{ background: "var(--accent-light)" }}>
+                      <Icon className="w-5 h-5" style={{ color: "var(--accent)" }} />
                     </div>
                     <span style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.3 }}>
                       {area.label}
@@ -441,7 +441,7 @@ export default function DocumentGenerator() {
                   key={tipo.id}
                   onClick={() => selecionarTipo(tipo)}
                   className="flex items-center gap-4 p-5 text-left transition-all group"
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--warn-bg)'}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-light)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
                   style={{ border: "none", background: "var(--surface)", borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)", cursor: "pointer" }}
                   >
