@@ -136,7 +136,7 @@ export default function FinancialDashboard() {
                     cursor: "pointer",
                     fontFamily: "var(--font-body)",
                     background: period === o.value ? "var(--card)" : "transparent",
-                    color: period === o.value ? "var(--text-primary)" : "var(--text-secondary)",
+                    color: period === o.value ? "var(--text-1)" : "var(--text-2)",
                     boxShadow: period === o.value ? "0 1px 2px rgba(0,0,0,.06)" : "none",
                     transition: "all 0.15s ease",
                     letterSpacing: "-0.01em",

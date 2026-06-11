@@ -1,68 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
-import PageHeader from "@/components/common/PageHeader";
-import StatCard from "@/components/common/StatCard";
+import { AppPage, PageHeader, KPIGrid, StatCard, AppCard, AppContent } from "@/components/ds";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FileText,
-  Plus,
-  Search,
-  Upload,
-  FolderOpen,
-  Tag,
-  Clock,
-  Users,
-  MoreVertical,
-  Download,
-  Trash2,
-  Edit,
-  History,
-  Share2,
-  Eye,
-  Filter,
-  Grid,
-  List,
-  X,
-  Check,
-  ChevronRight,
-  Scan,
-  RotateCcw,
-  Link as LinkIcon
+  FileText, Plus, Search, Upload, FolderOpen,
+  Tag, Clock, Users, MoreVertical, Download,
+  Trash2, Edit, History, Share2, Eye, Filter,
+  Grid, List, X, Check, ChevronRight, Scan,
+  RotateCcw, Link as LinkIcon
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useDebounce } from "@/components/common/useDebounce";
 
 const tagColors = {
-  blue: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  green: "bg-green-500/20 text-green-400 border-green-500/30",
-  red: "bg-red-500/20 text-red-400 border-red-500/30",
-  yellow: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  purple: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  pink: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-  orange: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  gray: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  blue:   "badge badge-blue",
+  green:  "badge badge-green",
+  red:    "badge badge-red",
+  yellow: "badge badge-yellow",
+  purple: "badge badge-neutral",
+  pink:   "badge badge-neutral",
+  orange: "badge badge-yellow",
+  gray:   "badge badge-neutral",
 };
 
-export default function DocumentsEnhanced({ theme = 'light' }) {
-  const isDark = false;
+export default function DocumentsEnhanced() {
   const [user, setUser] = useState(null);
   const [userLoading, setUserLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -298,10 +265,11 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
   const docTypes = ["peticao", "recurso", "contestacao", "contrato", "procuracao", "parecer", "memorando", "outros"];
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--font-body)" }}>
+    <AppPage>
       <PageHeader
         title="Documentos"
-        sub="Gerencie seus documentos jurídicos"
+        subtitle="Gerencie seus documentos jurídicos"
+        icon={FileText}
         actions={
           <>
             <button className="btn btn-secondary" onClick={() => setShowTagDialog(true)}>
@@ -314,15 +282,15 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
         }
       />
 
-      {/* KPI Strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", background: "var(--border)", gap: 1, borderBottom: "1px solid var(--border)" }} className="lg:grid-cols-4 grid-cols-2">
-        <StatCard title="Total" value={documents.length} sub="documentos" accentColor="ink" loading={userLoading || docsLoading} />
-        <StatCard title="Rascunhos" value={documents.filter(d => d.status === 'draft').length} sub="pendentes" accentColor={documents.filter(d=>d.status==='draft').length > 0 ? "warn" : "neutral"} loading={userLoading || docsLoading} />
-        <StatCard title="Indexados" value={documents.filter(d => d.ocr_content).length} sub="com OCR" accentColor="ok" loading={userLoading || docsLoading} />
-        <StatCard title="Tags" value={tags.length} sub="categorias" accentColor="neutral" loading={userLoading || docsLoading} />
-      </div>
+      {/* KPIs */}
+      <KPIGrid cols={4}>
+        <StatCard icon={FileText}   label="Total"      value={documents.length}                                  sub="documentos" loading={userLoading || docsLoading} />
+        <StatCard icon={Clock}      label="Rascunhos"  value={documents.filter(d => d.status === 'draft').length} sub="pendentes"  color="var(--warning)" loading={userLoading || docsLoading} />
+        <StatCard icon={Scan}       label="Indexados"  value={documents.filter(d => d.ocr_content).length}        sub="com OCR"   color="var(--success)" loading={userLoading || docsLoading} />
+        <StatCard icon={Tag}        label="Tags"       value={tags.length}                                        sub="categorias" loading={userLoading || docsLoading} />
+      </KPIGrid>
 
-      <div style={{ padding: "24px 28px" }}>
+      <AppContent>
         {/* Filters & Search */}
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", padding: "14px 16px", marginBottom: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -457,23 +425,23 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                   <span className="text-sm text-gray-500">{selectedDoc.type}</span>
                 </div>
 
-                <div className="flex gap-2 flex-wrap">
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {selectedDoc.file_url && (
                     <>
-                      <Button size="sm" variant="default" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
-                        <Eye className="w-4 h-4 mr-2" /> Visualizar
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => window.open(selectedDoc.file_url, '_blank')}>
-                        <Download className="w-4 h-4 mr-2" /> Download
-                      </Button>
+                      <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => window.open(selectedDoc.file_url, '_blank')}>
+                        <Eye size={13} /> Visualizar
+                      </button>
+                      <button className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => window.open(selectedDoc.file_url, '_blank')}>
+                        <Download size={13} /> Download
+                      </button>
                     </>
                   )}
-                  <Button size="sm" variant="outline" onClick={() => setShowVersionDialog(true)}>
-                    <Upload className="w-4 h-4 mr-2" /> Nova Versão
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => { deleteDocMutation.mutate(selectedDoc.id); setShowDetails(false); }}>
-                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                  </Button>
+                  <button className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setShowVersionDialog(true)}>
+                    <Upload size={13} /> Nova Versão
+                  </button>
+                  <button className="btn btn-danger" style={{ fontSize: 12 }} onClick={() => { deleteDocMutation.mutate(selectedDoc.id); setShowDetails(false); }}>
+                    <Trash2 size={13} /> Excluir
+                  </button>
                 </div>
 
                 <Tabs defaultValue="details">
@@ -484,12 +452,12 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
 
                   <TabsContent value="details" className="mt-4 space-y-4">
                     <div>
-                      <label className="text-xs text-gray-500">Criado em</label>
-                      <p className="font-medium">{new Date(selectedDoc.created_date).toLocaleString('pt-BR')}</p>
+                      <label style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Criado em</label>
+                      <p style={{ fontSize: 13, color: "var(--text-1)", fontWeight: 500, margin: "3px 0 0" }}>{new Date(selectedDoc.created_date).toLocaleString('pt-BR')}</p>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-500">Versão Atual</label>
-                      <p className="font-medium">v{selectedDoc.current_version || 1}</p>
+                      <label style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Versão Atual</label>
+                      <p style={{ fontSize: 13, color: "var(--text-1)", fontWeight: 500, margin: "3px 0 0" }}>v{selectedDoc.current_version || 1}</p>
                     </div>
                     {selectedDoc.case_ids && selectedDoc.case_ids.length > 0 && (
                       <div>
@@ -556,19 +524,18 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                     )}
                     {selectedDoc.ocr_content && (
                       <div>
-                        <label className="text-xs text-gray-500 flex items-center gap-1">
-                          <Scan className="w-3 h-3" />
-                          Conteúdo Indexado
+                        <label style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 4 }}>
+                          <Scan size={10} /> Conteúdo Indexado
                         </label>
-                        <p className="text-xs text-gray-600 mt-1 max-h-32 overflow-y-auto">
+                        <p style={{ fontSize: 12, color: "var(--text-2)", marginTop: 4, maxHeight: 120, overflowY: "auto", lineHeight: 1.5 }}>
                           {selectedDoc.ocr_content.substring(0, 500)}...
                         </p>
                       </div>
                     )}
                     {selectedDoc.notes && (
                       <div>
-                        <label className="text-xs text-gray-500">Observações</label>
-                        <p className="text-sm text-gray-700">{selectedDoc.notes}</p>
+                        <label style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Observações</label>
+                        <p style={{ fontSize: 13, color: "var(--text-1)", marginTop: 4 }}>{selectedDoc.notes}</p>
                       </div>
                     )}
                   </TabsContent>
@@ -576,50 +543,31 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
                   <TabsContent value="versions" className="mt-4">
                     <div className="space-y-3">
                       {versions.map((ver) => (
-                        <div key={ver.id} className={`p-3 rounded-lg ${ver.version_number === selectedDoc.current_version ? 'bg-blue-50 border border-blue-200' : 'bg-gray-100'}`}>
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">Versão {ver.version_number}</span>
+                        <div key={ver.id} style={{ padding: "10px 12px", borderRadius: "var(--r-md)", border: "1px solid var(--border)", background: ver.version_number === selectedDoc.current_version ? "var(--accent-light)" : "var(--surface)" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontWeight: 600, fontSize: 13, color: "var(--text-1)" }}>Versão {ver.version_number}</span>
                               {ver.version_number === selectedDoc.current_version && (
-                                <Badge variant="default" className="text-xs">Atual</Badge>
+                                <span className="badge badge-blue" style={{ fontSize: 10 }}>Atual</span>
                               )}
                             </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')} title="Visualizar">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => window.open(ver.file_url, '_blank')} title="Download">
-                                <Download className="w-4 h-4" />
-                              </Button>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              <button className="btn btn-ghost" style={{ padding: "4px 8px", minHeight: "unset" }} onClick={() => window.open(ver.file_url, '_blank')}><Eye size={13} /></button>
+                              <button className="btn btn-ghost" style={{ padding: "4px 8px", minHeight: "unset" }} onClick={() => window.open(ver.file_url, '_blank')}><Download size={13} /></button>
                               {ver.version_number !== selectedDoc.current_version && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  onClick={() => {
-                                    if (confirm(`Reverter para versão ${ver.version_number}?`)) {
-                                      revertToVersionMutation.mutate({
-                                        documentId: selectedDoc.id,
-                                        versionId: ver.id,
-                                        versionNumber: ver.version_number,
-                                        fileUrl: ver.file_url
-                                      });
-                                    }
-                                  }}
-                                  title="Reverter para esta versão"
-                                >
-                                  <RotateCcw className="w-4 h-4" />
-                                </Button>
+                                <button className="btn btn-ghost" style={{ padding: "4px 8px", minHeight: "unset" }}
+                                  onClick={() => { if (confirm(`Reverter para versão ${ver.version_number}?`)) { revertToVersionMutation.mutate({ documentId: selectedDoc.id, versionId: ver.id, versionNumber: ver.version_number, fileUrl: ver.file_url }); } }}>
+                                  <RotateCcw size={13} />
+                                </button>
                               )}
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600">{ver.changes_description}</p>
-                          <p className="text-xs mt-1 text-gray-400">
-                            {ver.author_name} • {new Date(ver.created_date).toLocaleDateString('pt-BR')}
-                          </p>
+                          <p style={{ fontSize: 12, color: "var(--text-2)", margin: "0 0 2px" }}>{ver.changes_description}</p>
+                          <p style={{ fontSize: 11, color: "var(--text-3)", margin: 0 }}>{ver.author_name} • {new Date(ver.created_date).toLocaleDateString('pt-BR')}</p>
                         </div>
                       ))}
                       {versions.length === 0 && (
-                        <p className="text-center py-4 text-sm text-gray-500">Nenhuma versão encontrada</p>
+                        <p style={{ textAlign: "center", padding: "16px 0", fontSize: 13, color: "var(--text-3)" }}>Nenhuma versão encontrada</p>
                       )}
                     </div>
                   </TabsContent>
@@ -628,7 +576,6 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
             )}
           </DialogContent>
         </Dialog>
-      </div>
 
       {/* Upload Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
@@ -676,7 +623,8 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
           />
         </DialogContent>
       </Dialog>
-    </div>
+      </AppContent>
+    </AppPage>
   );
 }
 
@@ -706,9 +654,8 @@ function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, o
           accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
           className="mt-1"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          <Scan className="w-3 h-3 inline mr-1" />
-          O conteúdo será automaticamente indexado para busca avançada
+        <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+          <Scan size={10} /> O conteúdo será automaticamente indexado para busca avançada
         </p>
       </div>
       <div>
@@ -749,7 +696,7 @@ function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, o
               <span className="text-sm">{c.title}</span>
             </label>
           ))}
-          {cases.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhum processo disponível</p>}
+          {cases.length === 0 && <p style={{ fontSize: 11, color: "var(--text-3)", padding: 8 }}>Nenhum processo disponível</p>}
         </div>
       </div>
 
@@ -770,7 +717,7 @@ function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, o
               <span className="text-sm">{t.title}</span>
             </label>
           ))}
-          {tasks.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhuma tarefa disponível</p>}
+          {tasks.length === 0 && <p style={{ fontSize: 11, color: "var(--text-3)", padding: 8 }}>Nenhuma tarefa disponível</p>}
         </div>
       </div>
 
@@ -791,7 +738,7 @@ function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, o
               <span className="text-sm">{c.name}</span>
             </label>
           ))}
-          {clients.length === 0 && <p className="text-xs text-gray-400 p-2">Nenhum cliente disponível</p>}
+          {clients.length === 0 && <p style={{ fontSize: 11, color: "var(--text-3)", padding: 8 }}>Nenhum cliente disponível</p>}
         </div>
       </div>
 
@@ -820,11 +767,11 @@ function UploadDocumentForm({ cases, clients, tasks, tags, docTypes, onSubmit, o
           rows={3}
         />
       </div>
-      <div className="flex justify-end gap-2 pt-4 border-t">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button onClick={() => onSubmit({ ...formData, file })} disabled={!file || !formData.title || isLoading}>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+        <button className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
+        <button className="btn btn-primary" onClick={() => onSubmit({ ...formData, file })} disabled={!file || !formData.title || isLoading}>
           {isLoading ? "Enviando e indexando..." : "Upload e Indexar"}
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -853,14 +800,11 @@ function NewVersionForm({ documentId, onSubmit, onCancel, isLoading }) {
           placeholder="O que foi alterado nesta versão?"
         />
       </div>
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button
-          onClick={() => onSubmit({ documentId, file, description })}
-          disabled={!file || !description || isLoading}
-        >
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 12 }}>
+        <button className="btn btn-secondary" onClick={onCancel}>Cancelar</button>
+        <button className="btn btn-primary" onClick={() => onSubmit({ documentId, file, description })} disabled={!file || !description || isLoading}>
           {isLoading ? "Enviando..." : "Salvar Versão"}
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -886,9 +830,9 @@ function TagManager({ tags, onCreate }) {
             <option key={color} value={color}>{color}</option>
           ))}
         </select>
-        <Button onClick={() => { onCreate(newTag); setNewTag({ name: "", color: "blue" }); }} disabled={!newTag.name}>
-          <Plus className="w-4 h-4" />
-        </Button>
+        <button className="btn btn-primary" onClick={() => { onCreate(newTag); setNewTag({ name: "", color: "blue" }); }} disabled={!newTag.name}>
+          <Plus size={14} />
+        </button>
       </div>
       <div className="flex flex-wrap gap-2">
         {tags.map(tag => (

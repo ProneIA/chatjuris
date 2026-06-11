@@ -162,7 +162,7 @@ REGRAS: Nunca sugerir contato direto com partes; focar em posicionamento informa
           <AppTabPanel value="alertas">
             <AppCard noPad>
               {highAlerts.length === 0 ? (
-                <div style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-secondary)", fontSize: 13 }}>
+                <div style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-3)", fontSize: 13 }}>
                   Nenhum alerta de alta relevância no momento
                 </div>
               ) : (
@@ -179,26 +179,26 @@ REGRAS: Nunca sugerir contato direto com partes; focar em posicionamento informa
                   >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8, gap: 12 }}>
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-1)", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
                           {insight.titulo}
                         </p>
-                        <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+                        <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>
                           {insight.area_juridica} · {insight.regiao}
                         </p>
                       </div>
                       <AppBadge variant="danger">Alta Relevância</AppBadge>
                     </div>
                     {insight.descricao && (
-                      <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 10px", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-2)", margin: "0 0 10px", lineHeight: 1.6 }}>
                         {insight.descricao}
                       </p>
                     )}
                     {insight.estrategia_sugerida && (
-                      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
-                        <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-secondary)", margin: "0 0 6px" }}>
+                      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "12px 14px" }}>
+                        <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-3)", margin: "0 0 6px" }}>
                           Estratégia Sugerida
                         </p>
-                        <p style={{ fontSize: 13, color: "var(--text-primary)", margin: 0, lineHeight: 1.6 }}>
+                        <p style={{ fontSize: 13, color: "var(--text-1)", margin: 0, lineHeight: 1.6 }}>
                           {insight.estrategia_sugerida}
                         </p>
                       </div>
