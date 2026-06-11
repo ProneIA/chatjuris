@@ -273,8 +273,8 @@ function Stepper({ step }) {
               <div style={{
                 width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 700, transition: 'all var(--transition)',
-                background: done || active ? 'var(--ink)' : 'var(--border)',
-                color: done || active ? '#fff' : 'var(--text-secondary)',
+                background: active ? 'var(--accent)' : done ? 'var(--text-1)' : 'var(--border)',
+                color: done || active ? '#fff' : 'var(--text-2)',
                 outline: active ? '3px solid var(--accent-glow)' : 'none', outlineOffset: 2
               }}>
                 {done ? <Check className="w-4 h-4" /> : idx}
@@ -282,7 +282,7 @@ function Stepper({ step }) {
               <span style={{ fontSize: 11, fontWeight: 500, display: 'block', color: active ? 'var(--accent)' : done ? 'var(--text-secondary)' : 'var(--text-muted)' }} className="hidden sm:block">{label}</span>
             </div>
             {i < steps.length - 1 && (
-              <div style={{ height: 2, width: 48, margin: '0 4px 16px', background: step > idx ? 'var(--accent)' : 'var(--border)', transition: 'background var(--transition)' }} />
+              <div style={{ height: 2, width: 48, margin: '0 4px 16px', background: step > idx ? 'var(--accent)' : 'var(--border)', borderRadius: 2, transition: 'background var(--transition)' }} />
             )}
           </React.Fragment>
         );

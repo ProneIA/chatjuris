@@ -133,27 +133,21 @@ export default function DiaryMonitor() {
         icon={Newspaper}
         actions={
           <div style={{ display: "flex", gap: 8 }}>
-            <AppButton
-              variant={showAdvSearch ? "primary" : "secondary"}
-              icon={SlidersHorizontal}
+            <button
+              className={showAdvSearch ? "btn btn-primary" : "btn btn-secondary"}
               onClick={() => setShowAdvSearch(!showAdvSearch)}
             >
-              Filtros
-            </AppButton>
-            <AppButton
-              variant={showMonitoring ? "primary" : "secondary"}
-              icon={Bell}
+              <SlidersHorizontal size={14} /> Filtros
+            </button>
+            <button
+              className={showMonitoring ? "btn btn-primary" : "btn btn-secondary"}
               onClick={() => setShowMonitoring(!showMonitoring)}
             >
-              Alertas
-            </AppButton>
-            <AppButton
-              variant="primary"
-              icon={Plus}
-              onClick={() => {}}
-            >
-              Adicionar Publicação
-            </AppButton>
+              <Bell size={14} /> Alertas
+            </button>
+            <button className="btn btn-primary" onClick={() => {}}>
+              <Plus size={14} /> Adicionar Publicação
+            </button>
           </div>
         }
       />

@@ -146,7 +146,7 @@ export default function FinancialDashboard() {
                 </button>
               ))}
             </div>
-            <button className="btn-accent" onClick={() => setActiveTab("honorarios")}>
+            <button className="btn btn-primary" onClick={() => setActiveTab("honorarios")}>
               <Plus size={14} /> Nova Transação
             </button>
           </>

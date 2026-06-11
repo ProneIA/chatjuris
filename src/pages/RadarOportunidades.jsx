@@ -126,14 +126,14 @@ REGRAS: Nunca sugerir contato direto com partes; focar em posicionamento informa
         icon={Activity}
         actions={
           <>
-            <button className="btn-outline" onClick={atualizarDados} disabled={atualizandoDados}>
+            <button className="btn btn-secondary" onClick={atualizarDados} disabled={atualizandoDados}>
               <Activity size={14} />
               {atualizandoDados ? "Atualizando..." : "Atualizar"}
             </button>
             <Link to={createPageUrl("AIAssistant") + "?mode=marketing_juridico"} style={{ textDecoration: "none" }}>
-              <button className="btn-outline"><MessageSquare size={14} /> Chat IA</button>
+              <button className="btn btn-secondary"><MessageSquare size={14} /> Chat IA</button>
             </Link>
-            <button className="btn-primary" onClick={generateStrategyWithAI} disabled={generatingStrategy}>
+            <button className="btn btn-primary" onClick={generateStrategyWithAI} disabled={generatingStrategy}>
               <Sparkles size={14} />
               {generatingStrategy ? "Gerando..." : "Gerar Estratégia"}
             </button>

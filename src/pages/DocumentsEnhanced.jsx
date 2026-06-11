@@ -304,10 +304,10 @@ export default function DocumentsEnhanced({ theme = 'light' }) {
         sub="Gerencie seus documentos jurídicos"
         actions={
           <>
-            <button className="btn-secondary" onClick={() => setShowTagDialog(true)}>
+            <button className="btn btn-secondary" onClick={() => setShowTagDialog(true)}>
               <Tag size={13} /> Tags
             </button>
-            <button className="btn-primary" onClick={() => setShowUploadDialog(true)}>
+            <button className="btn btn-primary" onClick={() => setShowUploadDialog(true)}>
               <Upload size={13} /> Upload
             </button>
           </>

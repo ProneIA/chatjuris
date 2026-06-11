@@ -343,14 +343,14 @@ export default function LegalResearch({ theme = 'light' }) {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Salvas', value: stats.total, accent: 'var(--info)' },
-              { label: 'STF', value: stats.stf, accent: 'var(--danger)' },
-              { label: 'STJ', value: stats.stj, accent: 'var(--success)' },
-              { label: 'Favoritas', value: stats.favorites, accent: 'var(--accent)' },
-            ].map(({ label, value, accent }) => (
-              <div key={label} style={{ padding: 16, borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--card)', borderBottom: `3px solid ${accent}` }}>
-                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-2)' }}>{label}</p>
-                <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', marginTop: 4 }}>{value}</p>
+              { label: 'Total Salvas', value: stats.total },
+              { label: 'STF', value: stats.stf },
+              { label: 'STJ', value: stats.stj },
+              { label: 'Favoritas', value: stats.favorites },
+            ].map(({ label, value }) => (
+              <div key={label} className="app-card" style={{ padding: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)', margin: '0 0 6px' }}>{label}</p>
+                <p style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>{value}</p>
               </div>
             ))}
           </div>
