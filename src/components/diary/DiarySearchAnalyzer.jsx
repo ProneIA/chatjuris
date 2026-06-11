@@ -1,28 +1,13 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
-  Search, 
-  Upload, 
-  Sparkles, 
-  Loader2, 
-  FileText,
-  X,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  Hash,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Save
+  Search, Upload, Sparkles, Loader2, FileText,
+  X, CheckCircle, AlertTriangle, Clock,
+  Hash, ChevronDown, ChevronUp, Save
 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
-// Dicionário de sinônimos jurídicos
 const SYNONYM_DICTIONARY = {
   'licitação': ['licitações', 'concorrência', 'pregão', 'certame', 'edital', 'tomada de preços', 'convite', 'leilão', 'dispensa', 'inexigibilidade'],
   'contrato': ['contratos', 'acordo', 'ajuste', 'parceria', 'convênio', 'termo', 'aditivo', 'contratação'],
@@ -43,29 +28,26 @@ const SYNONYM_DICTIONARY = {
   'execução': ['execuções', 'executar', 'executado', 'executivo', 'cumprimento'],
 };
 
-// Padrões de números de processo
-const PROCESS_PATTERNS = [
-  /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/g,
-  /\d{4}\.\d{3}\.\d{6}\/\d{4}-\d{2}/g,
-  /\d{6,7}\/\d{4}/g,
-];
+const urgencyConfig = {
+  alta:  { label: "Urgente", badgeClass: "badge badge-red",    Icon: AlertTriangle },
+  media: { label: "Média",   badgeClass: "badge badge-yellow", Icon: Clock         },
+  baixa: { label: "Baixa",   badgeClass: "badge badge-green",  Icon: CheckCircle   },
+};
 
-export default function DiarySearchAnalyzer({ isDark, monitorings = [], onSuccess }) {
-  const [searchTerms, setSearchTerms] = useState("");
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [fileContent, setFileContent] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [results, setResults] = useState(null);
+export default function DiarySearchAnalyzer({ monitorings = [], onSuccess }) {
+  const [searchTerms,    setSearchTerms]    = useState("");
+  const [uploadedFile,   setUploadedFile]   = useState(null);
+  const [fileContent,    setFileContent]    = useState("");
+  const [isAnalyzing,    setIsAnalyzing]    = useState(false);
+  const [results,        setResults]        = useState(null);
   const [expandedResult, setExpandedResult] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving,       setIsSaving]       = useState(false);
 
-  // Expande sinônimos das palavras-chave
   const expandSynonyms = (terms) => {
     const expanded = new Set();
     terms.forEach(term => {
       const lowerTerm = term.toLowerCase().trim();
       expanded.add(lowerTerm);
-      
       for (const [key, synonyms] of Object.entries(SYNONYM_DICTIONARY)) {
         if (key.includes(lowerTerm) || lowerTerm.includes(key)) {
           expanded.add(key);
@@ -83,180 +65,75 @@ export default function DiarySearchAnalyzer({ isDark, monitorings = [], onSucces
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setUploadedFile(file);
     setResults(null);
-    setFileContent(""); // Limpa conteúdo anterior
-    
+    setFileContent("");
     if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
       try {
         toast.info("Extraindo texto do arquivo...");
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        
         const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
           file_url,
-          json_schema: {
-            type: "object",
-            properties: {
-              full_text: { type: "string", description: "Todo o texto extraído do documento" }
-            }
-          }
+          json_schema: { type: "object", properties: { full_text: { type: "string" } } }
         });
-        
         if (extracted.status === "success" && extracted.output?.full_text) {
-          const text = extracted.output.full_text;
-          console.log("Texto extraído com sucesso:", text.length, "caracteres");
-          setFileContent(text);
-          toast.success(`Texto extraído! ${text.length.toLocaleString()} caracteres`);
+          setFileContent(extracted.output.full_text);
+          toast.success(`Texto extraído! ${extracted.output.full_text.length.toLocaleString()} caracteres`);
         } else {
-          console.error("Falha na extração:", extracted);
           toast.error("Não foi possível extrair texto do arquivo");
         }
-      } catch (error) {
-        console.error("Erro ao processar arquivo:", error);
+      } catch {
         toast.error("Erro ao processar arquivo");
       }
     } else if (file.type === 'text/plain') {
       const text = await file.text();
-      console.log("Texto lido do TXT:", text.length, "caracteres");
       setFileContent(text);
       toast.success(`Arquivo carregado! ${text.length.toLocaleString()} caracteres`);
     } else {
-      // Tentar ler como texto para outros formatos
       try {
         const text = await file.text();
-        if (text && text.trim().length > 0) {
-          console.log("Texto lido:", text.length, "caracteres");
-          setFileContent(text);
-          toast.success(`Arquivo carregado! ${text.length.toLocaleString()} caracteres`);
-        } else {
-          toast.error("Formato de arquivo não suportado ou arquivo vazio");
-        }
-      } catch (error) {
-        toast.error("Formato de arquivo não suportado");
-      }
+        if (text?.trim().length > 0) { setFileContent(text); toast.success(`Arquivo carregado!`); }
+        else toast.error("Formato não suportado ou arquivo vazio");
+      } catch { toast.error("Formato de arquivo não suportado"); }
     }
   };
 
   const analyzeWithAI = async () => {
-    console.log("analyzeWithAI chamado", { fileContentLength: fileContent?.length, searchTerms });
-    
-    if (!fileContent || fileContent.trim().length === 0) {
-      toast.error("Faça upload de um arquivo primeiro");
-      return;
-    }
-
+    if (!fileContent?.trim()) { toast.error("Faça upload de um arquivo primeiro"); return; }
     const terms = searchTerms.split(',').map(t => t.trim()).filter(t => t.length > 0);
-    if (terms.length === 0) {
-      toast.error("Digite pelo menos uma palavra-chave");
-      return;
-    }
-    
-    console.log("Iniciando análise com termos:", terms);
-
+    if (!terms.length) { toast.error("Digite pelo menos uma palavra-chave"); return; }
     setIsAnalyzing(true);
     const expandedTerms = expandSynonyms(terms);
-
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um ESPECIALISTA em análise de Diários Oficiais brasileiros.
-
-TAREFA: Analise o texto e encontre TODAS as publicações que contenham as palavras-chave ou seus sinônimos.
-
-PALAVRAS-CHAVE PARA BUSCAR (incluindo sinônimos):
-${expandedTerms.map(t => `- "${t}"`).join('\n')}
-
-TERMOS ORIGINAIS DO USUÁRIO: ${terms.join(', ')}
-
-CONTEÚDO DO DIÁRIO:
----
-${fileContent.substring(0, 20000)}
----
-
-INSTRUÇÕES:
-1. Identifique CADA publicação que contenha qualquer uma das palavras-chave
-2. Para cada publicação encontrada, extraia:
-   - Título resumido
-   - Número do processo (se houver)
-   - Partes envolvidas
-   - Palavras-chave encontradas nesta publicação
-   - Trecho original (até 500 caracteres)
-   - Resumo do conteúdo
-   - Urgência (alta/media/baixa)
-   - Prazo identificado (se houver)
-   - Categoria (intimacao/sentenca/despacho/edital/decisao/acordao/citacao/outros)
-
-3. Agrupe resultados por número de processo quando possível
-4. NÃO INVENTE dados - extraia apenas o que está no texto
-
-Retorne JSON:
-{
-  "total_matches": número,
-  "keywords_found": {"palavra": quantidade},
-  "results": [
-    {
-      "title": "string",
-      "process_number": "string ou null",
-      "parties": ["string"],
-      "keywords_matched": ["string"],
-      "original_excerpt": "trecho do texto",
-      "summary": "resumo",
-      "urgency": "alta|media|baixa",
-      "deadline": "YYYY-MM-DD ou null",
-      "category": "string"
-    }
-  ]
-}`,
+        prompt: `Você é um ESPECIALISTA em análise de Diários Oficiais brasileiros.\n\nTAREFA: Analise o texto e encontre TODAS as publicações que contenham as palavras-chave ou seus sinônimos.\n\nPALAVRAS-CHAVE:\n${expandedTerms.map(t => `- "${t}"`).join('\n')}\n\nCONTEÚDO DO DIÁRIO:\n---\n${fileContent.substring(0, 20000)}\n---\n\nRetorne JSON com total_matches, keywords_found e results (array com title, process_number, parties, keywords_matched, original_excerpt, summary, urgency, deadline, category).`,
         response_json_schema: {
           type: "object",
           properties: {
             total_matches: { type: "number" },
             keywords_found: { type: "object" },
-            results: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  process_number: { type: "string" },
-                  parties: { type: "array", items: { type: "string" } },
-                  keywords_matched: { type: "array", items: { type: "string" } },
-                  original_excerpt: { type: "string" },
-                  summary: { type: "string" },
-                  urgency: { type: "string" },
-                  deadline: { type: "string" },
-                  category: { type: "string" }
-                }
-              }
-            }
+            results: { type: "array", items: { type: "object", properties: {
+              title: { type: "string" }, process_number: { type: "string" },
+              parties: { type: "array", items: { type: "string" } },
+              keywords_matched: { type: "array", items: { type: "string" } },
+              original_excerpt: { type: "string" }, summary: { type: "string" },
+              urgency: { type: "string" }, deadline: { type: "string" }, category: { type: "string" }
+            }}}
           }
         }
       });
-
       setResults(response);
-      
-      if (response.total_matches === 0) {
-        toast.info("Nenhuma publicação encontrada com essas palavras-chave");
-      } else {
-        toast.success(`${response.total_matches} publicação(ões) encontrada(s)!`);
-      }
-      
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro ao analisar");
-    }
-
+      if (response.total_matches === 0) toast.info("Nenhuma publicação encontrada");
+      else toast.success(`${response.total_matches} publicação(ões) encontrada(s)!`);
+    } catch { toast.error("Erro ao analisar"); }
     setIsAnalyzing(false);
   };
 
   const saveResults = async () => {
     if (!results?.results?.length) return;
-    
     setIsSaving(true);
-    
     try {
       const user = await base44.auth.me();
-      
       for (const pub of results.results) {
         const pubData = {
           title: pub.title || "Publicação sem título",
@@ -266,124 +143,81 @@ Retorne JSON:
           parties_involved: pub.parties || [],
           ai_summary: pub.summary || "",
           keywords_matched: pub.keywords_matched || [],
-          is_read: false,
-          is_starred: true
+          is_read: false, is_starred: true
         };
-        
-        // Só adiciona campos opcionais se tiverem valor válido
-        if (pub.category && pub.category !== "" && pub.category !== "null") pubData.category = pub.category;
-        if (pub.process_number && pub.process_number !== "" && pub.process_number !== "null") pubData.case_number = pub.process_number;
-        if (pub.urgency && pub.urgency !== "" && pub.urgency !== "null") pubData.urgency = pub.urgency;
-        if (pub.deadline && pub.deadline !== "" && pub.deadline !== "null") pubData.deadline_detected = pub.deadline;
-        
+        if (pub.category && pub.category !== "null") pubData.category = pub.category;
+        if (pub.process_number && pub.process_number !== "null") pubData.case_number = pub.process_number;
+        if (pub.urgency && pub.urgency !== "null") pubData.urgency = pub.urgency;
+        if (pub.deadline && pub.deadline !== "null") pubData.deadline_detected = pub.deadline;
         await base44.entities.DiaryPublication.create(pubData);
       }
-
-      // Notificações
       const activeMonitorings = monitorings.filter(m => m.is_active);
-      for (const monitoring of activeMonitorings) {
-        if (monitoring.notification_push) {
+      for (const mon of activeMonitorings) {
+        if (mon.notification_push) {
           await base44.entities.Notification.create({
-            type: 'deadline',
-            title: `📰 ${results.results.length} publicação(ões) salva(s)`,
+            type: 'deadline', title: `📰 ${results.results.length} publicação(ões) salva(s)`,
             message: `Busca por "${searchTerms}" encontrou ${results.results.length} resultado(s).`,
-            recipient_email: user.email,
-            is_read: false,
-            entity_type: 'DiaryMonitoring',
-            entity_id: monitoring.id,
-            actor_name: 'Monitor de Diários'
+            recipient_email: user.email, is_read: false,
+            entity_type: 'DiaryMonitoring', entity_id: mon.id, actor_name: 'Monitor de Diários'
           });
         }
       }
-
       toast.success(`${results.results.length} publicação(ões) salva(s)!`);
       onSuccess?.();
-      // Mantém os resultados visíveis após salvar, apenas limpa o estado de "saving"
-      // O usuário pode limpar manualmente se quiser
-      
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro ao salvar");
-    }
-    
+    } catch { toast.error("Erro ao salvar"); }
     setIsSaving(false);
   };
 
-  const clearAll = () => {
-    setSearchTerms("");
-    setUploadedFile(null);
-    setFileContent("");
-    setResults(null);
-    setExpandedResult(null);
-  };
-
-  const urgencyConfig = {
-    alta: { color: "red", icon: AlertTriangle, label: "Urgente" },
-    media: { color: "yellow", icon: Clock, label: "Média" },
-    baixa: { color: "green", icon: CheckCircle, label: "Baixa" }
-  };
+  const hasFile = fileContent?.trim().length > 0;
+  const canAnalyze = hasFile && searchTerms.trim() && !isAnalyzing;
 
   return (
-    <div className={`rounded-xl border ${isDark ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-slate-200'}`}>
+    <div className="app-card">
       {/* Header */}
-      <div className="p-4 border-b border-inherit">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Pesquisa Inteligente em Diários
-          </h3>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 32, height: 32, borderRadius: "var(--r-md)", background: "var(--accent-light)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Sparkles size={16} style={{ color: "var(--accent)" }} />
         </div>
-        <p className={`text-sm ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-          Faça upload do diário e digite as palavras-chave para buscar
-        </p>
+        <div>
+          <h3 style={{ fontWeight: 600, fontSize: 14, color: "var(--text-1)", margin: 0 }}>Pesquisa Inteligente em Diários</h3>
+          <p style={{ fontSize: 12, color: "var(--text-3)", margin: 0 }}>Faça upload do diário e digite palavras-chave para buscar</p>
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 space-y-4">
+      {/* Inputs */}
+      <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
         {/* Upload */}
         <div>
-          <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, display: "block", textTransform: "uppercase", letterSpacing: "0.05em" }}>
             1. Upload do Diário Oficial
           </label>
-          <div className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
-            uploadedFile 
-              ? isDark ? 'border-green-500/50 bg-green-500/10' : 'border-green-500 bg-green-50'
-              : isDark ? 'border-neutral-700 hover:border-neutral-600' : 'border-slate-300 hover:border-slate-400'
-          }`}>
-            <input
-              type="file"
-              accept=".pdf,.txt,.png,.jpg,.jpeg"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="diary-upload-smart"
-            />
-            <label htmlFor="diary-upload-smart" className="cursor-pointer">
+          <div style={{
+            border: `2px dashed ${uploadedFile ? "var(--green)" : "var(--border-2)"}`,
+            borderRadius: "var(--r-md)", padding: "16px", textAlign: "center",
+            background: uploadedFile ? "var(--green-bg)" : "var(--surface)",
+            transition: "all var(--dur)",
+          }}>
+            <input type="file" accept=".pdf,.txt,.png,.jpg,.jpeg" onChange={handleFileUpload} className="hidden" id="diary-upload-smart" />
+            <label htmlFor="diary-upload-smart" style={{ cursor: "pointer", display: "block" }}>
               {uploadedFile ? (
-                <div className="flex items-center justify-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className={`text-sm font-medium ${isDark ? 'text-green-400' : 'text-green-700'}`}>
-                    {uploadedFile.name}
-                  </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={(e) => { e.preventDefault(); setUploadedFile(null); setFileContent(""); setResults(null); }}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <CheckCircle size={16} style={{ color: "var(--green)" }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-1)" }}>{uploadedFile.name}</span>
+                  <button style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "var(--text-3)", minHeight: "unset" }}
+                    onClick={e => { e.preventDefault(); setUploadedFile(null); setFileContent(""); setResults(null); }}>
+                    <X size={14} />
+                  </button>
                 </div>
               ) : (
                 <>
-                  <Upload className={`w-6 h-6 mx-auto mb-1 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-                  <p className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                    Clique para selecionar PDF, TXT ou imagem
-                  </p>
+                  <Upload size={20} style={{ color: "var(--text-3)", margin: "0 auto 6px" }} />
+                  <p style={{ fontSize: 13, color: "var(--text-2)", margin: 0 }}>Clique para selecionar PDF, TXT ou imagem</p>
                 </>
               )}
             </label>
           </div>
           {fileContent && (
-            <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
+            <p style={{ fontSize: 11, color: "var(--green)", marginTop: 4 }}>
               ✓ {fileContent.length.toLocaleString()} caracteres extraídos
             </p>
           )}
@@ -391,181 +225,114 @@ Retorne JSON:
 
         {/* Palavras-chave */}
         <div>
-          <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
-            2. Palavras-chave para busca
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, display: "block", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            2. Palavras-chave
           </label>
-          <div className={`p-3 rounded-lg border ${isDark ? 'bg-neutral-800/50 border-neutral-700' : 'bg-slate-50 border-slate-200'}`}>
-            <div className="relative">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-              <Input
-                placeholder="Ex: licitação, contrato, precatório (separados por vírgula)"
-                value={searchTerms}
-                onChange={(e) => setSearchTerms(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && analyzeWithAI()}
-                className={`pl-10 ${isDark ? 'bg-neutral-900 border-neutral-600 text-white' : 'bg-white'}`}
-              />
-            </div>
-            <p className={`text-xs mt-2 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-              💡 Sinônimos jurídicos são incluídos automaticamente na busca
-            </p>
+          <div style={{ position: "relative" }}>
+            <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", pointerEvents: "none" }} />
+            <input
+              placeholder="Ex: licitação, contrato, precatório (separados por vírgula)"
+              value={searchTerms}
+              onChange={e => setSearchTerms(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && analyzeWithAI()}
+              style={{ paddingLeft: 36 }}
+            />
           </div>
+          <p style={{ fontSize: 11, color: "var(--text-3)", marginTop: 4 }}>💡 Sinônimos jurídicos são incluídos automaticamente</p>
         </div>
 
-        {/* Botão de Análise */}
-        <Button 
+        {/* Botão */}
+        <button
+          className="btn btn-primary"
           onClick={analyzeWithAI}
-          disabled={!(fileContent && fileContent.trim().length > 0) || !searchTerms.trim() || isAnalyzing}
-          className={`w-full ${
-            (fileContent && fileContent.trim().length > 0) && searchTerms.trim() && !isAnalyzing
-              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
+          disabled={!canAnalyze}
+          style={{ width: "100%", justifyContent: "center", opacity: canAnalyze ? 1 : 0.55, cursor: canAnalyze ? "pointer" : "not-allowed" }}
         >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Analisando com IA...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Buscar Publicações
-            </>
-          )}
-        </Button>
-        {/* Debug info */}
-        {(!fileContent || fileContent.trim().length === 0) && uploadedFile && (
-          <p className="text-xs text-amber-500 mt-1">
-            ⏳ Aguarde a extração do texto do arquivo...
-          </p>
-        )}
-        {(!fileContent || fileContent.trim().length === 0) && !uploadedFile && (
-          <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-            ⬆️ Faça upload de um arquivo para começar
-          </p>
-        )}
-        {fileContent && fileContent.trim().length > 0 && !searchTerms.trim() && (
-          <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-500'}`}>
-            🔍 Digite uma ou mais palavras-chave para buscar
-          </p>
-        )}
+          {isAnalyzing ? <><Loader2 size={14} className="animate-spin" /> Analisando com IA...</>
+            : <><Sparkles size={14} /> Buscar Publicações</>}
+        </button>
+        {!hasFile && uploadedFile && <p style={{ fontSize: 11, color: "var(--yellow)" }}>⏳ Aguarde a extração do texto...</p>}
+        {!hasFile && !uploadedFile && <p style={{ fontSize: 11, color: "var(--text-3)" }}>⬆️ Faça upload de um arquivo para começar</p>}
       </div>
 
       {/* Resultados */}
       {results && (
-        <div className={`border-t ${isDark ? 'border-neutral-800' : 'border-slate-200'}`}>
-          {/* Summary */}
-          <div className={`p-4 ${isDark ? 'bg-neutral-800/50' : 'bg-slate-50'}`}>
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-3">
-                <Badge className="bg-purple-500/20 text-purple-500 border-0">
-                  {results.total_matches} resultado(s)
-                </Badge>
-                {results.keywords_found && Object.entries(results.keywords_found).slice(0, 3).map(([kw, count]) => (
-                  <Badge key={kw} variant="outline" className="text-xs">
-                    {kw}: {count}
-                  </Badge>
-                ))}
-              </div>
-              {results.results?.length > 0 && (
-                <Button 
-                  onClick={saveResults}
-                  disabled={isSaving}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isSaving ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  Salvar Todos
-                </Button>
-              )}
+        <div style={{ borderTop: "1px solid var(--border)" }}>
+          {/* Summary bar */}
+          <div style={{ padding: "12px 20px", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span className="badge badge-blue">{results.total_matches} resultado(s)</span>
+              {results.keywords_found && Object.entries(results.keywords_found).slice(0, 3).map(([kw, count]) => (
+                <span key={kw} className="badge badge-neutral">{kw}: {count}</span>
+              ))}
             </div>
+            {results.results?.length > 0 && (
+              <button className="btn btn-secondary" onClick={saveResults} disabled={isSaving} style={{ fontSize: 12 }}>
+                {isSaving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                Salvar Todos
+              </button>
+            )}
           </div>
 
-          {/* Results List */}
-          <div className="max-h-[400px] overflow-y-auto">
+          {/* Results list */}
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
             {results.results?.map((result, idx) => {
-              const urgency = urgencyConfig[result.urgency] || urgencyConfig.media;
-              const UrgencyIcon = urgency.icon;
-              
+              const u = urgencyConfig[result.urgency] || urgencyConfig.media;
+              const UIcon = u.Icon;
+              const isExpanded = expandedResult === idx;
               return (
-                <div 
-                  key={idx}
-                  className={`border-b last:border-b-0 ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}
-                >
-                  <div 
-                    className={`p-4 cursor-pointer transition-colors ${
-                      expandedResult === idx
-                        ? isDark ? 'bg-neutral-800' : 'bg-slate-100'
-                        : isDark ? 'hover:bg-neutral-800/50' : 'hover:bg-slate-50'
-                    }`}
-                    onClick={() => setExpandedResult(expandedResult === idx ? null : idx)}
+                <div key={idx} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div
+                    onClick={() => setExpandedResult(isExpanded ? null : idx)}
+                    style={{ padding: "14px 20px", cursor: "pointer", background: isExpanded ? "var(--surface)" : "var(--card)", transition: "background var(--dur)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}
+                    onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = "var(--surface)"; }}
+                    onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = "var(--card)"; }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <Badge className={`text-xs bg-${urgency.color}-500/20 text-${urgency.color}-500 border-0`}>
-                            <UrgencyIcon className="w-3 h-3 mr-1" />
-                            {urgency.label}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {result.category}
-                          </Badge>
-                          {result.process_number && (
-                            <Badge variant="outline" className="text-xs font-mono">
-                              <Hash className="w-3 h-3 mr-1" />
-                              {result.process_number}
-                            </Badge>
-                          )}
-                        </div>
-                        <h4 className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {result.title}
-                        </h4>
-                        <p className={`text-sm mt-1 line-clamp-2 ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
-                          {result.summary}
-                        </p>
-                        {result.keywords_matched?.length > 0 && (
-                          <div className="flex gap-1 mt-2 flex-wrap">
-                            {result.keywords_matched.map((kw, i) => (
-                              <span key={i} className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-500">
-                                {kw}
-                              </span>
-                            ))}
-                          </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                        <span className={u.badgeClass} style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                          <UIcon size={11} /> {u.label}
+                        </span>
+                        <span className="badge badge-neutral">{result.category}</span>
+                        {result.process_number && (
+                          <span className="badge badge-neutral" style={{ fontFamily: "monospace" }}>
+                            <Hash size={10} /> {result.process_number}
+                          </span>
                         )}
                       </div>
-                      {expandedResult === idx ? (
-                        <ChevronUp className={`w-4 h-4 shrink-0 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-                      ) : (
-                        <ChevronDown className={`w-4 h-4 shrink-0 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
+                      <h4 style={{ fontSize: 13, fontWeight: 500, color: "var(--text-1)", margin: "0 0 4px" }}>{result.title}</h4>
+                      <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {result.summary}
+                      </p>
+                      {result.keywords_matched?.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                          {result.keywords_matched.map((kw, i) => (
+                            <span key={i} className="badge badge-blue" style={{ fontSize: 10 }}>{kw}</span>
+                          ))}
+                        </div>
                       )}
                     </div>
+                    {isExpanded ? <ChevronUp size={14} style={{ color: "var(--text-3)", flexShrink: 0 }} />
+                      : <ChevronDown size={14} style={{ color: "var(--text-3)", flexShrink: 0 }} />}
                   </div>
 
-                  {expandedResult === idx && (
-                    <div className={`px-4 pb-4 space-y-3 ${isDark ? 'bg-neutral-800/30' : 'bg-slate-50/50'}`}>
+                  {isExpanded && (
+                    <div style={{ padding: "0 20px 14px", background: "var(--surface)", display: "flex", flexDirection: "column", gap: 10 }}>
                       {result.original_excerpt && (
-                        <div className={`p-3 rounded-lg ${isDark ? 'bg-neutral-700/50' : 'bg-white border border-slate-200'}`}>
-                          <p className={`text-xs font-medium mb-1 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>
-                            Trecho Original:
-                          </p>
-                          <p className={`text-sm ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>
-                            {result.original_excerpt}
-                          </p>
+                        <div className="app-card" style={{ padding: 12 }}>
+                          <p style={{ fontSize: 11, fontWeight: 600, color: "var(--text-3)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Trecho Original</p>
+                          <p style={{ fontSize: 12, color: "var(--text-1)", margin: 0, lineHeight: 1.6 }}>{result.original_excerpt}</p>
                         </div>
                       )}
                       {result.parties?.length > 0 && (
-                        <div className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                        <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>
                           <strong>Partes:</strong> {result.parties.join(', ')}
-                        </div>
+                        </p>
                       )}
                       {result.deadline && (
-                        <div className={`text-sm ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+                        <p style={{ fontSize: 12, color: "var(--text-2)", margin: 0 }}>
                           <strong>Prazo:</strong> {result.deadline}
-                        </div>
+                        </p>
                       )}
                     </div>
                   )}
