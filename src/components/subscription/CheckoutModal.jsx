@@ -66,7 +66,16 @@ export default function CheckoutModal({ plan, onClose }) {
 
       if (!mountedRef.current) return;
 
-      // 4. Inicializar MP
+      // 4. Aguarda window.MercadoPago estar disponível (polling)
+      let mpAttempts = 0;
+      while (!window.MercadoPago && mpAttempts < 30) {
+        await new Promise((r) => setTimeout(r, 200));
+        mpAttempts++;
+      }
+      if (!window.MercadoPago) throw new Error("SDK do Mercado Pago não carregou.");
+      if (!mountedRef.current) return;
+
+      // 5. Inicializar MP
       const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
       const bricksBuilder = mp.bricks();
 
@@ -185,8 +194,13 @@ export default function CheckoutModal({ plan, onClose }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    initBrick();
+    processingRef.current = false;
+    // Delay para garantir que o modal terminou de renderizar no DOM
+    const timer = setTimeout(() => {
+      if (mountedRef.current) initBrick();
+    }, 350);
     return () => {
+      clearTimeout(timer);
       mountedRef.current = false;
       brickRef.current?.unmount?.();
       brickRef.current = null;

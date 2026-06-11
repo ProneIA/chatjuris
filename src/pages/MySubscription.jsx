@@ -8,6 +8,17 @@ import {
   MessageSquare, FileText, Users, RefreshCw, X
 } from "lucide-react";
 import UpgradePlansSection from "@/components/subscription/UpgradePlansSection";
+import CheckoutModal from "@/components/subscription/CheckoutModal";
+
+// Plano padrão para renovação — Pro Mensal
+const DEFAULT_RENEWAL_PLAN = {
+  id: "pro_monthly",
+  planType: "monthly",
+  name: "Profissional",
+  price: 149.00,
+  amount: 149.00,
+  period: "/mês",
+};
 
 const GOLD = "#C9A84C";
 const GOLD_LIGHT = "#FBF5E6";
@@ -60,6 +71,7 @@ const PLAN_CONFIG = {
 
 export default function MySubscription() {
   const [user, setUser] = useState(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -151,6 +163,7 @@ export default function MySubscription() {
   const StatusIcon = statusInfo.icon;
 
   return (
+    <>
     <div style={{ background: "#F5F3EE", minHeight: "100vh" }}>
       {/* ── HEADER ── */}
       <div style={{ background: "#FAFAFA", borderBottom: "1px solid #E0E0E0" }}>
@@ -250,7 +263,7 @@ export default function MySubscription() {
           <div style={{ padding: "1rem 2rem 1.5rem", borderTop: "1px solid #F0EDE6", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
             {!plan.isPermanent && (
               <button
-                onClick={() => window.location.href = "/Pricing"}
+                onClick={() => setCheckoutOpen(true)}
                 style={{ background: GOLD, color: "#fff", border: "none", borderRadius: 8, padding: "9px 22px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", boxShadow: "0 2px 8px rgba(201,168,76,0.25)" }}
               >
                 {isExpired ? "Renovar Assinatura" : subscription.status === "trial" ? "Assinar um Plano" : "Gerenciar Assinatura"}
@@ -360,5 +373,14 @@ export default function MySubscription() {
         )}
       </div>
     </div>
+
+    {/* Checkout Modal direto com plano pré-selecionado */}
+    {checkoutOpen && (
+      <CheckoutModal
+        plan={DEFAULT_RENEWAL_PLAN}
+        onClose={() => setCheckoutOpen(false)}
+      />
+    )}
+    </>
   );
 }
