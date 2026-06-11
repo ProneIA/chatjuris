@@ -154,8 +154,12 @@ const AuthenticatedApp = () => {
         <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
         <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
         <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
-        <Route path="/CalculadoraJuridica" element={<CalculadoraJuridica />} />
       </Route>
+      <Route path="/CalculadoraJuridica" element={
+        <LayoutWrapper currentPageName="CalculadoraJuridica">
+          <CalculadoraJuridica />
+        </LayoutWrapper>
+      } />
       <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><ProtectedAdminRoute><AgentSettings /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><ProtectedAdminRoute><WebhookTest /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="/criar-senha" element={<CriarSenha />} />
