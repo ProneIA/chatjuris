@@ -85,9 +85,9 @@ function NavBadge({ label }) {
     <span style={{
       fontSize: 10, fontWeight: 600, padding: "2px 7px",
       borderRadius: "var(--r-full)", letterSpacing: ".03em", flexShrink: 0,
-      background: isIA ? "rgba(59,130,246,.2)" : isNew ? "rgba(34,197,94,.15)" : "rgba(255,255,255,.08)",
-      color:      isIA ? "#93C5FD"             : isNew ? "#86EFAC"             : "rgba(203,213,225,.7)",
-      border:     isIA ? "1px solid rgba(59,130,246,.3)" : isNew ? "1px solid rgba(34,197,94,.2)" : "none",
+      background: isIA  ? "#EEF3F8" : isNew ? "#F0FDF4" : "#F7F8FA",
+      color:      isIA  ? "#1A3A5C" : isNew ? "#166534" : "#9AA3B0",
+      border:     isIA  ? "1px solid #BFCFDF" : isNew ? "1px solid #86EFAC" : "1px solid #E8ECF0",
     }}>{label}</span>
   );
 }
@@ -100,20 +100,20 @@ function NavItem({ item, location, onNavigate }) {
       <div
         style={{
           display: "flex", alignItems: "center", gap: 10,
-          padding: "8px 12px", margin: "1px 8px",
+          padding: "7px 12px", margin: "1px 8px",
           borderRadius: "var(--r-md)",
-          background: active ? "rgba(59,130,246,.15)" : "transparent",
-          borderLeft: active ? "3px solid var(--accent)" : "3px solid transparent",
+          background: active ? "#EEF3F8" : "transparent",
+          borderLeft: active ? "3px solid #1A3A5C" : "3px solid transparent",
           transition: "all .15s var(--ease)",
           cursor: "pointer",
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,.05)"; }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = "#F7F8FA"; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
       >
-        <item.icon size={15} style={{ color: active ? "var(--accent)" : "rgba(148,163,184,.7)", flexShrink: 0, strokeWidth: 1.75 }} />
+        <item.icon size={15} style={{ color: active ? "#1A3A5C" : "#9AA3B0", flexShrink: 0, strokeWidth: 1.75 }} />
         <span style={{
-          flex: 1, fontSize: 13, fontWeight: active ? 500 : 400,
-          color: active ? "#fff" : "rgba(148,163,184,.85)",
+          flex: 1, fontSize: 13, fontWeight: active ? 600 : 400,
+          color: active ? "#0F1C2E" : "#4A5568",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>{item.title}</span>
         {item.badge && <NavBadge label={item.badge} />}
@@ -126,8 +126,8 @@ function NavItem({ item, location, onNavigate }) {
 function SectionLabel({ label }) {
   return (
     <p style={{
-      fontSize: 10, fontWeight: 600, letterSpacing: ".08em", textTransform: "uppercase",
-      color: "rgba(255,255,255,.2)", padding: "14px 20px 5px", margin: 0,
+      fontSize: 10, fontWeight: 700, letterSpacing: ".09em", textTransform: "uppercase",
+      color: "#9AA3B0", padding: "14px 20px 5px", margin: 0,
     }}>{label}</p>
   );
 }
@@ -139,28 +139,27 @@ function AdminSection({ location, onNavigate }) {
   React.useEffect(() => { if (hasActive) setOpen(true); }, [location.pathname]);
 
   return (
-    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,.06)" }}>
+    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #E8ECF0" }}>
       <SectionLabel label="Admin" />
       <button
         onClick={() => setOpen(o => !o)}
         style={{
           display: "flex", alignItems: "center", gap: 10,
-          width: "100%", padding: "8px 12px", margin: "1px 8px",
-          background: "rgba(239,68,68,.08)", border: "none",
+          width: "calc(100% - 16px)", padding: "8px 12px", margin: "1px 8px",
+          background: "rgba(220,38,38,.05)", border: "none",
           borderRadius: "var(--r-md)", cursor: "pointer",
-          fontSize: 13, fontWeight: 500, color: "rgba(252,129,129,.9)",
+          fontSize: 13, fontWeight: 500, color: "#DC2626",
           fontFamily: "var(--font-body)",
           transition: "background .15s",
-          borderLeft: "3px solid rgba(239,68,68,.4)",
-          width: "calc(100% - 16px)",
+          borderLeft: "3px solid rgba(220,38,38,.3)",
         }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,.14)"}
-        onMouseLeave={e => e.currentTarget.style.background = "rgba(239,68,68,.08)"}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(220,38,38,.09)"}
+        onMouseLeave={e => e.currentTarget.style.background = "rgba(220,38,38,.05)"}
       >
-        <Lock size={15} style={{ color: "rgba(252,129,129,.8)", flexShrink: 0 }} />
+        <Lock size={15} style={{ color: "#DC2626", flexShrink: 0 }} />
         <span style={{ flex: 1, textAlign: "left" }}>Painel Admin</span>
         <ChevronRight size={13} style={{
-          color: "rgba(252,129,129,.5)",
+          color: "rgba(220,38,38,.5)",
           transform: open ? "rotate(90deg)" : "rotate(0deg)",
           transition: "transform .15s", flexShrink: 0,
         }} />

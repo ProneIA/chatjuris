@@ -380,6 +380,7 @@ export default function DocumentGenerator() {
       {/* Stepper fixo no topo */}
       <div className="shrink-0 px-6 py-4 border-b" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
         <Stepper step={step} />
+      </div>
 
       {/* Área scrollável */}
       <div className="flex-1 overflow-y-auto p-6">

@@ -204,15 +204,16 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         className={isMobileMenuOpen ? "sidebar-open" : "sidebar-closed"}
         style={{
           width: "var(--sidebar-w)", flexShrink: 0,
-          background: "var(--navy)",
-          boxShadow: "4px 0 24px rgba(0,0,0,.2)",
+          background: "#FFFFFF",
+          borderRight: "1px solid #E8ECF0",
+          boxShadow: "none",
           display: "flex", flexDirection: "column",
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 46,
           transition: "transform .25s var(--ease)",
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,.06)" }}>
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #E8ECF0", background: "#FFFFFF" }}>
           <Link to={createPageUrl("Dashboard")} onClick={() => setIsMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <div style={{
               width: 34, height: 34, borderRadius: 8,
@@ -221,10 +222,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               <Scale size={18} color="#fff" />
             </div>
             <div>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, color: "#fff", letterSpacing: "-0.02em" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 18, color: "#0F1C2E", letterSpacing: "-0.01em" }}>
                 Juris<span style={{ color: "var(--accent)" }}>.IA</span>
               </span>
-              <p style={{ fontSize: 10, color: "rgba(255,255,255,.3)", margin: 0, letterSpacing: ".04em", textTransform: "uppercase" }}>
+              <p style={{ fontSize: 10, color: "#9AA3B0", margin: 0, letterSpacing: ".06em", textTransform: "uppercase" }}>
                 Software Jurídico
               </p>
             </div>
@@ -237,7 +238,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </div>
 
         {/* User footer */}
-        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,.06)" }}>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid #E8ECF0", background: "#FFFFFF" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               width: 32, height: 32, borderRadius: "50%",
@@ -247,18 +248,18 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: "#fff", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: "#0F1C2E", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.full_name || "Usuário"}
               </p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,.35)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 11, color: "#9AA3B0", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.email || ""}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "rgba(255,255,255,.35)", transition: "color .15s", minHeight: "unset", minWidth: "unset" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,.35)"}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9AA3B0", transition: "color .15s", minHeight: "unset", minWidth: "unset" }}
+              onMouseEnter={e => e.currentTarget.style.color = "#0F1C2E"}
+              onMouseLeave={e => e.currentTarget.style.color = "#9AA3B0"}
             >
               <LogOut size={16} />
             </button>
@@ -271,9 +272,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
         {/* Topbar */}
         <header style={{
-          height: "var(--header-h)", background: "var(--card)",
-          borderBottom: "1px solid var(--border)",
-          boxShadow: "var(--sh-xs)",
+          height: "var(--header-h)", background: "#FFFFFF",
+          borderBottom: "1px solid #E8ECF0",
+          boxShadow: "none",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 24px", position: "sticky", top: 0, zIndex: 30,
         }}>
@@ -317,7 +318,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             {/* Avatar */}
             <div style={{
               width: 30, height: 30, borderRadius: "50%",
-              background: "var(--navy)", color: "#fff",
+              background: "var(--accent)", color: "#fff",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0,
             }}>
