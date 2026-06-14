@@ -181,7 +181,7 @@ export default function AIAssistant() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--bg)", fontFamily: "var(--font-body)" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "var(--bg)", fontFamily: "var(--font-body)" }}>
       <style>{`
         @keyframes lex-bounce {
           0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
@@ -189,36 +189,13 @@ export default function AIAssistant() {
         }
       `}</style>
 
-      {/* Area pills */}
-      <div style={{ flexShrink: 0, padding: "10px 16px", borderBottom: "1px solid var(--border)", background: "var(--card)", overflowX: "auto" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", gap: 8, flexWrap: "nowrap" }}>
-          {AREAS.map(area => (
-            <button
-              key={area}
-              onClick={() => setInput(prev => prev ? `${prev} ${area}` : area)}
-              style={{
-                flexShrink: 0, padding: "5px 12px",
-                borderRadius: "var(--radius-btn)", fontSize: 12, fontWeight: 500,
-                border: "1px solid var(--border)", color: "var(--text-secondary)",
-                background: "var(--bg)", cursor: "pointer", transition: "all 0.15s",
-                fontFamily: "var(--font-body)",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--text-primary)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-            >
-              {area}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 16px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
 
           {/* Empty state */}
           {messages.length === 0 && !isTyping && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 32, paddingBottom: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 24, minHeight: "calc(100% - 40px)", paddingBottom: 16 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{
                   width: 56, height: 56, borderRadius: "var(--radius-btn)",

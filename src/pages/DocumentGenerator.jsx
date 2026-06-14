@@ -376,10 +376,16 @@ export default function DocumentGenerator() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
-      <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "var(--bg)" }}>
+      {/* Stepper fixo no topo */}
+      <div className="shrink-0 px-6 py-4 border-b" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+        <Stepper step={step} />
 
-        {/* Header */}
+      {/* Área scrollável */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-5xl mx-auto">
+
+        {/* Título + subtítulo (dentro da área scrollável) */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-2 mb-2">
             <div style={{ width: 8, height: 8, background: "var(--primary)" }} />
@@ -392,8 +398,6 @@ export default function DocumentGenerator() {
             Redação profissional com fundamentação jurídica completa — nível advogado sênior
           </p>
         </div>
-
-        <Stepper step={step} />
 
         {/* ── STEP 1: ÁREAS ── */}
         {step === 1 && (
@@ -575,7 +579,8 @@ export default function DocumentGenerator() {
             />
           </div>
         )}
-      </div>
-    </div>
+        </div>{/* max-w-5xl */}
+      </div>{/* flex-1 overflow-y-auto */}
+    </div>{/* h-full flex flex-col */}
   );
 }
