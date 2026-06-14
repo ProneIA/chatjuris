@@ -580,8 +580,8 @@ export default function DocumentGenerator() {
             />
           </div>
         )}
-        </div>{/* max-w-5xl */}
-      </div>{/* flex-1 overflow-y-auto */}
-    </div>{/* h-full flex flex-col */}
+        </div>
+      </div>
+    </div>
   );
 }

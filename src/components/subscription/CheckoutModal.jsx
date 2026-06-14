@@ -173,11 +173,22 @@ export default function CheckoutModal({ plan, onClose }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
     mountedRef.current = true;
     processingRef.current = false;
-    const t = setTimeout(() => { if (mountedRef.current) initBrick(); }, 300);
+
+    const run = async () => {
+      await new Promise((r) => setTimeout(r, 100));
+      if (!isMounted) return;
+      const container = document.getElementById(BRICK_CONTAINER_ID);
+      if (!container) return;
+      if (mountedRef.current) initBrick();
+    };
+
+    run();
+
     return () => {
-      clearTimeout(t);
+      isMounted = false;
       mountedRef.current = false;
       destroyBrick();
     };
@@ -320,8 +331,9 @@ export default function CheckoutModal({ plan, onClose }) {
             </div>
           )}
 
-          {/* Container do Brick — SEMPRE NO DOM */}
+          {/* Container do Brick — SEMPRE NO DOM, key força remontagem ao trocar plano */}
           <div
+            key={plan?.id}
             id={BRICK_CONTAINER_ID}
             style={{
               display: uiState === "ready" ? "block" : "none",
