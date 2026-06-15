@@ -5,6 +5,19 @@ import { X, Loader2, AlertCircle, CheckCircle2, Lock, CreditCard, Shield } from 
 const ANNUAL_PLAN_IDS = ["starter_yearly", "pro_yearly", "escritorio_yearly"];
 const BRICK_CONTAINER_ID = "mp-cardpayment-brick";
 
+const getValidInstallments = (totalPrice) => {
+  const maxInstallments = 12;
+  const MIN_INSTALLMENT = 5.00;
+  const valid = [];
+  for (let i = 1; i <= maxInstallments; i++) {
+    const installmentValue = totalPrice / i;
+    if (installmentValue >= MIN_INSTALLMENT) {
+      valid.push({ count: i, value: installmentValue });
+    }
+  }
+  return valid;
+};
+
 async function loadMPSDK() {
   if (window.MercadoPago) return;
   await new Promise((resolve, reject) => {
@@ -93,11 +106,11 @@ export default function CheckoutModal({ plan, onClose }) {
       const brickController = await bricksBuilder.create("cardPayment", BRICK_CONTAINER_ID, {
         initialization: {
           amount: plan.amount,
-          ...(isAnnual && { installments: 12 }),
+          ...(isAnnual && { installments: getValidInstallments(plan.amount).length }),
         },
         customization: {
           paymentMethods: {
-            maxInstallments: isAnnual ? 12 : 1,
+            maxInstallments: isAnnual ? getValidInstallments(plan.amount).length : 1,
             minInstallments: 1,
           },
           visual: {
