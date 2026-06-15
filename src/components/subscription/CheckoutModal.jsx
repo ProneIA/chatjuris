@@ -58,6 +58,8 @@ export default function CheckoutModal({ plan, onClose }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const [paymentId, setPaymentId] = useState(null);
+  const [brickError, setBrickError] = useState(null);
+  const [isLoadingBrick, setIsLoadingBrick] = useState(true);
 
   const mountedRef = useRef(false);
   const brickRef = useRef(null);
@@ -75,6 +77,8 @@ export default function CheckoutModal({ plan, onClose }) {
 
   const initBrick = async () => {
     try {
+      setIsLoadingBrick(true);
+      setBrickError(null);
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) { base44.auth.redirectToLogin(window.location.pathname); return; }
 
@@ -121,7 +125,10 @@ export default function CheckoutModal({ plan, onClose }) {
         },
         callbacks: {
           onReady: () => {
-            if (mountedRef.current) setUiState("ready");
+            if (mountedRef.current) {
+              setIsLoadingBrick(false);
+              setUiState("ready");
+            }
           },
           onSubmit: async (formData) => {
             if (!mountedRef.current || processingRef.current) return;
@@ -178,8 +185,10 @@ export default function CheckoutModal({ plan, onClose }) {
 
       brickRef.current = brickController;
     } catch (err) {
+      console.error('Brick init error:', err);
       if (mountedRef.current) {
-        setErrorMsg(err.message || "Erro ao carregar o checkout.");
+        setIsLoadingBrick(false);
+        setBrickError('Erro ao carregar o checkout. Tente recarregar a página.');
         setUiState("error");
       }
     }
@@ -215,6 +224,7 @@ export default function CheckoutModal({ plan, onClose }) {
 
   const handleRetry = async () => {
     setErrorMsg("");
+    setBrickError(null);
     setUiState("loading");
     processingRef.current = false;
     await destroyBrick();
@@ -340,6 +350,18 @@ export default function CheckoutModal({ plan, onClose }) {
                 style={{ background: "#0B1120", color: "#fff", border: "none", padding: ".9rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em", width: "100%" }}
               >
                 Tentar Novamente
+              </button>
+            </div>
+          )}
+
+          {brickError && uiState !== "success" && uiState !== "processing" && (
+            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", padding: "1rem", marginBottom: "1rem" }}>
+              <p style={{ color: "#7f1d1d", fontSize: ".82rem", marginBottom: ".75rem" }}>{brickError}</p>
+              <button
+                onClick={handleRetry}
+                style={{ background: "#0B1120", color: "#fff", border: "none", padding: ".7rem 1.5rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".75rem", textTransform: "uppercase", letterSpacing: ".1em" }}
+              >
+                Tentar novamente
               </button>
             </div>
           )}
