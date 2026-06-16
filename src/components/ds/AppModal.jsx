@@ -36,7 +36,7 @@ function ModalHeader({ title, subtitle, onClose }) {
 
 function ModalBody({ children, noPad = false }) {
   return (
-    <div style={{ padding: noPad ? 0 : "20px 24px", overflowY: "auto" }}>
+    <div style={{ padding: noPad ? 0 : "20px 24px", overflowY: "auto", flex: 1, minHeight: 0 }}>
       {children}
     </div>
   );
@@ -56,11 +56,13 @@ export default function AppModal({ open, onOpenChange, size = "md", children }) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent style={{
         maxWidth: maxW, width: "90vw",
+        maxHeight: "90vh",
         borderRadius: "var(--r-lg)", padding: 0,
         border: "1px solid var(--border)",
         background: "var(--card)",
         boxShadow: "var(--sh-xl)",
         overflow: "hidden", gap: 0,
+        display: "flex", flexDirection: "column",
       }}>
         {children}
       </DialogContent>
