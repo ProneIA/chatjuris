@@ -27,9 +27,13 @@ export default function JusTrackDetalhes() {
   const id = params.get("id");
 
   const { data: processo, isLoading } = useQuery({
-    queryKey: ["processo", id],
-    queryFn: () => base44.entities.Processo.filter({ id }),
-    select: d => d[0],
+    queryKey: ["processo-own", id],
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      if (!user?.email) return null;
+      const results = await base44.entities.Processo.filter({ id, created_by: user.email });
+      return results[0] || null;
+    },
     enabled: !!id,
   });
 

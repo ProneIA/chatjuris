@@ -92,8 +92,7 @@ export default function MySubscription() {
     queryFn: async () => {
       if (!user?.id) return [];
       try {
-        const all = await base44.entities.Payment.list();
-        return all.filter(p => p.user_id === user.id);
+        return await base44.entities.Payment.filter({ user_id: user.id }, "-created_date", 50);
       } catch { return []; }
     },
     enabled: !!user?.id,
