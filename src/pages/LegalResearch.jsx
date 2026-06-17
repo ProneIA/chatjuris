@@ -335,7 +335,7 @@ export default function LegalResearch({ theme = 'light' }) {
                 Pesquisa Jurídica
               </h1>
               <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-2)' }}>
-                Busca direta nas APIs oficiais dos tribunais — sem IA · {tribunaisCompleto.length} tribunais disponíveis
+                Pesquisa inteligente de jurisprudência — IA + web search · {tribunaisCompleto.length} tribunais disponíveis
               </p>
             </div>
           </div>
@@ -552,7 +552,7 @@ export default function LegalResearch({ theme = 'light' }) {
                       )}
                     </Button>
                     <p style={{ fontSize: 11, textAlign: 'center', color: 'var(--text-3)' }}>
-                      Busca direta nas APIs oficiais — sem IA · sem tokens · dados reais
+                      Pesquisa com IA + web search — resultados de bases oficiais dos tribunais
                     </p>
                   </div>
                 </div>
