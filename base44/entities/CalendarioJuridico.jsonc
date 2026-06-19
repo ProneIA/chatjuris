@@ -1,0 +1,74 @@
+{
+  "name": "CalendarioJuridico",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do evento jur\u00eddico"
+    },
+    "data_evento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do evento"
+    },
+    "area_juridica": {
+      "type": "string",
+      "enum": [
+        "consumidor",
+        "trabalhista",
+        "previdenciario",
+        "familia",
+        "empresarial",
+        "tributario",
+        "saude",
+        "imobiliario",
+        "todos"
+      ],
+      "description": "\u00c1rea jur\u00eddica do evento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "prazo",
+        "campanha",
+        "data_comemorativa",
+        "sazonalidade"
+      ],
+      "description": "Tipo do evento"
+    },
+    "sugestao_pauta": {
+      "type": "string",
+      "description": "Sugest\u00e3o do que o advogado pode publicar nessa data"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o adicional do evento"
+    }
+  },
+  "required": [
+    "titulo",
+    "data_evento"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "created_by": {
+        "$exists": true
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
