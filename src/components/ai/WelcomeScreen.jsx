@@ -91,27 +91,19 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
       <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
         <div className="w-full mx-auto px-4 py-3">
           {showWelcome ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center py-4 px-4"
-            >
-              {/* Classic Icon */}
-              <div className="inline-block mb-3">
-                <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-                  <Scale className="w-6 h-6 text-white" />
-                </div>
+            <div className="text-center py-6 px-4">
+            <div className="inline-block mb-4">
+              <div style={{ width: 44, height: 44, background: "#1E3A5F", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+                <Scale style={{ width: 20, height: 20, color: "#fff" }} />
               </div>
-
-              {/* Welcome Message */}
-              <h1 className="text-xl font-light text-stone-900 mb-1">
-                Assistente Jurídico
-              </h1>
-              <p className="text-stone-500 text-sm max-w-md mx-auto">
-                Tire suas dúvidas, pesquise jurisprudências e obtenha orientações jurídicas precisas.
-              </p>
-            </motion.div>
+            </div>
+            <h1 style={{ fontSize: 18, fontWeight: 600, color: "#0F172A", marginBottom: 6, fontFamily: "IBM Plex Sans, Inter, sans-serif" }}>
+              Assistente Jurídico
+            </h1>
+            <p style={{ fontSize: 13, color: "#64748B", maxWidth: 380, margin: "0 auto" }}>
+              Realize consultas, pesquise jurisprudências e obtenha análises jurídicas precisas.
+            </p>
+            </div>
           ) : (
             <div className="space-y-4">
               <AnimatePresence mode="popLayout">
@@ -126,13 +118,13 @@ export default function WelcomeScreen({ onSendMessage, userName, messages = [], 
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3"
                 >
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center shrink-0">
-                    <span className="text-xs">🤖</span>
+                  <div style={{ width: 26, height: 26, borderRadius: 6, background: "#F1F5F9", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Scale style={{ width: 13, height: 13, color: "#64748B" }} />
                   </div>
                   <div className="flex-1 pt-1">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                      <span className="text-sm text-slate-600">Pensando...</span>
+                      <span className="text-sm text-slate-600">Processando consulta...</span>
                     </div>
                   </div>
                 </motion.div>

@@ -155,7 +155,7 @@ export default function Direcionar({ temaPre, onVerReferencias }) {
           {/* Ângulos */}
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--text-3)", margin: "0 0 8px" }}>
-              🎯 Ângulos de Abordagem
+              Ângulos de Abordagem
             </p>
             <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
               {(resultado.angulos || []).map((a, i) => (
@@ -168,7 +168,7 @@ export default function Direcionar({ temaPre, onVerReferencias }) {
           {resultado.gancho_abertura && (
             <div style={{ marginBottom: 16, padding: "12px 16px", background: "var(--accent-light)", borderRadius: "var(--r-md)", borderLeft: "3px solid var(--accent)" }}>
               <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--accent)", margin: "0 0 6px" }}>
-                💥 Gancho de Abertura
+                Gancho de Abertura
               </p>
               <p style={{ fontSize: 13, color: "var(--text-1)", margin: 0, fontStyle: "italic", lineHeight: 1.6 }}>
                 "{resultado.gancho_abertura}"
@@ -179,13 +179,13 @@ export default function Direcionar({ temaPre, onVerReferencias }) {
           {/* Chips */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {resultado.formato_indicado && (
-              <AppBadge variant="info">📱 {resultado.formato_indicado}</AppBadge>
+              <AppBadge variant="info">Formato: {resultado.formato_indicado}</AppBadge>
             )}
             {resultado.tom_recomendado && (
-              <AppBadge variant="neutral">🎭 {resultado.tom_recomendado}</AppBadge>
+              <AppBadge variant="neutral">Tom: {resultado.tom_recomendado}</AppBadge>
             )}
             {resultado.publico_alvo && (
-              <AppBadge variant="neutral">👥 {resultado.publico_alvo}</AppBadge>
+              <AppBadge variant="neutral">Público: {resultado.publico_alvo}</AppBadge>
             )}
           </div>
 

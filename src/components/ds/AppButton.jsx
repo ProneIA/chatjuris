@@ -6,17 +6,17 @@ import { Loader2 } from "lucide-react";
  * size: sm | md | lg
  */
 const VARIANTS = {
-  primary:   { background: "var(--accent)",   color: "#fff",           border: "none",                         boxShadow: "0 1px 2px rgba(0,0,0,.12)" },
-  secondary: { background: "var(--card)",     color: "var(--text-1)",  border: "1px solid var(--border-2)",    boxShadow: "var(--sh-xs)" },
-  ghost:     { background: "transparent",     color: "var(--text-2)",  border: "none",                         boxShadow: "none" },
-  danger:    { background: "var(--red-bg)",   color: "#991b1b",        border: "1px solid var(--red-bd)",      boxShadow: "none" },
+  primary:   { background: "#1E3A5F", color: "#fff",    border: "none",                  boxShadow: "none" },
+  secondary: { background: "#FFFFFF", color: "#0F172A", border: "1px solid #E2E8F0",     boxShadow: "none" },
+  ghost:     { background: "transparent", color: "#64748B", border: "none",              boxShadow: "none" },
+  danger:    { background: "#FEF2F2", color: "#991b1b", border: "1px solid #FECACA",     boxShadow: "none" },
 };
 
 const HOVER = {
-  primary:   { background: "var(--accent-hover)", boxShadow: "var(--sh-md)", transform: "translateY(-1px)" },
-  secondary: { background: "var(--surface)",      boxShadow: "var(--sh-sm)", transform: "none" },
-  ghost:     { background: "var(--surface)",      boxShadow: "none",         transform: "none" },
-  danger:    { background: "#fee2e2",             boxShadow: "none",         transform: "none" },
+  primary:   { background: "#162d4a", boxShadow: "none", transform: "none" },
+  secondary: { background: "#F8FAFC", boxShadow: "none", transform: "none" },
+  ghost:     { background: "#F8FAFC", boxShadow: "none", transform: "none" },
+  danger:    { background: "#fee2e2", boxShadow: "none", transform: "none" },
 };
 
 const SIZES = {

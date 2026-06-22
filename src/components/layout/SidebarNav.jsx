@@ -86,7 +86,7 @@ function NavItem({ item, location, onNavigate }) {
           display: "flex", alignItems: "center", gap: 9,
           padding: "7px 12px", margin: "1px 8px",
           borderRadius: 7,
-          background: active ? "rgba(37,99,235,0.18)" : "transparent",
+          background: active ? "rgba(255,255,255,0.09)" : "transparent",
           transition: "background .12s ease",
           cursor: "pointer",
         }}

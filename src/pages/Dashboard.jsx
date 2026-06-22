@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Users, FolderOpen, FileText, AlertTriangle,
-  Sparkles, Calculator, BookOpen, Plus,
+  Calculator, BookOpen, Plus, Scale,
   ArrowRight, Clock, CheckCircle2,
-  TrendingUp, Zap,
+  Zap,
 } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -74,18 +74,18 @@ const Dashboard = memo(function Dashboard() {
   const recentCases      = useMemo(() => cases.slice(0, 6), [cases]);
 
   const quickActions = [
-    { icon: Plus,       title: "Novo Processo",  sub: "Cadastrar caso",     url: createPageUrl("Cases"),            color: "var(--accent)" },
-    { icon: Users,      title: "Novo Cliente",   sub: "Adicionar cliente",  url: createPageUrl("Clients"),          color: "var(--success)" },
-    { icon: Zap,        title: "Gerar Peça",     sub: "Com IA",             url: createPageUrl("DocumentGenerator"),color: "#8B5CF6" },
-    { icon: BookOpen,   title: "Pesquisa",       sub: "Jurisprudência",     url: createPageUrl("LegalResearch"),    color: "var(--warning)" },
-    { icon: Calculator, title: "Calculadora",    sub: "Cálculos jurídicos", url: "/CalculadoraJuridica",            color: "var(--danger)" },
-    { icon: Sparkles,   title: "Assistente IA",  sub: "Chat jurídico",      url: createPageUrl("AIAssistant"),     color: "var(--accent)" },
+    { icon: Plus,       title: "Novo Processo",  sub: "Cadastrar processo", url: createPageUrl("Cases"),             },
+    { icon: Users,      title: "Novo Cliente",   sub: "Cadastrar cliente",  url: createPageUrl("Clients"),           },
+    { icon: Zap,        title: "Gerar Peça",     sub: "Gerador de peças",   url: createPageUrl("DocumentGenerator"), },
+    { icon: BookOpen,   title: "Jurisprudência", sub: "Pesquisa jurídica",  url: createPageUrl("LegalResearch"),     },
+    { icon: Calculator, title: "Calculadora",    sub: "Cálculos jurídicos", url: "/CalculadoraJuridica",             },
+    { icon: Scale,      title: "Assistente",     sub: "Consulta jurídica",  url: createPageUrl("AIAssistant"),       },
   ];
 
   return (
     <AppPage>
       <PageHeader
-        title={`${getGreeting()}, ${user?.full_name?.split(" ")[0] || "Advogado"} 👋`}
+        title={`${getGreeting()}, ${user?.full_name?.split(" ")[0] || "Advogado"}`}
         subtitle={format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
       />
 
@@ -107,7 +107,7 @@ const Dashboard = memo(function Dashboard() {
               <Link key={i} to={action.url} style={{ textDecoration: "none" }}>
                 <div
                   style={{
-                    background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16,
+                    background: "var(--card)", border: "1px solid var(--border)",                   borderRadius: 8,
                     padding: "20px", boxShadow: "0 1px 2px rgba(0,0,0,.04)",
                     transition: "box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease",
                     cursor: "pointer", textAlign: "center",
@@ -115,8 +115,8 @@ const Dashboard = memo(function Dashboard() {
                   onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,.08)"; e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,.04)"; e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; }}
                 >
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${action.color}14`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                    <action.icon style={{ width: 19, height: 19, color: action.color, strokeWidth: 1.75 }} />
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: "#F8FAFC", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+                   <action.icon style={{ width: 16, height: 16, color: "#64748B", strokeWidth: 1.75 }} />
                   </div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{action.title}</p>
                   <p style={{ fontSize: 11, color: "var(--text-2)", margin: 0 }}>{action.sub}</p>
@@ -218,16 +218,15 @@ const Dashboard = memo(function Dashboard() {
         </div>
 
         {/* Status strip */}
-        <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 24, display: "flex", gap: 8, flexWrap: "wrap" }}>
           {[
-            { icon: "🔒", label: "LGPD Compliant", value: "Dados protegidos" },
-            { icon: "✓",  label: "Sistemas",        value: "Operacionais"    },
-            { icon: "↻",  label: "Sincronizado",    value: format(new Date(), "HH:mm 'de hoje'") },
+            { label: "LGPD", value: "Dados protegidos" },
+            { label: "Sistema", value: "Operacional" },
+            { label: "Atualizado em", value: format(new Date(), "HH:mm") },
           ].map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10 }}>
-              <span style={{ fontSize: 13 }}>{item.icon}</span>
-              <span style={{ fontSize: 12, color: "var(--text-2)" }}>{item.label}:</span>
-              <span style={{ fontSize: 12, color: "var(--text-1)", fontWeight: 500 }}>{item.value}</span>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#FFFFFF", border: "1px solid var(--border)", borderRadius: 6 }}>
+              <span style={{ fontSize: 11, color: "var(--text-3)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</span>
+              <span style={{ fontSize: 11, color: "var(--text-2)", fontWeight: 500 }}>{item.value}</span>
             </div>
           ))}
         </div>

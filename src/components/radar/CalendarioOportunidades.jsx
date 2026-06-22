@@ -97,7 +97,7 @@ export default function CalendarioOportunidades({ selectedArea }) {
                     borderRadius: "var(--r-md)", padding: "10px 12px"
                   }}>
                     <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-3)", margin: "0 0 4px" }}>
-                      💡 Sugestão de Pauta
+                      Sugestão de Pauta
                     </p>
                     <p style={{ fontSize: 12, color: "var(--text-1)", margin: 0, lineHeight: 1.55 }}>
                       {evento.sugestao_pauta}

@@ -217,7 +217,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           <Link to={createPageUrl("Dashboard")} onClick={() => setIsMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <div style={{
               width: 32, height: 32, borderRadius: 7,
-              background: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center",
+              background: "#1E3A5F", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <Scale size={16} color="#fff" strokeWidth={2} />
             </div>
@@ -306,7 +306,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             {/* Avatar */}
             <div style={{
               width: 30, height: 30, borderRadius: "50%",
-              background: "#0F172A", color: "#93C5FD",
+              background: "#1E3A5F", color: "#CBD5E1",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0,
               border: "1px solid #E2E8F0",
