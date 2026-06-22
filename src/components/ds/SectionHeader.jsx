@@ -8,7 +8,7 @@ export default function SectionHeader({ title, subtitle, actions, border = true 
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "16px 20px",
+        padding: "14px 20px",
         borderBottom: border ? "1px solid var(--border)" : "none",
         gap: 12,
         flexWrap: "wrap",
@@ -17,9 +17,9 @@ export default function SectionHeader({ title, subtitle, actions, border = true 
       <div>
         <h2
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 600,
-            color: "var(--text-1)",
+            color: "#0F172A",
             letterSpacing: "-0.01em",
             margin: 0,
             lineHeight: 1.4,
@@ -28,13 +28,7 @@ export default function SectionHeader({ title, subtitle, actions, border = true 
           {title}
         </h2>
         {subtitle && (
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--text-2)",
-              margin: "2px 0 0",
-            }}
-          >
+          <p style={{ fontSize: 11, color: "var(--text-2)", margin: "2px 0 0" }}>
             {subtitle}
           </p>
         )}

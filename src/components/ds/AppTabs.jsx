@@ -18,10 +18,10 @@ export default function AppTabs({ tabs = [], defaultValue, value, onValueChange,
     <Tabs defaultValue={defaultValue} value={value} onValueChange={onValueChange}>
       <TabsList
         style={{
-          background: "var(--card)",
+          background: "#F8FAFC",
           border: "1px solid var(--border)",
-          borderRadius: 12,
-          padding: 4,
+          borderRadius: 8,
+          padding: 3,
           marginBottom: 20,
           display: "flex",
           gap: 2,
@@ -33,17 +33,17 @@ export default function AppTabs({ tabs = [], defaultValue, value, onValueChange,
             key={t.value}
             value={t.value}
             style={{
-              borderRadius: 8,
-              fontSize: 13,
+              borderRadius: 6,
+              fontSize: 12.5,
               fontWeight: 500,
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 5,
               fontFamily: "var(--font-body)",
-              padding: "7px 14px",
-              color: "var(--text-secondary)",
+              padding: "6px 14px",
+              color: "#64748B",
               letterSpacing: "-0.01em",
-              transition: "all 0.15s ease",
+              transition: "all 0.14s ease",
               flex: 1,
             }}
           >

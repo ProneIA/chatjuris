@@ -4,7 +4,7 @@
 export default function PageHeader({ title, subtitle, actions, icon: Icon }) {
   return (
     <div style={{
-      background: "var(--card)",
+      background: "#FFFFFF",
       borderBottom: "1px solid var(--border)",
       padding: "20px 28px",
     }}>
@@ -15,24 +15,24 @@ export default function PageHeader({ title, subtitle, actions, icon: Icon }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {Icon && (
             <div style={{
-              width: 38, height: 38, borderRadius: "var(--r-md)",
-              background: "var(--accent-light)",
+              width: 36, height: 36, borderRadius: 8,
+              background: "#F1F5F9", border: "1px solid var(--border)",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <Icon size={19} style={{ color: "var(--accent)", strokeWidth: 1.75 }} />
+              <Icon size={17} style={{ color: "#2563EB", strokeWidth: 1.75 }} />
             </div>
           )}
           <div>
             <h1 style={{
               fontFamily: "var(--font-display)",
-              fontSize: 20, fontWeight: 700,
-              color: "var(--text-1)", letterSpacing: "-0.02em",
+              fontSize: 18, fontWeight: 600,
+              color: "#0F172A", letterSpacing: "-0.02em",
               lineHeight: 1.2, margin: 0,
             }}>
               {title}
             </h1>
             {subtitle && (
-              <p style={{ fontSize: 13, color: "var(--text-2)", margin: "3px 0 0" }}>
+              <p style={{ fontSize: 12, color: "var(--text-2)", margin: "3px 0 0", letterSpacing: "0" }}>
                 {subtitle}
               </p>
             )}

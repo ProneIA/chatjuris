@@ -204,8 +204,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         className={isMobileMenuOpen ? "sidebar-open" : "sidebar-closed"}
         style={{
           width: "var(--sidebar-w)", flexShrink: 0,
-          background: "#FFFFFF",
-          borderRight: "1px solid #E8ECF0",
+          background: "#0F172A",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
           boxShadow: "none",
           display: "flex", flexDirection: "column",
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 46,
@@ -213,19 +213,19 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #E8ECF0", background: "#FFFFFF" }}>
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "transparent" }}>
           <Link to={createPageUrl("Dashboard")} onClick={() => setIsMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <div style={{
-              width: 34, height: 34, borderRadius: 8,
-              background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center",
+              width: 32, height: 32, borderRadius: 7,
+              background: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Scale size={18} color="#fff" />
+              <Scale size={16} color="#fff" strokeWidth={2} />
             </div>
             <div>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 400, fontSize: 18, color: "#0F1C2E", letterSpacing: "-0.01em" }}>
-                Juris<span style={{ color: "var(--accent)" }}>.IA</span>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "#F1F5F9", letterSpacing: "-0.02em" }}>
+                JURIS
               </span>
-              <p style={{ fontSize: 10, color: "#9AA3B0", margin: 0, letterSpacing: ".06em", textTransform: "uppercase" }}>
+              <p style={{ fontSize: 10, color: "#475569", margin: 0, letterSpacing: ".06em", textTransform: "uppercase" }}>
                 Software Jurídico
               </p>
             </div>
@@ -238,30 +238,31 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </div>
 
         {/* User footer */}
-        <div style={{ padding: "12px 16px", borderTop: "1px solid #E8ECF0", background: "#FFFFFF" }}>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 600, color: "#fff", flexShrink: 0,
+              width: 30, height: 30, borderRadius: "50%",
+              background: "#1E3A5F", border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 12, fontWeight: 600, color: "#93C5FD", flexShrink: 0,
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: "#0F1C2E", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: "#E2E8F0", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.full_name || "Usuário"}
               </p>
-              <p style={{ fontSize: 11, color: "#9AA3B0", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 11, color: "#475569", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.email || ""}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9AA3B0", transition: "color .15s", minHeight: "unset", minWidth: "unset" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#0F1C2E"}
-              onMouseLeave={e => e.currentTarget.style.color = "#9AA3B0"}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#475569", transition: "color .15s", minHeight: "unset", minWidth: "unset" }}
+              onMouseEnter={e => e.currentTarget.style.color = "#94A3B8"}
+              onMouseLeave={e => e.currentTarget.style.color = "#475569"}
             >
-              <LogOut size={16} />
+              <LogOut size={15} />
             </button>
           </div>
         </div>
@@ -273,10 +274,9 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* Topbar */}
         <header style={{
           height: "var(--header-h)", background: "#FFFFFF",
-          borderBottom: "1px solid #E8ECF0",
-          boxShadow: "none",
+          borderBottom: "1px solid var(--border)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 24px", position: "sticky", top: 0, zIndex: 30,
+          padding: "0 20px", position: "sticky", top: 0, zIndex: 30,
         }}>
           {/* Mobile hamburger + breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -303,24 +303,13 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               </React.Suspense>
             )}
 
-            {/* Settings link */}
-            <Link to={createPageUrl("Settings")} style={{
-              background: "none", border: "1px solid var(--border)", borderRadius: "var(--r-md)",
-              padding: "6px 9px", color: "var(--text-2)", display: "flex", alignItems: "center",
-              textDecoration: "none", transition: "all .15s", minHeight: "unset",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-2)"; }}
-            >
-              <Settings size={15} />
-            </Link>
-
             {/* Avatar */}
             <div style={{
               width: 30, height: 30, borderRadius: "50%",
-              background: "var(--accent)", color: "#fff",
+              background: "#0F172A", color: "#93C5FD",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0,
+              border: "1px solid #E2E8F0",
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
