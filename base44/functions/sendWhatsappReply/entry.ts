@@ -3,7 +3,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { instance, remoteJid, text } = await req.json();
+
+    // Garante que o usuário só pode enviar pela própria instância (user.id === instance)
+    if (user.role !== 'admin' && instance !== user.id) {
+      return Response.json({ error: 'Forbidden: instance does not belong to you' }, { status: 403 });
+    }
 
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");

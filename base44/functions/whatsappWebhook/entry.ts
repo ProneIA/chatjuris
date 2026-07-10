@@ -4,7 +4,11 @@ Deno.serve(async (req) => {
   try {
     const webhookToken = req.headers.get('apikey') || req.headers.get('x-webhook-token');
     const expectedToken = Deno.env.get('EVOLUTION_WEBHOOK_TOKEN');
-    if (expectedToken && webhookToken !== expectedToken) {
+    if (!expectedToken) {
+      console.error('[WhatsApp Webhook] EVOLUTION_WEBHOOK_TOKEN não configurado — rejeitando por segurança');
+      return Response.json({ error: 'Webhook token not configured' }, { status: 503 });
+    }
+    if (webhookToken !== expectedToken) {
       console.warn('[WhatsApp Webhook] Token inválido — request rejeitado');
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }

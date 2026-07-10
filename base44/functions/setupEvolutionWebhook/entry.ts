@@ -6,8 +6,9 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // user_id sempre deriva do token autenticado; administradores podem passar user_id explícito
     const body = await req.json().catch(() => ({}));
-    const user_id = body?.user_id || user.id;
+    const user_id = (user.role === 'admin' && body?.user_id) ? body.user_id : user.id;
 
     const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
