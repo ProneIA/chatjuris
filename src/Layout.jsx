@@ -166,8 +166,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
   if (isLoading) {
     return (
-      <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
-        <div style={{ width: 32, height: 32, border: "3px solid var(--border)", borderTopColor: "var(--accent)", borderRadius: "50%", animation: "spin .7s linear infinite" }} />
+      <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#F9F8F6" }}>
+        <div style={{ width: 28, height: 28, border: "2px solid #E5E3DF", borderTopColor: "#14362E", borderRadius: "50%", animation: "spin .7s linear infinite" }} />
       </div>
     );
   }
@@ -204,8 +204,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         className={isMobileMenuOpen ? "sidebar-open" : "sidebar-closed"}
         style={{
           width: "var(--sidebar-w)", flexShrink: 0,
-          background: "#0F172A",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
+          background: "#0D1916",
+          borderRight: "1px solid rgba(255,255,255,0.05)",
           boxShadow: "none",
           display: "flex", flexDirection: "column",
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 46,
@@ -216,16 +216,16 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "transparent" }}>
           <Link to={createPageUrl("Dashboard")} onClick={() => setIsMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 7,
-              background: "#1E3A5F", display: "flex", alignItems: "center", justifyContent: "center",
+              width: 30, height: 30, borderRadius: 5,
+              background: "#14362E", border: "1px solid rgba(197,168,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Scale size={16} color="#fff" strokeWidth={2} />
+              <Scale size={14} color="#C5A880" strokeWidth={1.5} />
             </div>
             <div>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "#F1F5F9", letterSpacing: "-0.02em" }}>
-                JURIS
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 16, color: "#F4F3F1", letterSpacing: "0.01em" }}>
+                Juris
               </span>
-              <p style={{ fontSize: 10, color: "#475569", margin: 0, letterSpacing: ".06em", textTransform: "uppercase" }}>
+              <p style={{ fontSize: 9.5, color: "#3A4A45", margin: 0, letterSpacing: ".08em", textTransform: "uppercase" }}>
                 Software Jurídico
               </p>
             </div>
@@ -238,21 +238,21 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </div>
 
         {/* User footer */}
-        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "transparent" }}>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.05)", background: "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 30, height: 30, borderRadius: "50%",
-              background: "#1E3A5F", border: "1px solid rgba(255,255,255,0.1)",
+              width: 28, height: 28, borderRadius: "50%",
+              background: "#14362E", border: "1px solid rgba(197,168,128,0.2)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 600, color: "#93C5FD", flexShrink: 0,
+              fontSize: 11, fontWeight: 600, color: "#C5A880", flexShrink: 0,
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 500, color: "#E2E8F0", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: "#F4F3F1", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.full_name || "Usuário"}
               </p>
-              <p style={{ fontSize: 11, color: "#475569", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 11, color: "#3A4A45", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.email || ""}
               </p>
             </div>
@@ -274,7 +274,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         {/* Topbar */}
         <header style={{
           height: "var(--header-h)", background: "#FFFFFF",
-          borderBottom: "1px solid var(--border)",
+          borderBottom: "1px solid #E5E3DF",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0 20px", position: "sticky", top: 0, zIndex: 30,
         }}>
@@ -305,11 +305,11 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
             {/* Avatar */}
             <div style={{
-              width: 30, height: 30, borderRadius: "50%",
-              background: "#1E3A5F", color: "#CBD5E1",
+              width: 28, height: 28, borderRadius: "50%",
+              background: "#14362E", color: "#C5A880",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0,
-              border: "1px solid #E2E8F0",
+              fontSize: 11, fontWeight: 600, cursor: "pointer", flexShrink: 0,
+              border: "1px solid #E5E3DF",
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
