@@ -7,6 +7,9 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Não autenticado' }, { status: 401 });
     }
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Acesso negado. Apenas administradores podem ativar assinaturas.' }, { status: 403 });
+    }
 
     const body = await req.json();
     const { user_email, user_id, plan_type: rawPlanType, plan_id, payment_id, payment_method } = body;
