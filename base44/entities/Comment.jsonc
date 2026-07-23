@@ -51,9 +51,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "mentions": {
-            "$contains": "{{user.email}}"
-          }
+          "data.mentions": "{{user.email}}"
         }
       ]
     },
