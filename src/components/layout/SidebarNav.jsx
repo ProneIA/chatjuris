@@ -2,13 +2,12 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  LayoutDashboard, Activity, CheckSquare,
+  LayoutDashboard, CheckSquare,
   FolderOpen, Users, Globe, FileText, Files,
   DollarSign, Search, Zap, Calculator, Newspaper, BookOpen, Scale,
-  MessageSquare, MessageCircle, Settings,
-  Users2, UserCheck,
-  Lock, Shield, Database, BarChart3, ClipboardList, Bot,
-  ChevronRight, Crown,
+  Settings,
+  Users2,
+  Crown,
   MessagesSquare,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -19,7 +18,6 @@ const NAV_SECTIONS = [
     items: [
       { title: "Dashboard",          url: createPageUrl("Dashboard"),          icon: LayoutDashboard },
       { title: "Agenda & Prazos",    url: createPageUrl("Tasks"),              icon: CheckSquare },
-      { title: "Radar de Marketing", url: createPageUrl("RadarOportunidades"), icon: Activity },
     ],
   },
   {
@@ -61,21 +59,6 @@ const NAV_SECTIONS = [
       { title: "Configurações",  url: createPageUrl("Settings"),        icon: Settings },
     ],
   },
-];
-
-const ADMIN_ITEMS = [
-  { title: "Painel Admin",      url: createPageUrl("AdminPanel"),         icon: BarChart3 },
-  { title: "Admin Master",      url: createPageUrl("AdminMaster"),        icon: Shield },
-  { title: "Afiliados",         url: createPageUrl("AffiliatesDashboard"), icon: UserCheck },
-  { title: "Assinaturas",       url: createPageUrl("AdminSubscriptions"), icon: Crown },
-  { title: "Banco de Dados",    url: createPageUrl("AdminDatabase"),      icon: Database },
-  { title: "Auditoria",         url: createPageUrl("SystemAudit"),        icon: ClipboardList },
-  { title: "LGPD",              url: createPageUrl("LGPDCompliance"),     icon: Shield },
-  { title: "WhatsApp Bot",      url: createPageUrl("WhatsAppBot"),        icon: MessageCircle },
-  { title: "WhatsApp Connect",  url: createPageUrl("WhatsAppConnect"),    icon: Settings },
-  { title: "Conversas WA",      url: "/conversations",                    icon: MessageSquare },
-  { title: "Config. Agente IA", url: createPageUrl("AgentSettings"),      icon: Bot },
-  { title: "Webhook Test",      url: createPageUrl("WebhookTest"),        icon: Zap },
 ];
 
 function NavItem({ item, location, onNavigate }) {
@@ -127,51 +110,6 @@ function SectionLabel({ label }) {
   );
 }
 
-function AdminSection({ location, onNavigate }) {
-  const [open, setOpen] = React.useState(false);
-  const hasActive = ADMIN_ITEMS.some(i => location.pathname === i.url);
-  React.useEffect(() => { if (hasActive) setOpen(true); }, [location.pathname]);
-
-  return (
-    <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-      <SectionLabel label="Admin" />
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: "flex", alignItems: "center", gap: 9,
-          width: "calc(100% - 16px)", padding: "6px 12px", margin: "1px 8px",
-          background: "rgba(158,63,60,0.10)", border: "none",
-          borderRadius: 6, cursor: "pointer",
-          fontSize: 13, fontWeight: 500, color: "#D4918E",
-          fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
-          transition: "background .12s",
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(158,63,60,0.16)"}
-        onMouseLeave={e => e.currentTarget.style.background = "rgba(158,63,60,0.10)"}
-      >
-        <Lock size={14} style={{ color: "#D4918E", flexShrink: 0, strokeWidth: 1.5 }} />
-        <span style={{ flex: 1, textAlign: "left" }}>Área Restrita</span>
-        <ChevronRight size={12} style={{
-          color: "#D4918E",
-          transform: open ? "rotate(90deg)" : "rotate(0deg)",
-          transition: "transform .15s", flexShrink: 0,
-        }} />
-      </button>
-      <div style={{
-        overflow: "hidden",
-        maxHeight: open ? `${ADMIN_ITEMS.length * 34}px` : "0px",
-        transition: "max-height .2s ease",
-      }}>
-        <div style={{ paddingTop: 2 }}>
-          {ADMIN_ITEMS.map(item => (
-            <NavItem key={item.url + item.title} item={item} location={location} onNavigate={onNavigate} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function SidebarNav({ user, onNavigate }) {
   const location = useLocation();
   const [currentUser, setCurrentUser] = React.useState(user || null);
@@ -184,8 +122,6 @@ export default function SidebarNav({ user, onNavigate }) {
     }
   }, [user]);
 
-  const isAdmin = currentUser?.role === "admin";
-
   return (
     <nav style={{ paddingBottom: 16 }}>
       {NAV_SECTIONS.map(section => (
@@ -196,7 +132,6 @@ export default function SidebarNav({ user, onNavigate }) {
           ))}
         </div>
       ))}
-      {isAdmin && <AdminSection location={location} onNavigate={onNavigate} />}
     </nav>
   );
 }

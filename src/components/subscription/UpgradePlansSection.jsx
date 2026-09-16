@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Zap, Crown, Building2, Clock, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
-import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 const PLANS_MONTHLY = [
   {
@@ -113,7 +112,6 @@ const colorClasses = {
 
 export default function UpgradePlansSection({ subscription, theme = "light" }) {
   const isDark = theme === "dark";
-  const [checkoutPlan, setCheckoutPlan] = useState(null);
   const [billing, setBilling] = useState("monthly");
 
   const plans = billing === "yearly" ? PLANS_YEARLY : PLANS_MONTHLY;
@@ -161,10 +159,10 @@ export default function UpgradePlansSection({ subscription, theme = "light" }) {
 
       <div>
         <h3 className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-          {isInTrial || isExpired ? "Escolha seu Plano" : "Planos Disponíveis"}
+          Planos Disponíveis
         </h3>
         <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-gray-500"}`}>
-          {isInTrial ? "Continue com acesso após o teste" : isExpired ? "Recupere seu acesso" : "Faça upgrade ou troque seu plano"}
+          O gerenciamento de assinatura está temporariamente indisponível
         </p>
       </div>
 
@@ -258,14 +256,13 @@ export default function UpgradePlansSection({ subscription, theme = "light" }) {
               </ul>
 
               <button
-                onClick={() => !isCurrent && setCheckoutPlan(plan)}
-                disabled={isCurrent}
-                className={`w-full py-2.5 text-xs font-bold uppercase tracking-wider transition-opacity ${
-                  isCurrent ? "bg-green-100 text-green-700 cursor-not-allowed" : `${colors.btn} text-white cursor-pointer`
-                }`}
+                disabled
+                className={`w-full py-2.5 text-xs font-bold uppercase tracking-wider ${
+                  isCurrent ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"
+                } cursor-not-allowed`}
                 style={{ border: "none", borderRadius: 0, fontFamily: "'Oswald', sans-serif", letterSpacing: ".1em" }}
               >
-                {isCurrent ? "✓ Plano Atual" : isInTrial ? "Assinar Agora" : "Fazer Upgrade"}
+                {isCurrent ? "✓ Plano Atual" : "Indisponível"}
               </button>
             </motion.div>
           );
@@ -273,12 +270,8 @@ export default function UpgradePlansSection({ subscription, theme = "light" }) {
       </div>
 
       <p className={`text-xs text-center ${isDark ? "text-neutral-500" : "text-gray-400"}`}>
-        Pagamento seguro via cartão de crédito · Mercado Pago
+        Gerenciamento de assinatura temporariamente indisponível
       </p>
-
-      {checkoutPlan && (
-        <CheckoutModal plan={checkoutPlan} onClose={() => setCheckoutPlan(null)} />
-      )}
     </div>
   );
 }

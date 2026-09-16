@@ -18,17 +18,8 @@ const MAIN_ITEMS = [
 ];
 
 const MORE_ITEMS = [
-  { to: "Tasks",              label: "Tarefas",        icon: CheckSquare },
-  { to: "Clients",            label: "Clientes",       icon: Users },
-  { to: "LegalResearch",      label: "Jurisprudência", icon: Scale },
-  { to: "Templates",          label: "Modelos",        icon: BookOpen },
-  { to: "CalculadoraJuridica", label: "Calculadora",   icon: Calculator, directPath: "/CalculadoraJuridica" },
-  { to: "DiarioMonitor",      label: "Diário",         icon: Newspaper },
-  { to: "FinancialDashboard", label: "Financeiro",     icon: BarChart2 },
-  { to: "Teams",              label: "Equipe",         icon: Users2 },
-  { to: "RadarOportunidades", label: "Radar",          icon: Activity },
-  { to: "MySubscription",     label: "Assinatura",     icon: Zap },
-  { to: "Settings",           label: "Config",         icon: Settings },
+  { to: "Clients",  label: "Clientes", icon: Users },
+  { to: "Settings", label: "Config",   icon: Settings },
 ];
 
 export default function BottomNavigation({ user, onLogout }) {
@@ -44,9 +35,7 @@ export default function BottomNavigation({ user, onLogout }) {
     return location.pathname === href || location.pathname.startsWith(href + "/");
   };
 
-  const allMoreItems = isAdmin
-    ? [...MORE_ITEMS, { to: "AdminPanel", label: "Admin", icon: Shield }]
-    : MORE_ITEMS;
+  const allMoreItems = MORE_ITEMS;
 
   return (
     <>

@@ -35,21 +35,6 @@ if (typeof window !== "undefined") {
   }
 }
 
-// ── Access cache (5 min TTL) ───────────────────────────────────────────────
-const ACCESS_CACHE_TTL = 5 * 60 * 1000;
-function getAccessCache(userId) {
-  try {
-    const raw = localStorage.getItem(`juris_access_${userId}`);
-    if (!raw) return null;
-    const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts > ACCESS_CACHE_TTL) { localStorage.removeItem(`juris_access_${userId}`); return null; }
-    return data;
-  } catch { return null; }
-}
-function setAccessCache(userId, data) {
-  try { localStorage.setItem(`juris_access_${userId}`, JSON.stringify({ data, ts: Date.now() })); } catch {}
-}
-
 const pagesWithoutBackButton = [
   "Dashboard", "LandingPage", "QuemSomos", "Funcionalidades",
   "ContactPublic", "Pricing", "ClientAccess", "AccessDenied", "Checkout",
@@ -83,15 +68,6 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         setUser(u);
         if (u?.id) {
           try {
-            if (!u.trial_start_date && !u.subscription_start_date) {
-              const trialResponse = await base44.functions.invoke("createTrialSubscription", {});
-              if (trialResponse.data.success) {
-                setUser(trialResponse.data.user);
-                setTrialDaysLeft(7);
-                const key = `trial_welcome_shown_${u.id}`;
-                if (!localStorage.getItem(key)) { setShowTrialWelcome(true); localStorage.setItem(key, "true"); }
-              }
-            }
             if (!u.has_password) setShowGoogleMigration(true);
             const localConsentKey = `consent_accepted_${u.email}`;
             if (localStorage.getItem(localConsentKey) === "true") {
@@ -104,24 +80,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
               else setShowConsentModal(true);
               setHasCheckedConsent(true);
             }
-            const cached = getAccessCache(u.id);
-            if (cached) {
-              setHasAccess(cached.canAccess);
-              setAccessChecked(true);
-              if (!cached.canAccess && cached.redirectToPricing) {
-                const cp = window.location.pathname;
-                if (!publicPages.some(p => cp.includes(p))) window.location.href = "/Pricing";
-              }
-            } else {
-              const { data } = await base44.functions.invoke("canAccessSystem", {});
-              setHasAccess(data.canAccess);
-              setAccessCache(u.id, data);
-              setAccessChecked(true);
-              if (!data.canAccess && data.redirectToPricing) {
-                const cp = window.location.pathname;
-                if (!publicPages.some(p => cp.includes(p))) window.location.href = "/Pricing";
-              }
-            }
+            setHasAccess(true);
+            setAccessChecked(true);
           } catch {
             setHasCheckedConsent(true);
             setHasAccess(true);
@@ -146,8 +106,7 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
 
   const handleLogout = React.useCallback(() => base44.auth.logout("/LandingPage"), []);
 
-  const handleDeleteAccount = React.useCallback(async () => {
-    try { await base44.functions.invoke("deleteUserAccount", {}); } catch {}
+  const handleDeleteAccount = React.useCallback(() => {
     base44.auth.logout("/LandingPage");
   }, []);
 

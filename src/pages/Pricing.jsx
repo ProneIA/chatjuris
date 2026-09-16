@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import AffiliateTracker from "@/components/subscription/AffiliateTracker";
 import { SITE_CSS, SiteNav, SiteFooter } from "@/components/landing/PublicLayout";
-import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 // ─── Planos ─────────────────────────────────────────────────────────────────
 const PLANS_MONTHLY = [
@@ -570,14 +569,8 @@ export default function Pricing() {
     return subscription.payment_external_id?.includes(planId) || false;
   };
 
-  const handleSelectPlan = async (plan) => {
-    const isAuth = await base44.auth.isAuthenticated();
-    if (!isAuth) {
-      localStorage.setItem("selected_plan", plan.id);
-      base44.auth.redirectToLogin(createPageUrl("Pricing"));
-      return;
-    }
-    setSelectedPlan(plan);
+  const handleSelectPlan = () => {
+    setSelectedPlan("unavailable");
   };
 
   // Ao logar, retomar seleção de plano
@@ -772,12 +765,29 @@ export default function Pricing() {
 
       <SiteFooter />
 
-      {/* ── MODAL DE CHECKOUT ────────────────────────────── */}
+      {/* ── AVISO: ASSINATURA INDISPONÍVEL ────────────────── */}
       {selectedPlan && (
-        <CheckoutModal
-          plan={selectedPlan}
-          onClose={() => setSelectedPlan(null)}
-        />
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedPlan(null); }}
+        >
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }} />
+          <div style={{ position: "relative", zIndex: 1, background: "#fff", width: "100%", maxWidth: 420, padding: "2rem", textAlign: "center" }}>
+            <AlertTriangle style={{ width: 32, height: 32, color: "#C8A84B", margin: "0 auto 1rem" }} />
+            <h3 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.1rem", textTransform: "uppercase", color: "#0a0a0a", marginBottom: ".5rem" }}>
+              Assinatura Indisponível
+            </h3>
+            <p style={{ color: "#6b6b80", fontSize: ".85rem", marginBottom: "1.5rem" }}>
+              O gerenciamento de assinatura está temporariamente indisponível. Tente novamente mais tarde.
+            </p>
+            <button
+              onClick={() => setSelectedPlan(null)}
+              style={{ background: "#0a0a0a", color: "#fff", border: "none", padding: ".8rem 2rem", cursor: "pointer", fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: ".78rem", textTransform: "uppercase", letterSpacing: ".1em" }}
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

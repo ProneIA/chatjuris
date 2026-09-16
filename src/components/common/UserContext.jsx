@@ -44,41 +44,10 @@ export function UserProvider({ children }) {
   const [accessChecked, setAccessChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const checkAccess = useCallback(async (userId) => {
-    // Verificar cache primeiro
-    const cached = getAccessCache(userId);
-    if (cached) {
-      setHasAccess(cached.canAccess);
-      setAccessChecked(true);
-      return cached;
-    }
-
-    try {
-      const { data } = await base44.functions.invoke('canAccessSystem', {});
-      setHasAccess(data.canAccess);
-      setAccessCache(userId, data);
-      setAccessChecked(true);
-
-      if (!data.canAccess) {
-        const publicPages = ["/Pricing", "/LandingPage", "/QuemSomos", "/Funcionalidades", "/ContactPublic", "/login", "/cadastro"];
-        const isPublic = publicPages.some(p => window.location.pathname.startsWith(p));
-        if (!isPublic) {
-          if (data.reason === 'account_deleted' || data.redirectToLogin) {
-            window.location.href = '/LandingPage';
-          } else if (data.redirectToPricing) {
-            // Passar o motivo do bloqueio como query param para exibir mensagem na página /Pricing
-            const msg = encodeURIComponent(data.reason || 'blocked');
-            window.location.href = `/Pricing?blocked=${msg}`;
-          }
-        }
-      }
-      return data;
-    } catch {
-      console.error('[UserContext] Falha ao verificar acesso — negando por segurança');
-      setHasAccess(false);
-      setAccessChecked(true);
-      return { canAccess: false, reason: 'network_error' };
-    }
+  const checkAccess = useCallback(async () => {
+    setHasAccess(true);
+    setAccessChecked(true);
+    return { canAccess: true };
   }, []);
 
   // Forçar refresh do cache de acesso (ex: após pagamento)

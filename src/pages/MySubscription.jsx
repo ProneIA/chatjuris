@@ -8,7 +8,6 @@ import {
   MessageSquare, FileText, Users, RefreshCw, X
 } from "lucide-react";
 import UpgradePlansSection from "@/components/subscription/UpgradePlansSection";
-import CheckoutModal from "@/components/subscription/CheckoutModal";
 
 // Plano padrão para renovação — Pro Mensal
 const DEFAULT_RENEWAL_PLAN = {
@@ -71,7 +70,6 @@ const PLAN_CONFIG = {
 
 export default function MySubscription() {
   const [user, setUser] = useState(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -259,27 +257,11 @@ export default function MySubscription() {
           )}
 
           {/* Ações */}
-          <div style={{ padding: "1rem 2rem 1.5rem", borderTop: "1px solid #F0EDE6", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            {!plan.isPermanent && (
-              <button
-                onClick={() => setCheckoutOpen(true)}
-                style={{ background: GOLD, color: "#fff", border: "none", borderRadius: 8, padding: "9px 22px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", boxShadow: "0 2px 8px rgba(201,168,76,0.25)" }}
-              >
-                {isExpired ? "Renovar Assinatura" : subscription.status === "trial" ? "Assinar um Plano" : "Gerenciar Assinatura"}
-              </button>
-            )}
-            {plan.isRecurrent && !isExpired && (
-              <button
-                style={{ background: "#fff", color: "#DC2626", border: "1px solid #FECACA", borderRadius: 8, padding: "9px 22px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}
-                onClick={() => {
-                  if (confirm("Deseja cancelar sua assinatura? Entre em contato com o suporte para concluir o cancelamento.")) {
-                    window.location.href = "/Contact";
-                  }
-                }}
-              >
-                Cancelar Plano
-              </button>
-            )}
+          <div style={{ padding: "1rem 2rem 1.5rem", borderTop: "1px solid #F0EDE6" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0.75rem 1rem", background: "#F5F3EE", borderRadius: 8, fontSize: "0.82rem", color: "#888" }}>
+              <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
+              O gerenciamento de assinatura está temporariamente indisponível.
+            </div>
           </div>
         </div>
 
@@ -372,14 +354,6 @@ export default function MySubscription() {
         )}
       </div>
     </div>
-
-    {/* Checkout Modal direto com plano pré-selecionado */}
-    {checkoutOpen && (
-      <CheckoutModal
-        plan={DEFAULT_RENEWAL_PLAN}
-        onClose={() => setCheckoutOpen(false)}
-      />
-    )}
     </>
   );
 }

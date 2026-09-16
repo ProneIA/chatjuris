@@ -10,29 +10,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
-import ProtectedRoute from './components/ProtectedRoute';
-import LGPDAudit from './pages/LGPDAudit';
-import LGPDCompliance from './pages/LGPDCompliance';
 import LexIA from './pages/LexIA';
-import AdminPanel from './pages/AdminPanel';
-import AdminMaster from './pages/AdminMaster';
-import AdminDatabase from './pages/AdminDatabase';
-import AdminSubscriptions from './pages/AdminSubscriptions';
-import SystemAudit from './pages/SystemAudit';
-import AffiliatesDashboard from './pages/AffiliatesDashboard';
-import WhatsAppBot from './pages/WhatsAppBot';
-import JusTrackDashboard from './pages/JusTrackDashboard';
-import JusTrackPesquisa from './pages/JusTrackPesquisa';
-import JusTrackProcessos from './pages/JusTrackProcessos';
-import JusTrackNovo from './pages/JusTrackNovo';
-import JusTrackDetalhes from './pages/JusTrackDetalhes';
-import JusTrackEditar from './pages/JusTrackEditar';
-import JusTrackOAB from './pages/JusTrackOAB';
-import JusTrackConfiguracoes from './pages/JusTrackConfiguracoes';
-import WhatsAppConnect from './pages/WhatsAppConnect';
-import AgentSettings from './pages/AgentSettings';
-import WhatsAppConversations from './pages/WhatsAppConversations';
-import WebhookTest from './pages/WebhookTest';
 import CalculadoraJuridica from './pages/CalculadoraJuridica';
 import CriarSenha from './pages/CriarSenha';
 import DesignSystem from './pages/DesignSystem';
@@ -87,82 +65,14 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
-      {/* ── ROTAS RESTRITAS A ADMIN ── */}
-      <Route path="/LGPDAudit" element={
-        <LayoutWrapper currentPageName="LGPDAudit">
-          <ProtectedAdminRoute><LGPDAudit /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/LGPDCompliance" element={
-        <LayoutWrapper currentPageName="LGPDCompliance">
-          <ProtectedAdminRoute><LGPDCompliance /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/AdminPanel" element={
-        <LayoutWrapper currentPageName="AdminPanel">
-          <ProtectedAdminRoute><AdminPanel /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/AdminMaster" element={
-        <LayoutWrapper currentPageName="AdminMaster">
-          <ProtectedAdminRoute><AdminMaster /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/AdminDatabase" element={
-        <LayoutWrapper currentPageName="AdminDatabase">
-          <ProtectedAdminRoute><AdminDatabase /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/AdminSubscriptions" element={
-        <LayoutWrapper currentPageName="AdminSubscriptions">
-          <ProtectedAdminRoute><AdminSubscriptions /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/SystemAudit" element={
-        <LayoutWrapper currentPageName="SystemAudit">
-          <ProtectedAdminRoute><SystemAudit /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/AffiliatesDashboard" element={
-        <LayoutWrapper currentPageName="AffiliatesDashboard">
-          <ProtectedAdminRoute><AffiliatesDashboard /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/WhatsAppBot" element={
-        <LayoutWrapper currentPageName="WhatsAppBot">
-          <ProtectedAdminRoute><WhatsAppBot /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/WhatsAppConnect" element={
-        <LayoutWrapper currentPageName="WhatsAppConnect">
-          <ProtectedAdminRoute><WhatsAppConnect /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
-      <Route path="/conversations" element={
-        <LayoutWrapper currentPageName="WhatsAppConversations">
-          <ProtectedAdminRoute><WhatsAppConversations /></ProtectedAdminRoute>
-        </LayoutWrapper>
-      } />
       <Route path="/LexIA" element={
         <LexIA />
       } />
-      <Route element={<ProtectedRoute unauthenticatedElement={null} />}>
-        <Route path="/JusTrackDashboard" element={<JusTrackDashboard />} />
-        <Route path="/JusTrackOAB" element={<JusTrackOAB />} />
-        <Route path="/JusTrackPesquisa" element={<JusTrackPesquisa />} />
-        <Route path="/JusTrackProcessos" element={<JusTrackProcessos />} />
-        <Route path="/JusTrackNovo" element={<JusTrackNovo />} />
-        <Route path="/JusTrackDetalhes" element={<JusTrackDetalhes />} />
-        <Route path="/JusTrackEditar" element={<JusTrackEditar />} />
-        <Route path="/JusTrackConfiguracoes" element={<JusTrackConfiguracoes />} />
-      </Route>
       <Route path="/CalculadoraJuridica" element={
         <LayoutWrapper currentPageName="CalculadoraJuridica">
           <CalculadoraJuridica />
         </LayoutWrapper>
       } />
-      <Route path="/AgentSettings" element={<LayoutWrapper currentPageName="AgentSettings"><ProtectedAdminRoute><AgentSettings /></ProtectedAdminRoute></LayoutWrapper>} />
-      <Route path="/webhook-test" element={<LayoutWrapper currentPageName="WebhookTest"><ProtectedAdminRoute><WebhookTest /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="/criar-senha" element={<CriarSenha />} />
       <Route path="/DesignSystem" element={<LayoutWrapper currentPageName="DesignSystem"><ProtectedAdminRoute><DesignSystem /></ProtectedAdminRoute></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />

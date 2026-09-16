@@ -28,43 +28,10 @@ export default function MyData({ theme = 'light' }) {
     enabled: !!user?.email
   });
 
-  const exportMutation = useMutation({
-    mutationFn: async () => {
-      const response = await base44.functions.invoke('exportUserData', {});
-      return response.data;
-    },
-    onSuccess: (data) => {
-      // Download do arquivo JSON
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `meus-dados-juris-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-      
-      toast.success('Dados exportados com sucesso!');
-    },
-    onError: () => {
-      toast.error('Erro ao exportar dados');
-    }
-  });
-
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await base44.functions.invoke('deleteUserAccount', {});
+      await base44.auth.logout();
     },
-    onSuccess: () => {
-      toast.success('Conta excluída. Você será desconectado.');
-      setTimeout(() => {
-        base44.auth.logout();
-      }, 2000);
-    },
-    onError: () => {
-      toast.error('Erro ao excluir conta');
-    }
   });
 
   return (
@@ -194,20 +161,15 @@ export default function MyData({ theme = 'light' }) {
         <div className="grid md:grid-cols-2 gap-4">
           <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Download className="w-5 h-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-lg text-gray-500">
+                <Download className="w-5 h-5" />
                 Exportar Dados
               </CardTitle>
-              <CardDescription>Baixe todos os seus dados em formato JSON</CardDescription>
+              <CardDescription>Recurso temporariamente indisponível</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => exportMutation.mutate()}
-                disabled={exportMutation.isPending}
-                className="w-full"
-                variant="outline"
-              >
-                {exportMutation.isPending ? "Exportando..." : "Exportar Meus Dados"}
+              <Button disabled className="w-full" variant="outline">
+                Exportar Meus Dados
               </Button>
               <p className="text-xs text-gray-500 mt-2">
                 Conforme Art. 18º, inciso II da LGPD
@@ -215,36 +177,27 @@ export default function MyData({ theme = 'light' }) {
             </CardContent>
           </Card>
 
-          <Card className={`border-red-200 ${isDark ? 'bg-red-950/20' : 'bg-red-50'}`}>
+          <Card className={isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white'}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg text-red-600">
+              <CardTitle className="flex items-center gap-2 text-lg text-gray-500">
                 <AlertTriangle className="w-5 h-5" />
                 Excluir Conta
               </CardTitle>
-              <CardDescription>Exclusão permanente de todos os seus dados</CardDescription>
+              <CardDescription>Recurso temporariamente indisponível</CardDescription>
             </CardHeader>
             <CardContent>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" className="w-full">
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Excluir Minha Conta
+                    Sair da Conta
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
+                    <AlertDialogTitle>Sair da conta?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta ação é <strong>irreversível</strong>. Todos os seus dados serão permanentemente excluídos:
-                      <ul className="list-disc list-inside mt-2 space-y-1">
-                        <li>Processos e documentos</li>
-                        <li>Clientes e tarefas</li>
-                        <li>Assinatura e pagamentos</li>
-                        <li>Todas as configurações</li>
-                      </ul>
-                      <p className="mt-3 font-semibold">
-                        Você será desconectado imediatamente após a exclusão.
-                      </p>
+                      A exclusão permanente de conta está temporariamente indisponível. Você pode sair da sua conta agora.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -253,12 +206,12 @@ export default function MyData({ theme = 'light' }) {
                       onClick={() => deleteMutation.mutate()}
                       className="bg-red-600 hover:bg-red-700"
                     >
-                      Sim, Excluir Permanentemente
+                      Sair
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <p className="text-xs text-red-600 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 Conforme Art. 18º, inciso VI da LGPD
               </p>
             </CardContent>
