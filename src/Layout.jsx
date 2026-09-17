@@ -163,8 +163,8 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         className={isMobileMenuOpen ? "sidebar-open" : "sidebar-closed"}
         style={{
           width: "var(--sidebar-w)", flexShrink: 0,
-          background: "#0D1916",
-          borderRight: "1px solid rgba(255,255,255,0.05)",
+          background: "#000000",
+          borderRight: "1px solid rgba(255,255,255,0.08)",
           boxShadow: "none",
           display: "flex", flexDirection: "column",
           position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 46,
@@ -176,15 +176,15 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
           <Link to={createPageUrl("Dashboard")} onClick={() => setIsMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <div style={{
               width: 30, height: 30, borderRadius: 5,
-              background: "#14362E", border: "1px solid rgba(197,168,128,0.2)", display: "flex", alignItems: "center", justifyContent: "center",
+              background: "#1A1A1A", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <Scale size={14} color="#C5A880" strokeWidth={1.5} />
+              <Scale size={14} color="#FFFFFF" strokeWidth={1.5} />
             </div>
             <div>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 16, color: "#F4F3F1", letterSpacing: "0.01em" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: 16, color: "#FFFFFF", letterSpacing: "0.01em" }}>
                 Juris
               </span>
-              <p style={{ fontSize: 9.5, color: "#3A4A45", margin: 0, letterSpacing: ".08em", textTransform: "uppercase" }}>
+              <p style={{ fontSize: 9.5, color: "#808080", margin: 0, letterSpacing: ".08em", textTransform: "uppercase" }}>
                 Software Jurídico
               </p>
             </div>
@@ -197,21 +197,21 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
         </div>
 
         {/* User footer */}
-        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.05)", background: "transparent" }}>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", background: "transparent" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               width: 28, height: 28, borderRadius: "50%",
-              background: "#14362E", border: "1px solid rgba(197,168,128,0.2)",
+              background: "#1A1A1A", border: "1px solid rgba(255,255,255,0.2)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 600, color: "#C5A880", flexShrink: 0,
+              fontSize: 11, fontWeight: 600, color: "#FFFFFF", flexShrink: 0,
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 500, color: "#F4F3F1", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: "#FFFFFF", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.full_name || "Usuário"}
               </p>
-              <p style={{ fontSize: 11, color: "#3A4A45", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 11, color: "#808080", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {user?.email || ""}
               </p>
             </div>
@@ -265,10 +265,10 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
             {/* Avatar */}
             <div style={{
               width: 28, height: 28, borderRadius: "50%",
-              background: "#14362E", color: "#C5A880",
+              background: "#000000", color: "#FFFFFF",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 11, fontWeight: 600, cursor: "pointer", flexShrink: 0,
-              border: "1px solid #E5E3DF",
+              border: "1px solid #E0E0E0",
             }}>
               {user?.full_name?.[0]?.toUpperCase() || "U"}
             </div>

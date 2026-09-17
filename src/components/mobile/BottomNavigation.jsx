@@ -108,7 +108,7 @@ export default function BottomNavigation({ user, onLogout }) {
                   width: 40, height: 40, borderRadius: 12,
                   background: "var(--accent)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  marginTop: -8, boxShadow: "0 4px 14px rgba(59,130,246,.4)",
+                  marginTop: -8, boxShadow: "0 4px 14px rgba(0,0,0,.35)",
                 }}>
                   <Icon size={20} style={{ color: "#fff" }} />
                 </div>

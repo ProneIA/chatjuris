@@ -71,25 +71,25 @@ function NavItem({ item, location, onNavigate }) {
           display: "flex", alignItems: "center", gap: 9,
           padding: "6px 12px", margin: "1px 8px",
           borderRadius: 6,
-          background: active ? "#14362E" : "transparent",
-          borderLeft: active ? "2px solid #C5A880" : "2px solid transparent",
+          background: active ? "#1A1A1A" : "transparent",
+          borderLeft: active ? "2px solid #FFFFFF" : "2px solid transparent",
           transition: "background .12s ease, border-color .12s ease",
           cursor: "pointer",
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
       >
         <item.icon
           size={14}
           style={{
-            color: active ? "#C5A880" : "#5C6662",
+            color: active ? "#FFFFFF" : "#999999",
             flexShrink: 0,
             strokeWidth: 1.5,
           }}
         />
         <span style={{
           flex: 1, fontSize: 13, fontWeight: active ? 500 : 400,
-          color: active ? "#F4F3F1" : "#8A9490",
+          color: active ? "#FFFFFF" : "#999999",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
         }}>
@@ -104,7 +104,7 @@ function SectionLabel({ label }) {
   return (
     <p style={{
       fontSize: 9.5, fontWeight: 600, letterSpacing: ".10em", textTransform: "uppercase",
-      color: "#3A4A45", padding: "14px 20px 4px", margin: 0,
+      color: "#666666", padding: "14px 20px 4px", margin: 0,
       fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
     }}>{label}</p>
   );
