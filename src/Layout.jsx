@@ -131,7 +131,14 @@ const Layout = React.memo(function Layout({ children, currentPageName }) {
     );
   }
 
-  if (!user) return <>{children}</>;
+  if (!user) {
+    base44.auth.redirectToLogin();
+    return (
+      <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#F9F8F6" }}>
+        <div style={{ width: 28, height: 28, border: "2px solid #E5E3DF", borderTopColor: "#14362E", borderRadius: "50%", animation: "spin .7s linear infinite" }} />
+      </div>
+    );
+  }
   if (!accessChecked && user) return <>{children}</>;
 
   return (
